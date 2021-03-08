@@ -55,6 +55,9 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+      - name: Echo out the files
+        run: ls -al
+
       - name: Build image
         run: docker build php/${{ matrix.php-version }}/. --file Dockerfile --tag serversideup/php:${{ matrix.php-version }}
 
