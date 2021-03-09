@@ -11,7 +11,7 @@ on:
 
   # Run every day to update the images
   schedule:
-    - cron: '* * * * *'
+    - cron: '5 * * * *'
 
 env:
   # TODO: Change variable to your image's name.
