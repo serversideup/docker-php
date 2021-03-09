@@ -10,22 +10,21 @@ on:
   schedule:
     - cron: '0 12 * * *'
 
-env:
-  #Settting the latest version here determines what is the "latest" for the images
-  PHP_LATEST_VERSION: 7.4
-
 jobs:
   push:
     runs-on: ubuntu-20.04
 
     # Configure our deployment strategy. Order is important here and we want it to go: CLI < FPM < FPM-NGINX
     strategy:
-      # We want to limit the number of jobs to the number of versions at once (since we want the order to be built correctly)
+      # We want to limit the number of jobs to the number of versions that we're offering (since we want the dependency order to be built correctly)
       max-parallel: 2
       # Set our base image and versions here
       matrix:
-        base-image:
-          - ubuntu:20.04
+        ####################################################################################################################
+        # Possibly delete this "base-image" thing. (See https://github.com/serversideup/docker-php/issues/8)
+        ####################################################################################################################
+        # base-image:
+        #   - ubuntu:20.04
         php-variation:
           - cli
           - fpm
