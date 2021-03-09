@@ -1,55 +1,32 @@
 name: Docker Publish
-author: Jay Rogers <jay@serversideup.net>
-description: Automated builds of all docker images (on push and on schedule)
 
 on:
+  # When changes are pushed to the "main" branch, run it
   push:
-    # Publish `main` as Docker `latest` image.
     branches:
       - main
 
-  # # Run tests for any PRs.
-  # pull_request:
-
-  # Run every day to update the images
+  # Run every day at 1200 UTC to update the images
   schedule:
     - cron: '0 12 * * *'
 
 env:
-  # TODO: Change variable to your image's name.
-  IMAGE_NAME: image
+  #Settting the latest version here determines what is the "latest" for the images
+  PHP_LATEST_VERSION: 7.4
 
 jobs:
-  # # Run tests.
-  # # See also https://docs.docker.com/docker-hub/builds/automated-testing/
-  # test:
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - uses: actions/checkout@v2
-
-  #     - name: Run tests
-  #       run: |
-  #         if [ -f docker-compose.test.yml ]; then
-  #           docker-compose --file docker-compose.test.yml build
-  #           docker-compose --file docker-compose.test.yml run sut
-  #         else
-  #           docker build . --file Dockerfile
-  #         fi
-
-  # Push image to GitHub Packages.
-  # See also https://docs.docker.com/docker-hub/builds/
   push:
-    # Ensure test job passes before pushing image.
-    # needs: test
-
     runs-on: ubuntu-20.04
-    # if: github.event_name == 'push'
 
+    # Configure our deployment strategy. Order is important here and we want it to go: CLI < FPM < FPM-NGINX
     strategy:
       matrix:
         base-image:
           - ubuntu:20.04
+        php-variation:
+          - cli
+          - fpm
+          - fpm-nginx
         php-version: 
           - 7.3
           - 7.4
@@ -63,33 +40,44 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Cache base image digest
-        uses: actions/cache@v2
-        with:
-          path: ${{ runner.temp }}/.base-image-digest
-          key: base-image-digest
+####################################################################
+# Commenting this out for further testing & structure (See https://github.com/serversideup/docker-php/issues/8)
+####################################################################
+      # - name: Cache base image digest
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ${{ runner.temp }}/.base-image-digest
+      #     key: base-image-digest
 
-      - name: Read cached base image digest
-        id: cached-base-image-digest
-        run: |
-          touch "${{ runner.temp }}/.base-image-digest"
-          echo "::set-output name=sha256::$(head -n 1 "${{ runner.temp }}/.base-image-digest")"
+      # - name: Read cached base image digest
+      #   id: cached-base-image-digest
+      #   run: |
+      #     touch "${{ runner.temp }}/.base-image-digest"
+      #     echo "::set-output name=sha256::$(head -n 1 "${{ runner.temp }}/.base-image-digest")"
 
-      - name: Pull base image
-        run: docker pull ${{ matrix.base-image }}
+      # - name: Pull base image
+      #   run: docker pull ${{ matrix.base-image }}
 
-      - name: Set base image digest
-        id: base-image-digest
-        run: echo "::set-output name=sha256::$(docker inspect --format='{{index .RepoDigests 0}}' ${{ matrix.base-image }})"
+      # - name: Set base image digest
+      #   id: base-image-digest
+      #   run: echo "::set-output name=sha256::$(docker inspect --format='{{index .RepoDigests 0}}' ${{ matrix.base-image }})"
 
-      - name: Build image
-        if: steps.base-image-digest.outputs.sha256 != steps.cached-base-image-digest.outputs.sha256
-        run: docker build php/${{ matrix.php-version }}/. --tag serversideup/php:${{ matrix.php-version }}
+      # - name: Build image
+      #   if: steps.base-image-digest.outputs.sha256 != steps.cached-base-image-digest.outputs.sha256
+      #   run: docker build php/${{ matrix.php-version }}/. --tag serversideup/php:${{ matrix.php-version }}
 
-      - name: Push image to DockerHub
-        if: steps.base-image-digest.outputs.sha256 != steps.cached-base-image-digest.outputs.sha256
-        run: docker push serversideup/php:${{ matrix.php-version }}
+      # - name: Push image to DockerHub
+      #   if: steps.base-image-digest.outputs.sha256 != steps.cached-base-image-digest.outputs.sha256
+      #   run: docker push serversideup/php:${{ matrix.php-version }}
 
-      - name: Update base image digest cache
-        run: |
-          echo "${{ steps.base-image-digest.outputs.sha256 }}" >"${{ runner.temp }}/.base-image-digest"
+      # - name: Update base image digest cache
+      #   run: |
+      #     echo "${{ steps.base-image-digest.outputs.sha256 }}" >"${{ runner.temp }}/.base-image-digest"
+####################################################################
+
+
+      - name: Build and tag image
+        run: docker build php/${{ matrix.php-version }}/{{ matrix.php-variation }}. --tag serversideup/php${{ matrix.php-version }}-{{ matrix.php-variation }}
+
+      - name: Push version image to DockerHub
+        run: docker push serversideup/php${{ matrix.php-version }}-{{ matrix.php-variation }}
