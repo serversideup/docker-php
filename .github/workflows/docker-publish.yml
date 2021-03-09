@@ -61,9 +61,6 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Echo out the files
-        run: ls -al
-
       - name: Cache base image digest
         uses: actions/cache@v2
         with:
