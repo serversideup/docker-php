@@ -6,8 +6,8 @@ on:
     branches:
       - main
 
-  # Run tests for any PRs.
-  pull_request:
+  # # Run tests for any PRs.
+  # pull_request:
 
   # Run every day to update the images
   schedule:
