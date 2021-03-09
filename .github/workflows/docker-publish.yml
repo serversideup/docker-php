@@ -21,6 +21,8 @@ jobs:
     # Configure our deployment strategy. Order is important here and we want it to go: CLI < FPM < FPM-NGINX
     strategy:
       matrix:
+        # We want to limit the number of jobs to the number of versions at once (since we want the order to be built correctly)
+        max-parallel: 2
         base-image:
           - ubuntu:20.04
         php-variation:
