@@ -1,4 +1,6 @@
-name: Docker
+name: Docker Publish
+author: Jay Rogers <jay@serversideup.net>
+description: Automated builds of all docker images (on push and on schedule)
 
 on:
   push:
