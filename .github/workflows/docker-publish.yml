@@ -46,6 +46,8 @@ jobs:
 
     strategy:
       matrix:
+        base-image:
+          - ubuntu:20.04
         php-version: 
           - 7.3
           - 7.4
@@ -62,10 +64,33 @@ jobs:
       - name: Echo out the files
         run: ls -al
 
+      - name: Cache base image digest
+        uses: actions/cache@v2
+        with:
+          path: ${{ runner.temp }}/.base-image-digest
+          key: base-image-digest
+
+      - name: Read cached base image digest
+        id: cached-base-image-digest
+        run: |
+          touch "${{ runner.temp }}/.base-image-digest"
+          echo "::set-output name=sha256::$(head -n 1 "${{ runner.temp }}/.base-image-digest")"
+
+      - name: Pull base image
+        run: docker pull ${{ matrix.base-image }}
+
+      - name: Set base image digest
+        id: base-image-digest
+        run: echo "::set-output name=sha256::$(docker inspect --format='{{index .RepoDigests 0}}' ${{ matrix.base-image }})"
+
       - name: Build image
+        if: steps.base-image-digest.outputs.sha256 != steps.cached-base-image-digest.outputs.sha256
         run: docker build php/${{ matrix.php-version }}/. --tag serversideup/php:${{ matrix.php-version }}
 
+      - name: Push image to DockerHub
+        if: steps.base-image-digest.outputs.sha256 != steps.cached-base-image-digest.outputs.sha256
+        run: docker push serversideup/php:${{ matrix.php-version }}
 
-      - name: Push image
+      - name: Update base image digest cache
         run: |
-          docker push serversideup/php:${{ matrix.php-version }}
+          echo "${{ steps.base-image-digest.outputs.sha256 }}" >"${{ runner.temp }}/.base-image-digest"
