@@ -59,7 +59,7 @@ jobs:
         run: ls -al
 
       - name: Build image
-        run: docker build php/${{ matrix.php-version }}/. --file Dockerfile --tag serversideup/php:${{ matrix.php-version }}
+        run: docker build php/${{ matrix.php-version }}/. --tag serversideup/php:${{ matrix.php-version }}
 
 
       - name: Push image
