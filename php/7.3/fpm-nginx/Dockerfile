@@ -2,7 +2,7 @@
 # Server Side Up -  PHP 7.3 / FPM-NGINX image 
 #####################################################
 
-FROM serversideup/php:7.3-fpm
+FROM serversideup/php7.3-fpm
 
 LABEL maintainer="Jay Rogers <jay@serversideup.net>"
 
