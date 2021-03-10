@@ -20,7 +20,7 @@ ENV PHP_DATE_TIMEZONE="UTC" \
     #  For example, you can override this with the "docker run" command:
     #  `docker run -e SSMTP_RELAY_SERVER=smtp serversideup/php7.3-fpm`
 
-# Install FPM
+# Install FPM for PHP & SSMTP client for sending emails
 RUN apt-get update \
     && apt-get -y --no-install-recommends install \
         php7.3-fpm \
