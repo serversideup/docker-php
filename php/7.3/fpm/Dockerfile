@@ -31,7 +31,7 @@ RUN apt-get update \
 # Make sure the container comes down clean
 STOPSIGNAL SIGQUIT
 
-# PHP-FPM packages need a nudge to make them docker-friendly
+# Apply configuration file
 COPY php-overrides.conf /etc/php/7.3/fpm/pool.d/z-overrides.conf
 
 CMD ["/usr/sbin/php-fpm7.3", "-O" ]
