@@ -77,7 +77,6 @@ jobs:
       #     echo "${{ steps.base-image-digest.outputs.sha256 }}" >"${{ runner.temp }}/.base-image-digest"
 ####################################################################
 
-
       - name: Build and tag image
         run: docker build php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php${{ matrix.php-version }}-${{ matrix.php-variation }}
 
