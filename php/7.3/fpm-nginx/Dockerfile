@@ -10,8 +10,7 @@ LABEL maintainer="Jay Rogers <jay@serversideup.net>"
 #  For example, you can override this with the "docker run" command:
 #  `docker run -e SSMTP_RELAY_SERVER=smtp serversideup/php7.3-fpm`
 ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
-    MSMTP_RELAY_SERVER_PORT="1025" \
-    MSMTP_HOSTNAME="mylocalserver.test"
+    MSMTP_RELAY_SERVER_PORT="1025"
     
 
 # Install NGINX (web), MSMTP (email client), and Supervisor (process management)
