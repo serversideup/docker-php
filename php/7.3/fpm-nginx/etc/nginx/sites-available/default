@@ -1,0 +1,47 @@
+# HTTP configuration
+#
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	server_name _;
+
+	# Redirect all HTTP traffic to HTTPS
+	return 301 https://$host$request_uri;
+}
+
+# HTTPS Configuration
+#
+server {
+	listen 443 http2 ssl default_server;
+	listen [::]:443 http2 ssl default_server;
+
+	root /var/www/html/public;
+
+	ssl_certificate /etc/nginx/ssl/self-signed.crt;
+	ssl_certificate_key /etc/nginx/ssl/self-signed.key;
+	ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
+
+	# Set allowed "index" files
+	index index.html index.htm index.php;
+
+	server_name _;
+
+	charset utf-8;
+
+	# Set max upload to 100M
+	client_max_body_size 100M;
+
+	# Have NGINX try searching for PHP files as well
+	location / {
+      try_files $uri $uri/ /index.php?$query_string;
+  	}
+
+	location ~ \.php$ {
+			include snippets/fastcgi-php.conf;
+			fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;
+	}
+
+	# additional config
+	include /etc/nginx/server-opts.d/*.conf;
+}

@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -e
+
+# Set the MSMTP configuration
+MSMTP_RELAY_SERVER_HOSTNAME=${MSMTP_RELAY_SERVER_HOSTNAME:-"mailhog"}
+MSMTP_RELAY_SERVER_PORT=${MSMTP_RELAY_SERVER_PORT:-"1025"}
+MSMTP_HOSTNAME=${MSMTP_HOSTNAME:-"mylocalserver.test"}
+
+cat > /etc/msmtprc <<EOL
+host ${MSMTP_RELAY_SERVER_HOSTNAME}
+port ${MSMTP_RELAY_SERVER_PORT}
+logfile -
+EOL
+unset MSMTP_RELAY_SERVER
+unset MSMTP_HOSTNAME
+unset MSMTP_PORT
+
+#########################################
+# Exit on SIGTERM
+#
+trap "exit" TERM
+
+
+#########################################
+# Set debug mode for servers if debug mode is set
+#
+if [[ $DEBUG_OUTPUT && $DEBUG_OUTPUT == true ]]; then
+    # Set NGINX to debug mode
+    sed -i 's/^\terror_log.*/\terror_log \/proc\/self\/fd\/2 debug;/' /etc/nginx/nginx.conf
+
+    # Set PHP FPM to debug mode
+    sed -i 's/^;log_level.*/log_level = debug/' /etc/php/7.4/fpm/php-fpm.conf
+
+    # Let us know it is in debug mode
+    echo "🔥 NGINX and PHP-FPM are in DEBUG MODE 🔥"
+
+fi
+
+#########################################
+# Simulate a cron for task schedulers with an infinite loop
+#
+if [[ $TASK_SCHEDULER_CONTAINER && $TASK_SCHEDULER_CONTAINER == true ]]; then
+    # Start infinite loop
+    while [ true ]
+    # Run every minute
+    do
+      php /var/www/html/artisan schedule:run --verbose --no-interaction &
+      sleep 60
+    done
+fi
+
+#########################################
+# Run a command or start supervisord
+#
+if [ $# -gt 0 ];then
+    # If we passed a command, run it
+    echo "Instead of running Supervisor, I am running the command: $@"
+    exec "$@"
+else
+    # Check to see if an ENV file exists and assume means Laravel is configured.
+    if [ -f /var/www/html/.env ]; then
+        # Read in what the Laravel app environment is set to
+        APP_ENV_SETTING=$(cat /var/www/html/.env | grep APP_ENV | cut -f2 -d"=")
+
+        # If Laravel is not running in development, be sure to cache all of the things.
+        if [ "$APP_ENV_SETTING" != "local" ]; then
+            echo "Caching configuration..."
+            (php /var/www/html/artisan route:cache && php /var/www/html/artisan view:cache)
+        fi
+
+        # Read in if Laravel Horizon variable
+        HORIZON_ENABLED_SETTING=$(cat /var/www/html/.env | grep HORIZON_ENABLED | cut -f2 -d"=")
+
+        # Check to see if Horizon is enabled
+        if [ "$HORIZON_ENABLED_SETTING" == "true" ]; then
+            # Start supervisor WITH Horizon
+            exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord-with-horizon.conf
+        else
+            # Start supervisor normally WITHOUT Horizon
+            exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+        fi
+    else   
+    # Start supervisor with NGINX & PHP
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+    fi 
+fi
