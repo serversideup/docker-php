@@ -29,8 +29,8 @@ server {
 
 	charset utf-8;
 
-	# Set max upload to 100M
-	client_max_body_size 100M;
+	# Set max upload to 2048M
+	client_max_body_size 2048M;
 
 	# Have NGINX try searching for PHP files as well
 	location / {
