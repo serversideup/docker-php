@@ -78,7 +78,7 @@ jobs:
 ####################################################################
 
       - name: Build and tag image
-        run: docker build php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
+        run: docker build  --pull php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
 
       - name: Push version image to DockerHub
         run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
