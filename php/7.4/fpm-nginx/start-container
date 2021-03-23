@@ -57,7 +57,9 @@ if [ $# -gt 0 ];then
 else
     # Check to see if an ENV file exists and assume means Laravel is configured.
     if [ -f /var/www/html/.env ]; then
-        # Read in what the Laravel app environment is set to
+        ############################################################################
+        # Automated caching
+        ############################################################################
         APP_ENV_SETTING=$(cat /var/www/html/.env | grep APP_ENV | cut -f2 -d"=")
 
         # If Laravel is not running in development, be sure to cache all of the things.
@@ -66,6 +68,21 @@ else
             (php /var/www/html/artisan route:cache && php /var/www/html/artisan view:cache)
         fi
 
+        ############################################################################
+        # Automated database migrations
+        ############################################################################
+        if [[ $(cat /var/www/html/.env | grep -q DB_CONNECTION) ]]; then
+            php /var/www/html/artisan migrate --force
+        fi
+
+        ############################################################################
+        # Automated storage linking
+        ############################################################################
+        php /var/www/html/artisan storage:link
+
+        ############################################################################
+        # Horizon settings
+        ############################################################################
         # Read in if Laravel Horizon variable
         HORIZON_ENABLED_SETTING=$(cat /var/www/html/.env | grep HORIZON_ENABLED | cut -f2 -d"=")
 
