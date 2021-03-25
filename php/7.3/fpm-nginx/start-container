@@ -58,7 +58,7 @@ else
     # Check to see if an ENV file exists and assume means Laravel is configured.
     if [ -f /var/www/html/.env ]; then
         ############################################################################
-        # Automated caching
+        # Environment detection
         ############################################################################
         APP_ENV_SETTING=$(cat /var/www/html/.env | grep APP_ENV | cut -f2 -d"=")
 
@@ -66,19 +66,19 @@ else
         if [ "$APP_ENV_SETTING" != "local" ]; then
             echo "Caching configuration..."
             (php /var/www/html/artisan route:cache && php /var/www/html/artisan view:cache)
-        fi
 
-        ############################################################################
-        # Automated database migrations
-        ############################################################################
-        if [[ $(cat /var/www/html/.env | grep -q DB_CONNECTION) ]]; then
-            php /var/www/html/artisan migrate --force
-        fi
+            ############################################################################
+            # Automated database migrations
+            ############################################################################
+            if [[ $(cat /var/www/html/.env | grep -q DB_CONNECTION) ]]; then
+                php /var/www/html/artisan migrate --force
+            fi
 
-        ############################################################################
-        # Automated storage linking
-        ############################################################################
-        php /var/www/html/artisan storage:link
+            ############################################################################
+            # Automated storage linking
+            ############################################################################
+            php /var/www/html/artisan storage:link
+        fi
 
         ############################################################################
         # Horizon settings
