@@ -23,7 +23,7 @@ RUN apt-get update \
         supervisor \
     && echo "Generate self-signed certs for NGINX..." \
     && mkdir -p /etc/nginx/ssl/ \
-    && openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.t" -nodes -newkey rsa:2048 -keyout /etc/nginx/ssl/self-signed.key -out /etc/nginx/ssl/self-signed.crt -days 365 \
+    && openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout /etc/nginx/ssl/self-signed.key -out /etc/nginx/ssl/self-signed.crt -days 365 \
     && echo "Clean up after ourselves..." \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /var/www/html/index.nginx-debian.html
