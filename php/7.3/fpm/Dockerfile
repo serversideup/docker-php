@@ -14,12 +14,15 @@ ENV PHP_DATE_TIMEZONE="UTC" \
     PHP_MEMORY_LIMIT="256M" \
     PHP_MAX_EXECUTION_TIME="99" \
     PHP_POST_MAX_SIZE="100M" \
-    PHP_UPLOAD_MAX_FILE_SIZE="100M"
+    PHP_UPLOAD_MAX_FILE_SIZE="100M" \
+    PHP_POOL_NAME="www"
 
 # Install FPM
 RUN apt-get update \
     && apt-get -y --no-install-recommends install \
         php7.3-fpm \
+    && echo "Allow pool name to be set via env, default it to 'www'..." \
+    && sed -i -e 's/\[www\]/\[$\{PHP_POOL_NAME\}]/g' /etc/php/7.3/fpm/pool.d/www.conf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
