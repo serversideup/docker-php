@@ -10,7 +10,13 @@ LABEL maintainer="Jay Rogers <jay@serversideup.net>"
 #  For example, you can override this with the "docker run" command:
 #  `docker run -e SSMTP_RELAY_SERVER=smtp serversideup/php7.3-fpm`
 ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
-    MSMTP_RELAY_SERVER_PORT="1025"
+    MSMTP_RELAY_SERVER_PORT="1025" \
+    PHP_POOL_NAME="www" \
+    PHP_PM_CONTROL=ondemand \
+    PHP_PM_MAX_CHILDREN="20" \
+    PHP_PM_START_SERVERS="2" \
+    PHP_PM_MIN_SPARE_SERVERS="1" \
+    PHP_PM_MAX_SPARE_SERVERS="3"
     
 
 # Install NGINX (web), MSMTP (email client), and Supervisor (process management)
