@@ -19,7 +19,6 @@ RUN apt-get update \
     && apt-get -y --no-install-recommends install \
         msmtp \
         msmtp-mta \
-        nano \
         nginx \
         supervisor \
     && echo "Generate self-signed certs for NGINX..." \
