@@ -64,25 +64,29 @@ else
 
         # If Laravel is not running in development, be sure to cache all of the things.
         if [ "$APP_ENV_SETTING" != "local" ]; then
-            echo "♻️ Refreshing cache..."
-            # Clear cache
-            php /var/www/html/artisan route:clear
-            php /var/www/html/artisan cache:clear
+            # ############################################################################
+            # # Cache management - commented out for now because of a bug with Laravel caching & API Rate limiting
+            # ############################################################################
+            # echo "♻️ Refreshing cache..."
+            # # Clear cache
+            # php /var/www/html/artisan cache:clear
 
-            # Set cache
-            php /var/www/html/artisan route:cache
-            php /var/www/html/artisan view:cache
+            # # Set cache
+            # php /var/www/html/artisan route:cache
+            # php /var/www/html/artisan view:cache
 
             ############################################################################
             # Automated database migrations
             ############################################################################
             if [[ $(cat /var/www/html/.env | grep -q DB_CONNECTION) ]]; then
+                echo "☢️ Running migrations..."
                 php /var/www/html/artisan migrate --force
             fi
 
             ############################################################################
             # Automated storage linking
             ############################################################################
+            echo "💼 Linking the storage..."
             php /var/www/html/artisan storage:link
         fi
 
