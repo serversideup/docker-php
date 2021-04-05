@@ -64,8 +64,10 @@ else
 
         # If Laravel is not running in development, be sure to cache all of the things.
         if [ "$APP_ENV_SETTING" != "local" ]; then
+            echo "Clearing previous cache..."
+            php /var/www/html/artisan route:clear && php /var/www/html/artisan cache:clear
             echo "Caching configuration..."
-            (php /var/www/html/artisan route:cache && php /var/www/html/artisan view:cache)
+            php /var/www/html/artisan route:cache && php /var/www/html/artisan view:cache
 
             ############################################################################
             # Automated database migrations
