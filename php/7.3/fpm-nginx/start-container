@@ -78,7 +78,7 @@ else
             ############################################################################
             # Automated database migrations
             ############################################################################
-            if [[ $(cat /var/www/html/.env | grep -q DB_CONNECTION) ]]; then
+            if grep -q DB_CONNECTION /var/www/html/.env; then
                 echo "☢️ Running migrations..."
                 php /var/www/html/artisan migrate --force
             fi
