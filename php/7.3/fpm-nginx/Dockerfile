@@ -47,8 +47,7 @@ COPY etc/nginx/sites-available/default /etc/nginx/sites-available/default
 COPY etc/php/7.x/fpm/pool.d/z-fpm-with-overrides.conf etc/php/7.3/fpm/pool.d/z-fpm-with-overrides.conf
 
 # Copy over supervisor configuration
-COPY etc/supervisor/conf.d/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY etc/supervisor/conf.d/supervisord-with-horizon.conf /etc/supervisor/conf.d/supervisord-with-horizon.conf
+COPY etc/supervisor/conf.d/* /etc/supervisor/conf.d/
 
 EXPOSE 80
 EXPOSE 443
