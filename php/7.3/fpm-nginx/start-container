@@ -62,8 +62,8 @@ else
         ############################################################################
         APP_ENV_SETTING=$(cat /var/www/html/.env | grep APP_ENV | cut -f2 -d"=")
 
-        # If Laravel is not running in development, be sure to cache all of the things.
-        if [ "$APP_ENV_SETTING" != "local" ]; then
+        # If Laravel is not running in development or CI, then automate some production tasks
+        if [ "$APP_ENV_SETTING" != "local"] && [ ${CI_ENV:=false} != true ] ; then
             # ############################################################################
             # # Cache management - commented out for now because of a bug with Laravel caching & API Rate limiting
             # ############################################################################
