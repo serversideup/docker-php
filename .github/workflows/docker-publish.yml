@@ -11,81 +11,81 @@ on:
     - cron: '0 12 * * *'
 
 jobs:
-  push:
-    runs-on: ubuntu-20.04
+  # push:
+  #   runs-on: ubuntu-20.04
 
-    # Configure our deployment strategy. Order is important here and we want it to go: CLI < FPM < FPM-NGINX
-    strategy:
-      # We want to limit the number of jobs to the number of versions that we're offering (since we want the dependency order to be built correctly)
-      max-parallel: 2
-      # Set our base image and versions here
-      matrix:
-        ####################################################################################################################
-        # Possibly delete this "base-image" thing. (See https://github.com/serversideup/docker-php/issues/8)
-        ####################################################################################################################
-        # base-image:
-        #   - ubuntu:20.04
-        php-variation:
-          - cli
-          - fpm
-          - fpm-nginx
-        php-version: 
-          - 7.3
-          - 7.4
+  #   # Configure our deployment strategy. Order is important here and we want it to go: CLI < FPM < FPM-NGINX
+  #   strategy:
+  #     # We want to limit the number of jobs to the number of versions that we're offering (since we want the dependency order to be built correctly)
+  #     max-parallel: 2
+  #     # Set our base image and versions here
+  #     matrix:
+  #       ####################################################################################################################
+  #       # Possibly delete this "base-image" thing. (See https://github.com/serversideup/docker-php/issues/8)
+  #       ####################################################################################################################
+  #       # base-image:
+  #       #   - ubuntu:20.04
+  #       php-variation:
+  #         - cli
+  #         - fpm
+  #         - fpm-nginx
+  #       php-version: 
+  #         - 7.3
+  #         - 7.4
 
-    steps:
-      - uses: actions/checkout@v2
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+  #     - name: Login to DockerHub
+  #       uses: docker/login-action@v1 
+  #       with:
+  #         username: ${{ secrets.DOCKER_HUB_USERNAME }}
+  #         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      ####################################################################
-      # Commenting this out for further testing & structure (See https://github.com/serversideup/docker-php/issues/8)
-      ####################################################################
-      # - name: Cache base image digest
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: ${{ runner.temp }}/.base-image-digest
-      #     key: base-image-digest
+  #     ####################################################################
+  #     # Commenting this out for further testing & structure (See https://github.com/serversideup/docker-php/issues/8)
+  #     ####################################################################
+  #     # - name: Cache base image digest
+  #     #   uses: actions/cache@v2
+  #     #   with:
+  #     #     path: ${{ runner.temp }}/.base-image-digest
+  #     #     key: base-image-digest
 
-      # - name: Read cached base image digest
-      #   id: cached-base-image-digest
-      #   run: |
-      #     touch "${{ runner.temp }}/.base-image-digest"
-      #     echo "::set-output name=sha256::$(head -n 1 "${{ runner.temp }}/.base-image-digest")"
+  #     # - name: Read cached base image digest
+  #     #   id: cached-base-image-digest
+  #     #   run: |
+  #     #     touch "${{ runner.temp }}/.base-image-digest"
+  #     #     echo "::set-output name=sha256::$(head -n 1 "${{ runner.temp }}/.base-image-digest")"
 
-      # - name: Pull base image
-      #   run: docker pull ${{ matrix.base-image }}
+  #     # - name: Pull base image
+  #     #   run: docker pull ${{ matrix.base-image }}
 
-      # - name: Set base image digest
-      #   id: base-image-digest
-      #   run: echo "::set-output name=sha256::$(docker inspect --format='{{index .RepoDigests 0}}' ${{ matrix.base-image }})"
+  #     # - name: Set base image digest
+  #     #   id: base-image-digest
+  #     #   run: echo "::set-output name=sha256::$(docker inspect --format='{{index .RepoDigests 0}}' ${{ matrix.base-image }})"
 
-      # - name: Build image
-      #   if: steps.base-image-digest.outputs.sha256 != steps.cached-base-image-digest.outputs.sha256
-      #   run: docker build php/${{ matrix.php-version }}/. --tag serversideup/php:${{ matrix.php-version }}
+  #     # - name: Build image
+  #     #   if: steps.base-image-digest.outputs.sha256 != steps.cached-base-image-digest.outputs.sha256
+  #     #   run: docker build php/${{ matrix.php-version }}/. --tag serversideup/php:${{ matrix.php-version }}
 
-      # - name: Push image to DockerHub
-      #   if: steps.base-image-digest.outputs.sha256 != steps.cached-base-image-digest.outputs.sha256
-      #   run: docker push serversideup/php:${{ matrix.php-version }}
+  #     # - name: Push image to DockerHub
+  #     #   if: steps.base-image-digest.outputs.sha256 != steps.cached-base-image-digest.outputs.sha256
+  #     #   run: docker push serversideup/php:${{ matrix.php-version }}
 
-      # - name: Update base image digest cache
-      #   run: |
-      #     echo "${{ steps.base-image-digest.outputs.sha256 }}" >"${{ runner.temp }}/.base-image-digest"
-      ####################################################################
+  #     # - name: Update base image digest cache
+  #     #   run: |
+  #     #     echo "${{ steps.base-image-digest.outputs.sha256 }}" >"${{ runner.temp }}/.base-image-digest"
+  #     ####################################################################
 
-      - name: Build and tag image
-        run: docker build --pull php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
+  #     - name: Build and tag image
+  #       run: docker build --pull php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
 
-      - name: Push version image to DockerHub
-        run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
+  #     - name: Push version image to DockerHub
+  #       run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
   
   trigger_downstream_jobs:
     needs: push
     runs-on: ubuntu-20.04
     steps:
       - name: Trigger downstream builds
-        run: curl --fail --output "/dev/null" --silent --show-error -X POST -F token=$DOWNSTREAM_BUILD_TOKEN -F ref=$GITHUB_REF $DOWNSTREAM_BUILD_WEBHOOK_ENDPOINT
+        run: curl --fail --output "/dev/null" --silent --show-error -X POST -F token=${{ secrets.DOWNSTREAM_BUILD_TOKEN }} -F ref=${{ env.GITHUB_REF }} ${{ secrets.DOWNSTREAM_BUILD_WEBHOOK_ENDPOINT }}
