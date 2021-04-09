@@ -42,9 +42,9 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-####################################################################
-# Commenting this out for further testing & structure (See https://github.com/serversideup/docker-php/issues/8)
-####################################################################
+      ####################################################################
+      # Commenting this out for further testing & structure (See https://github.com/serversideup/docker-php/issues/8)
+      ####################################################################
       # - name: Cache base image digest
       #   uses: actions/cache@v2
       #   with:
@@ -75,10 +75,16 @@ jobs:
       # - name: Update base image digest cache
       #   run: |
       #     echo "${{ steps.base-image-digest.outputs.sha256 }}" >"${{ runner.temp }}/.base-image-digest"
-####################################################################
+      ####################################################################
 
       - name: Build and tag image
         run: docker build --pull php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
 
       - name: Push version image to DockerHub
         run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
+  
+  trigger_downstream_jobs:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Trigger downstream builds
+        run: curl --fail --output "/dev/null" --silent --show-error -X POST -F token=$DOWNSTREAM_BUILD_TOKEN -F ref=$GITHUB_REF $DOWNSTREAM_BUILD_WEBHOOK_ENDPOINT"
