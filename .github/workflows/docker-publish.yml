@@ -84,7 +84,7 @@ jobs:
   #       run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
   
   trigger_downstream_jobs:
-    needs: push
+    # needs: push
     runs-on: ubuntu-20.04
     steps:
       - name: Trigger downstream builds
