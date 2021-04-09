@@ -84,7 +84,8 @@ jobs:
         run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
   
   trigger_downstream_jobs:
+    needs: push
     runs-on: ubuntu-20.04
     steps:
       - name: Trigger downstream builds
-        run: curl --fail --output "/dev/null" --silent --show-error -X POST -F token=$DOWNSTREAM_BUILD_TOKEN -F ref=$GITHUB_REF $DOWNSTREAM_BUILD_WEBHOOK_ENDPOINT"
+        run: curl --fail --output "/dev/null" --silent --show-error -X POST -F token=$DOWNSTREAM_BUILD_TOKEN -F ref=$GITHUB_REF $DOWNSTREAM_BUILD_WEBHOOK_ENDPOINT
