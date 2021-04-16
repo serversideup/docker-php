@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+# # Debug mode
+# set -o xtrace
+
 # Set the MSMTP configuration
 MSMTP_RELAY_SERVER_HOSTNAME=${MSMTP_RELAY_SERVER_HOSTNAME:-"mailhog"}
 MSMTP_RELAY_SERVER_PORT=${MSMTP_RELAY_SERVER_PORT:-"1025"}
@@ -62,8 +65,8 @@ else
         ############################################################################
         APP_ENV_SETTING=$(cat /var/www/html/.env | grep APP_ENV | cut -f2 -d"=")
 
-       # If Laravel is not running in development or CI, then automate some production tasks
-        if [ "$APP_ENV_SETTING" != "local"] && [ ${CI_ENV:="false"} != "true" ] ; then
+        # If Laravel is not running in development or CI, then automate some production tasks
+        if [ "$APP_ENV_SETTING" != "local" ] && [ ${CI_ENV:="false"} != "true" ] ; then
             # ############################################################################
             # # Cache management - commented out for now because of a bug with Laravel caching & API Rate limiting
             # ############################################################################
