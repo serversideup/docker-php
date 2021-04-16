@@ -24,6 +24,8 @@ ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
     APACHE_THREADS_PER_CHILD="25" \
     APACHE_MAX_REQUEST_WORKERS="150" \
     APACHE_MAX_CONNECTIONS_PER_CHILD="0" \
+    APACHE_RUN_USER="www-data"
+    APACHE_RUN_GROUP="www-data"
     DEBIAN_FRONTEND=noninteractive
     
 
@@ -48,9 +50,12 @@ RUN apt-get update \
     && ln -sf /dev/stdout /var/log/apache2/other_vhosts_access.log \
     && ln -sf /dev/stderr /var/log/apache2/error.log \
     && echo "ServerName localhost" >> /etc/apache2/apache2.conf \
-    && echo "Set log format for CloudFlare..." \
+    && echo "Set log format for CloudFlare and enable Remote IP..." \
     && sed -i 's/LogFormat "%h %l %u %t \\\"%r\\\" %>s %O \\\"/LogFormat "%a %l %u %t \\\"%r\\\" %>s %O \\\"/' /etc/apache2/apache2.conf \
     && ln -sf /etc/apache2/conf-available/remoteip.conf /etc/apache2/conf-enabled/remoteip.conf \
+    && echo "Force Docker ENVs to handle the apache variables for the run user and group..." \
+    && sed -e '/export APACHE_RUN_USER/ s/^#*/#/' -i file /etc/apache2/apache2.conf \
+    && sed -e '/export APACHE_RUN_GROUP/ s/^#*/#/' -i file /etc/apache2/apache2.conf \
     && echo "Making sure Apache is stopped and disabled at start up..." \
     && service apache2 stop \
     && update-rc.d apache2 disable
