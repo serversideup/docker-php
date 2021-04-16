@@ -54,8 +54,8 @@ RUN apt-get update \
     && sed -i 's/LogFormat "%h %l %u %t \\\"%r\\\" %>s %O \\\"/LogFormat "%a %l %u %t \\\"%r\\\" %>s %O \\\"/' /etc/apache2/apache2.conf \
     && ln -sf /etc/apache2/conf-available/remoteip.conf /etc/apache2/conf-enabled/remoteip.conf \
     && echo "Force Docker ENVs to handle the apache variables for the run user and group..." \
-    && sed -e '/export APACHE_RUN_USER/ s/^#*/#/' -i file /etc/apache2/apache2.conf \
-    && sed -e '/export APACHE_RUN_GROUP/ s/^#*/#/' -i file /etc/apache2/apache2.conf \
+    && sed -i '/export APACHE_RUN_USER/ s/^#*/#/' /etc/apache2/envvars \
+    && sed -i '/export APACHE_RUN_GROUP/ s/^#*/#/' /etc/apache2/envvars \
     && echo "Making sure Apache is stopped and disabled at start up..." \
     && service apache2 stop \
     && update-rc.d apache2 disable
