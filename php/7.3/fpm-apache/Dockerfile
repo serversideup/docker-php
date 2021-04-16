@@ -24,8 +24,8 @@ ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
     APACHE_THREADS_PER_CHILD="25" \
     APACHE_MAX_REQUEST_WORKERS="150" \
     APACHE_MAX_CONNECTIONS_PER_CHILD="0" \
-    APACHE_RUN_USER="www-data"
-    APACHE_RUN_GROUP="www-data"
+    APACHE_RUN_USER="www-data" \
+    APACHE_RUN_GROUP="www-data" \
     DEBIAN_FRONTEND=noninteractive
     
 
