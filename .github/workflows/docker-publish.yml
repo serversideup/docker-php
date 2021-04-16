@@ -29,6 +29,7 @@ jobs:
           - cli
           - fpm
           - fpm-nginx
+          - fpm-apache
         php-version: 
           - 7.3
           - 7.4
