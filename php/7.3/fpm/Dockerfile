@@ -26,7 +26,7 @@ ENV PHP_DATE_TIMEZONE="UTC" \
 RUN apt-get update \
     && apt-get -y --no-install-recommends install \
         php7.3-fpm \
-    && echo "Allow pool name to be set via env, default it to 'www'..." \
+        && echo "Allow pool name to be set via env, default it to 'www'..." \
     && sed -i -e 's/\[www\]/\[$\{PHP_POOL_NAME\}]/g' /etc/php/7.3/fpm/pool.d/www.conf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*

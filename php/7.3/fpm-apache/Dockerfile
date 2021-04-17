@@ -26,6 +26,7 @@ ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
     APACHE_MAX_CONNECTIONS_PER_CHILD="0" \
     APACHE_RUN_USER="www-data" \
     APACHE_RUN_GROUP="www-data" \
+    APACHE_DOCUMENT_ROOT="/var/www/html/public" \
     DEBIAN_FRONTEND=noninteractive
     
 

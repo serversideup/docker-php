@@ -46,7 +46,7 @@ COPY etc/nginx/sites-available/default /etc/nginx/sites-available/default
 #PHP: Copy over configuration to listen on the socket
 COPY etc/php/7.x/fpm/pool.d/z-fpm-with-overrides.conf etc/php/7.3/fpm/pool.d/z-fpm-with-overrides.conf
 
-# Copy over supervisor configuration
+# Copy over supervisor configurations
 COPY etc/supervisor/conf.d/* /etc/supervisor/conf.d/
 
 EXPOSE 80
