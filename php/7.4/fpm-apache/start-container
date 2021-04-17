@@ -29,8 +29,8 @@ if [ $# -gt 0 ];then
     echo "Instead of running Supervisor, I am running the command: $@"
     exec "$@"
 else
-    # Check to see if an ENV file exists and assume means Laravel is configured.
-    if [ -f /var/www/html/.env ]; then
+    # Check to see if an Artisan file exists and assume means Laravel is configured.
+    if [ -f /var/www/html/artisan ]; then
         ############################################################################
         # Environment detection
         ############################################################################
