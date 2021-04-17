@@ -32,7 +32,7 @@ RUN apt-get update \
     && openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout /etc/nginx/ssl/self-signed.key -out /etc/nginx/ssl/self-signed.crt -days 365 \
     && echo "Clean up after ourselves..." \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /var/www/html/index.nginx-debian.html
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /var/www/html/*
 
 #NGINX: Set server config
 COPY etc/nginx/nginx.conf /etc/nginx/nginx.conf

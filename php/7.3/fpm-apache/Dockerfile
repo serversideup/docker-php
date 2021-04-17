@@ -45,7 +45,7 @@ RUN apt-get update \
     && openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout /etc/apache2/ssl/self-signed.key -out /etc/apache2/ssl/self-signed.crt -days 365 \
     && echo "Clean up after ourselves..." \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /var/www/html/* \
     && echo "Set apache logs to redirect to STDOUT and STDERR and configure Apache..." \
     && ln -sf /dev/stdout /var/log/apache2/access.log \
     && ln -sf /dev/stdout /var/log/apache2/other_vhosts_access.log \
