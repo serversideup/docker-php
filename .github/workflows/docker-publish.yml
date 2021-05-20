@@ -31,8 +31,8 @@ jobs:
           - fpm-nginx
           - fpm-apache
         php-version: 
-          - 7.4
-          - 8.0
+          - "7.4"
+          - "8.0"
 
     steps:
       - uses: actions/checkout@v2
