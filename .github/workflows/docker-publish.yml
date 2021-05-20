@@ -6,9 +6,9 @@ on:
     branches:
       - main
 
-  # Run every day at 1200 UTC to update the images
+  # Run every day at 0800 UTC to update the images
   schedule:
-    - cron: '0 12 * * *'
+    - cron: '0 8 * * *'
 
 jobs:
   push:
