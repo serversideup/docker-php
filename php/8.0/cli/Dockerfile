@@ -23,7 +23,6 @@ RUN apt-get update \
         php8.0-common \
         php8.0-curl \
         php8.0-gd \
-        php8.0-json \
         php8.0-mbstring \
         php8.0-mysql \
         php8.0-soap \
