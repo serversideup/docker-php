@@ -7,6 +7,25 @@
 	<a href="https://github.com/sponsors/serversideup"><img src="https://badgen.net/badge/icon/Support%20Us?label=GitHub%20Sponsors&color=orange" alt="Support us"></a>
 </p>
 
+# Available Docker Images
+This is a list of the docker images this repository creates:
+| ⚙️ Variation	| 🎁 Version																								 |
+|------------	|---------------------------------------------------------------------------------------------------------	|
+| cli        	| [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli&page=1&ordering=-name) 		|
+| fpm        	| [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm&page=1&ordering=-name) 		|
+| fpm-apache 	| [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-apache&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-apache&page=1&ordering=-name) 	|
+| fpm-nginx  	| [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx&page=1&ordering=-name) 	|
+
+### Usage
+Simply use this image name pattern in any of your projects:
+```sh
+serversideup/php:{{version}}-{{variation-name}}
+```
+For example... If I wanted to run **PHP 8.0** with **FPM + NGINX**, I would use this image:
+```sh
+serversideup/php:8.0-fpm-nginx
+```
+
 # About this project
 We're taking the extra effort to open source as much as we can. Not only could this potentially help someone learn a little bit of Docker, but it makes it a *heck of a lot* easier for us to work with you on new open source ideas.
 
