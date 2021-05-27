@@ -26,6 +26,9 @@ For example... If I wanted to run **PHP 8.0** with **FPM + NGINX**, I would use 
 serversideup/php:8.0-fpm-nginx
 ```
 
+### Updates
+✅ These images run nightly for latest security updates.
+
 # About this project
 We're taking the extra effort to open source as much as we can. Not only could this potentially help someone learn a little bit of Docker, but it makes it a *heck of a lot* easier for us to work with you on new open source ideas.
 
