@@ -26,6 +26,7 @@ RUN apt-get update \
         php7.4-json \
         php7.4-mbstring \
         php7.4-mysql \
+        php7.4-redis \
         php7.4-soap \
         php7.4-sqlite3 \
         php7.4-xml \
