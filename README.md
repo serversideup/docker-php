@@ -9,7 +9,8 @@
 
 # Available Docker Images
 This is a list of the docker images this repository creates:
-| Variation | Version |
+
+| ⚙️ Variation | 🎁 Version |
 |--------------|------------|
 | cli          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli&page=1&ordering=-name)   |
 | fpm          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm&page=1&ordering=-name)   |
