@@ -93,8 +93,8 @@ jobs:
       - name: push README to Dockerhub
         uses: christian-korneck/update-container-description-action@v1
         env:
-          DOCKER_USER: ${{ secrets.DOCKER_HUB_USERNAME }}
-          DOCKER_PASS: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          DOCKER_USER: ${{ secrets.DOCKER_HUB_README_USERNAME }}
+          DOCKER_PASS: ${{ secrets.DOCKER_HUB_README_PASSWORD }}
         with:
           destination_container_repo: serversideup/php
           provider: dockerhub
