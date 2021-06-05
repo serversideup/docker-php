@@ -1,0 +1,57 @@
+name: Docker Publish (Production Images)
+
+on:
+  # When changes are pushed to the "main" branch, run it
+  push:
+    branches:
+      - main
+
+  # Run every week at 0800 UTC to update the images
+  schedule:
+    - cron: '0 8 * * 2'
+
+jobs:
+  push:
+    runs-on: ubuntu-20.04
+
+    # Configure our deployment strategy. Order is important here and we want it to go: CLI < FPM < FPM-NGINX
+    strategy:
+      # We want to limit the number of jobs to the number of versions that we're offering (since we want the dependency order to be built correctly)
+      max-parallel: 2
+      # Set our base image and versions here
+      matrix:
+        ####################################################################################################################
+        # Possibly delete this "base-image" thing. (See https://github.com/serversideup/docker-php/issues/8)
+        ####################################################################################################################
+        # base-image:
+        #   - ubuntu:20.04
+        php-variation:
+          - cli
+          - fpm
+          - fpm-nginx
+          - fpm-apache
+        php-version: 
+          - "7.4"
+          - "8.0"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          
+      - name: Build and tag image
+        run: docker build --pull php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
+
+      - name: Push version image to DockerHub
+        run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
+  
+  trigger_downstream_jobs:
+    needs: push
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Trigger downstream builds
+        run: curl --fail --output "/dev/null" --silent --show-error -X POST -F token=${{ secrets.DOWNSTREAM_BUILD_TOKEN }} -F ref=$GITHUB_REF ${{ secrets.DOWNSTREAM_BUILD_WEBHOOK_ENDPOINT }}

@@ -1,14 +1,14 @@
-name: Docker Publish
+name: Docker Publish (Beta Images)
 
 on:
-  # When changes are pushed to the "main" branch, run it
+  # When changes are pushed to the "dev" branch, run it
   push:
     branches:
-      - main
+      - dev
 
   # Run every week at 0800 UTC to update the images
   schedule:
-    - cron: '0 8 * * 2'
+    - cron: '0 8 * * 1'
 
 jobs:
   push:
@@ -79,14 +79,18 @@ jobs:
       ####################################################################
 
       - name: Build and tag image
-        run: docker build --pull php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
+        run: docker build --pull php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:beta-${{ matrix.php-version }}-${{ matrix.php-variation }}
 
       - name: Push version image to DockerHub
-        run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
-  
-  trigger_downstream_jobs:
-    needs: push
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Trigger downstream builds
-        run: curl --fail --output "/dev/null" --silent --show-error -X POST -F token=${{ secrets.DOWNSTREAM_BUILD_TOKEN }} -F ref=$GITHUB_REF ${{ secrets.DOWNSTREAM_BUILD_WEBHOOK_ENDPOINT }}
+        run: docker push serversideup/php:beta-${{ matrix.php-version }}-${{ matrix.php-variation }}
+
+
+  ##################################################
+  # Commenting this out until further notice
+  ##################################################
+  # trigger_downstream_jobs:
+  #   needs: push
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - name: Trigger downstream builds
+  #       run: curl --fail --output "/dev/null" --silent --show-error -X POST -F token=${{ secrets.DOWNSTREAM_BUILD_TOKEN }} -F ref=$GITHUB_REF ${{ secrets.DOWNSTREAM_BUILD_WEBHOOK_ENDPOINT }}
