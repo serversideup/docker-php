@@ -31,7 +31,7 @@ serversideup/php:8.0-fpm-nginx
 ✅ The image builds automatically run weekly (Tuesday at 0800 UTC) for latest security updates.
 
 ### How these images are built
-Everything starts with the CLI and builds its way up from there. Here is an image how that looks:
+All images are built off of the official Ubuntu 20.04 docker image. We first build our CLI image, then our FPM, etc. Here is what this looks like:
 
 <img src="https://raw.githubusercontent.com/serversideup/docker-php/main/.github/dependency-diagram.png" alt="Dependency Diagram">
 
