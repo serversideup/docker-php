@@ -42,13 +42,30 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-          
+
       - name: Build and tag image
         run: docker build --pull php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
 
       - name: Push version image to DockerHub
         run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
   
+  update_container_readme:
+    runs-on: ubuntu-latest
+    name: Push README to Docker Hub
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v2
+      - name: push README to Dockerhub
+        uses: christian-korneck/update-container-description-action@v1
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_HUB_README_USERNAME }}
+          DOCKER_PASS: ${{ secrets.DOCKER_HUB_README_PASSWORD }}
+        with:
+          destination_container_repo: serversideup/php
+          provider: dockerhub
+          short_description: 'PHP images optimized for Laravel, WordPress, and more!'
+          readme_file: 'README.md'
+
   trigger_downstream_jobs:
     needs: push
     runs-on: ubuntu-20.04
