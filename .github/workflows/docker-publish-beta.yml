@@ -84,6 +84,22 @@ jobs:
       - name: Push version image to DockerHub
         run: docker push serversideup/php:beta-${{ matrix.php-version }}-${{ matrix.php-variation }}
 
+  update_container_readme:
+    runs-on: ubuntu-latest
+    name: Push README to Docker Hub
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v2
+      - name: push README to Dockerhub
+        uses: christian-korneck/update-container-description-action@v1
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_PASS: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+        with:
+          destination_container_repo: serversideup/php
+          provider: dockerhub
+          short_description: 'PHP images optimized for Laravel, WordPress, and more!'
+          readme_file: 'README.md'
 
   ##################################################
   # Commenting this out until further notice
