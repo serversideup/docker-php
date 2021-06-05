@@ -30,6 +30,11 @@ serversideup/php:8.0-fpm-nginx
 ### Updates
 ✅ The image builds automatically run weekly (Tuesday at 0800 UTC) for latest security updates.
 
+### How these images are built
+Everything starts with the CLI and builds its way up from there. Here is an image how that looks:
+
+<img src="https://raw.githubusercontent.com/serversideup/docker-php/main/.github/dependency-diagram.png" alt="Dependency Diagram">
+
 # About this project
 We're taking the extra effort to open source as much as we can. Not only could this potentially help someone learn a little bit of Docker, but it makes it a *heck of a lot* easier for us to work with you on new open source ideas.
 
