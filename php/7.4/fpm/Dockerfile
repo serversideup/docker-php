@@ -2,9 +2,9 @@
 # Server Side Up -  PHP 7.4 / FPM image 
 #####################################################
 
-FROM serversideup/php:7.4-cli
+FROM serversideup/php:beta-7.4-cli
 
-LABEL maintainer="Jay Rogers <jay@serversideup.net>"
+LABEL maintainer="Jay Rogers (@jaydrogers)"
 
 # Set default PHP environment variables
 
@@ -17,7 +17,7 @@ ENV PHP_DATE_TIMEZONE="UTC" \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     PHP_POOL_NAME="www" \
     PHP_PM_CONTROL=dynamic \
-    PHP_PM_MAX_CHILDREN="5" \
+    PHP_PM_MAX_CHILDREN="20" \
     PHP_PM_START_SERVERS="2" \
     PHP_PM_MIN_SPARE_SERVERS="1" \
     PHP_PM_MAX_SPARE_SERVERS="3"
@@ -31,11 +31,8 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-# Make sure the container comes down clean
-STOPSIGNAL SIGQUIT
-
 # Apply PHP configuration file
-COPY etc/php/7.x/fpm/pool.d/y-override-php-defaults.conf /etc/php/7.4/fpm/pool.d/y-override-php-defaults.conf
+COPY etc/php/fpm/pool.d/y-override-php-defaults.conf /etc/php/7.4/fpm/pool.d/y-override-php-defaults.conf
 
 CMD ["/usr/sbin/php-fpm7.4", "-O" ]
 
