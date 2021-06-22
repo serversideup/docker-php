@@ -58,9 +58,9 @@ We have a ton of helpful scripts and security settings configured for managing L
 You'd be shocked how many people create a Docker image and use it in the local development only. These images are designed with the intention of being deploy to the open and wild Internet.
 
 ### Based off of [S6 Overlay](https://github.com/just-containers/s6-overlay)
-S6 Overlay is very helpful in managing a container's lifecycle.
+S6 Overlay is very helpful in managing a container's lifecycle that has multiple processes.
 
-Wait... Isn't Docker supposed to be a "single process per container"? Yes, that's what it's like in a perfect world. Unfortunately PHP isn't like that. You need a web server and PHP-FPM to see your files.
+**Wait... Isn't Docker supposed to be a "single process per container"?** Yes, that's what it's like in a perfect world. Unfortunately PHP isn't like that. You need both a web server and a PHP-FPM server to see your files in order for your application to load.
 
 We follow the [S6 Overlay Philosophy](https://github.com/just-containers/s6-overlay#the-docker-way) on how we can still get a single, disposable, and repetable image of our application out to our servers.
 
