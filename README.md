@@ -51,6 +51,24 @@ Many people have docker images, but they are not runnning them in production. We
 
 We want to make sure that when we work together ***EVERY*** development environment is the same across the board -- no matter how you prefer to work.
 
+# Environment Variables
+
+**Variable Name**|**Used in variation**|**Description**|**Default Value**
+:-----:|:-----:|:-----:|:-----:
+PHP\_DATE\_TIMEZONE|fpm, fpm-nginx, fpm-apache| |"UTC"
+PHP\_DISPLAY\_ERRORS|fpm, fpm-nginx, fpm-apache| |On
+PHP\_ERROR\_REPORTING|fpm, fpm-nginx, fpm-apache| |"E\_ALL & ~E\_DEPRECATED & ~E\_STRICT"
+PHP\_MEMORY\_LIMIT|fpm, fpm-nginx, fpm-apache| |"256M"
+PHP\_MAX\_EXECUTION\_TIME|fpm, fpm-nginx, fpm-apache| |"99"
+PHP\_POST\_MAX\_SIZE|fpm, fpm-nginx, fpm-apache| |"100M"
+PHP\_UPLOAD\_MAX\_FILE\_SIZE|fpm, fpm-nginx, fpm-apache| |"100M"
+PHP\_POOL\_NAME|fpm, fpm-nginx, fpm-apache| |"www"
+PHP\_PM\_CONTROL|fpm, fpm-nginx, fpm-apache| |**fpm:** dynamic<br />**fpm-apache:** ondemand<br />**fpm-nginx:** ondemand
+PHP\_PM\_MAX\_CHILDREN|fpm, fpm-nginx, fpm-apache| |"5"
+PHP\_PM\_START\_SERVERS|fpm, fpm-nginx, fpm-apache| |"2"
+PHP\_PM\_MIN\_SPARE\_SERVERS|fpm, fpm-nginx, fpm-apache| |"1"
+PHP\_PM\_MAX\_SPARE\_SERVERS|fpm, fpm-nginx, fpm-apache| |"3"
+
 # Submitting issues and pull requests
 Since there are a lot of dependencies on these images, please understand that it can make it complicated on mergine your pull request.
 
