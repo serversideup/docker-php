@@ -46,6 +46,9 @@ Majority of our knowledge came from Chris' course, [Shipping Docker](https://ser
 #### [PHPDocker.io](https://github.com/phpdocker-io/base-images)
 This team has an excellent repository and millions of pulls per month. We really like how they structured their code.
 
+#### [linuxserver.io](https://www.linuxserver.io/)
+These guys are absolute aces when it comes to Docker development. They are a great resource for tons of open source Docker images.
+
 # Why these images and not other ones?
 These images have a few key differences. These images are:
 * Optimized for Laravel and WordPress developers (we have many scripts that will help you out)
