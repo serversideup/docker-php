@@ -7,10 +7,17 @@ FROM serversideup/docker-baseimage-s6-overlay-ubuntu:20.04
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
 # Make sure we keep apt silent during installs
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive \
+    WEBUSER_HOME="/var/www/html" \
+    PUID=9999 \
+    PGID=9999
 
 # Install Ondrej repos for Ubuntu focal, PHP7.4, composer and selected extensions
 RUN apt-get update \
+    && echo "Add the default, non-privileged user..." \
+    && groupadd -r webgroup -g $PGID \
+    && useradd --no-log-init -r -d $WEBUSER_HOME -u $PUID -g $PGID webuser \
+    && echo "Install the basic software dependencies..." \
     && apt-get install -y --no-install-recommends gnupg \
     && echo "deb http://ppa.launchpad.net/ondrej/php/ubuntu focal main" > /etc/apt/sources.list.d/ondrej-php.list \
     && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C \
@@ -36,6 +43,12 @@ RUN apt-get update \
 
 # Pull the official composer 2 image, and copy the composer executable from there
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Set the default work directory to our web user
+WORKDIR /var/www/html
+
+#Configure S6 to drop priveleges
+ENTRYPOINT ["/init", "/bin/execlineb", "-s0", "-c", "export HOME $WEBUSER_HOME s6-setuidgid webuser $@"]
 
 # Run PHP
 CMD ["php", "-a"]
