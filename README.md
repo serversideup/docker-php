@@ -52,6 +52,7 @@ Many people have docker images, but they are not runnning them in production. We
 We want to make sure that when we work together ***EVERY*** development environment is the same across the board -- no matter how you prefer to work.
 
 # Environment Variables
+We like to customize our images on a per app basis using environment variables. Look below to see what variables are available and what their defaults are. You can easily override them in your own docker environments ([see Docker's documentation](https://docs.docker.com/compose/environment-variables/#set-environment-variables-in-containers)).
 
 **🔀 Variable Name**|**📚 Description**|**⚙️ Used in variation**|**#️⃣ Default Value**
 :-----:|:-----:|:-----:|:-----:
