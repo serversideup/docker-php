@@ -47,9 +47,14 @@ Majority of our knowledge came from Chris' course, [Shipping Docker](https://ser
 This team has an excellent repository and millions of pulls per month. We really like how they structured their code.
 
 # Why these images and not other ones?
-Many people have docker images, but they are not runnning them in production. We want to share as much as we can of our production images so we can make it easier to work with you.
+These images have a few key differences. These images are:
+* Optimized for Laravel and WordPress developers (we have many scripts that will help you out)
+* Used in production (you'd be shocked how many people do NOT run their containers in production)
+* Based off of [S6 Overlay](https://github.com/just-containers/s6-overlay). This helps fix the quirks of running PHP in a single container
 
-We want to make sure that when we work together ***EVERY*** development environment is the same across the board -- no matter how you prefer to work.
+Wait... Isn't Docker supposed to be a "single process per container"? Yes, that's what it's like in a perfect world. Unfortunately PHP isn't like that. You need a web server and PHP-FPM to see your files.
+
+We follow the [S6 Overlay Philosophy](https://github.com/just-containers/s6-overlay#the-docker-way) on how we can still get a single, disposable, and repetable image of our application out to our servers.
 
 # Environment Variables
 We like to customize our images on a per app basis using environment variables. Look below to see what variables are available and what their defaults are. You can easily override them in your own docker environments ([see Docker's documentation](https://docs.docker.com/compose/environment-variables/#set-environment-variables-in-containers)).
