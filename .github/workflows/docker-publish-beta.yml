@@ -36,6 +36,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: dev
 
       - name: Login to DockerHub
         uses: docker/login-action@v1 
