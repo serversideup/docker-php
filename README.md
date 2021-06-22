@@ -51,9 +51,14 @@ These guys are absolute aces when it comes to Docker development. They are a gre
 
 # Why these images and not other ones?
 These images have a few key differences. These images are:
-* Optimized for Laravel and WordPress developers (we have many scripts that will help you out)
-* Used in production (you'd be shocked how many people do NOT run their containers in production)
-* Based off of [S6 Overlay](https://github.com/just-containers/s6-overlay). This helps fix the quirks of running PHP in a single container
+### Optimized for Laravel and WordPress
+We have a ton of helpful scripts and security settings configured for managing Laravel and WordPress.
+
+### These images are used in production
+You'd be shocked how many people create a Docker image and use it in the local development only. These images are designed with the intention of being deploy to the open and wild Internet.
+
+### Based off of [S6 Overlay](https://github.com/just-containers/s6-overlay)
+S6 Overlay is very helpful in managing a container's lifecycle.
 
 Wait... Isn't Docker supposed to be a "single process per container"? Yes, that's what it's like in a perfect world. Unfortunately PHP isn't like that. You need a web server and PHP-FPM to see your files.
 
@@ -91,7 +96,7 @@ APACHE\_RUN\_GROUP|Set the username of what Apache should run as.|fpm-apache|"ww
 APACHE\_DOCUMENT\_ROOT|Sets the directory from which Apache will serve files. (<a href="https://httpd.apache.org/docs/2.4/mod/core.html#documentroot">Official docs</a>)|fpm-apache|"/var/www/html"
 
 # Submitting issues and pull requests
-Since there are a lot of dependencies on these images, please understand that it can make it complicated on mergine your pull request.
+Since there are a lot of dependencies on these images, please understand that it can make it complicated on merging your pull request.
 
 We'd love to have your help, but it might be best to explain your intentions first before contributing.
 
