@@ -1,4 +1,5 @@
-#!/usr/bin/with-contenv sh
+#!/usr/bin/with-contenv bash
+
 # Check to see if an Artisan file exists and assume means Laravel is configured.
 if [ -f /var/www/html/artisan ]; then
     ############################################################################

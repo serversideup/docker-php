@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/with-contenv bash
 if [ ! -f /etc/ssl/web/ssl.key ]; then
     echo "🔐 Generating a self-signed SSL certificate because one was not provided..."
     mkdir -p /etc/ssl/web/
