@@ -1,31 +1,7 @@
 #!/usr/bin/with-contenv bash
 
-set -e
-
-#########################################
-# Simulate a cron for task schedulers with an infinite loop
-#
-
 # Switch to web user
 su webuser
 
-# See if this a scheduler container
-if [[ $TASK_SCHEDULER_CONTAINER && $TASK_SCHEDULER_CONTAINER == true ]]; then
-    echo "⏰ Executing task scheduler... The command 'artisan schedule:run' will execute every 60 seconds."
-    
-    # Start infinite loop
-    while [ true ]
-    # Run every minute
-    do
-        php /var/www/html/artisan schedule:run --verbose --no-interaction &
-        if [ $? -eq 1 ]
-            echo "Task scheduler ran into an error. Exiting." >&2
-            exit 1
-        fi
-      sleep 60
-    done
-else
-
-#If not, bring up PHP FPM
+#Bring up PHP FPM
 exec /usr/sbin/php-fpm7.4 --nodaemonize
-fi
