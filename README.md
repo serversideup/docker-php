@@ -51,13 +51,116 @@ These guys are absolute aces when it comes to Docker development. They are a gre
 
 # Why these images and not other ones?
 These images have a few key differences. These images are:
-### Optimized for Laravel and WordPress
+
+## 🚀 These images are used in production
+Our philosophy is: **What you run in production is what you should be running in development.**
+
+You'd be shocked how many people create a Docker image and use it in the local development only. These images are designed with the intention of being deployed to the open and wild Internet.
+
+## 🔧 Optimized for Laravel and WordPress
 We have a ton of helpful scripts and security settings configured for managing Laravel and WordPress.
 
-### These images are used in production
-You'd be shocked how many people create a Docker image and use it in the local development only. These images are designed with the intention of being deploy to the open and wild Internet.
+### Automated tasks executed on every container start up
+We automatically look at your Laravel `.env` file and determine if theses tasks should be run. 
 
-### Based off of [S6 Overlay](https://github.com/just-containers/s6-overlay)
+If your `APP_ENV != local`(any environment other than local development), we will automatically run these repetative tasks for you every time the container spins up:
+
+**Database Migrations:**
+```sh
+php /var/www/html/artisan migrate --force
+```
+**Storage Linking:**
+```sh
+php /var/www/html/artisan storage:link
+```
+
+
+### Runing a Laravel Task Scheduler
+We need to run the [schedule:work](https://laravel.com/docs/8.x/scheduling#running-the-scheduler-locally) command from Laravel. Although the docs say "Running the scheduler locally", this is what we want in production. It will run the scheduler in the foreground and execute it every minute. You can configure your Laravel app for the exact time that a command should run through a [scheduled task](https://laravel.com/docs/8.x/scheduling#scheduling-artisan-commands).
+
+**Task Scheduler Command:**
+```sh
+php /var/www/html/artisan schedule:work
+```
+
+**Example Docker Compose File:**
+```yaml
+version: '3'
+services:
+  php:
+    image: my/laravel-app
+    environment:
+      PHP_POOL_NAME: "my-app_php"
+
+  task:
+    image: my/laravel-app
+    command: "php /var/www/html/artisan schedule:work"
+    environment:
+      PHP_POOL_NAME: "my-app_task"
+```
+
+### Running a Laravel Queue
+All you need to do is pass the Laravel Queue command to the container and S6 will automatically monitor it for you.
+
+**Task Command:**
+```sh
+php /var/www/html/artisan queue:work --tries=3
+```
+
+**Example Docker Compose File:**
+```yaml
+version: '3'
+services:
+  php:
+    image: my/laravel-app
+    environment:
+      PHP_POOL_NAME: "my-app_php"
+
+  queue:
+    image: my/laravel-app
+    command: "php /var/www/html/artisan queue:work --tries=3"
+    environment:
+      PHP_POOL_NAME: "my-app_queue"
+```
+
+#### Running Laravel Horizon with a Redis Queue 
+By passing Laravel Horizon to our container, S6 will automatically monitor it.
+
+**Horizon Command:**
+```sh
+php /var/www/html/artisan horizon
+```
+
+**Example Docker Compose File:**
+```yaml
+version: '3'
+services:
+  php:
+    image: my/laravel-app
+    environment:
+      PHP_POOL_NAME: "my-app_php"
+
+  redis:
+    image: redis:6
+    command: "redis-server --appendonly yes --requirepass redispassword"
+
+  horizon:
+    image: my/laravel-app
+    command: "php /var/www/html/artisan horizon"
+    environment:
+      PHP_POOL_NAME: "my-app_horizon"
+```
+
+
+## 🔑 WordPress & Security Optimizations
+* Hardening of Apache & NGINX included
+* Disabling of XML-RPC
+* Preventative access to sensitive version control or CI files
+* Protection against other common attacks
+
+See our [Apache security.conf](https://raw.githubusercontent.com/serversideup/docker-php/main/php/8.0/fpm-apache/etc/apache2/conf-available/security.conf) and [NGINX security.conf](https://raw.githubusercontent.com/serversideup/docker-php/main/php/8.0/fpm-nginx/etc/nginx/server-opts.d/security.conf) for more detail.
+
+## 🧐 Based off of [S6 Overlay](https://github.com/just-containers/s6-overlay)
 S6 Overlay is very helpful in managing a container's lifecycle that has multiple processes.
 
 **Wait... Isn't Docker supposed to be a "single process per container"?** Yes, that's what it's like in a perfect world. Unfortunately PHP isn't like that. You need both a web server and a PHP-FPM server to see your files in order for your application to load.
