@@ -123,7 +123,7 @@ services:
       PHP_POOL_NAME: "my-app_queue"
 ```
 
-#### Running Laravel Horizon with a Redis Queue 
+### Running Laravel Horizon with a Redis Queue 
 By passing Laravel Horizon to our container, S6 will automatically monitor it.
 
 **Horizon Command:**
