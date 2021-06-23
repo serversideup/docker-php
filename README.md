@@ -82,7 +82,7 @@ PHP\_PM\_MAX\_CHILDREN|The number of child processes to be created when pm is se
 PHP\_PM\_START\_SERVERS|The number of child processes created on startup. Used only when pm is set to dynamic. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"2"
 PHP\_PM\_MIN\_SPARE\_SERVERS|The desired minimum number of idle server processes. Used only when pm is set to dynamic. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"1"
 PHP\_PM\_MAX\_SPARE\_SERVERS|The desired maximum number of idle server processes. Used only when pm is set to dynamic. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"3"
-MSMTP\_RELAY\_SERVER\_HOSTNAME|Server that should relay emails for MSMTP. (<a href="https://marlam.de/msmtp/msmtp.html">Official docs</a>)|fpm-nginx,<br />fpm-apache|"mailhog" (we set it to <a href="https://github.com/mailhog/MailHog">Mailhog</a> so our staging sites do not send emails out)
+MSMTP\_RELAY\_SERVER\_HOSTNAME|Server that should relay emails for MSMTP. (<a href="https://marlam.de/msmtp/msmtp.html">Official docs</a>)|fpm-nginx,<br />fpm-apache|"mailhog"<br /><br />🚨 IMPORTANT: Change this value if you want emails to work. (we set it to <a href="https://github.com/mailhog/MailHog">Mailhog</a> so our staging sites do not send emails out)
 MSMTP\_RELAY\_SERVER\_PORT|Port the SMTP server is listening on. (<a href="https://marlam.de/msmtp/msmtp.html">Official docs</a>)|fpm-nginx,<br />fpm-apache|"1025" (default port for Mailhog)
 APACHE\_START\_SERVERS|Sets the number of child server processes created on startup.(<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#startservers">Official docs</a>)|fpm-apache|"2"
 APACHE\_MIN\_SPARE\_THREADS|Minimum number of idle threads to handle request spikes. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#minsparethreads">Official docs</a>)|fpm-apache|"10"
@@ -93,7 +93,7 @@ APACHE\_MAX\_REQUEST\_WORKERS|Sets the limit on the number of simultaneous reque
 APACHE\_MAX\_CONNECTIONS\_PER\_CHILD|Sets the limit on the number of connections that an individual child server process will handle.(<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#maxconnectionsperchild">Official docs</a>)|fpm-apache|"0"
 APACHE\_RUN\_USER|Set the username of what Apache should run as.|fpm-apache|"www-data"
 APACHE\_RUN\_GROUP|Set the username of what Apache should run as.|fpm-apache|"www-data"
-APACHE\_DOCUMENT\_ROOT|Sets the directory from which Apache will serve files. (<a href="https://httpd.apache.org/docs/2.4/mod/core.html#documentroot">Official docs</a>)|fpm-apache|"/var/www/html"
+APACHE\_DOCUMENT\_ROOT|Sets the directory from which Apache will serve files. (<a href="https://httpd.apache.org/docs/2.4/mod/core.html#documentroot">Official docs</a>)|fpm-apache|"/var/www/html/public"
 
 # Submitting issues and pull requests
 Since there are a lot of dependencies on these images, please understand that it can make it complicated on merging your pull request.
