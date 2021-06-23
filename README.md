@@ -67,34 +67,36 @@ We follow the [S6 Overlay Philosophy](https://github.com/just-containers/s6-over
 # Environment Variables
 We like to customize our images on a per app basis using environment variables. Look below to see what variables are available and what their defaults are. You can easily override them in your own docker environments ([see Docker's documentation](https://docs.docker.com/compose/environment-variables/#set-environment-variables-in-containers)).
 
-**⚙️ Used in variation**|**🔀 Variable Name**|**📚 Description**|**#️⃣ Default Value**
+**🔀 Variable Name**|**📚 Description**|**⚙️ Used in variation**|**#️⃣ Default Value**
 :-----:|:-----:|:-----:|:-----:
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_DATE\_TIMEZONE|Control your timezone. (<a href="https://www.php.net/manual/en/datetime.configuration.php#ini.date.timezone">Official Docs</a>)|"UTC"
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_DISPLAY\_ERRORS|Show PHP errors on screen. (<a href="https://www.php.net/manual/en/errorfunc.configuration.php#ini.display-errors">Official docs</a>)|On
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_ERROR\_REPORTING|Set PHP error reporting level. (<a href="https://www.php.net/manual/en/errorfunc.configuration.php#ini.error-reporting">Official docs</a>)|"E\_ALL & ~E\_DEPRECATED & ~E\_STRICT"
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_MAX\_EXECUTION\_TIME|Set the maximum time in seconds a script is allowed to run before it is terminated by the parser. (<a href="https://www.php.net/manual/en/info.configuration.php#ini.max-execution-time">Official docs</a>)|"99"
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_MEMORY\_LIMIT|Set the maximum amount of memory in bytes that a script is allowed to allocate. (<a href="https://www.php.net/manual/en/ini.core.php#ini.memory-limit">Official docs</a>)|"256M"
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_PM\_CONTROL|Choose how the process manager will control the number of child processes. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|**fpm:** dynamic<br />**fpm-apache:** ondemand<br />**fpm-nginx:** ondemand
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_PM\_MAX\_CHILDREN|The number of child processes to be created when pm is set to static and the maximum number of child processes to be created when pm is set to dynamic. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|"20"
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_PM\_MAX\_SPARE\_SERVERS|The desired maximum number of idle server processes. Used only when pm is set to dynamic. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|"3"
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_PM\_MIN\_SPARE\_SERVERS|The desired minimum number of idle server processes. Used only when pm is set to dynamic. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|"1"
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_PM\_START\_SERVERS|The number of child processes created on startup. Used only when pm is set to dynamic. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|"2"
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_POOL\_NAME|Set the name of your PHP-FPM pool (helpful when running multiple sites on a single server).|"www"
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_POST\_MAX\_SIZE|Sets max size of post data allowed. (<a href="https://www.php.net/manual/en/ini.core.php#ini.post-max-size">Official docs</a>)|"100M"
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_UPLOAD\_MAX\_FILE\_SIZE|The maximum size of an uploaded file. (<a href="https://www.php.net/manual/en/ini.core.php#ini.upload-max-filesize">Official docs</a>)|"100M"
-fpm,<br />fpm-nginx,<br />fpm-apache|PHP\_FPM\_LOG\_LEVEL|Set the log level for PHP fpm. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|"info"
-fpm-nginx,<br />fpm-apache|MSMTP\_RELAY\_SERVER\_HOSTNAME|Server that should relay emails for MSMTP. (<a href="https://marlam.de/msmtp/msmtp.html">Official docs</a>)|"mailhog"<br /><br />🚨 IMPORTANT: Change this value if you want emails to work. (we set it to <a href="https://github.com/mailhog/MailHog">Mailhog</a> so our staging sites do not send emails out)
-fpm-nginx,<br />fpm-apache|MSMTP\_RELAY\_SERVER\_PORT|Port the SMTP server is listening on. (<a href="https://marlam.de/msmtp/msmtp.html">Official docs</a>)|"1025" (default port for Mailhog)
-fpm-apache|APACHE\_DOCUMENT\_ROOT|Sets the directory from which Apache will serve files. (<a href="https://httpd.apache.org/docs/2.4/mod/core.html#documentroot">Official docs</a>)|"/var/www/html"
-fpm-apache|APACHE\_MAX\_CONNECTIONS\_PER\_CHILD|Sets the limit on the number of connections that an individual child server process will handle.(<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#maxconnectionsperchild">Official docs</a>)|"0"
-fpm-apache|APACHE\_MAX\_REQUEST\_WORKERS|Sets the limit on the number of simultaneous requests that will be served. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#maxrequestworkers">Official docs</a>)|"150"
-fpm-apache|APACHE\_MAX\_SPARE\_THREADS|Maximum number of idle threads. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#maxsparethreads">Official docs</a>)|"75"
-fpm-apache|APACHE\_MIN\_SPARE\_THREADS|Minimum number of idle threads to handle request spikes. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#minsparethreads">Official docs</a>)|"10"
-fpm-apache|APACHE\_RUN\_GROUP|Set the username of what Apache should run as.|"webgroup"
-fpm-apache|APACHE\_RUN\_USER|Set the username of what Apache should run as.|"webuser"
-fpm-apache|APACHE\_START\_SERVERS|Sets the number of child server processes created on startup.(<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#startservers">Official docs</a>)|"2"
-fpm-apache|APACHE\_THREAD\_LIMIT|Set the maximum configured value for ThreadsPerChild for the lifetime of the Apache httpd process. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#threadlimit">Official docs</a>)|"64"
-fpm-apache|APACHE\_THREADS\_PER\_CHILD|This directive sets the number of threads created by each child process. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#threadsperchild">Official docs</a>)|"25"
+TASK\_SCHEDULER\_CONTAINER|Run "php /var/www/html/artisan schedule:run" every minute. Set to "true" if you want your container to run as a task scheduler.|fpm,<br />fpm-nginx,<br />fpm-apache|(undefined, false)
+PHP\_DATE\_TIMEZONE|Control your timezone. (<a href="https://www.php.net/manual/en/datetime.configuration.php#ini.date.timezone">Official Docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"UTC"
+PHP\_DISPLAY\_ERRORS|Show PHP errors on screen. (<a href="https://www.php.net/manual/en/errorfunc.configuration.php#ini.display-errors">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|On
+PHP\_ERROR\_REPORTING|Set PHP error reporting level. (<a href="https://www.php.net/manual/en/errorfunc.configuration.php#ini.error-reporting">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"E\_ALL & ~E\_DEPRECATED & ~E\_STRICT"
+PHP\_MAX\_EXECUTION\_TIME|Set the maximum time in seconds a script is allowed to run before it is terminated by the parser. (<a href="https://www.php.net/manual/en/info.configuration.php#ini.max-execution-time">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"99"
+PHP\_MEMORY\_LIMIT|Set the maximum amount of memory in bytes that a script is allowed to allocate. (<a href="https://www.php.net/manual/en/ini.core.php#ini.memory-limit">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"256M"
+PHP\_PM\_CONTROL|Choose how the process manager will control the number of child processes. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|**fpm:** dynamic<br />**fpm-apache:** ondemand<br />**fpm-nginx:** ondemand
+PHP\_PM\_MAX\_CHILDREN|The number of child processes to be created when pm is set to static and the maximum number of child processes to be created when pm is set to dynamic. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"20"
+PHP\_PM\_MAX\_SPARE\_SERVERS|The desired maximum number of idle server processes. Used only when pm is set to dynamic. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"3"
+PHP\_PM\_MIN\_SPARE\_SERVERS|The desired minimum number of idle server processes. Used only when pm is set to dynamic. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"1"
+PHP\_PM\_START\_SERVERS|The number of child processes created on startup. Used only when pm is set to dynamic. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"2"
+PHP\_POOL\_NAME|Set the name of your PHP-FPM pool (helpful when running multiple sites on a single server).|fpm,<br />fpm-nginx,<br />fpm-apache|"www"
+PHP\_POST\_MAX\_SIZE|Sets max size of post data allowed. (<a href="https://www.php.net/manual/en/ini.core.php#ini.post-max-size">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"100M"
+PHP\_UPLOAD\_MAX\_FILE\_SIZE|The maximum size of an uploaded file. (<a href="https://www.php.net/manual/en/ini.core.php#ini.upload-max-filesize">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"100M"
+PHP\_FPM\_LOG\_LEVEL|Set the log level for PHP fpm. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"info"
+MSMTP\_RELAY\_SERVER\_HOSTNAME|Server that should relay emails for MSMTP. (<a href="https://marlam.de/msmtp/msmtp.html">Official docs</a>)|fpm-nginx,<br />fpm-apache|"mailhog"<br /><br />🚨 IMPORTANT: Change this value if you want emails to work. (we set it to <a href="https://github.com/mailhog/MailHog">Mailhog</a> so our staging sites do not send emails out)
+MSMTP\_RELAY\_SERVER\_PORT|Port the SMTP server is listening on. (<a href="https://marlam.de/msmtp/msmtp.html">Official docs</a>)|fpm-nginx,<br />fpm-apache|"1025" (default port for Mailhog)
+DEBUG\_OUTPUT|Set this variable to `true` if you want to put PHP and your web server in debug mode.|fpm-nginx,<br />fpm-apache|(undefined, false)
+APACHE\_DOCUMENT\_ROOT|Sets the directory from which Apache will serve files. (<a href="https://httpd.apache.org/docs/2.4/mod/core.html#documentroot">Official docs</a>)|fpm-apache|"/var/www/html"
+APACHE\_MAX\_CONNECTIONS\_PER\_CHILD|Sets the limit on the number of connections that an individual child server process will handle.(<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#maxconnectionsperchild">Official docs</a>)|fpm-apache|"0"
+APACHE\_MAX\_REQUEST\_WORKERS|Sets the limit on the number of simultaneous requests that will be served. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#maxrequestworkers">Official docs</a>)|fpm-apache|"150"
+APACHE\_MAX\_SPARE\_THREADS|Maximum number of idle threads. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#maxsparethreads">Official docs</a>)|fpm-apache|"75"
+APACHE\_MIN\_SPARE\_THREADS|Minimum number of idle threads to handle request spikes. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#minsparethreads">Official docs</a>)|fpm-apache|"10"
+APACHE\_RUN\_GROUP|Set the username of what Apache should run as.|fpm-apache|"webgroup"
+APACHE\_RUN\_USER|Set the username of what Apache should run as.|fpm-apache|"webuser"
+APACHE\_START\_SERVERS|Sets the number of child server processes created on startup.(<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#startservers">Official docs</a>)|fpm-apache|"2"
+APACHE\_THREAD\_LIMIT|Set the maximum configured value for ThreadsPerChild for the lifetime of the Apache httpd process. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#threadlimit">Official docs</a>)|fpm-apache|"64"
+APACHE\_THREADS\_PER\_CHILD|This directive sets the number of threads created by each child process. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#threadsperchild">Official docs</a>)|fpm-apache|"25"
 
 # Submitting issues and pull requests
 Since there are a lot of dependencies on these images, please understand that it can make it complicated on merging your pull request.
