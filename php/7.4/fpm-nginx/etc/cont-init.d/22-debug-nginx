@@ -1,0 +1,12 @@
+#!/usr/bin/with-contenv sh
+if [[ $DEBUG_OUTPUT && $DEBUG_OUTPUT == true ]]; then
+    # Set NGINX to debug mode
+    sed -i 's/^\terror_log.*/\terror_log \/proc\/self\/fd\/2 debug;/' /etc/nginx/nginx.conf
+
+    # Override the PHP_FPM_VARIABLE
+    PHP_FPM_LOG_LEVEL="debug"
+
+    # Let us know it is in debug mode
+    echo "🔥 NGINX and PHP-FPM are in DEBUG MODE 🔥"
+
+fi

@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv sh
+su webuser
+exec /usr/sbin/php-fpm8.0 --nodaemonize

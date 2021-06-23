@@ -2,13 +2,10 @@
 # Server Side Up -  PHP 7.4 / FPM-Apache image 
 #####################################################
 
-FROM serversideup/php:7.4-fpm
+FROM serversideup/php:beta-7.4-fpm
 
-LABEL maintainer="Jay Rogers <jay@serversideup.net>"
+LABEL maintainer="Jay Rogers (@jaydrogers)"
 
-# 🚨 IMPORTANT: Change the SSMTP relay server if you want emails to work
-#  For example, you can override this with the "docker run" command:
-#  `docker run -e SSMTP_RELAY_SERVER=smtp serversideup/php7.4-fpm`
 ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
     MSMTP_RELAY_SERVER_PORT="1025" \
     PHP_POOL_NAME="www" \
@@ -24,9 +21,9 @@ ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
     APACHE_THREADS_PER_CHILD="25" \
     APACHE_MAX_REQUEST_WORKERS="150" \
     APACHE_MAX_CONNECTIONS_PER_CHILD="0" \
-    APACHE_RUN_USER="www-data" \
-    APACHE_RUN_GROUP="www-data" \
-    APACHE_DOCUMENT_ROOT="/var/www/html/" \
+    APACHE_RUN_USER="webuser" \
+    APACHE_RUN_GROUP="webgroup" \
+    APACHE_DOCUMENT_ROOT="/var/www/html/public/" \
     DEBIAN_FRONTEND=noninteractive
     
 
@@ -37,12 +34,8 @@ RUN apt-get update \
         msmtp \
         msmtp-mta \
         apache2 \
-        supervisor \
     && echo "Enabling Apache mods..." \
     && a2enmod actions autoindex deflate headers http2 proxy proxy_fcgi remoteip rewrite setenvif ssl unique_id \
-    && echo "Generate self-signed certs for Apache..." \
-    && mkdir -p /etc/apache2/ssl \
-    && openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout /etc/apache2/ssl/self-signed.key -out /etc/apache2/ssl/self-signed.crt -days 365 \
     && echo "Clean up after ourselves..." \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /var/www/html/* \
@@ -55,27 +48,25 @@ RUN apt-get update \
     && sed -i 's/LogFormat "%h %l %u %t \\\"%r\\\" %>s %O \\\"/LogFormat "%a %l %u %t \\\"%r\\\" %>s %O \\\"/' /etc/apache2/apache2.conf \
     && ln -sf /etc/apache2/conf-available/remoteip.conf /etc/apache2/conf-enabled/remoteip.conf \
     && echo "Force Docker ENVs to handle the apache variables for the run user and group..." \
-    && sed -i '/export APACHE_RUN_USER/ s/^#*/#/' /etc/apache2/envvars \
-    && sed -i '/export APACHE_RUN_GROUP/ s/^#*/#/' /etc/apache2/envvars \
+    && echo "export APACHE_RUN_USER=${APACHE_RUN_USER}" >> /etc/apache2/envvars \
+    && echo "export APACHE_RUN_GROUP=${APACHE_RUN_GROUP}" >> /etc/apache2/envvars \
+    && echo "Fixing permissions issues on the webroot..." \
+    && chown -R webuser:webgroup /var/www/html/ \
     && echo "Making sure Apache is stopped and disabled at start up..." \
     && service apache2 stop \
     && update-rc.d apache2 disable
 
 #APACHE: Copy over configurations
-COPY etc/apache2/conf-available/* /etc/apache2/conf-available/
-COPY etc/apache2/mods-available/* /etc/apache2/mods-available/
-COPY etc/apache2/sites-available/* /etc/apache2/sites-available/
+COPY etc/apache2/ /etc/apache2/
 
-#PHP: Copy over configuration to listen on the socket
-COPY etc/php/7.x/fpm/pool.d/z-fpm-with-overrides.conf etc/php/7.4/fpm/pool.d/z-fpm-with-overrides.conf
+# Copy over S6 configurations
+COPY etc/services.d/ /etc/services.d/
+COPY etc/cont-init.d/ /etc/cont-init.d/
 
-#SUPERVISOR: Copy over supervisor configurations
-COPY etc/supervisor/conf.d/* /etc/supervisor/conf.d/
+#PHP: Copy over PHP overrides
+COPY etc/php/fpm/pool.d/ /etc/php/7.4/fpm/pool.d/
 
 EXPOSE 80
 EXPOSE 443
 
-ADD start-container /usr/bin/start-container
-RUN chmod +x /usr/bin/start-container
-
-ENTRYPOINT ["start-container"]
+ENTRYPOINT ["/init"]

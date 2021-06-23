@@ -2,9 +2,9 @@
 # Server Side Up -  PHP 8.0 / FPM image 
 #####################################################
 
-FROM serversideup/php:8.0-cli
+FROM serversideup/php:beta-8.0-cli
 
-LABEL maintainer="Jay Rogers <jay@serversideup.net>"
+LABEL maintainer="Jay Rogers (@jaydrogers)"
 
 # Set default PHP environment variables
 
@@ -17,10 +17,11 @@ ENV PHP_DATE_TIMEZONE="UTC" \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     PHP_POOL_NAME="www" \
     PHP_PM_CONTROL=dynamic \
-    PHP_PM_MAX_CHILDREN="5" \
+    PHP_PM_MAX_CHILDREN="20" \
     PHP_PM_START_SERVERS="2" \
     PHP_PM_MIN_SPARE_SERVERS="1" \
-    PHP_PM_MAX_SPARE_SERVERS="3"
+    PHP_PM_MAX_SPARE_SERVERS="3" \
+    PHP_FPM_LOG_LEVEL="info"
 
 # Install FPM
 RUN apt-get update \
@@ -31,13 +32,13 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-# Make sure the container comes down clean
-STOPSIGNAL SIGQUIT
+# Copy over S6 configurations
+COPY etc/services.d/ /etc/services.d/
 
-# Apply PHP configuration file
-COPY etc/php/7.x/fpm/pool.d/y-override-php-defaults.conf /etc/php/8.0/fpm/pool.d/y-override-php-defaults.conf
+# Apply PHP configuration files
+COPY etc/php/fpm/pool.d/ /etc/php/8.0/fpm/pool.d/
 
-CMD ["/usr/sbin/php-fpm8.0", "-O" ]
+ENTRYPOINT ["/init" ]
 
 # Open up fcgi port
 EXPOSE 9000

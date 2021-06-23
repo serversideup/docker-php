@@ -32,10 +32,13 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-# Apply PHP configuration file
-COPY etc/php/fpm/pool.d/y-override-php-defaults.conf /etc/php/7.4/fpm/pool.d/y-override-php-defaults.conf
+# Copy over S6 configurations
+COPY etc/services.d/ /etc/services.d/
 
-CMD ["/usr/sbin/php-fpm7.4", "-O" ]
+# Apply PHP configuration files
+COPY etc/php/fpm/pool.d/ /etc/php/7.4/fpm/pool.d/
+
+ENTRYPOINT ["/init" ]
 
 # Open up fcgi port
 EXPOSE 9000

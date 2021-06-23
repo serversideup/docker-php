@@ -1,0 +1,15 @@
+#!/usr/bin/with-contenv sh
+
+#########################################
+# Simulate a cron for task schedulers with an infinite loop
+#
+if [[ $TASK_SCHEDULER_CONTAINER && $TASK_SCHEDULER_CONTAINER == true ]]; then
+    # Start infinite loop
+    while [ true ]
+    # Run every minute
+    do
+      echo "⏰ Executing task scheduler... The command 'artisan schedule:run' will execute every 60 seconds."
+      php /var/www/html/artisan schedule:run --verbose --no-interaction &
+      sleep 60
+    done
+fi

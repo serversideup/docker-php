@@ -18,8 +18,8 @@ server {
 
 	root /var/www/html/public;
 
-	ssl_certificate /etc/nginx/ssl/self-signed.crt;
-	ssl_certificate_key /etc/nginx/ssl/self-signed.key;
+	ssl_certificate /etc/ssl/web/ssl.crt;
+	ssl_certificate_key /etc/ssl/web/ssl.key;
 	ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
 
 	# Set allowed "index" files
@@ -39,7 +39,7 @@ server {
 
 	location ~ \.php$ {
 			include snippets/fastcgi-php.conf;
-			fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+			fastcgi_pass unix:/var/run/php/php-fpm.sock;
 	}
 
 	# additional config
