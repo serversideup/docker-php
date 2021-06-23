@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv sh
+#!/usr/bin/with-contenv bash
 
 # Set the MSMTP configuration
 MSMTP_RELAY_SERVER_HOSTNAME=${MSMTP_RELAY_SERVER_HOSTNAME:-"mailhog"}
