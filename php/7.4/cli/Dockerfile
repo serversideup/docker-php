@@ -48,7 +48,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 #Configure S6 to drop priveleges
-ENTRYPOINT ["/init", "/bin/execlineb", "-s0", "-c", "export HOME $WEBUSER_HOME s6-setuidgid webuser $@"]
+ENTRYPOINT ["/init"]
 
 # Run PHP
 CMD ["php", "-a"]
