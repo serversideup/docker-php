@@ -33,6 +33,7 @@ RUN apt-get update \
 
 # Copy over S6 configurations
 COPY etc/services.d/ /etc/services.d/
+COPY etc/cont-init.d/ /etc/cont-init.d/
 
 # Apply PHP configuration files
 COPY etc/php/fpm/pool.d/ /etc/php/8.0/fpm/pool.d/
