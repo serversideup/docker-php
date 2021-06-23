@@ -69,7 +69,6 @@ We like to customize our images on a per app basis using environment variables. 
 
 **🔀 Variable Name**|**📚 Description**|**⚙️ Used in variation**|**#️⃣ Default Value**
 :-----:|:-----:|:-----:|:-----:
-TASK\_SCHEDULER\_CONTAINER|Run "php /var/www/html/artisan schedule:run" every minute. Set to "true" if you want your container to run as a task scheduler.|fpm,<br />fpm-nginx,<br />fpm-apache|(undefined, false)
 PHP\_DATE\_TIMEZONE|Control your timezone. (<a href="https://www.php.net/manual/en/datetime.configuration.php#ini.date.timezone">Official Docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"UTC"
 PHP\_DISPLAY\_ERRORS|Show PHP errors on screen. (<a href="https://www.php.net/manual/en/errorfunc.configuration.php#ini.display-errors">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|On
 PHP\_ERROR\_REPORTING|Set PHP error reporting level. (<a href="https://www.php.net/manual/en/errorfunc.configuration.php#ini.error-reporting">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"E\_ALL & ~E\_DEPRECATED & ~E\_STRICT"
