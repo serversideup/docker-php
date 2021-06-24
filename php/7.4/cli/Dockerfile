@@ -15,7 +15,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # Install Ondrej repos for Ubuntu focal, PHP7.4, composer and selected extensions
 RUN apt-get update \
     && echo "Add the default, non-privileged user..." \
-    && groupadd -r webgroup -g $PGID \
+    && groupadd -r -g $PGID webgroup \
     && useradd --no-log-init -r -d $WEBUSER_HOME -u $PUID -g $PGID webuser \
     && echo "Install the basic software dependencies..." \
     && apt-get install -y --no-install-recommends gnupg \
@@ -43,6 +43,9 @@ RUN apt-get update \
 
 # Pull the official composer 2 image, and copy the composer executable from there
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Copy over S6 configurations
+COPY etc/cont-init.d/ /etc/cont-init.d/
 
 # Set the default work directory to our web user
 WORKDIR /var/www/html

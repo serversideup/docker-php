@@ -51,7 +51,7 @@ RUN apt-get update \
     && echo "export APACHE_RUN_USER=${APACHE_RUN_USER}" >> /etc/apache2/envvars \
     && echo "export APACHE_RUN_GROUP=${APACHE_RUN_GROUP}" >> /etc/apache2/envvars \
     && echo "Fixing permissions issues on the webroot..." \
-    && chown -R webuser:webgroup /var/www/html/ \
+    && chown -R webuser:webgroup $WEBUSER_HOME \
     && echo "Making sure Apache is stopped and disabled at start up..." \
     && service apache2 stop \
     && update-rc.d apache2 disable
