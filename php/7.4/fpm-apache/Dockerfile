@@ -69,7 +69,6 @@ COPY etc/php/fpm/pool.d/ /etc/php/7.4/fpm/pool.d/
 EXPOSE 80
 EXPOSE 443
 
-HEALTHCHECK \
-  CMD curl -f http://127.0.0.1:9000/ping/ || exit 1
+HEALTHCHECK CMD curl -k -f https://127.0.0.1:9000/ping/ || exit 1
 
 ENTRYPOINT ["/init"]

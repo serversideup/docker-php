@@ -40,8 +40,7 @@ COPY etc/php/fpm/pool.d/ /etc/php/8.0/fpm/pool.d/
 
 ENTRYPOINT ["/init" ]
 
-HEALTHCHECK \
-  CMD curl -f http://127.0.0.1:9000/ping/ || exit 1
+HEALTHCHECK CMD curl -f http://127.0.0.1:9000/ping/ || exit 1
 
 # Open up fcgi port
 EXPOSE 9000
