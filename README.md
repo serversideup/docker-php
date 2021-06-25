@@ -152,6 +152,9 @@ services:
 ```
 
 
+## 🏥 Built-in Healthchecks for Rolling Updates
+Each image is configured to have healthchecks so your orchestrator knows when your new app is ready for requests.
+
 ## 🔑 WordPress & Security Optimizations
 * Hardening of Apache & NGINX included
 * Disabling of XML-RPC
