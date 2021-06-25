@@ -188,6 +188,7 @@ PHP\_PM\_START\_SERVERS|The number of child processes created on startup. Used o
 PHP\_POOL\_NAME|Set the name of your PHP-FPM pool (helpful when running multiple sites on a single server).|fpm,<br />fpm-nginx,<br />fpm-apache|"www"
 PHP\_POST\_MAX\_SIZE|Sets max size of post data allowed. (<a href="https://www.php.net/manual/en/ini.core.php#ini.post-max-size">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"100M"
 PHP\_UPLOAD\_MAX\_FILE\_SIZE|The maximum size of an uploaded file. (<a href="https://www.php.net/manual/en/ini.core.php#ini.upload-max-filesize">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"100M"
+RUN\_LARAVEL\_AUTOMATIONS|Automatically run the Laravel Automations (for non-local Laravel installs only)|fpm,<br />fpm-nginx,<br />fpm-apache|"true"
 MSMTP\_RELAY\_SERVER\_HOSTNAME|Server that should relay emails for MSMTP. (<a href="https://marlam.de/msmtp/msmtp.html">Official docs</a>)|fpm-nginx,<br />fpm-apache|"mailhog"<br /><br />🚨 IMPORTANT: Change this value if you want emails to work. (we set it to <a href="https://github.com/mailhog/MailHog">Mailhog</a> so our staging sites do not send emails out)
 MSMTP\_RELAY\_SERVER\_PORT|Port the SMTP server is listening on. (<a href="https://marlam.de/msmtp/msmtp.html">Official docs</a>)|fpm-nginx,<br />fpm-apache|"1025" (default port for Mailhog)
 DEBUG\_OUTPUT|Set this variable to `true` if you want to put PHP and your web server in debug mode.|fpm-nginx,<br />fpm-apache|(undefined, false)
