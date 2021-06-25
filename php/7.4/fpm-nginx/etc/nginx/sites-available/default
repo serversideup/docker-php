@@ -36,7 +36,16 @@ server {
 	location / {
       try_files $uri $uri/ /index.php?$query_string;
   	}
+	# Healthchecks: Only allow from 127.0.0.1
+	location ~ ^/(status|ping)$ {
+        allow 127.0.0.1;
+		deny all;
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php-fpm.sock;
+		access_log off;
+	}
 
+	# Pass "*.php" files to PHP-FPM
 	location ~ \.php$ {
 			include snippets/fastcgi-php.conf;
 			fastcgi_pass unix:/var/run/php/php-fpm.sock;
