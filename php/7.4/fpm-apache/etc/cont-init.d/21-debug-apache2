@@ -8,6 +8,6 @@ if [[ $DEBUG_OUTPUT && $DEBUG_OUTPUT == true ]]; then
     sed -i 's/^;log_level.*/log_level = debug/' /etc/php/7.4/fpm/php-fpm.conf
 
     # Let us know it is in debug mode
-    echo "🔥 NGINX and PHP-FPM are in DEBUG MODE 🔥"
+    echo "🔥 APACHE and PHP-FPM are in DEBUG MODE 🔥"
 
 fi

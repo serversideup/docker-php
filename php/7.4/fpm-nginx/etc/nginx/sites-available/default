@@ -32,19 +32,23 @@ server {
 	# Set max upload to 2048M
 	client_max_body_size 2048M;
 
+	# Healthchecks: Set /ping to be the healhcheck URL
+    location /ping {
+		access_log off;
+		
+        # set max 5 seconds for healthcheck
+        fastcgi_read_timeout 5s;
+
+        include        fastcgi_params;
+        fastcgi_param  SCRIPT_NAME     /ping;
+        fastcgi_param  SCRIPT_FILENAME /ping;
+        fastcgi_pass   unix:/var/run/php/php-fpm.sock;
+    }
+
 	# Have NGINX try searching for PHP files as well
 	location / {
       try_files $uri $uri/ /index.php?$query_string;
   	}
-	# Healthchecks: Set /ping to be the healhcheck URL
-	location ~ ^/ping)$ {
-		# Commented out "local only" rule so Traefik can access it
-		# allow 127.0.0.1;
-		# deny all;
-		include snippets/fastcgi-php.conf;
-		fastcgi_pass unix:/var/run/php/php-fpm.sock;
-		access_log off;
-	}
 
 	# Pass "*.php" files to PHP-FPM
 	location ~ \.php$ {
