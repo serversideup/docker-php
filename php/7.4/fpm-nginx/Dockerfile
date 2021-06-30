@@ -42,7 +42,11 @@ COPY etc/php/fpm/pool.d/ /etc/php/7.4/fpm/pool.d/
 EXPOSE 80
 EXPOSE 443
 
-HEALTHCHECK CMD curl -k -f https://127.0.0.1/ping/ || exit 1
+################################################################
+# Commenting these out for now because Traefik and Swarm
+# we not playing well together with this for rolling updates
 
+# HEALTHCHECK --start-period=5s \
+#   CMD curl -k -f https://127.0.0.1/ping/ || exit 1
 
 ENTRYPOINT ["/init"]
