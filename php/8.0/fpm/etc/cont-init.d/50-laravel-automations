@@ -9,10 +9,6 @@ if [ -f $WEBUSER_HOME/artisan ]; then
 
     # If Laravel is not running in development or CI, then automate some production tasks
     if [ "$APP_ENV_SETTING" != "local" ] && [ ! -z $APP_ENV_SETTING ] && [ ${CI_ENV:="false"} != "true" ] && [ ${RUN_LARAVEL_AUTOMATIONS:="true"} == "true" ]; then
-        ############################################################################
-        # Switch to the "web user" to execute commands
-        ############################################################################
-        su webuser
 
         # ############################################################################
         # # Cache management - commented out for now because of a bug with Laravel caching & API Rate limiting
@@ -30,14 +26,14 @@ if [ -f $WEBUSER_HOME/artisan ]; then
         ############################################################################
         if grep -q DB_DATABASE $WEBUSER_HOME/.env; then
             echo "🚀 Running migrations..."
-            php $WEBUSER_HOME/artisan migrate --force
+            su - webuser -c "php $WEBUSER_HOME/artisan migrate --force"
         fi
 
         ############################################################################
         # Automated storage linking
         ############################################################################
         echo "🔐 Linking the storage..."
-        php $WEBUSER_HOME/artisan storage:link
+        su - webuser -c "php $WEBUSER_HOME/artisan storage:link"
     else
         echo "👉 Skipping Laravel production commands because the env is set to 'local', running in CI, or explicitly disabled..."
     fi
