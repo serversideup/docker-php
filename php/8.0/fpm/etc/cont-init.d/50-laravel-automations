@@ -25,14 +25,14 @@ if [ -f $WEBUSER_HOME/artisan ]; then
         ############################################################################
         if grep -q DB_DATABASE $WEBUSER_HOME/.env; then
             echo "🚀 Running migrations..."
-            php $WEBUSER_HOME/artisan migrate --force
+            sudo -H -u webuser bash -c "php $WEBUSER_HOME/artisan migrate --force"
         fi
 
         ############################################################################
         # Automated storage linking
         ############################################################################
         echo "🔐 Linking the storage..."
-        php $WEBUSER_HOME/artisan storage:link
+        sudo -H -u webuser bash -c "php $WEBUSER_HOME/artisan storage:link"
     else
         echo "👉 Skipping Laravel production commands because the env is set to 'local', running in CI, or explicitly disabled..."
     fi
