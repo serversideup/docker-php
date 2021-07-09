@@ -16,7 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update \
     && echo "Add the default, non-privileged user..." \
     && groupadd -r -g $PGID webgroup \
-    && useradd --no-log-init -r -d $WEBUSER_HOME -u $PUID -g $PGID webuser \
+    && useradd --no-log-init -r -s /usr/bin/bash -d $WEBUSER_HOME -u $PUID -g $PGID webuser \
     && echo "Install the basic software dependencies..." \
     && apt-get install -y --no-install-recommends gnupg \
     && echo "deb http://ppa.launchpad.net/ondrej/php/ubuntu focal main" > /etc/apt/sources.list.d/ondrej-php.list \
