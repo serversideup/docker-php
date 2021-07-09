@@ -15,11 +15,11 @@ if [ -f $WEBUSER_HOME/artisan ]; then
         # ############################################################################
         # echo "♻️ Refreshing cache..."
         # # Clear cache
-        # php $WEBUSER_HOME/artisan cache:clear
+        # su - webuser -c "php $WEBUSER_HOME/artisan cache:clear"
 
         # # Set cache
-        # php $WEBUSER_HOME/artisan route:cache
-        # php $WEBUSER_HOME/artisan view:cache
+        # su - webuser -c "php $WEBUSER_HOME/artisan route:cache"
+        # su - webuser -c "php $WEBUSER_HOME/artisan view:cache"
 
         ############################################################################
         # Automated database migrations
