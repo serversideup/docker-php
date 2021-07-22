@@ -2,7 +2,7 @@
 # Server Side Up -  PHP 8.0 / FPM-Apache image 
 #####################################################
 
-FROM serversideup/php:beta-8.0-fpm
+FROM serversideup/php:8.0-fpm
 
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 

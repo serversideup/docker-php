@@ -2,7 +2,7 @@
 # Server Side Up -  PHP 7.4 / FPM image 
 #####################################################
 
-FROM serversideup/php:beta-7.4-cli
+FROM serversideup/php:7.4-cli
 
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
