@@ -164,7 +164,7 @@ S6 Overlay is very helpful in managing a container's lifecycle that has multiple
 
 **Wait... Isn't Docker supposed to be a "single process per container"?** Yes, that's what it's like in a perfect world. Unfortunately PHP isn't like that. You need both a web server and a PHP-FPM server to see your files in order for your application to load.
 
-We follow the [S6 Overlay Philosophy](https://github.com/just-containers/s6-overlay#the-docker-way) on how we can still get a single, disposable, and repetable image of our application out to our servers.
+We follow the [S6 Overlay Philosophy](https://github.com/just-containers/s6-overlay#the-docker-way) on how we can still get a single, disposable, and repeatable image of our application out to our servers.
 
 # Environment Variables
 We like to customize our images on a per app basis using environment variables. Look below to see what variables are available and what their defaults are. You can easily override them in your own docker environments ([see Docker's documentation](https://docs.docker.com/compose/environment-variables/#set-environment-variables-in-containers)).
