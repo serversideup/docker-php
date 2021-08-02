@@ -202,6 +202,15 @@ APACHE\_START\_SERVERS|Sets the number of child server processes created on star
 APACHE\_THREAD\_LIMIT|Set the maximum configured value for ThreadsPerChild for the lifetime of the Apache httpd process. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#threadlimit">Official docs</a>)|fpm-apache|"64"
 APACHE\_THREADS\_PER\_CHILD|This directive sets the number of threads created by each child process. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#threadsperchild">Official docs</a>)|fpm-apache|"25"
 
+# Other customizations
+### Production SSL Configurations
+You have a few options for running SSL. By default, we generate a self-signed certificate for simple local development. For production use, we recommend using [Traefik](https://traefik.io/) or [Caddy](https://caddyserver.com/) as a proxy to your actual container. This is what we do and it's really nice to use the automatic Let's Encrypt SSL management with these products.
+
+If you really want you use your own provided certificate, you'll just need to use Docker Volumes and mount the `/etc/ssl/web` folder with these two files in that directory:
+
+1. /etc/ssl/web/ssl.crt
+1. /etc/ssl/web/ssl.key
+
 # Submitting issues and pull requests
 Since there are a lot of dependencies on these images, please understand that it can make it complicated on merging your pull request.
 
