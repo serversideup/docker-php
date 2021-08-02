@@ -214,6 +214,8 @@ If you really want you use your own provided certificate, you'll just need to us
 ### Real-life working examples
 You can see a bigger picture on how these images are used from Development to Production by viewing this video that shows a high level overview how we deploy "[ROAST](https://roastandbrew.coffee/)" which is a demo production app for [our book](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-vuejs/).
 
+Click the image below to view the video:
+
 [![Laravel + NuxtJS From Dev to production](https://img.youtube.com/vi/PInGAWnvkjM/0.jpg)](https://www.youtube.com/watch?v=PInGAWnvkjM)
 
 # Submitting issues and pull requests
