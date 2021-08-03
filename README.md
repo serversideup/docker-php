@@ -75,7 +75,7 @@ php /var/www/html/artisan storage:link
 ```
 
 
-### Runing a Laravel Task Scheduler
+### Running a Laravel Task Scheduler
 We need to run the [schedule:work](https://laravel.com/docs/8.x/scheduling#running-the-scheduler-locally) command from Laravel. Although the docs say "Running the scheduler locally", this is what we want in production. It will run the scheduler in the foreground and execute it every minute. You can configure your Laravel app for the exact time that a command should run through a [scheduled task](https://laravel.com/docs/8.x/scheduling#scheduling-artisan-commands).
 
 **Task Scheduler Command:**
