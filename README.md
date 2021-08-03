@@ -63,7 +63,7 @@ We have a ton of helpful scripts and security settings configured for managing L
 ### Automated tasks executed on every container start up
 We automatically look at your Laravel `.env` file and determine if theses tasks should be run. 
 
-If your `APP_ENV != local`(any environment other than local development), we will automatically run these repetative tasks for you every time the container spins up:
+If your `APP_ENV != local`(any environment other than local development), we will automatically run these repetitive tasks for you every time the container spins up:
 
 **Database Migrations:**
 ```sh
