@@ -27,6 +27,13 @@ For example... If I wanted to run **PHP 8.0** with **FPM + NGINX**, I would use 
 serversideup/php:8.0-fpm-nginx
 ```
 
+### Real-life working example
+You can see a bigger picture on how these images are used from Development to Production by viewing this video that shows a high level overview how we deploy "[ROAST](https://roastandbrew.coffee/)" which is a demo production app for [our book](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-vuejs/).
+
+Click the image below to view the video:
+
+[![Laravel + NuxtJS From Dev to production](https://img.youtube.com/vi/PInGAWnvkjM/0.jpg)](https://www.youtube.com/watch?v=PInGAWnvkjM)
+
 ### Updates
 ✅ The image builds automatically run weekly (Tuesday at 0800 UTC) for latest security updates.
 
@@ -34,6 +41,25 @@ serversideup/php:8.0-fpm-nginx
 All images are built off of the official Ubuntu 20.04 docker image. We first build our CLI image, then our FPM, etc. Here is what this looks like:
 
 <img src="https://raw.githubusercontent.com/serversideup/docker-php/main/.github/dependency-diagram.png" alt="Dependency Diagram">
+
+# Where do you host your stuff?
+We get this question often. Our biggest principle is: **your infrastructure should be able to run anywhere.**
+
+We believe privacy and control is the #1 priority when it comes to hosting infrastructure. We try to avoid the "big clouds" as much as possible because we're not comfortable that all 3 major players practice data mining of users and their products usually contain some sort of "vendor-lock".
+
+We run all of our production servers on the latest LTS release of Ubuntu Server. The hosts we use are below. Some may be affiliate links that kick a few bucks at no extra cost to you, but they do not affect our recommendations at all. 
+
+## [Vultr](https://vultr.grsm.io/create-server)
+**Our current favorite.** Excellent performance and value. Lots of datacenter options too.
+
+## [Digital Ocean](https://m.do.co/c/f3bad4b927ca)
+Lots of developer love here. Not the best performing servers, but they do have a lot of awesome products!
+
+## [Linode](https://www.linode.com/?r=5a1b585e4eb919d3d89ad242bd1bb2924754c444)
+Great performance and great support. These guys have really enhanced their offering over the last few years.
+
+## Benchmarks
+If you're shopping for a host, [check out the benchmarks we've ran →](https://www.notion.so/521dimensions/Benchmark-Results-for-Self-hosted-Gitlab-Server-c6eca7c5f16d4bb8aeb989174fc58ffe)
 
 # About this project
 We're taking the extra effort to open source as much as we can. Not only could this potentially help someone learn a little bit of Docker, but it makes it a *heck of a lot* easier for us to work with you on new open source ideas.
@@ -211,12 +237,6 @@ If you really want you use your own provided certificate, you'll just need to us
 1. /etc/ssl/web/ssl.crt
 1. /etc/ssl/web/ssl.key
 
-### Real-life working examples
-You can see a bigger picture on how these images are used from Development to Production by viewing this video that shows a high level overview how we deploy "[ROAST](https://roastandbrew.coffee/)" which is a demo production app for [our book](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-vuejs/).
-
-Click the image below to view the video:
-
-[![Laravel + NuxtJS From Dev to production](https://img.youtube.com/vi/PInGAWnvkjM/0.jpg)](https://www.youtube.com/watch?v=PInGAWnvkjM)
 
 # Submitting issues and pull requests
 Since there are a lot of dependencies on these images, please understand that it can make it complicated on merging your pull request.
