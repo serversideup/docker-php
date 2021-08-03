@@ -58,8 +58,11 @@ Lots of developer love here. Not the best performing servers, but they do have a
 ## [Linode](https://www.linode.com/?r=5a1b585e4eb919d3d89ad242bd1bb2924754c444)
 Great performance and great support. These guys have really enhanced their offering over the last few years.
 
-## Benchmarks
+### Benchmarks
 If you're shopping for a host, [check out the benchmarks we've ran →](https://www.notion.so/521dimensions/Benchmark-Results-for-Self-hosted-Gitlab-Server-c6eca7c5f16d4bb8aeb989174fc58ffe)
+
+### Can I run this on another host?
+Sure! It all depends what platform you want to use, but if it supports Docker images, you likely can run it. These images are designed to give you freedom no matter where you want to run them.
 
 # About this project
 We're taking the extra effort to open source as much as we can. Not only could this potentially help someone learn a little bit of Docker, but it makes it a *heck of a lot* easier for us to work with you on new open source ideas.
