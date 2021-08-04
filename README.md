@@ -9,7 +9,7 @@
 
 Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers). We're a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
 
-Find us at:
+### Find us at:
 
 * [📖 Blog](https://serversideup.net) - get the latest guides and free courses on all things web/mobile development.
 * [🙋 Community](https://community.serversideup.net) - get friendly help from our community members.
