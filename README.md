@@ -11,13 +11,13 @@ Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/ja
 
 ### Find us at:
 
-* [📖 Blog](https://serversideup.net) - get the latest guides and free courses on all things web/mobile development.
-* [🙋 Community](https://community.serversideup.net) - get friendly help from our community members.
-* [🤵‍♂️ Get Professional Help](https://serversideup.net/get-help) - get guaranteed responses within next business day.
-* [💻 GitHub](https://github.com/serversideup) - check out our other open source projects
-* [📫 Newsletter](https://serversideup.net/subscribe) - skip the algorithms and get quality content right to your inbox
+* 📖 [Blog](https://serversideup.net) - get the latest guides and free courses on all things web/mobile development.
+* 🙋 [Community](https://community.serversideup.net) - get friendly help from our community members.
+* 🤵‍♂️ [Get Professional Help](https://serversideup.net/get-help) - get guaranteed responses within next business day.
+* 💻 [GitHub](https://github.com/serversideup) - check out our other open source projects
+* 📫 [Newsletter](https://serversideup.net/subscribe) - skip the algorithms and get quality content right to your inbox
 * 🐥 [Twitter](https://twitter.com/serversideup) - you can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers)
-* [❤️ Sponsor Us](https://github.com/sponsors/serversideup) - please consider sponsoring us so we can create more helpful resources
+* ❤️ [Sponsor Us](https://github.com/sponsors/serversideup) - please consider sponsoring us so we can create more helpful resources
 
 # Available Docker Images
 This is a list of the docker images this repository creates:
