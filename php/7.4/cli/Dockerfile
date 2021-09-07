@@ -6,8 +6,11 @@ FROM serversideup/docker-baseimage-s6-overlay-ubuntu:20.04
 
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
-# Make sure we keep apt silent during installs
+# Make sure we keep apt silent during installs. Set other defaults as well
 ENV DEBIAN_FRONTEND=noninteractive \
+    LANG="en_US.UTF-8" \
+    LANGUAGE="en_US:en" \
+    LC_ALL="en_US.UTF-8" \
     WEBUSER_HOME="/var/www/html" \
     PUID=9999 \
     PGID=9999
