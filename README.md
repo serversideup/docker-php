@@ -61,7 +61,7 @@ We believe privacy and control is the #1 priority when it comes to hosting infra
 
 We run all of our production servers on the latest LTS release of Ubuntu Server. The hosts we use are below. Some may be affiliate links that kick a few bucks at no extra cost to you, but they do not affect our recommendations at all. 
 
-## [Vultr](https://vultr.grsm.io/create-server)
+## [Vultr](https://vultr.grsm.io/register)
 **Our current favorite.** Excellent performance and value. Lots of datacenter options too.
 
 ## [Digital Ocean](https://m.do.co/c/f3bad4b927ca)
