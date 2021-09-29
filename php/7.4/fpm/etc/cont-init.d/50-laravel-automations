@@ -1,5 +1,8 @@
 #!/usr/bin/with-contenv bash
 
+# Exit on error
+set -e
+
 # Check to see if an Artisan file exists and assume means Laravel is configured.
 if [ -f $WEBUSER_HOME/artisan ]; then
     ############################################################################
