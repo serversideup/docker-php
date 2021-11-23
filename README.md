@@ -251,8 +251,72 @@ APACHE\_THREADS\_PER\_CHILD|This directive sets the number of threads created by
 
 # Other customizations
 
-### Installing custom addons
-WIP
+### Installing additional PHP extensions
+Let's say that we have a basic Docker compose image working in development:
+```yaml
+version: '3.7'
+services:
+  php:
+    image: serversideup/php:8.0-fpm-nginx
+    volumes:
+      - .:/var/www/html/:cached
+```
+Now let's say we want to add the **PHP ImageMagick** extension. To do this, we will use the [docker compose build](https://docs.docker.com/compose/compose-file/compose-file-v3/#build) option in our YAML file.
+
+This means we would need to change our file above to look like:
+```yaml
+version: '3.7'
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/var/www/html/:cached
+```
+
+Notice the `services.php.build` options. We set a `.` to look for a dockerfile called `Dockerfile` within the same directory as our `docker-compose.yml` file.
+
+For extra clarity, my project directory would look like this:
+```txt
+.
+├── Dockerfile
+├── docker-compose.yml
+└── public
+    └── index.php
+```
+The Dockerfile is where all the magic will happen. This is where we pull the Server Side Up image as a dependency, then run standard Ubuntu commands to add the extension that we need.
+
+**Dockerfile:**
+```Dockerfile
+# Set our base image
+FROM serversideup/php:8.0-fpm-nginx
+
+# Install PHP Imagemagick using regular Ubuntu commands
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends php8.0-imagick \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+```
+
+The next time you run `docker compose up`, Docker will build and cache the image for you automatically.
+
+You can verify the CLI option installed correctly by echoing out the installed modules. Run this command in a new window **while your containers are running via Docker Compose**:
+
+```sh
+docker compose exec php php -m
+```
+
+To check that PHP-FPM loaded everything properly, use the [phpinfo()](https://www.php.net/manual/en/function.phpinfo.php) functionally.
+
+**⚠️ Important note about caching**
+* You'll notice Docker likes to cache image builds (which is great for most functions)
+* If you make changes to your *Dockerfile*, you may need to include `--build` with your Docker compose command ([read more here](https://docs.docker.com/compose/reference/up/))
+
+If you want to rebuild, then you would run this:
+```sh
+docker compose up --build
+```
 
 ### Production SSL Configurations
 You have a few options for running SSL. By default, we generate a self-signed certificate for simple local development. For production use, we recommend using [Traefik](https://traefik.io/) or [Caddy](https://caddyserver.com/) as a proxy to your actual container. This is what we do and it's really nice to use the automatic Let's Encrypt SSL management with these products.
