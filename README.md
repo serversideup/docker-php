@@ -250,6 +250,10 @@ APACHE\_THREAD\_LIMIT|Set the maximum configured value for ThreadsPerChild for t
 APACHE\_THREADS\_PER\_CHILD|This directive sets the number of threads created by each child process. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#threadsperchild">Official docs</a>)|fpm-apache|"25"
 
 # Other customizations
+
+### Installing custom addons
+WIP
+
 ### Production SSL Configurations
 You have a few options for running SSL. By default, we generate a self-signed certificate for simple local development. For production use, we recommend using [Traefik](https://traefik.io/) or [Caddy](https://caddyserver.com/) as a proxy to your actual container. This is what we do and it's really nice to use the automatic Let's Encrypt SSL management with these products.
 
