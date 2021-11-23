@@ -309,7 +309,7 @@ docker compose exec php php -m
 
 To check that PHP-FPM loaded everything properly, use the [phpinfo()](https://www.php.net/manual/en/function.phpinfo.php) functionally.
 
-**⚠️ Important note about caching**
+#### ⚠️ Important note about caching
 * You'll notice Docker likes to cache image builds (which is great for most functions)
 * If you make changes to your *Dockerfile*, you may need to include `--build` with your Docker compose command ([read more here](https://docs.docker.com/compose/reference/up/))
 
@@ -317,6 +317,11 @@ If you want to rebuild, then you would run this:
 ```sh
 docker compose up --build
 ```
+
+#### How do I know which package name to use?
+Refer to the official instructions of the extension that you are trying to install. We use Ondrej's PHP repository, so chances are you might be able to find in in here: https://launchpad.net/~ondrej/+archive/ubuntu/php/+packages
+
+Make sure to use the same version number as well. For example... If you are using `8.0` and want to install the **php-imagick** package, use the name `php8.0-imagick` during install (see my examples above).
 
 ### Production SSL Configurations
 You have a few options for running SSL. By default, we generate a self-signed certificate for simple local development. For production use, we recommend using [Traefik](https://traefik.io/) or [Caddy](https://caddyserver.com/) as a proxy to your actual container. This is what we do and it's really nice to use the automatic Let's Encrypt SSL management with these products.
