@@ -1,4 +1,3 @@
 #!/bin/bash
-echo "6" > /tmp/test.txt
-[ $RESULT -ne 0 ] && exit 1
+echo "8" > /tmp/test.txt
 exit 0
