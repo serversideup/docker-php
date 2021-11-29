@@ -1,2 +1,2 @@
 #!/bin/bash
-pwd
+echo "2" > /tmp/test.txt
