@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Get project directory
+PROJECT_DIR="$(git rev-parse --show-toplevel)"
+
+# Run a template build
+source $PROJECT_DIR/build.sh
+
+# Add any templates to this commit
+git add $PROJECT_DIR/php/
+
+exit 0

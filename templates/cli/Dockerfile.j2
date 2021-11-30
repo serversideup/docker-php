@@ -1,5 +1,5 @@
 #####################################################
-# Server Side Up -  PHP 8.0 / CLI image 
+# Server Side Up -  PHP {{ php_version }} / CLI image 
 #####################################################
 
 FROM serversideup/docker-baseimage-s6-overlay-ubuntu:20.04
@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PUID=9999 \
     PGID=9999
 
-# Install Ondrej repos for Ubuntu focal, PHP8.0, composer and selected extensions
+# Install Ondrej repos for Ubuntu focal, PHP{{ php_version }}, composer and selected extensions
 RUN apt-get update \
     && echo "Add the default, non-privileged user..." \
     && groupadd -r -g $PGID webgroup \
@@ -27,17 +27,9 @@ RUN apt-get update \
         ca-certificates \
         curl \
         unzip \
-        php8.0-cli \
-        php8.0-common \
-        php8.0-curl \
-        php8.0-gd \
-        php8.0-mbstring \
-        php8.0-mysql \
-        php8.0-redis \
-        php8.0-soap \
-        php8.0-sqlite3 \
-        php8.0-xml \
-        php8.0-zip \
+  	{% for package in versions[php_version].packages %}
+        {{ package }} \
+  	{% endfor %}
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 

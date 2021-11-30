@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+
+if [ ! -f /etc/ssl/web/ssl.key ]; then
+    echo "🔐 Generating a self-signed SSL certificate because one was not provided..."
+    mkdir -p /etc/ssl/web/
+    openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout /etc/ssl/web/ssl.key -out /etc/ssl/web/ssl.crt -days 365
+fi
