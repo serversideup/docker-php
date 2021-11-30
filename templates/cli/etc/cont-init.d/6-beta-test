@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv bash
+
+echo "✅ The beta is working"
