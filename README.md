@@ -28,12 +28,12 @@ All of our software is free an open to the world. None of this can be brought to
 # Available Docker Images
 This is a list of the docker images this repository creates:
 
-| ⚙️ Variation | 🎁 Version |
-|--------------|------------|
-| cli          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-cli&page=1&ordering=-name)  |
-| fpm          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm&page=1&ordering=-name)   |
-| fpm-apache   | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-apache&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-apache&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-apache&page=1&ordering=-name)   |
-| fpm-nginx    | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-nginx&page=1&ordering=-name)   |
+| ⚙️ Variation | ✨ Version | 🚀 Size |
+|--------------|------------|------------|
+| cli          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-cli&page=1&ordering=-name),  | ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-cli) |
+| fpm          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm&page=1&ordering=-name)  | ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm) |
+| fpm-apache   | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-apache&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-apache&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-apache&page=1&ordering=-name)   | ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-apache) |
+| fpm-nginx    | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-nginx&page=1&ordering=-name)   |  ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-nginx) |
 
 ### Usage
 Simply use this image name pattern in any of your projects:
