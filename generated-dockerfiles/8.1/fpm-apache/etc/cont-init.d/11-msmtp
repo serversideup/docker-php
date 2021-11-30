@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bash
+
+# Set the MSMTP configuration
+MSMTP_RELAY_SERVER_HOSTNAME=${MSMTP_RELAY_SERVER_HOSTNAME:-"mailhog"}
+MSMTP_RELAY_SERVER_PORT=${MSMTP_RELAY_SERVER_PORT:-"1025"}
+
+cat > /etc/msmtprc <<EOL
+host ${MSMTP_RELAY_SERVER_HOSTNAME}
+port ${MSMTP_RELAY_SERVER_PORT}
+logfile -
+EOL
+unset MSMTP_RELAY_SERVER
+unset MSMTP_PORT
