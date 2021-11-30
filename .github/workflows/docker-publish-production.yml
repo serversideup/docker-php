@@ -46,7 +46,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Build and tag image
-        run: docker build --pull php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
+        run: docker build --pull generated-dockerfiles/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
 
       - name: Push version image to DockerHub
         run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
