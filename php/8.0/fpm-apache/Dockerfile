@@ -2,7 +2,9 @@
 # Server Side Up -  PHP 8.0 / FPM-Apache image 
 #####################################################
 
-FROM serversideup/php:8.0-fpm
+# Default upstream channel to `null` so latest images can be published as `serversideup/php:8.x-cli` and beta as `serversideup/php:beta-8.x-cli`
+ARG  UPSTREAM_CHANNEL=''
+FROM serversideup/php:${UPSTREAM_CHANNEL}8.0-fpm
 
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
