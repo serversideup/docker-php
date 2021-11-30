@@ -1,3 +1,5 @@
 #!/bin/sh
-source ../../build.sh
+PROJECT_DIR="$(git rev-parse --show-toplevel)"
+
+source $PROJECT_DIR/build.sh
 exit 0
