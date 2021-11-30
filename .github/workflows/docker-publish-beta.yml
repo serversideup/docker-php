@@ -81,7 +81,7 @@ jobs:
       ####################################################################
 
       - name: Build and tag image
-        run: docker build --build-arg UPSTREAM_CHANNEL="beta-" --pull php/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:beta-${{ matrix.php-version }}-${{ matrix.php-variation }}
+        run: docker build --build-arg UPSTREAM_CHANNEL="beta-" --pull generated-dockerfiles/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:beta-${{ matrix.php-version }}-${{ matrix.php-variation }}
 
       - name: Push version image to DockerHub
         run: docker push serversideup/php:beta-${{ matrix.php-version }}-${{ matrix.php-variation }}
