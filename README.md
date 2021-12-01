@@ -211,7 +211,7 @@ services:
 See our [Apache security.conf](https://raw.githubusercontent.com/serversideup/docker-php/main/php/8.0/fpm-apache/etc/apache2/conf-available/security.conf) and [NGINX security.conf](https://raw.githubusercontent.com/serversideup/docker-php/main/php/8.0/fpm-nginx/etc/nginx/server-opts.d/security.conf) for more detail.
 
 ### Examples of running WordPress
-If you're looking for a deeper example on how we run our WordPress blog, [Server Side Up](https://serversideup.net), check out this repository for a boilerplate example: https://github.com/serversideup/docker-php/
+If you're looking for a deeper example on how we run our WordPress blog, [Server Side Up](https://serversideup.net), check out this repository for a boilerplate example: https://github.com/serversideup/docker-wordpress
 
 ## 🧐 Based off of [S6 Overlay](https://github.com/just-containers/s6-overlay)
 S6 Overlay is very helpful in managing a container's lifecycle that has multiple processes.
