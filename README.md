@@ -5,6 +5,10 @@
 	<a href="https://actions-badge.atrox.dev/serversideup/docker-php/goto?ref=main"><img alt="Build Status" src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fserversideup%2Fdocker-php%2Fbadge%3Fref%3Dmain&style=flat" /></a>
 	<a href="https://github.com/serversideup/docker-php/blob/main/LICENSE" target="_blank"><img src="https://badgen.net/github/license/serversideup/docker-php" alt="License"></a>
 	<a href="https://github.com/sponsors/serversideup"><img src="https://badgen.net/badge/icon/Support%20Us?label=GitHub%20Sponsors&color=orange" alt="Support us"></a>
+  <br />
+  <a href="https://hub.docker.com/r/serversideup/php/"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/serversideup/php"></a>
+  <a href="https://community.serversideup.net"><img alt="Discourse users" src="https://img.shields.io/discourse/users?color=blue&server=https%3A%2F%2Fcommunity.serversideup.net"></a>
+  <a href="https://discord.gg/9sExfjnJEp"><img alt="Discord" src="https://img.shields.io/discord/910287105714954251?color=blueviolet"></a>
 </p>
 
 Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers). We're a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
@@ -28,12 +32,12 @@ All of our software is free an open to the world. None of this can be brought to
 # Available Docker Images
 This is a list of the docker images this repository creates:
 
-| ⚙️ Variation | 🎁 Version |
-|--------------|------------|
-| cli          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli&page=1&ordering=-name)   |
-| fpm          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm&page=1&ordering=-name)   |
-| fpm-apache   | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-apache&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-apache&page=1&ordering=-name)   |
-| fpm-nginx    | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx&page=1&ordering=-name)   |
+| ⚙️ Variation | ✨ Version | 🚀 Size |
+|--------------|------------|------------|
+| cli          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-cli&page=1&ordering=-name),  | [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-cli)](https://hub.docker.com/r/serversideup/php/tags?name=cli&page=1&ordering=-name) |
+| fpm          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm&page=1&ordering=-name)  | [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=fpm&page=1&ordering=-name) |
+| fpm-apache   | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-apache&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-apache&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-apache&page=1&ordering=-name)   | [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=fpm-apache&page=1&ordering=-name) |
+| fpm-nginx    | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-nginx&page=1&ordering=-name)   |  [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=fpm-nginx&page=1&ordering=-name) |
 
 ### Usage
 Simply use this image name pattern in any of your projects:

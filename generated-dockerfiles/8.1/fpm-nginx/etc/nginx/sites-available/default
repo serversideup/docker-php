@@ -1,0 +1,61 @@
+# HTTP configuration
+#
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	server_name _;
+
+	# Redirect all HTTP traffic to HTTPS
+	return 301 https://$host$request_uri;
+}
+
+# HTTPS Configuration
+#
+server {
+	listen 443 http2 ssl default_server;
+	listen [::]:443 http2 ssl default_server;
+
+	root /var/www/html/public;
+
+	ssl_certificate /etc/ssl/web/ssl.crt;
+	ssl_certificate_key /etc/ssl/web/ssl.key;
+	ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
+
+	# Set allowed "index" files
+	index index.html index.htm index.php;
+
+	server_name _;
+
+	charset utf-8;
+
+	# Set max upload to 2048M
+	client_max_body_size 2048M;
+
+	# Healthchecks: Set /ping to be the healhcheck URL
+    location /ping {
+		access_log off;
+		
+        # set max 5 seconds for healthcheck
+        fastcgi_read_timeout 5s;
+
+        include        fastcgi_params;
+        fastcgi_param  SCRIPT_NAME     /ping;
+        fastcgi_param  SCRIPT_FILENAME /ping;
+        fastcgi_pass   unix:/var/run/php/php-fpm.sock;
+    }
+
+	# Have NGINX try searching for PHP files as well
+	location / {
+      try_files $uri $uri/ /index.php?$query_string;
+  	}
+
+	# Pass "*.php" files to PHP-FPM
+	location ~ \.php$ {
+			include snippets/fastcgi-php.conf;
+			fastcgi_pass unix:/var/run/php/php-fpm.sock;
+	}
+
+	# additional config
+	include /etc/nginx/server-opts.d/*.conf;
+}

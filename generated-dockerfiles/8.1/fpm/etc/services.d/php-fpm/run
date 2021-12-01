@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+
+# Switch to web user
+su webuser
+
+#Bring up PHP FPM
+exec /usr/sbin/php-fpm8.1 --nodaemonize
