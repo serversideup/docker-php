@@ -24,12 +24,21 @@ docker run --rm -p 5000:5000 --name registry registry:2
 ```
 This will create a temporary local registry that we can now use for testing Dockerfiles locally, for example:
 ```Dockerfile
-FROM localhost:5000/php:8.0-cli
+FROM localhost:5000/php:8.1-cli
 
 CMD php -v
 ```
 
-I can also inspect the image by running 
+To do this, all I need to run is the `dev.sh` on my machine to run a build of all images for my local machine.
+
+#### Inspect images
+This is helpful for inspecting images:
 ```sh
-docker run --rm -it localhost:5000/php:8.0-cli bash
+docker run --rm -it localhost:5000/php:8.1-cli bash
+```
+
+#### Running a test web server:
+This is helpful for testing things out:
+```sh
+docker run --rm -v $(pwd):/var/www/html -p 80:80 -p 443:443 localhost:5000/php:8.1-fpm-nginx
 ```
