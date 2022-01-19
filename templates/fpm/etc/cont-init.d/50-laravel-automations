@@ -16,7 +16,7 @@ if [ -f $WEBUSER_HOME/artisan ]; then
         ############################################################################
         # Automated database migrations
         ############################################################################
-        if [ grep -q DB_DATABASE $WEBUSER_HOME/.env ] && [ ${AUTORUN_LARAVEL_MIGRATION:="false"} == "true" ]; then
+        if [ "grep -q DB_DATABASE $WEBUSER_HOME/.env" ] && [ ${AUTORUN_LARAVEL_MIGRATION:="false"} == "true" ]; then
             echo "🚀 Running migrations..."
             su - webuser -c "php $WEBUSER_HOME/artisan migrate --force"
         fi
