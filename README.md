@@ -114,17 +114,19 @@ We have a ton of helpful scripts and security settings configured for managing L
 ### Automated tasks executed on every container start up
 We automatically look at your Laravel `.env` file and determine if theses tasks should be run. 
 
-If your `APP_ENV != local`(any environment other than local development), we will automatically run these repetitive tasks for you every time the container spins up:
+If your `APP_ENV != local`(any environment other than local development), we :
 
 **Database Migrations:**
 ```sh
 php /var/www/html/artisan migrate --force
 ```
+You must enable this manually by setting `AUTORUN_LARAVEL_MIGRATION=true` on your container.
+
 **Storage Linking:**
 ```sh
 php /var/www/html/artisan storage:link
 ```
-
+This will run automatically for environments that are not `local`.
 
 ### Running a Laravel Task Scheduler
 We need to run the [schedule:work](https://laravel.com/docs/8.x/scheduling#running-the-scheduler-locally) command from Laravel. Although the docs say "Running the scheduler locally", this is what we want in production. It will run the scheduler in the foreground and execute it every minute. You can configure your Laravel app for the exact time that a command should run through a [scheduled task](https://laravel.com/docs/8.x/scheduling#scheduling-artisan-commands).
@@ -241,7 +243,8 @@ PHP\_PM\_START\_SERVERS|The number of child processes created on startup. Used o
 PHP\_POOL\_NAME|Set the name of your PHP-FPM pool (helpful when running multiple sites on a single server).|fpm,<br />fpm-nginx,<br />fpm-apache|"www"
 PHP\_POST\_MAX\_SIZE|Sets max size of post data allowed. (<a href="https://www.php.net/manual/en/ini.core.php#ini.post-max-size">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"100M"
 PHP\_UPLOAD\_MAX\_FILE\_SIZE|The maximum size of an uploaded file. (<a href="https://www.php.net/manual/en/ini.core.php#ini.upload-max-filesize">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"100M"
-RUN\_LARAVEL\_AUTOMATIONS|Automatically run the Laravel Automations (for non-local Laravel installs only)|fpm,<br />fpm-nginx,<br />fpm-apache|"true"
+AUTORUN\_LARAVEL\_STORAGE\_LINK|For non-local Laravel installs only: Automatically run "php artisan storage:link" on container start|fpm,<br />fpm-nginx,<br />fpm-apache|"true"
+AUTORUN\_LARAVEL\_MIGRATION|For non-local Laravel installs only: Automatically run "php artisan migrate --force" on container start|fpm,<br />fpm-nginx,<br />fpm-apache|"false"
 MSMTP\_RELAY\_SERVER\_HOSTNAME|Server that should relay emails for MSMTP. (<a href="https://marlam.de/msmtp/msmtp.html">Official docs</a>)|fpm-nginx,<br />fpm-apache|"mailhog"<br /><br />🚨 IMPORTANT: Change this value if you want emails to work. (we set it to <a href="https://github.com/mailhog/MailHog">Mailhog</a> so our staging sites do not send emails out)
 MSMTP\_RELAY\_SERVER\_PORT|Port the SMTP server is listening on. (<a href="https://marlam.de/msmtp/msmtp.html">Official docs</a>)|fpm-nginx,<br />fpm-apache|"1025" (default port for Mailhog)
 DEBUG\_OUTPUT|Set this variable to `true` if you want to put PHP and your web server in debug mode.|fpm-nginx,<br />fpm-apache|(undefined, false)
