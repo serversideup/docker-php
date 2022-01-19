@@ -12,6 +12,7 @@ if [ -f $WEBUSER_HOME/artisan ]; then
 
     # If Laravel is not running in development or CI, then automate some production tasks
     if [ "$APP_ENV_SETTING" != "local" ] && [ ! -z $APP_ENV_SETTING ] && [ ${CI_ENV:="false"} != "true" ]; then
+            echo "🏃‍♂️ Checking for Laravel automations..."
 
         ############################################################################
         # Automated database migrations
