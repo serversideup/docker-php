@@ -114,17 +114,19 @@ We have a ton of helpful scripts and security settings configured for managing L
 ### Automated tasks executed on every container start up
 We automatically look at your Laravel `.env` file and determine if theses tasks should be run. 
 
-If your `APP_ENV != local`(any environment other than local development), we will automatically run these repetitive tasks for you every time the container spins up:
+If your `APP_ENV != local`(any environment other than local development), we :
 
 **Database Migrations:**
 ```sh
 php /var/www/html/artisan migrate --force
 ```
+You must enable this manually by setting `AUTORUN_LARAVEL_MIGRATION=true` on your container.
+
 **Storage Linking:**
 ```sh
 php /var/www/html/artisan storage:link
 ```
-
+This will run automatically for environments that are not `local`.
 
 ### Running a Laravel Task Scheduler
 We need to run the [schedule:work](https://laravel.com/docs/8.x/scheduling#running-the-scheduler-locally) command from Laravel. Although the docs say "Running the scheduler locally", this is what we want in production. It will run the scheduler in the foreground and execute it every minute. You can configure your Laravel app for the exact time that a command should run through a [scheduled task](https://laravel.com/docs/8.x/scheduling#scheduling-artisan-commands).
