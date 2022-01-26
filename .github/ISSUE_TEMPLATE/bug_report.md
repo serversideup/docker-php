@@ -2,7 +2,7 @@
 name: "\U0001F41B Bug Report"
 about: "You found a bug in the code \U0001F914"
 title: ''
-labels: "Bug: Needs Confirmation 🧐"
+labels: "🧐 Bug: Needs Confirmation"
 
 ---
 <!-- 🤵 Looking for professional support? Guaranteed response times next business day. Learn more here: https://serversideup.net/get-help/?quick_question=docker -->
