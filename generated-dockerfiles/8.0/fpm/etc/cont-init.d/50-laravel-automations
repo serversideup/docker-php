@@ -4,7 +4,7 @@
 set -e
 
 # Check to see if an Artisan file exists and assume it means Laravel is configured.
-if [ -f $WEBUSER_HOME/artisan ]; then
+if [ -f $WEBUSER_HOME/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; then
         echo "🏃‍♂️ Checking for Laravel automations..."
 
         ############################################################################
@@ -37,5 +37,5 @@ if [ -f $WEBUSER_HOME/artisan ]; then
         # fi
 
 else
-    echo "👉 Skipping Laravel automations because we could not detect a Laravel install..."
+    echo "👉 Skipping Laravel automations because we could not detect a Laravel install or it was specifcally disabled..."
 fi
