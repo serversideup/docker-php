@@ -18,7 +18,7 @@ You must have these installed on your system.
 1. Github Actions will read the generated files and build images from the generated files
 
 # Running things locally
-Run this command to bring up a temporary local registry at `localhost:500` (Press `CTRL+C` to exit):
+Run this command to bring up a temporary local registry at `localhost:5000` (Press `CTRL+C` to exit):
 ```sh
 docker run --rm -p 5000:5000 --name registry registry:2
 ```
