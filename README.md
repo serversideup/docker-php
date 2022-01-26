@@ -113,13 +113,13 @@ We have a ton of helpful scripts and security settings configured for managing L
 
 ### Automated tasks executed on every container start up
 We automatically detect if Laravel is installed and give you the option to enable automatic migrations and apply storage linking.
-**Database Migrations:**
+#### Database Migrations:
 ```sh
 php /var/www/html/artisan migrate --force
 ```
 **Automatic migrations are DISABLED by default.** To enable, set an environment variable of `AUTORUN_LARAVEL_MIGRATION=true` on your container. We **do not recommend** enabling this on large or distributed applications. You should run your migrations manually for larger apps.
 
-**Storage Linking:**
+#### Storage Linking:
 ```sh
 php /var/www/html/artisan storage:link
 ```
