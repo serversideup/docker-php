@@ -5,7 +5,11 @@
 # Server Side Up -  PHP 8.0 / CLI image 
 #####################################################
 
-FROM serversideup/docker-baseimage-s6-overlay-ubuntu:20.04
+# Default upstream channel to `null` so we default pulling `serversideup/docker-baseimage-s6-overlay-ubuntu:20.04`
+# but can also pull the beta image from `serversideup/docker-baseimage-s6-overlay-ubuntu:beta-20.04`
+ARG  UPSTREAM_CHANNEL=''
+
+FROM serversideup/${UPSTREAM_CHANNEL}docker-baseimage-s6-overlay-ubuntu:20.04
 
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
