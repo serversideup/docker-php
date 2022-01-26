@@ -36,7 +36,6 @@ if [ -f $WEBUSER_HOME/artisan ]; then
         #     su - webuser -c "php $WEBUSER_HOME/artisan view:cache"
         # fi
 
-    else
-        echo "👉 Skipping Laravel automations because the env is set to 'local' or running in CI..."
-    fi
+else
+    echo "👉 Skipping Laravel automations because we could not detect a Laravel install..."
 fi

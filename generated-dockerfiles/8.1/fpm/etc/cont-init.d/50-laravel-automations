@@ -3,21 +3,14 @@
 # Exit on error
 set -e
 
-# Check to see if an Artisan file exists and assume means Laravel is configured.
+# Check to see if an Artisan file exists and assume it means Laravel is configured.
 if [ -f $WEBUSER_HOME/artisan ]; then
-    ############################################################################
-    # Environment detection
-    ############################################################################
-    APP_ENV_SETTING=$(cat $WEBUSER_HOME/.env | grep APP_ENV | cut -f2 -d"=")
-
-    # If Laravel is not running in development or CI, then automate some production tasks
-    if [ "$APP_ENV_SETTING" != "local" ] && [ ! -z $APP_ENV_SETTING ] && [ ${CI_ENV:="false"} != "true" ]; then
-            echo "🏃‍♂️ Checking for Laravel automations..."
+        echo "🏃‍♂️ Checking for Laravel automations..."
 
         ############################################################################
         # Automated database migrations
         ############################################################################
-        if [ "grep -q DB_DATABASE $WEBUSER_HOME/.env" ] && [ ${AUTORUN_LARAVEL_MIGRATION:="false"} == "true" ]; then
+        if [ ${AUTORUN_LARAVEL_MIGRATION:="false"} == "true" ]; then
             echo "🚀 Running migrations..."
             su - webuser -c "php $WEBUSER_HOME/artisan migrate --force"
         fi
@@ -43,7 +36,6 @@ if [ -f $WEBUSER_HOME/artisan ]; then
         #     su - webuser -c "php $WEBUSER_HOME/artisan view:cache"
         # fi
 
-    else
-        echo "👉 Skipping Laravel automations because the env is set to 'local' or running in CI..."
-    fi
+else
+    echo "👉 Skipping Laravel automations because we could not detect a Laravel install..."
 fi
