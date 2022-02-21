@@ -130,7 +130,7 @@ We need to run the [schedule:work](https://laravel.com/docs/8.x/scheduling#runni
 
 **Task Scheduler Command:**
 ```sh
-php /var/www/html/artisan schedule:work
+php artisan schedule:work
 ```
 
 **Example Docker Compose File:**
@@ -144,7 +144,8 @@ services:
 
   task:
     image: my/laravel-app
-    command: "php /var/www/html/artisan schedule:work"
+      # Switch to "webuser" before running `php artisan`
+    command: "su - webuser -c \"php artisan schedule:work\""
     environment:
       PHP_POOL_NAME: "my-app_task"
 ```
@@ -154,7 +155,7 @@ All you need to do is pass the Laravel Queue command to the container and S6 wil
 
 **Task Command:**
 ```sh
-php /var/www/html/artisan queue:work --tries=3
+php artisan queue:work --tries=3
 ```
 
 **Example Docker Compose File:**
@@ -168,7 +169,8 @@ services:
 
   queue:
     image: my/laravel-app
-    command: "php /var/www/html/artisan queue:work --tries=3"
+    # Switch to "webuser" before running `php artisan`
+    command: "su - webuser -c \"php artisan queue:work --tries=3\""
     environment:
       PHP_POOL_NAME: "my-app_queue"
 ```
@@ -178,7 +180,7 @@ By passing Laravel Horizon to our container, S6 will automatically monitor it.
 
 **Horizon Command:**
 ```sh
-php /var/www/html/artisan horizon
+php artisan horizon
 ```
 
 **Example Docker Compose File:**
@@ -196,7 +198,8 @@ services:
 
   horizon:
     image: my/laravel-app
-    command: "php /var/www/html/artisan horizon"
+    # Switch to "webuser" before running `php artisan`
+    command: "su - webuser -c \"php artisan horizon\""
     environment:
       PHP_POOL_NAME: "my-app_horizon"
 ```
