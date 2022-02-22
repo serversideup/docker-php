@@ -25,13 +25,6 @@ body:
       4. See error...
   validations:
     required: true
-- type: input
-  attributes:
-    label: Host Operating System
-    description: |
-      What operating system is your host running to run the container?
-  validations:
-    required: true
 - type: textarea
   attributes:
     label: Docker Version
