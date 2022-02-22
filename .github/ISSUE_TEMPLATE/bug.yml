@@ -32,7 +32,6 @@ body:
       label: Host Operating System
       description: |
         What operating system is your host running to run the container?
-      render: markdown
     validations:
       required: true
   - type: textarea
