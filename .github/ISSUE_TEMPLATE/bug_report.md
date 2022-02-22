@@ -27,14 +27,6 @@ body:
     required: true
 - type: textarea
   attributes:
-    label: Docker Version
-    description: |
-      Run `docker version` and paste your output
-    render: markdown
-  validations:
-    required: true
-- type: textarea
-  attributes:
     label: Anything else?
     description: |
       Links? References? Anything that will give us more context about the issue you are encountering!
