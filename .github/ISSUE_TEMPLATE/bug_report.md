@@ -27,6 +27,14 @@ body:
     required: true
 - type: textarea
   attributes:
+    label: Environment
+    description: |
+      Run `spin debug` and paste your output below.
+    render: markdown
+  validations:
+    required: true
+- type: textarea
+  attributes:
     label: Anything else?
     description: |
       Links? References? Anything that will give us more context about the issue you are encountering!
