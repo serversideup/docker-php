@@ -48,7 +48,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           build-args: |
-            UPSTREAM_CHANNEL="beta-"
+            UPSTREAM_CHANNEL=beta-
           context: generated-dockerfiles/${{ matrix.php-version }}/${{ matrix.php-variation }}/.
           platforms: linux/amd64,linux/arm64
           pull: true
