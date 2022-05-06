@@ -52,31 +52,20 @@ function remove_backup_files {
     find $SCRIPT_DIR/$OUTPUT_DIR -name '*.bak' -exec rm {} \;
 }
 
-function build {
+function build (){
+        label=$(echo $1 | tr '[:lower:]' '[:upper:]')
+        ui_set_yellow && echo "⚡️ Running build for $label - ${2} ..." && ui_reset_colors       
+        docker build -t "${DEVELOPMENT_REPO_URL}/php:${2}-cli" $OUTPUT_DIR/${2}/cli/
+        docker push "${DEVELOPMENT_REPO_URL}/php:${2}-cli"
+}
+
+function deploy {
     # Grab each PHP version defined in `build.sh` and deploy these images to our LOCAL registry
     for version in ${phpVersions[@]}; do
-
-        ##############
-        # CLI 
-        ui_set_yellow && echo "⚡️ Running build for CLI - ${version[$i]} ..." && ui_reset_colors       
-        docker build -t "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-cli" $OUTPUT_DIR/${version[$i]}/cli/
-        docker push "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-cli"
-
-        # FPM
-        ui_set_yellow && echo "⚡️ Running build for FPM - ${version[$i]} ..." && ui_reset_colors    
-        docker build -t "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm" $OUTPUT_DIR/${version[$i]}/fpm/
-        docker push "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm"
-
-        # FPM-APACHE
-        ui_set_yellow && echo "⚡️ Running build for FPM-APACHE - ${version[$i]} ..." && ui_reset_colors
-        docker build -t "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm-apache" $OUTPUT_DIR/${version[$i]}/fpm-apache/
-        docker push "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm-apache"
-
-        # FPM-NGINX
-        ui_set_yellow && echo "⚡️ Running build for FPM-NGINX - ${version[$i]} ..." && ui_reset_colors
-        docker build -t "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm-nginx" $OUTPUT_DIR/${version[$i]}/fpm-nginx/
-        docker push "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm-nginx"
-
+        build cli ${version[$i]}
+        build fpm ${version[$i]}
+        build fpm-apache ${version[$i]}
+        build fpm-ngix ${version[$i]}
     done
 }
 
@@ -84,5 +73,5 @@ function build {
 # Main script starts here
 
 set_local_registry
-build
+deploy
 cleanup
