@@ -55,8 +55,7 @@ function remove_backup_files {
 function build (){
         label=$(echo $1 | tr '[:lower:]' '[:upper:]')
         ui_set_yellow && echo "⚡️ Running build for $label - ${2} ..." && ui_reset_colors       
-        docker build -t "${DEVELOPMENT_REPO_URL}/php:${2}-cli" $OUTPUT_DIR/${2}/cli/
-        docker push "${DEVELOPMENT_REPO_URL}/php:${2}-cli"
+        docker buildx build --platform linux/amd64,linux/arm64 -t "${DEVELOPMENT_REPO_URL}/php:${2}-$1" --push $OUTPUT_DIR/$2/$1/
 }
 
 function deploy {
