@@ -53,7 +53,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           pull: true
           push: true
-          tags: docker push serversideup/php:beta-${{ matrix.php-version }}-${{ matrix.php-variation }}
+          tags: serversideup/php:beta-${{ matrix.php-version }}-${{ matrix.php-variation }}
 
   ##################################################
   # Commenting this out until further notice
