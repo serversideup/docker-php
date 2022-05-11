@@ -49,11 +49,17 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
-      - name: Build and tag image
-        run: docker build --pull generated-dockerfiles/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Push version image to DockerHub
-        run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: generated-dockerfiles/${{ matrix.php-version }}/${{ matrix.php-variation }}/.
+          platforms: linux/amd64,linux/arm64
+          pull: true
+          push: true
+          tags: serversideup/php:beta-${{ matrix.php-version }}-${{ matrix.php-variation }}
   
   update_container_readme:
     runs-on: ubuntu-latest
