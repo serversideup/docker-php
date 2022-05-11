@@ -7,9 +7,9 @@
 
 # Default upstream channel to `null` so we default pulling `serversideup/docker-baseimage-s6-overlay-ubuntu:20.04`
 # but can also pull the beta image from `serversideup/docker-baseimage-s6-overlay-ubuntu:beta-20.04`
-ARG UPSTREAM_CHANNEL=''
+ARG BASE_UBUNTU_VERSION='20.04'
 
-FROM serversideup/docker-baseimage-s6-overlay-ubuntu:${UPSTREAM_CHANNEL}20.04
+FROM serversideup/docker-baseimage-s6-overlay-ubuntu:${UPSTREAM_CHANNEL}${BASE_UBUNTU_VERSION}
 
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
