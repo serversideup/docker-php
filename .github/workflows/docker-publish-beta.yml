@@ -57,9 +57,6 @@ jobs:
             linux/amd64
             linux/arm/v7
             linux/arm64/v8
-            linux/ppc64le
-            linux/riscv64
-            linux/s390x
           pull: true
           push: true
           tags: serversideup/php:beta-${{ matrix.php-version }}-${{ matrix.php-variation }}
