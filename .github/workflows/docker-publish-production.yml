@@ -46,6 +46,9 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
       - name: Build and tag image
         run: docker build --pull generated-dockerfiles/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
 
