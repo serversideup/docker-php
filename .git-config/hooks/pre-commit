@@ -7,6 +7,6 @@ PROJECT_DIR="$(git rev-parse --show-toplevel)"
 source $PROJECT_DIR/build.sh
 
 # Add any templates to this commit
-git add $PROJECT_DIR/generated-dockerfiles/
+git add $PROJECT_DIR/dist/
 
 exit 0
