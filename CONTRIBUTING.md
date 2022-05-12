@@ -14,7 +14,7 @@ You must have these installed on your system.
 1. All templates are stored in the `/src` folder
 1. I have a Git "Pre-Commit" hook that runs `build.sh`
 1. `build.sh` copies the templates and applies the templates with [yasha](https://github.com/kblomqvist/yasha)
-1. All generated files are then stored in the `/generated-dockerfiles` folder
+1. All generated files are then stored in the `/dist` folder
 1. Github Actions will read the generated files and build images from the generated files
 
 # Running things locally
