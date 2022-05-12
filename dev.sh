@@ -7,6 +7,11 @@
 set -e
 
 ##########################
+# Environment Settings
+DEV_UPSTREAM_CHANNEL="beta-"
+DEV_BASE_UBUNTU_VERSION="20.04"
+
+##########################
 # Execute other build script
 
 # Run a build and include all variables
@@ -23,7 +28,11 @@ function build (){
         #docker buildx build --build-arg UPSTREAM_CHANNEL="$upstream_channel_setting" --platform linux/amd64,linux/arm64 -t "${DEVELOPMENT_REPO_URL}/php:${2}-$1" --push $OUTPUT_DIR/$2/$1/
 
         # Use "docker build"
-        docker build --build-arg UPSTREAM_CHANNEL="beta-" -t "serversideup/php:beta-${2}-$1" $OUTPUT_DIR/$2/$1/
+        docker build \
+            --build-arg UPSTREAM_CHANNEL="${DEV_UPSTREAM_CHANNEL}" \
+            --build-arg BASE_UBUNTU_VERSION="${DEV_BASE_UBUNTU_VERSION}" \
+            -t "serversideup/php:beta-${2}-$1" \
+            $OUTPUT_DIR/$2/$1/
 }
 
 function build_versions {
@@ -38,5 +47,4 @@ function build_versions {
 
 ##########################
 # Main script starts here
-
 build_versions
