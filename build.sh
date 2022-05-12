@@ -37,8 +37,8 @@ function ui_reset_colors {
 
 # Script Configurations
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-TEMPLATE_DIR=templates
-OUTPUT_DIR=generated-dockerfiles
+TEMPLATE_DIR=src
+OUTPUT_DIR=dist
 
 # Grab each PHP version from above and go through these steps
 for version in ${phpVersions[@]}; do
