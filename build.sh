@@ -9,8 +9,8 @@ set -e
 
 # Set versions
 phpVersions=(
-    7.4
-    8.0
+    # 7.4
+    # 8.0
     8.1
 )
 
@@ -47,7 +47,7 @@ for version in ${phpVersions[@]}; do
     rsync -a $TEMPLATE_DIR/ $SCRIPT_DIR/$OUTPUT_DIR/${version[$i]} --delete
 
     # Apply Jinja2 templates using "Yasha"
-    find $SCRIPT_DIR/$OUTPUT_DIR/${version[$i]} -name '*.j2' -exec yasha --php_version=$version --php_packages= -v $SCRIPT_DIR/variables.yaml {} \;
+    find $SCRIPT_DIR/$OUTPUT_DIR/${version[$i]} -name '*.j2' -exec yasha --php_version=$version -v $SCRIPT_DIR/variables.yaml {} \;
 
     # Remove old applied template files
     find $SCRIPT_DIR/$OUTPUT_DIR/${version[$i]} -name '*.j2' -exec rm {} \;
