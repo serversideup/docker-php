@@ -11,7 +11,7 @@ You must have these installed on your system.
 * Yasha (templating engine): https://github.com/kblomqvist/yasha
 
 # How things work
-1. All templates are stored in the `/templates` folder
+1. All templates are stored in the `/src` folder
 1. I have a Git "Pre-Commit" hook that runs `build.sh`
 1. `build.sh` copies the templates and applies the templates with [yasha](https://github.com/kblomqvist/yasha)
 1. All generated files are then stored in the `/generated-dockerfiles` folder
