@@ -18,27 +18,14 @@ You must have these installed on your system.
 1. Github Actions will read the generated files and build images from the generated files
 
 # Running things locally
-Run this command to bring up a temporary local registry at `localhost:5000` (Press `CTRL+C` to exit):
-```sh
-docker run --rm -p 5000:5000 --name registry registry:2
-```
-This will create a temporary local registry that we can now use for testing Dockerfiles locally, for example:
-```Dockerfile
-FROM localhost:5000/php:8.1-cli
 
-CMD php -v
-```
+To run a build, simply run `./dev.sh`. This will automatically build the beta images on your local machine.
 
-To do this, all I need to run is the `dev.sh` on my machine to run a build of all images for my local machine.
-
-#### Inspect images
-This is helpful for inspecting images:
-```sh
-docker run --rm -it localhost:5000/php:8.1-cli bash
-```
+#### Viewing the images
+After running the build, you should be able to run `docker images` to see all available images on your machine. Everything built with `./dev.sh` will be tagged `serversideup/php:beta-*`.
 
 #### Running a test web server:
 This is helpful for testing things out:
 ```sh
-docker run --rm -v $(pwd):/var/www/html -p 80:80 -p 443:443 localhost:5000/php:8.1-fpm-nginx
+docker run --rm -v $(pwd):/var/www/html -p 80:80 -p 443:443 serversideup/php:beta-8.1-fpm-nginx
 ```

@@ -6,18 +6,6 @@
 #exit on error
 set -e
 
-#debug mode
-#set -o xtrace
-
-# perform cleanup on error
-trap 'catch' EXIT
-
-##########################
-# Variables and font colors
-
-# Set to match our local development docker registry
-DEVELOPMENT_REPO_URL="localhost:5000"
-
 ##########################
 # Execute other build script
 
@@ -27,56 +15,28 @@ source ./build.sh
 ##########################
 # Functions
 
-function cleanup {
-    # Set all files back to original repo name
-    find $SCRIPT_DIR/$OUTPUT_DIR/ -name 'Dockerfile' -exec sed -i.bak "s/FROM $DEVELOPMENT_REPO_URL\/php/FROM serversideup\/php/" {} \; 
-    remove_backup_files
-}
-
-function catch {
-    if [ "$?" != "0" ]; then
-        ui_set_red && echo "❌ An error has occurred, see above. Cleaning things up..." && ui_reset_colors
-        # error handling goes here
-        cleanup
-    fi
-}
-
-function set_local_registry {
-
-    # Unfortunately I have to use a workaround here to make it Linux & macOS friendly (https://stackoverflow.com/a/44864004)
-    # Temporarily set images to our local registry. 
-    find $SCRIPT_DIR/$OUTPUT_DIR/ -name 'Dockerfile' -exec sed -i.bak "s/FROM serversideup\/php/FROM $DEVELOPMENT_REPO_URL\/php/" {} \;
-
-    remove_backup_files
-}
-
-function remove_backup_files {
-    # Remove our temporary backup files (related to https://stackoverflow.com/a/44864004)
-    find $SCRIPT_DIR/$OUTPUT_DIR -name '*.bak' -exec rm {} \;
-}
-
 function build (){
         label=$(echo $1 | tr '[:lower:]' '[:upper:]')
         ui_set_yellow && echo "⚡️ Running build for $label - ${2} ..." && ui_reset_colors  
-        if [ "$1" == "cli" ]; then
-            upstream_channel_setting="beta-"
-        fi
-        docker buildx build --build-arg UPSTREAM_CHANNEL="$upstream_channel_setting" --platform linux/amd64,linux/arm64 -t "${DEVELOPMENT_REPO_URL}/php:${2}-$1" --push $OUTPUT_DIR/$2/$1/
+
+        # Commenting out Buildx because it does not support multi-arch images locally, yet
+        #docker buildx build --build-arg UPSTREAM_CHANNEL="$upstream_channel_setting" --platform linux/amd64,linux/arm64 -t "${DEVELOPMENT_REPO_URL}/php:${2}-$1" --push $OUTPUT_DIR/$2/$1/
+
+        # Use "docker build"
+        docker build --build-arg UPSTREAM_CHANNEL="beta-" -t "serversideup/php:beta-${2}-$1" $OUTPUT_DIR/$2/$1/
 }
 
-function deploy {
+function build_versions {
     # Grab each PHP version defined in `build.sh` and deploy these images to our LOCAL registry
     for version in ${phpVersions[@]}; do
         build cli ${version[$i]} 
         build fpm ${version[$i]}
         build fpm-apache ${version[$i]}
-        build fpm-ngix ${version[$i]}
+        build fpm-nginx ${version[$i]}
     done
 }
 
 ##########################
 # Main script starts here
 
-set_local_registry
-deploy
-cleanup
+build_versions
