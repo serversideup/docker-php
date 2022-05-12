@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
 
 if [[ $DEBUG_OUTPUT && $DEBUG_OUTPUT == true ]]; then
     # Set NGINX to debug mode
