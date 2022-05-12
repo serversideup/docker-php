@@ -6,7 +6,7 @@ on:
         type: string
         default: ''
       base-ubuntu-version:
-        required: true
+        required: false
         type: string
         default: '20.04'
       tag-prefix:
