@@ -10,16 +10,12 @@ on:
   schedule:
     - cron: '0 8 * * 2'
 
-env:
-  DOCKER_IMAGE_PREFIX: ''
-  UPSTREAM_CHANNEL_PREFIX: ''
-
 jobs:
   cli:
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: "${UPSTREAM_CHANNEL_PREFIX}"
-      tag-prefix: "${DOCKER_IMAGE_PREFIX}"
+      upstream-channel-prefix: ''
+      tag-prefix: ''
       php-variation: cli
     secrets: inherit
 
@@ -27,8 +23,8 @@ jobs:
     needs: cli
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: "${UPSTREAM_CHANNEL_PREFIX}"
-      tag-prefix: "${DOCKER_IMAGE_PREFIX}"
+      upstream-channel-prefix: ''
+      tag-prefix: ''
       php-variation: fpm
     secrets: inherit
 
@@ -36,8 +32,8 @@ jobs:
     needs: fpm
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: "${UPSTREAM_CHANNEL_PREFIX}"
-      tag-prefix: "${DOCKER_IMAGE_PREFIX}"
+      upstream-channel-prefix: ''
+      tag-prefix: ''
       php-variation: fpm-nginx
     secrets: inherit
 
@@ -45,8 +41,8 @@ jobs:
     needs: fpm
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: "${UPSTREAM_CHANNEL_PREFIX}"
-      tag-prefix: "${DOCKER_IMAGE_PREFIX}"
+      upstream-channel-prefix: ''
+      tag-prefix: ''
       php-variation: fpm-nginx
     secrets: inherit
 
