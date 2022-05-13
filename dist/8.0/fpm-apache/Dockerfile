@@ -65,8 +65,8 @@ RUN apt-get update \
 COPY etc/apache2/ /etc/apache2/
 
 # Copy over S6 configurations
-COPY etc/services.d/ /etc/services.d/
-COPY etc/cont-init.d/ /etc/cont-init.d/
+COPY --chmod=755 etc/services.d/ /etc/services.d/
+COPY --chmod=755 etc/cont-init.d/ /etc/cont-init.d/
 
 #PHP: Copy over PHP overrides
 COPY etc/php/fpm/pool.d/ /etc/php/8.0/fpm/pool.d/

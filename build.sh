@@ -52,10 +52,6 @@ for version in ${phpVersions[@]}; do
     # Remove old applied template files
     find $SCRIPT_DIR/$OUTPUT_DIR/${version[$i]} -name '*.j2' -exec rm {} \;
 
-    # Ensure scripts are set to be executable
-    find $SCRIPT_DIR/$OUTPUT_DIR/${version[$i]}/*/etc/cont-init.d -type f -exec chmod 755 {} \;
-    find $SCRIPT_DIR/$OUTPUT_DIR/${version[$i]}/*/etc/services.d -type f -exec chmod 755 {} \;
-
     ui_set_green && echo "✅ Template build has completed for PHP ${version[$i]}" && ui_reset_colors
 
 done

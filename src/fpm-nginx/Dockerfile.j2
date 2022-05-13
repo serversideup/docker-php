@@ -34,8 +34,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /var/www/html/*
 
 # Copy over S6 configurations
-COPY etc/services.d/ /etc/services.d/
-COPY etc/cont-init.d/ /etc/cont-init.d/
+COPY --chmod=755 etc/services.d/ /etc/services.d/
+COPY --chmod=755 etc/cont-init.d/ /etc/cont-init.d/
 
 #NGINX: Set server configs
 COPY etc/nginx/ /etc/nginx/

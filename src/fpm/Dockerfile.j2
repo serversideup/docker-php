@@ -36,8 +36,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # Copy over S6 configurations
-COPY etc/services.d/ /etc/services.d/
-COPY etc/cont-init.d/ /etc/cont-init.d/
+COPY --chmod=755 etc/services.d/ /etc/services.d/
+COPY --chmod=755 etc/cont-init.d/ /etc/cont-init.d/
 
 # Apply PHP configuration files
 COPY etc/php/fpm/pool.d/ /etc/php/{{ php_version }}/fpm/pool.d/

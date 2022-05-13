@@ -54,7 +54,7 @@ RUN apt-get update \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Copy over S6 configurations
-COPY etc/cont-init.d/ /etc/cont-init.d/
+COPY --chmod=755 etc/cont-init.d/ /etc/cont-init.d/
 
 # Set the default work directory to our web user
 WORKDIR /var/www/html
