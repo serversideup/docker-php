@@ -18,8 +18,8 @@ jobs:
   cli:
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: $UPSTREAM_CHANNEL_PREFIX
-      tag-prefix: $DOCKER_IMAGE_PREFIX
+      upstream-channel-prefix: "${UPSTREAM_CHANNEL_PREFIX}"
+      tag-prefix: "${DOCKER_IMAGE_PREFIX}"
       php-variation: cli
     secrets: inherit
 
@@ -27,8 +27,8 @@ jobs:
     needs: cli
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: $UPSTREAM_CHANNEL_PREFIX
-      tag-prefix: $DOCKER_IMAGE_PREFIX
+      upstream-channel-prefix: "${UPSTREAM_CHANNEL_PREFIX}"
+      tag-prefix: "${DOCKER_IMAGE_PREFIX}"
       php-variation: fpm
     secrets: inherit
 
@@ -36,8 +36,8 @@ jobs:
     needs: fpm
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: $UPSTREAM_CHANNEL_PREFIX
-      tag-prefix: $DOCKER_IMAGE_PREFIX
+      upstream-channel-prefix: "${UPSTREAM_CHANNEL_PREFIX}"
+      tag-prefix: "${DOCKER_IMAGE_PREFIX}"
       php-variation: fpm-nginx
     secrets: inherit
 
@@ -45,7 +45,7 @@ jobs:
     needs: fpm
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: $UPSTREAM_CHANNEL_PREFIX
-      tag-prefix: $DOCKER_IMAGE_PREFIX
+      upstream-channel-prefix: "${UPSTREAM_CHANNEL_PREFIX}"
+      tag-prefix: "${DOCKER_IMAGE_PREFIX}"
       php-variation: fpm-nginx
     secrets: inherit
