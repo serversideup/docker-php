@@ -246,6 +246,7 @@ PHP\_PM\_START\_SERVERS|The number of child processes created on startup. Used o
 PHP\_POOL\_NAME|Set the name of your PHP-FPM pool (helpful when running multiple sites on a single server).|fpm,<br />fpm-nginx,<br />fpm-apache|"www"
 PHP\_POST\_MAX\_SIZE|Sets max size of post data allowed. (<a href="https://www.php.net/manual/en/ini.core.php#ini.post-max-size">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"100M"
 PHP\_UPLOAD\_MAX\_FILE\_SIZE|The maximum size of an uploaded file. (<a href="https://www.php.net/manual/en/ini.core.php#ini.upload-max-filesize">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"100M"
+PHP\_OPEN\_BASEDIR|Limit the files that can be accessed by PHP to the specified directory-tree, including the file itself.|fpm,<br />fpm-nginx,<br />fpm-apache|$WEBUSER\_HOME:/dev/stdout:/tmp
 AUTORUN\_ENABLED|Enable or disable all autoruns. It's advised to set this to `false` in certain CI environments (especially during a composer install)|fpm,<br />fpm-nginx,<br />fpm-apache|"true"
 AUTORUN\_LARAVEL\_STORAGE\_LINK|Automatically run "php artisan storage:link" on container start|fpm,<br />fpm-nginx,<br />fpm-apache|"true"
 AUTORUN\_LARAVEL\_MIGRATION|Automatically run "php artisan migrate --force" on container start. This is **not** recommended for large or distributed apps. Run your migrations manually instead.|fpm,<br />fpm-nginx,<br />fpm-apache|"false"
