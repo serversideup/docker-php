@@ -144,8 +144,9 @@ services:
 
   task:
     image: my/laravel-app
-      # Switch to "webuser" before running `php artisan`
-    command: "su - webuser -c \"php artisan schedule:work\""
+    # Switch to "webuser" before running `php artisan`
+    # Declare command in list manner for environment variable expansion
+    command: ["su", "webuser", "-c", "php artisan schedule:work"]
     environment:
       PHP_POOL_NAME: "my-app_task"
 ```
@@ -170,7 +171,8 @@ services:
   queue:
     image: my/laravel-app
     # Switch to "webuser" before running `php artisan`
-    command: "su - webuser -c \"php artisan queue:work --tries=3\""
+    # Declare command in list manner for environment variable expansion
+    command: ["su", "webuser", "-c", "php artisan queue:work --tries=3"]
     environment:
       PHP_POOL_NAME: "my-app_queue"
 ```
@@ -199,7 +201,8 @@ services:
   horizon:
     image: my/laravel-app
     # Switch to "webuser" before running `php artisan`
-    command: "su - webuser -c \"php artisan horizon\""
+    # Declare command in list manner for environment variable expansion
+    command: ["su", "webuser", "-c", "php artisan horizon"]
     environment:
       PHP_POOL_NAME: "my-app_horizon"
 ```
