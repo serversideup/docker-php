@@ -12,36 +12,40 @@ on:
 
 env:
   DOCKER_IMAGE_PREFIX: "beta-"
+  UPSTREAM_CHANNEL_PREFIX: "beta-"
 
 jobs:
-  build-cli:
+  cli:
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: 'beta-'
-      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      upstream-channel-prefix: ${{ env.UPSTREAM_CHANNEL_PREFIX }}
+      tag-prefix: ${{ env.DOCKER_IMAGE_PREFIX }}
       php-variation: cli
     secrets: inherit
 
-  build-fpm:
+  fpm:
+    needs: cli
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: 'beta-'
-      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      upstream-channel-prefix: ${{ env.UPSTREAM_CHANNEL_PREFIX }}
+      tag-prefix: ${{ env.DOCKER_IMAGE_PREFIX }}
       php-variation: fpm
     secrets: inherit
 
-  build-fpm-nginx:
+  fpm-nginx:
+    needs: fpm
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: 'beta-'
-      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      upstream-channel-prefix: ${{ env.UPSTREAM_CHANNEL_PREFIX }}
+      tag-prefix: ${{ env.DOCKER_IMAGE_PREFIX }}
       php-variation: fpm-nginx
     secrets: inherit
 
-  build-fpm-apache:
+  fpm-apache:
+    needs: fpm
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
-      upstream-channel-prefix: 'beta-'
-      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      upstream-channel-prefix: ${{ env.UPSTREAM_CHANNEL_PREFIX }}
+      tag-prefix: ${{ env.DOCKER_IMAGE_PREFIX }}
       php-variation: fpm-nginx
     secrets: inherit
