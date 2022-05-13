@@ -1,2 +1,2 @@
-#!/command/with-contenv sh
+#!/command/with-contenv bash
 /usr/sbin/apache2ctl -DFOREGROUND
