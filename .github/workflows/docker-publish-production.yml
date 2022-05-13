@@ -43,7 +43,7 @@ jobs:
     with:
       upstream-channel-prefix: ''
       tag-prefix: ''
-      php-variation: fpm-nginx
+      php-variation: fpm-apache
     secrets: inherit
 
   update_container_readme:

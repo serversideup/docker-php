@@ -43,5 +43,5 @@ jobs:
     with:
       upstream-channel-prefix: "beta-"
       tag-prefix: "beta-"
-      php-variation: fpm-nginx
+      php-variation: fpm-apache
     secrets: inherit
