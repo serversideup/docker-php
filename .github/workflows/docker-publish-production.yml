@@ -10,15 +10,42 @@ on:
   schedule:
     - cron: '0 8 * * 2'
 
+env:
+  DOCKER_IMAGE_PREFIX: ''
+
 jobs:
-  build:
+  build-cli:
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
       upstream-channel-prefix: ''
-      tag-prefix: ''
+      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      php-variation: cli
     secrets: inherit
 
-  
+  build-fpm:
+    uses: ./.github/workflows/workflow-docker-publish.yml
+    with:
+      upstream-channel-prefix: ''
+      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      php-variation: fpm
+    secrets: inherit
+
+  build-fpm-nginx:
+    uses: ./.github/workflows/workflow-docker-publish.yml
+    with:
+      upstream-channel-prefix: ''
+      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      php-variation: fpm-nginx
+    secrets: inherit
+
+  build-fpm-apache:
+    uses: ./.github/workflows/workflow-docker-publish.yml
+    with:
+      upstream-channel-prefix: ''
+      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      php-variation: fpm-nginx
+    secrets: inherit
+
   update_container_readme:
     runs-on: ubuntu-latest
     name: Push README to Docker Hub

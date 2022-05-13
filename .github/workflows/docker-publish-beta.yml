@@ -10,10 +10,38 @@ on:
   schedule:
     - cron: '0 8 * * 1'
 
+env:
+  DOCKER_IMAGE_PREFIX: "beta-"
+
 jobs:
-  build:
+  build-cli:
     uses: ./.github/workflows/workflow-docker-publish.yml
     with:
       upstream-channel-prefix: 'beta-'
-      tag-prefix: 'beta-'
+      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      php-variation: cli
+    secrets: inherit
+
+  build-fpm:
+    uses: ./.github/workflows/workflow-docker-publish.yml
+    with:
+      upstream-channel-prefix: 'beta-'
+      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      php-variation: fpm
+    secrets: inherit
+
+  build-fpm-nginx:
+    uses: ./.github/workflows/workflow-docker-publish.yml
+    with:
+      upstream-channel-prefix: 'beta-'
+      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      php-variation: fpm-nginx
+    secrets: inherit
+
+  build-fpm-apache:
+    uses: ./.github/workflows/workflow-docker-publish.yml
+    with:
+      upstream-channel-prefix: 'beta-'
+      tag-prefix: "$DOCKER_IMAGE_PREFIX"
+      php-variation: fpm-nginx
     secrets: inherit

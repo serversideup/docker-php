@@ -13,22 +13,15 @@ on:
         required: true
         type: string
         default: 'beta-'
+      php-variation:
+        required: true
+        type: string
 
 jobs:
   docker-publish:
     runs-on: ubuntu-20.04
-
-   # Configure our deployment strategy. Order is important here and we want it to go: CLI < FPM < FPM-NGINX
     strategy:
-      # We want to limit the number of jobs to the number of versions that we're offering (since we want the dependency order to be built correctly)
-      max-parallel: 3
-      # Set our base image and versions here
       matrix:
-        php-variation:
-          - cli
-          - fpm
-          - fpm-nginx
-          - fpm-apache
         php-version: 
           - "7.4"
           - "8.0"
@@ -61,11 +54,11 @@ jobs:
           build-args: |
             UPSTREAM_CHANNEL=${{ inputs.upstream-channel-prefix }}
             BASE_UBUNTU_VERSION=${{ inputs.base-ubuntu-version }}
-          context: dist/${{ matrix.php-version }}/${{ matrix.php-variation }}/.
+          context: dist/${{ matrix.php-version }}/${{ inputs.php-variation }}/.
           platforms: |
             linux/amd64
             linux/arm/v7
             linux/arm64/v8
           pull: true
           push: true
-          tags: serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ matrix.php-variation }}
+          tags: serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}
