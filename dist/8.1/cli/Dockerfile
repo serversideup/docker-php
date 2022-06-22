@@ -45,6 +45,7 @@ RUN apt-get update \
         php8.1-soap \
         php8.1-sqlite3 \
         php8.1-xml \
+        php8.1-intl \
         php8.1-zip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*

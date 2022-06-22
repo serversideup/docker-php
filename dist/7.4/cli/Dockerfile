@@ -46,6 +46,7 @@ RUN apt-get update \
         php7.4-soap \
         php7.4-sqlite3 \
         php7.4-xml \
+        php7.4-intl \
         php7.4-zip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
