@@ -263,6 +263,9 @@ APACHE\_RUN\_USER|Set the username of what Apache should run as.|fpm-apache|"web
 APACHE\_START\_SERVERS|Sets the number of child server processes created on startup.(<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#startservers">Official docs</a>)|fpm-apache|"2"
 APACHE\_THREAD\_LIMIT|Set the maximum configured value for ThreadsPerChild for the lifetime of the Apache httpd process. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#threadlimit">Official docs</a>)|fpm-apache|"64"
 APACHE\_THREADS\_PER\_CHILD|This directive sets the number of threads created by each child process. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#threadsperchild">Official docs</a>)|fpm-apache|"25"
+COMPOSER\_ALLOW\_SUPERUSER|Disable warning about running as super-user|all|"1"
+COMPOSER\_HOME|The COMPOSER\_HOME var allows you to change the Composer home directory. This is a hidden, global (per-user on the machine) directory that is shared between all projects.|all|"/composer"
+COMPOSER\_MAX\_PARALLEL\_HTTP|Set to an integer to configure how many files can be downloaded in parallel. This defaults to 12 and must be between 1 and 50. If your proxy has issues with concurrency maybe you want to lower this. Increasing it should generally not result in performance gains.|all|"24"
 
 # Other customizations
 

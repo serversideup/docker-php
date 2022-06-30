@@ -17,6 +17,9 @@ LABEL maintainer="Jay Rogers (@jaydrogers)"
 # Make sure we keep apt silent during installs. Set other defaults as well
 ENV DEBIAN_FRONTEND=noninteractive \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
+    COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_HOME=/composer \
+    COMPOSER_MAX_PARALLEL_HTTP=24 \
     WEBUSER_HOME="/var/www/html" \
     PUID=9999 \
     PGID=9999
