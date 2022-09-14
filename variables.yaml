@@ -1,6 +1,7 @@
 versions:
   7.4:
     packages:
+      - php7.4-bcmath
       - php7.4-cli
       - php7.4-common
       - php7.4-curl
@@ -16,6 +17,7 @@ versions:
       - php7.4-zip
   8.0:
     packages:
+      - php8.0-bcmath
       - php8.0-cli
       - php8.0-common
       - php8.0-curl
@@ -30,6 +32,7 @@ versions:
       - php8.0-zip
   8.1:
     packages:
+      - php8.1-bcmath
       - php8.1-cli
       - php8.1-common
       - php8.1-curl
