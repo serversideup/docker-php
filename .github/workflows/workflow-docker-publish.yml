@@ -26,6 +26,10 @@ jobs:
           - "7.4"
           - "8.0"
           - "8.1"
+        platform:
+          - "linux/amd64"
+          - "linux/arm/v7"
+          - "linux/arm64/v8"
 
     steps:
       - name: Get branch name
@@ -55,10 +59,7 @@ jobs:
             UPSTREAM_CHANNEL=${{ inputs.upstream-channel-prefix }}
             BASE_UBUNTU_VERSION=${{ inputs.base-ubuntu-version }}
           context: dist/${{ matrix.php-version }}/${{ inputs.php-variation }}/.
-          platforms: |
-            linux/amd64
-            linux/arm/v7
-            linux/arm64/v8
+          platforms: ${{ matrix.platform }}
           pull: true
           push: true
           tags: serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}
