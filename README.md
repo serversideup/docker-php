@@ -67,7 +67,7 @@ Click the image below to view the video:
 ✅ The image builds automatically run weekly (Tuesday at 0800 UTC) for latest security updates.
 
 ### How these images are built
-All images are built off of the official Ubuntu 20.04 docker image. We first build our CLI image, then our FPM, etc. Here is what this looks like:
+All images are built off of the official Ubuntu 22.04 docker image. We first build our CLI image, then our FPM, etc. Here is what this looks like:
 
 ```mermaid
 graph TD;

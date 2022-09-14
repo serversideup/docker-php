@@ -68,7 +68,7 @@ jobs:
 
   trigger_downstream_jobs:
     needs: push
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Trigger downstream builds
         run: curl --fail --output "/dev/null" --silent --show-error -X POST -F token=${{ secrets.DOWNSTREAM_BUILD_TOKEN }} -F ref=$GITHUB_REF ${{ secrets.DOWNSTREAM_BUILD_WEBHOOK_ENDPOINT }}

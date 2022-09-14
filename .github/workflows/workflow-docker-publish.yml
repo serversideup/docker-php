@@ -8,7 +8,6 @@ on:
       base-ubuntu-version:
         required: false
         type: string
-        default: '20.04'
       tag-prefix:
         required: true
         type: string
@@ -19,7 +18,7 @@ on:
 
 jobs:
   docker-publish:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         php-version: 
