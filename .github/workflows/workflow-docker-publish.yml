@@ -8,6 +8,7 @@ on:
       base-ubuntu-version:
         required: false
         type: string
+        default: '22.04'
       tag-prefix:
         required: true
         type: string
