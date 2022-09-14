@@ -9,7 +9,7 @@ set -e
 ##########################
 # Environment Settings
 DEV_UPSTREAM_CHANNEL="beta-"
-DEV_BASE_UBUNTU_VERSION="20.04"
+DEV_BASE_UBUNTU_VERSION="22.04"
 
 ##########################
 # Execute other build script
