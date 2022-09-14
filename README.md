@@ -69,7 +69,13 @@ Click the image below to view the video:
 ### How these images are built
 All images are built off of the official Ubuntu 20.04 docker image. We first build our CLI image, then our FPM, etc. Here is what this looks like:
 
-<img src="https://raw.githubusercontent.com/serversideup/docker-php/main/.github/dependency-diagram.png" alt="Dependency Diagram">
+```mermaid
+graph TD;
+    A[Ubuntu 22.04 + S6 Overlay] --> C[CLI];
+    C[CLI] --> D[FPM];
+    D[FPM] --> E[FPM-NIGNX];
+    D[FPM] --> F[FPM-APACHE];
+```
 
 # Where do you host your stuff?
 We get this question often. Our biggest principle is: **your infrastructure should be able to run anywhere.**
