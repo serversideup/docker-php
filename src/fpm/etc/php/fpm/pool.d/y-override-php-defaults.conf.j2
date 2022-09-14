@@ -1,0 +1,242 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Docker friendly settings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; These settings are offered specifically to behave well in a containerized environment.
+
+[global]
+; Override default pid file
+pid = /run/php-fpm.pid
+
+; Avoid logs being sent to syslog
+error_log = /proc/self/fd/2
+
+; Set this to php default's max_execution_time to allow children to stop gracefully when fpm is commanded to stop
+; This helps avoiding 502's
+process_control_timeout = 30
+
+; Do not daemonize (eg send process to the background)
+daemonize = no
+
+[${PHP_POOL_NAME}]
+; Access from webserver container is via network, not socket file
+listen = [::]:9000
+
+; Unix user/group of processes
+; Note: The user is mandatory. If the group is not set, the default user's group
+;       will be used.
+user = webuser
+group = webgroup
+
+; Redirect logs to stdout - FPM closes /dev/std* on startup
+access.log = /proc/self/fd/1
+catch_workers_output = yes
+
+; Remove "pool www" decoration from log output
+decorate_workers_output = no
+
+; Required to allow config-by-environment
+clear_env = no
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Process Management Settings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Choose how the process manager will control the number of child processes.
+; Possible Values:
+;   static  - a fixed number (pm.max_children) of child processes;
+;   dynamic - the number of child processes are set dynamically based on the
+;             following directives. With this process management, there will be
+;             always at least 1 children.
+;             pm.max_children      - the maximum number of children that can
+;                                    be alive at the same time.
+;             pm.start_servers     - the number of children created on startup.
+;             pm.min_spare_servers - the minimum number of children in 'idle'
+;                                    state (waiting to process). If the number
+;                                    of 'idle' processes is less than this
+;                                    number then some children will be created.
+;             pm.max_spare_servers - the maximum number of children in 'idle'
+;                                    state (waiting to process). If the number
+;                                    of 'idle' processes is greater than this
+;                                    number then some children will be killed.
+;  ondemand - no children are created at startup. Children will be forked when
+;             new requests will connect. The following parameter are used:
+;             pm.max_children           - the maximum number of children that
+;                                         can be alive at the same time.
+;             pm.process_idle_timeout   - The number of seconds after which
+;                                         an idle process will be killed.
+; Note: This value is mandatory.
+pm = ${PHP_PM_CONTROL}
+
+; The number of child processes to be created when pm is set to 'static' and the
+; maximum number of child processes when pm is set to 'dynamic' or 'ondemand'.
+; This value sets the limit on the number of simultaneous requests that will be
+; served. Equivalent to the ApacheMaxClients directive with mpm_prefork.
+; Equivalent to the PHP_FCGI_CHILDREN environment variable in the original PHP
+; CGI. The below defaults are based on a server without much resources. Don't
+; forget to tweak pm.* to fit your needs.
+; Note: Used when pm is set to 'static', 'dynamic' or 'ondemand'
+; Note: This value is mandatory.
+pm.max_children = ${PHP_PM_MAX_CHILDREN}
+
+; The number of child processes created on startup.
+; Note: Used only when pm is set to 'dynamic'
+; Default Value: (min_spare_servers + max_spare_servers) / 2
+pm.start_servers = ${PHP_PM_START_SERVERS}
+
+; The desired minimum number of idle server processes.
+; Note: Used only when pm is set to 'dynamic'
+; Note: Mandatory when pm is set to 'dynamic'
+pm.min_spare_servers = ${PHP_PM_MIN_SPARE_SERVERS}
+
+; The desired maximum number of idle server processes.
+; Note: Used only when pm is set to 'dynamic'
+; Note: Mandatory when pm is set to 'dynamic'
+pm.max_spare_servers = ${PHP_PM_MAX_SPARE_SERVERS}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Healthcheck settings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; The URI to view the FPM status page. If this value is not set, no URI will be
+; recognized as a status page. It shows the following informations:
+;   pool                 - the name of the pool;
+;   process manager      - static, dynamic or ondemand;
+;   start time           - the date and time FPM has started;
+;   start since          - number of seconds since FPM has started;
+;   accepted conn        - the number of request accepted by the pool;
+;   listen queue         - the number of request in the queue of pending
+;                          connections (see backlog in listen(2));
+;   max listen queue     - the maximum number of requests in the queue
+;                          of pending connections since FPM has started;
+;   listen queue len     - the size of the socket queue of pending connections;
+;   idle processes       - the number of idle processes;
+;   active processes     - the number of active processes;
+;   total processes      - the number of idle + active processes;
+;   max active processes - the maximum number of active processes since FPM
+;                          has started;
+;   max children reached - number of times, the process limit has been reached,
+;                          when pm tries to start more children (works only for
+;                          pm 'dynamic' and 'ondemand');
+; Value are updated in real time.
+; Example output:
+;   pool:                 www
+;   process manager:      static
+;   start time:           01/Jul/2011:17:53:49 +0200
+;   start since:          62636
+;   accepted conn:        190460
+;   listen queue:         0
+;   max listen queue:     1
+;   listen queue len:     42
+;   idle processes:       4
+;   active processes:     11
+;   total processes:      15
+;   max active processes: 12
+;   max children reached: 0
+;
+; By default the status page output is formatted as text/plain. Passing either
+; 'html', 'xml' or 'json' in the query string will return the corresponding
+; output syntax. Example:
+;   http://www.foo.bar/status
+;   http://www.foo.bar/status?json
+;   http://www.foo.bar/status?html
+;   http://www.foo.bar/status?xml
+;
+; By default the status page only outputs short status. Passing 'full' in the
+; query string will also return status for each pool process.
+; Example:
+;   http://www.foo.bar/status?full
+;   http://www.foo.bar/status?json&full
+;   http://www.foo.bar/status?html&full
+;   http://www.foo.bar/status?xml&full
+; The Full status returns for each process:
+;   pid                  - the PID of the process;
+;   state                - the state of the process (Idle, Running, ...);
+;   start time           - the date and time the process has started;
+;   start since          - the number of seconds since the process has started;
+;   requests             - the number of requests the process has served;
+;   request duration     - the duration in       s of the requests;
+;   request method       - the request method (GET, POST, ...);
+;   request URI          - the request URI with the query string;
+;   content length       - the content length of the request (only with POST);
+;   user                 - the user (PHP_AUTH_USER) (or '-' if not set);
+;   script               - the main script called (or '-' if not set);
+;   last request cpu     - the %cpu the last request consumed
+;                          it's always 0 if the process is not in Idle state
+;                          because CPU calculation is done when the request
+;                          processing has terminated;
+;   last request memory  - the max amount of memory the last request consumed
+;                          it's always 0 if the process is not in Idle state
+;                          because memory calculation is done when the request
+;                          processing has terminated;
+; If the process is in Idle state, then informations are related to the
+; last request the process has served. Otherwise informations are related to
+; the current request being served.
+; Example output:
+;   ************************
+;   pid:                  31330
+;   state:                Running
+;   start time:           01/Jul/2011:17:53:49 +0200
+;   start since:          63087
+;   requests:             12808
+;   request duration:     1250261
+;   request method:       GET
+;   request URI:          /test_mem.php?N=10000
+;   content length:       0
+;   user:                 -
+;   script:               /home/fat/web/docs/php/test_mem.php
+;   last request cpu:     0.00
+;   last request memory:  0
+;
+; Note: There is a real-time FPM status monitoring sample web page available
+;       It's available in: /usr/share/php/{{ php_version }}/fpm/status.html
+;
+; Note: The value must start with a leading slash (/). The value can be
+;       anything, but it may not be a good idea to use the .php extension or it
+;       may conflict with a real PHP file.
+; Default Value: not set
+;pm.status_path = /status
+
+; The ping URI to call the monitoring page of FPM. If this value is not set, no
+; URI will be recognized as a ping page. This could be used to test from outside
+; that FPM is alive and responding, or to
+; - create a graph of FPM availability (rrd or such);
+; - remove a server from a group if it is not responding (load balancing);
+; - trigger alerts for the operating team (24/7).
+; Note: The value must start with a leading slash (/). The value can be
+;       anything, but it may not be a good idea to use the .php extension or it
+;       may conflict with a real PHP file.
+; Default Value: not set
+ping.path = /ping
+
+; This directive may be used to customize the response of a ping request. The
+; response is formatted as text/plain with a 200 response code.
+; Default Value: pong
+;ping.response = pong
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Server Side Up Opinionated Settings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; We believe everything should be secure by default. Some of these settings
+; can be changed with environment variables.
+
+
+; Security measures
+php_admin_value[open_basedir] = ${PHP_OPEN_BASEDIR}
+php_admin_flag[session.cookie_secure] = true
+
+; Regional settings
+php_value[date.timezone] = ${PHP_DATE_TIMEZONE}
+
+; Error reporting settings
+php_value[display_errors] = ${PHP_DISPLAY_ERRORS}
+php_value[error_reporting] = ${PHP_ERROR_REPORTING}
+
+; Performance settings
+php_value[memory_limit] = ${PHP_MEMORY_LIMIT}
+php_value[max_execution_time] = ${PHP_MAX_EXECUTION_TIME}
+
+; Upload settings
+php_value[post_max_size] = ${PHP_POST_MAX_SIZE}
+php_value[upload_max_filesize] = ${PHP_UPLOAD_MAX_FILE_SIZE}

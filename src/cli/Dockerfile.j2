@@ -1,0 +1,59 @@
+{{ overwrite_warning }}
+
+#####################################################
+# Server Side Up -  PHP {{ php_version }} / CLI image 
+#####################################################
+
+# Default upstream channel to `null` so we default pulling `serversideup/docker-baseimage-s6-overlay-ubuntu:20.04`
+# but can also pull the beta image from `serversideup/docker-baseimage-s6-overlay-ubuntu:beta-20.04`
+ARG UPSTREAM_CHANNEL=''
+ARG BASE_UBUNTU_VERSION='20.04'
+
+FROM serversideup/docker-baseimage-s6-overlay-ubuntu:${UPSTREAM_CHANNEL}${BASE_UBUNTU_VERSION}
+
+LABEL maintainer="Jay Rogers (@jaydrogers)"
+
+# Make sure we keep apt silent during installs. Set other defaults as well
+ENV DEBIAN_FRONTEND=noninteractive \
+    S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
+    COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_HOME=/composer \
+    COMPOSER_MAX_PARALLEL_HTTP=24 \
+    WEBUSER_HOME="/var/www/html" \
+    PUID=9999 \
+    PGID=9999
+
+# Install Ondrej repos for Ubuntu focal, PHP{{ php_version }}, composer and selected extensions
+RUN apt-get update \
+    && echo "Add the default, non-privileged user..." \
+    && groupadd -r -g $PGID webgroup \
+    && useradd --no-log-init -r -s /usr/bin/bash -d $WEBUSER_HOME -u $PUID -g $PGID webuser \
+    && echo "Install the basic software dependencies..." \
+    && apt-get install -y --no-install-recommends gnupg \
+    && echo "deb http://ppa.launchpad.net/ondrej/php/ubuntu focal main" > /etc/apt/sources.list.d/ondrej-php.list \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C \
+    && apt-get update \
+    && apt-get -y --no-install-recommends install \
+        ca-certificates \
+        curl \
+        unzip \
+  	{% for package in versions[php_version].packages %}
+        {{ package }} \
+  	{% endfor %}
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+
+# Pull the official composer 2 image, and copy the composer executable from there
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Copy over S6 configurations
+COPY --chmod=755 etc/cont-init.d/ /etc/cont-init.d/
+
+# Set the default work directory to our web user
+WORKDIR /var/www/html
+
+#Configure S6 to drop priveleges
+ENTRYPOINT ["/init"]
+
+# Run PHP
+CMD ["php", "-a"]

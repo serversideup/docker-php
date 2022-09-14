@@ -11,47 +11,41 @@ on:
     - cron: '0 8 * * 2'
 
 jobs:
-  push:
-    runs-on: ubuntu-20.04
+  cli:
+    uses: ./.github/workflows/workflow-docker-publish.yml
+    with:
+      upstream-channel-prefix: ''
+      tag-prefix: ''
+      php-variation: cli
+    secrets: inherit
 
-    # Configure our deployment strategy. Order is important here and we want it to go: CLI < FPM < FPM-NGINX
-    strategy:
-      # We want to limit the number of jobs to the number of versions that we're offering (since we want the dependency order to be built correctly)
-      max-parallel: 3
-      # Set our base image and versions here
-      matrix:
-        ####################################################################################################################
-        # Possibly delete this "base-image" thing. (See https://github.com/serversideup/docker-php/issues/8)
-        ####################################################################################################################
-        # base-image:
-        #   - ubuntu:20.04
-        php-variation:
-          - cli
-          - fpm
-          - fpm-nginx
-          - fpm-apache
-        php-version: 
-          - "7.4"
-          - "8.0"
-          - "8.1"
+  fpm:
+    needs: cli
+    uses: ./.github/workflows/workflow-docker-publish.yml
+    with:
+      upstream-channel-prefix: ''
+      tag-prefix: ''
+      php-variation: fpm
+    secrets: inherit
 
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          ref: main
+  fpm-nginx:
+    needs: fpm
+    uses: ./.github/workflows/workflow-docker-publish.yml
+    with:
+      upstream-channel-prefix: ''
+      tag-prefix: ''
+      php-variation: fpm-nginx
+    secrets: inherit
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+  fpm-apache:
+    needs: fpm
+    uses: ./.github/workflows/workflow-docker-publish.yml
+    with:
+      upstream-channel-prefix: ''
+      tag-prefix: ''
+      php-variation: fpm-apache
+    secrets: inherit
 
-      - name: Build and tag image
-        run: docker build --pull generated-dockerfiles/${{ matrix.php-version }}/${{ matrix.php-variation }}/. --tag serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
-
-      - name: Push version image to DockerHub
-        run: docker push serversideup/php:${{ matrix.php-version }}-${{ matrix.php-variation }}
-  
   update_container_readme:
     runs-on: ubuntu-latest
     name: Push README to Docker Hub

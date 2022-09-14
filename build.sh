@@ -37,8 +37,8 @@ function ui_reset_colors {
 
 # Script Configurations
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-TEMPLATE_DIR=templates
-OUTPUT_DIR=generated-dockerfiles
+TEMPLATE_DIR=src
+OUTPUT_DIR=dist
 
 # Grab each PHP version from above and go through these steps
 for version in ${phpVersions[@]}; do
@@ -47,7 +47,7 @@ for version in ${phpVersions[@]}; do
     rsync -a $TEMPLATE_DIR/ $SCRIPT_DIR/$OUTPUT_DIR/${version[$i]} --delete
 
     # Apply Jinja2 templates using "Yasha"
-    find $SCRIPT_DIR/$OUTPUT_DIR/${version[$i]} -name '*.j2' -exec yasha --php_version=$version --php_packages= -v $SCRIPT_DIR/variables.yaml {} \;
+    find $SCRIPT_DIR/$OUTPUT_DIR/${version[$i]} -name '*.j2' -exec yasha --php_version=$version -v $SCRIPT_DIR/variables.yaml {} \;
 
     # Remove old applied template files
     find $SCRIPT_DIR/$OUTPUT_DIR/${version[$i]} -name '*.j2' -exec rm {} \;
