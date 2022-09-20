@@ -64,7 +64,7 @@ RUN apt-get update \
 COPY etc/apache2/ /etc/apache2/
 
 # Copy over S6 configurations
-COPY --chmod=755 etc/services.d/ /etc/services.d/
+COPY --chmod=755 etc/s6-overlay/ /etc/s6-overlay/
 COPY --chmod=755 etc/cont-init.d/ /etc/cont-init.d/
 
 #PHP: Copy over PHP overrides
