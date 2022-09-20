@@ -9,8 +9,8 @@ set -e
 
 # Set versions
 phpVersions=(
-    # 7.4
-    # 8.0
+    7.4
+    8.0
     8.1
 )
 
