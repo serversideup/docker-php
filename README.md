@@ -279,6 +279,7 @@ APACHE\_THREADS\_PER\_CHILD|This directive sets the number of threads created by
 COMPOSER\_ALLOW\_SUPERUSER|Disable warning about running as super-user|all|"1"
 COMPOSER\_HOME|The COMPOSER\_HOME var allows you to change the Composer home directory. This is a hidden, global (per-user on the machine) directory that is shared between all projects.|all|"/composer"
 COMPOSER\_MAX\_PARALLEL\_HTTP|Set to an integer to configure how many files can be downloaded in parallel. This defaults to 12 and must be between 1 and 50. If your proxy has issues with concurrency maybe you want to lower this. Increasing it should generally not result in performance gains.|all|"24"
+S6\_VERBOSITY|Set the verbosity of "S6 Overlay" (the init system these images are based on). The default is "1" (print warnings and errors). The scale goes from 1 to 5, but the output will quickly become very noisy. If you're having issues, start here. You can also customize many other variables. (<a href="https://github.com/just-containers/s6-overlay#customizing-s6-behaviour">Official docs</a>)|all|"1"
 
 # Other customizations
 
