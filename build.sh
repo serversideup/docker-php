@@ -7,12 +7,16 @@ set -e
 # PHP VERSIONS: Set these to match what's available in `/variables.yaml`
 ###########################################################################################
 
-# Set versions
-phpVersions=(
-    7.4
-    8.0
-    8.1
-)
+if [ $# -eq 0 ]; then
+    # Set versions
+    phpVersions=(
+        7.4
+        8.0
+        8.1
+    )
+else
+    phpVersions=$1
+fi
 
 ###########################################################################################
 # Build script: Don't change anything below this line, unless you know what you're doing
