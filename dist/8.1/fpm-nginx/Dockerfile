@@ -36,7 +36,6 @@ RUN apt-get update \
 
 # Copy over S6 configurations
 COPY --chmod=755 etc/s6-overlay/ /etc/s6-overlay/
-COPY --chmod=755 etc/cont-init.d/ /etc/cont-init.d/
 
 #NGINX: Set server configs
 COPY etc/nginx/ /etc/nginx/

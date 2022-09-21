@@ -66,7 +66,6 @@ COPY etc/apache2/ /etc/apache2/
 
 # Copy over S6 configurations
 COPY --chmod=755 etc/s6-overlay/ /etc/s6-overlay/
-COPY --chmod=755 etc/cont-init.d/ /etc/cont-init.d/
 
 #PHP: Copy over PHP overrides
 COPY etc/php/fpm/pool.d/ /etc/php/8.1/fpm/pool.d/
