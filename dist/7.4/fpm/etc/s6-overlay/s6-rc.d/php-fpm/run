@@ -1,7 +1,4 @@
-#!/command/with-contenv bash
-
-# Switch to web user
-su webuser
-
-#Bring up PHP FPM
+#!/command/execlineb -P
+with-contenv
+s6-notifyoncheck
 exec /usr/sbin/php-fpm7.4 --nodaemonize
