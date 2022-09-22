@@ -1,2 +1,3 @@
-#!/command/execlineb
+#!/command/execlineb -P
+with-contenv
 nginx
