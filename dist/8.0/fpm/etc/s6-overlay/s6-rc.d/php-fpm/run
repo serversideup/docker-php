@@ -1,4 +1,4 @@
 #!/command/execlineb -P
 with-contenv
-s6-notifyoncheck
+s6-notifyoncheck -d
 exec /usr/sbin/php-fpm8.0 --nodaemonize
