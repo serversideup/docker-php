@@ -31,9 +31,12 @@ ENV PHP_DATE_TIMEZONE="UTC" \
 # Install FPM
 RUN apt-get update \
     && apt-get -y --no-install-recommends install \
-        php8.0-fpm \
-        && echo "Allow pool name to be set via env, default it to 'www'..." \
+        php8.0-fpm libfcgi-bin\
+    && echo "Allow pool name to be set via env, default it to 'www'..." \
     && sed -i -e 's/\[www\]/\[$\{PHP_POOL_NAME\}]/g' /etc/php/8.0/fpm/pool.d/www.conf \
+    && echo "Install PHP-FPM Healthcheck script..." \
+    && wget -O /usr/local/bin/php-fpm-healthcheck https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/master/php-fpm-healthcheck \
+    && chmod +x /usr/local/bin/php-fpm-healthcheck \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 

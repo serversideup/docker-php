@@ -1,2 +1,4 @@
-#!/command/execlineb
+#!/command/execlineb -P
+with-contenv
+s6-notifyoncheck
 nginx

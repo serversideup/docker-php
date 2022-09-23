@@ -1,2 +1,4 @@
-#!/command/with-contenv bash
+#!/command/execlineb -P
+with-contenv
+s6-notifyoncheck
 /usr/sbin/apache2ctl -DFOREGROUND
