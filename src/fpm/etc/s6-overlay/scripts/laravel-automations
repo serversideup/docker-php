@@ -39,3 +39,5 @@ if [ -f $WEBUSER_HOME/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; the
 else
     echo "👉 Skipping Laravel automations because we could not detect a Laravel install or it was specifcally disabled..."
 fi
+
+exit 0

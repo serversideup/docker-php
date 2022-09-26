@@ -1,12 +1,8 @@
-{{ overwrite_warning }}
+ARG UPSTREAM_CHANNEL=''
+ARG PHP_VERSION='8.1'
+ARG BASE_IMAGE="serversideup/php:${UPSTREAM_CHANNEL}${PHP_VERSION}-fpm"
 
-####################################################
-# Server Side Up -  PHP {{ php_version }} / FPM-Apache image 
-#####################################################
-
-# Default upstream channel to `null` so latest images can be published as `serversideup/php:8.x-cli` and beta as `serversideup/php:beta-8.x-cli`
-ARG  UPSTREAM_CHANNEL=''
-FROM serversideup/php:${UPSTREAM_CHANNEL}{{ php_version }}-fpm
+FROM ${BASE_IMAGE}
 
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
@@ -29,55 +25,51 @@ ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
     APACHE_RUN_GROUP="webgroup" \
     APACHE_DOCUMENT_ROOT="/var/www/html/public/" \
     DEBIAN_FRONTEND=noninteractive
-    
 
-# Install Apache (web), MSMTP (email client), and Supervisor (process management)
+# install`apach2` (web server) & `msmtp` (smtp client)
 RUN apt-get update \
-    && echo "Install requirements..." \
     && apt-get -y --no-install-recommends install \
         msmtp \
         msmtp-mta \
         apache2 \
-    && echo "Enabling Apache mods..." \
+    \
+    # enable Apache2 mods
     && a2enmod actions autoindex deflate headers http2 proxy proxy_fcgi remoteip rewrite setenvif ssl unique_id \
-    && echo "Clean up after ourselves..." \
+    \
+    # cleanup
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /var/www/html/* \
-    && echo "Set apache logs to redirect to STDOUT and STDERR and configure Apache..." \
+    \
+    # redirect logs to STDOUT and STERR
     && ln -sf /dev/stdout /var/log/apache2/access.log \
     && ln -sf /dev/stdout /var/log/apache2/other_vhosts_access.log \
     && ln -sf /dev/stderr /var/log/apache2/error.log \
+    \
+    # set hostname
     && echo "ServerName localhost" >> /etc/apache2/apache2.conf \
-    && echo "Set log format for CloudFlare and enable Remote IP..." \
+    \
+    # set log format for CloudFlare and enable Remote IP
     && sed -i 's/LogFormat "%h %l %u %t \\\"%r\\\" %>s %O \\\"/LogFormat "%a %l %u %t \\\"%r\\\" %>s %O \\\"/' /etc/apache2/apache2.conf \
     && ln -sf /etc/apache2/conf-available/remoteip.conf /etc/apache2/conf-enabled/remoteip.conf \
-    && echo "Force Docker ENVs to handle the apache variables for the run user and group..." \
+    \
+    # force Docker ENVs to handle the apache variables for the run user and group
     && echo "export APACHE_RUN_USER=${APACHE_RUN_USER}" >> /etc/apache2/envvars \
     && echo "export APACHE_RUN_GROUP=${APACHE_RUN_GROUP}" >> /etc/apache2/envvars \
-    && echo "Fixing permissions issues on the webroot..." \
+    \
+    # configure permissions on the webroot
     && chown -R webuser:webgroup $WEBUSER_HOME \
-    && echo "Making sure Apache is stopped and disabled at start up..." \
+    \
+    # ensure Apache does not start automatically
     && service apache2 stop \
     && update-rc.d apache2 disable
 
-#APACHE: Copy over configurations
 COPY etc/apache2/ /etc/apache2/
 
-# Copy over S6 configurations
 COPY --chmod=755 etc/s6-overlay/ /etc/s6-overlay/
 
-#PHP: Copy over PHP overrides
-COPY etc/php/fpm/pool.d/ /etc/php/{{ php_version }}/fpm/pool.d/
+COPY etc/php/fpm/pool.d/ /etc/php/${PHP_VERSION}/fpm/pool.d/
 
 EXPOSE 80
 EXPOSE 443
-
-################################################################
-# Commenting these out for now because Traefik and Swarm
-# we not playing well together with this for rolling updates
-
-# HEALTHCHECK --start-period=5s \
-#   CMD curl -k -f https://127.0.0.1/ping/ || exit 1
-
 
 ENTRYPOINT ["/init"]
