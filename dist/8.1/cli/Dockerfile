@@ -39,7 +39,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 COPY --from=repo-config /etc/apt/sources.list.d/ /etc/apt/sources.list.d/
 COPY --from=repo-config /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg
 
-# Install Ondrej repos for Ubuntu, PHP8.1, composer and selected extensions
+# Install Ondrej repos for Ubuntu, PHP, composer and selected extensions
 RUN apt-get update \
     && echo "Add the default, non-privileged user..." \
     && groupadd -r -g $PGID webgroup \
@@ -49,6 +49,9 @@ RUN apt-get update \
         ca-certificates \
         curl \
         unzip \
+    && echo "Install PHP packages..." \
+    && apt-get update \
+    && apt-get -y --no-install-recommends install \
         php8.1-bcmath \
         php8.1-cli \
         php8.1-common \
