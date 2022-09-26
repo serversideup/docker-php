@@ -26,7 +26,7 @@ server {
         include        fastcgi_params;
         fastcgi_param  SCRIPT_NAME     /ping;
         fastcgi_param  SCRIPT_FILENAME /ping;
-        fastcgi_pass   unix:/var/run/php/php-fpm.sock;
+        fastcgi_pass   127.0.0.1:9000;
     }
 
 	# Have NGINX try searching for PHP files as well
@@ -37,7 +37,7 @@ server {
 	# Pass "*.php" files to PHP-FPM
 	location ~ \.php$ {
 			include snippets/fastcgi-php.conf;
-			fastcgi_pass unix:/var/run/php/php-fpm.sock;
+			fastcgi_pass 127.0.0.1:9000;
 	}
 
 	# additional config
@@ -76,7 +76,7 @@ server {
         include        fastcgi_params;
         fastcgi_param  SCRIPT_NAME     /ping;
         fastcgi_param  SCRIPT_FILENAME /ping;
-        fastcgi_pass   unix:/var/run/php/php-fpm.sock;
+        fastcgi_pass   127.0.0.1:9000;
     }
 
 	# Have NGINX try searching for PHP files as well
@@ -87,7 +87,7 @@ server {
 	# Pass "*.php" files to PHP-FPM
 	location ~ \.php$ {
 			include snippets/fastcgi-php.conf;
-			fastcgi_pass unix:/var/run/php/php-fpm.sock;
+			fastcgi_pass 127.0.0.1:9000;
 	}
 
 	# additional config
