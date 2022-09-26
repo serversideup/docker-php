@@ -9,7 +9,7 @@ set -e
 ##########################
 # Environment Settings
 DEV_UPSTREAM_CHANNEL="beta-"
-DEV_BASE_UBUNTU_VERSION="22.04"
+DEV_BASE_OS_VERSION="ubuntu-22.04"
 
 ##########################
 # Execute other build script
@@ -30,7 +30,7 @@ function build (){
         # Use "docker build"
         docker build \
             --build-arg UPSTREAM_CHANNEL="${DEV_UPSTREAM_CHANNEL}" \
-            --build-arg BASE_UBUNTU_VERSION="${DEV_BASE_UBUNTU_VERSION}" \
+            --build-arg BASE_OS_VERSION="${DEV_BASE_OS_VERSION}" \
             -t "serversideup/php:beta-${2}-$1" \
             $OUTPUT_DIR/$2/$1/
 }

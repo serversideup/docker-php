@@ -5,12 +5,12 @@
 # Server Side Up -  PHP 8.1 / CLI image 
 #####################################################
 
-# Default upstream channel to `null` so we default pulling `serversideup/docker-baseimage-s6-overlay-ubuntu:22.04`
-# but can also pull the beta image from `serversideup/docker-baseimage-s6-overlay-ubuntu:beta-22.04`
+# Default upstream channel to `null` so we default pulling `serversideup/s6-overlay:ubuntu-22.04`
+# but can also pull the beta image from `serversideup/s6-overlay:beta-ubuntu-22.04`
 ARG UPSTREAM_CHANNEL=''
-ARG BASE_UBUNTU_VERSION='22.04'
+ARG BASE_OS_VERSION='ubuntu-22.04'
 
-FROM serversideup/docker-baseimage-s6-overlay-ubuntu:${UPSTREAM_CHANNEL}${BASE_UBUNTU_VERSION}
+FROM serversideup/s6-overlay:${UPSTREAM_CHANNEL}${BASE_OS_VERSION}
 
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 

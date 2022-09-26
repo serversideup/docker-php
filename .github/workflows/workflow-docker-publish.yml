@@ -8,7 +8,7 @@ on:
       base-ubuntu-version:
         required: false
         type: string
-        default: '22.04'
+        default: 'ubuntu-22.04'
       tag-prefix:
         required: true
         type: string
@@ -52,7 +52,7 @@ jobs:
         with:
           build-args: |
             UPSTREAM_CHANNEL=${{ inputs.upstream-channel-prefix }}
-            BASE_UBUNTU_VERSION=${{ inputs.base-ubuntu-version }}
+            BASE_OS_VERSION=${{ inputs.base-ubuntu-version }}
           context: dist/${{ matrix.php-version }}/${{ inputs.php-variation }}/.
           platforms: |
             linux/amd64
