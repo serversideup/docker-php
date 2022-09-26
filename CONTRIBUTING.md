@@ -15,7 +15,7 @@ You must have these installed on your system.
 
 # Running things locally
 
-To run a build, simply run `./dev.sh`. This will automatically build the beta images on your local machine. If you want to only build a specific version, you pass it a version you want to build (example: `./dev.sh 8.1`)
+To run a build, simply run `./dev.sh` (with Docker Desktop Running). This will automatically build the beta images on your local machine. If you want to only build a specific version, you pass it a version you want to build (example: `./dev.sh 8.1`)
 
 #### Viewing the images
 After running the build, you should be able to run `docker images` to see all available images on your machine. Everything built with `./dev.sh` will be tagged `serversideup/php:beta-*`.
