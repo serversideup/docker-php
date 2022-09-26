@@ -1,2 +1,0 @@
-#!/command/with-contenv bash
-FCGI_CONNECT=/var/run/php/php-fpm.sock php-fpm-healthcheck
