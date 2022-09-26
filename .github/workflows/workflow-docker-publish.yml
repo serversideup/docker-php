@@ -5,15 +5,22 @@ on:
         required: true
         type: string
         default: ''
-      base-ubuntu-version:
+      base-os-flavor:
         required: false
         type: string
-        default: 'ubuntu-22.04'
+        default: 'ubuntu'
+      base-os-version:
+        required: false
+        type: string
+        default: '22.04'
       tag-prefix:
         required: true
         type: string
         default: 'beta-'
       php-variation:
+        required: true
+        type: string
+      php-version:
         required: true
         type: string
 
@@ -52,8 +59,10 @@ jobs:
         with:
           build-args: |
             UPSTREAM_CHANNEL=${{ inputs.upstream-channel-prefix }}
-            BASE_OS_VERSION=${{ inputs.base-ubuntu-version }}
-          context: dist/${{ matrix.php-version }}/${{ inputs.php-variation }}/.
+            BASE_OS_FLAVOR=${{ inputs.base-os-flavor }}
+            BASE_OS_VERSION=${{ inputs.base-os-version }}
+            PHP_VERSION=${{ inputs.php-version }}
+          context: src/${{ inputs.php-variation }}/.
           platforms: |
             linux/amd64
             linux/arm/v7
