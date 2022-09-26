@@ -9,8 +9,21 @@
 ARG UPSTREAM_CHANNEL=''
 ARG BASE_OS_VERSION='ubuntu-22.04'
 
-FROM serversideup/s6-overlay:${UPSTREAM_CHANNEL}${BASE_OS_VERSION}
+###############
+# Config stage
+###############
+FROM serversideup/s6-overlay:${UPSTREAM_CHANNEL}${BASE_OS_VERSION} as config
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gnupg2 software-properties-common \
+    && add-apt-repository -y ppa:ondrej/php
+COPY /etc/apt/sources.list.d/ /etc/apt/sources.list.d/
+COPY /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg
+
+###############
+# Final Image
+###############
+FROM serversideup/s6-overlay:${UPSTREAM_CHANNEL}${BASE_OS_VERSION}
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
 # Make sure we keep apt silent during installs. Set other defaults as well
@@ -30,10 +43,6 @@ RUN apt-get update \
     && groupadd -r -g $PGID webgroup \
     && useradd --no-log-init -r -s /usr/bin/bash -d $WEBUSER_HOME -u $PUID -g $PGID webuser \
     && echo "Install the basic software dependencies..." \
-    && apt-get install -y --no-install-recommends gnupg2 \
-    && echo "deb http://ppa.launchpad.net/ondrej/php/ubuntu $(bash -c '. /etc/os-release;echo $VERSION_CODENAME') main" > /etc/apt/sources.list.d/ondrej-php.list \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C \
-    && apt-get update \
     && apt-get -y --no-install-recommends install \
         ca-certificates \
         curl \
