@@ -20,9 +20,6 @@ on:
       php-variation:
         required: true
         type: string
-      php-version:
-        required: true
-        type: string
 
 jobs:
   docker-publish:
@@ -61,7 +58,7 @@ jobs:
             UPSTREAM_CHANNEL=${{ inputs.upstream-channel-prefix }}
             BASE_OS_FLAVOR=${{ inputs.base-os-flavor }}
             BASE_OS_VERSION=${{ inputs.base-os-version }}
-            PHP_VERSION=${{ inputs.php-version }}
+            PHP_VERSION=${{ matrix.php-version }}
           context: src/${{ inputs.php-variation }}/.
           platforms: |
             linux/amd64
