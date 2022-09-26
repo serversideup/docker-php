@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # exit when any command fails
-set -ex
+set -e
 
 ###########################################################################################
 # PHP VERSIONS: Set these to match what's available in `/variables.yaml`
