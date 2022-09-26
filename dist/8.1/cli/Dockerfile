@@ -11,15 +11,13 @@ ARG UPSTREAM_CHANNEL=''
 ARG BASE_OS_VERSION='ubuntu-22.04'
 
 ###############
-# Config stage
+# Respository Configuration Stage
 ###############
-FROM serversideup/s6-overlay:${UPSTREAM_CHANNEL}${BASE_OS_VERSION} as config
+FROM serversideup/s6-overlay:${UPSTREAM_CHANNEL}${BASE_OS_VERSION} as repo-config
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends gnupg2 software-properties-common \
     && add-apt-repository -y ppa:ondrej/php
-COPY /etc/apt/sources.list.d/ /etc/apt/sources.list.d/
-COPY /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg
 
 ###############
 # Final Image
@@ -37,6 +35,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     WEBUSER_HOME="/var/www/html" \
     PUID=9999 \
     PGID=9999
+
+COPY --from=repo-config /etc/apt/sources.list.d/ /etc/apt/sources.list.d/
+COPY --from=repo-config /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg
 
 # Install Ondrej repos for Ubuntu, PHP8.1, composer and selected extensions
 RUN apt-get update \
