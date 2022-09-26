@@ -50,7 +50,7 @@ RUN apt-get update \
         $(cat /tmp/php-packages.txt) \
     \
     # set symlink to version number for script management
-    && ln -sf /etc/php/${PHP_VERSION}/ /etc/php/current_version \
+    && ln -sf /etc/php/${BUILD_PHP_VERSION}/ /etc/php/current_version \
     \
     # cleanup
     && apt-get clean \
