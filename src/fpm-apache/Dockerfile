@@ -67,7 +67,7 @@ COPY etc/apache2/ /etc/apache2/
 
 COPY --chmod=755 etc/s6-overlay/ /etc/s6-overlay/
 
-COPY etc/php/fpm/pool.d/ /etc/php/${PHP_VERSION}/fpm/pool.d/
+COPY etc/php/fpm/pool.d/ /etc/php/current_version/fpm/pool.d/
 
 EXPOSE 80
 EXPOSE 443
