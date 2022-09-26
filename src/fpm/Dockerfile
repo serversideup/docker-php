@@ -26,6 +26,9 @@ RUN apt-get update \
     && apt-get -y --no-install-recommends install \
         php${BUILD_PHP_VERSION}-fpm libfcgi-bin \
     \
+    # allow `php-fpm` script to be referenced without a version
+    && ln -sf /usr/sbin/php-fpm${BUILD_PHP_VERSION} /usr/sbin/php-fpm \
+    \
     # set pool name to be configurable by env
     && sed -i -e 's/\[www\]/\[$\{PHP_POOL_NAME\}]/g' /etc/php/${BUILD_PHP_VERSION}/fpm/pool.d/www.conf \
     \
@@ -39,7 +42,7 @@ RUN apt-get update \
 
 COPY --chmod=755 etc/s6-overlay/ /etc/s6-overlay/
 
-COPY etc/php/fpm/pool.d/ /etc/php/${PHP_VERSION}/fpm/pool.d/
+COPY etc/php/fpm/pool.d/ /etc/php/current_version/fpm/pool.d/
 
 ENTRYPOINT ["/init" ]
 
