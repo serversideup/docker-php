@@ -1,6 +1,34 @@
 #!/command/with-contenv bash
-if [ ! -f /etc/ssl/web/ssl.key ]; then
-    echo "🔐 Generating a self-signed SSL certificate because one was not provided..."
-    mkdir -p /etc/ssl/web/
-    openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout /etc/ssl/web/ssl.key -out /etc/ssl/web/ssl.crt -days 365
-fi
+generate_ssl() {
+    if [ ! -f /etc/ssl/web/ssl.key ]; then
+        echo "🏃‍♂️ An SSL key was not detected, so I'll generate a self-signed SSL certificate pair for you..."
+        mkdir -p /etc/ssl/web/
+        openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout /etc/ssl/web/ssl.key -out /etc/ssl/web/ssl.crt -days 365
+    fi
+}
+
+case $SSL_MODE in
+
+  off)
+    echo "🔓 SSL_MODE has been DISABLED, setting the web server to work in HTTP only..."
+    ln -sf /etc/apache2/sites-available/ssl-off.conf /etc/apache2/sites-enabled/ssl-off.conf
+    ;;
+
+  mixed)
+    echo "🔒 SSL_MODE has been set to MIXED, setting the web server to work in HTTP + HTTPS..."
+    generate_ssl
+    ln -sf /etc/apache2/sites-available/ssl-mixed.conf /etc/apache2/sites-enabled/ssl-mixed.conf
+    ;;
+
+  full)
+    echo "🔐 SSL_MODE has set to FULL, setting the web server to work in HTTPS only..."
+    generate_ssl
+    ln -sf /etc/apache2/sites-available/ssl-full.conf /etc/apache2/sites-enabled/ssl-full.conf
+    ;;
+
+  *)
+    echo '❌ You provided an invalid option for the environment variable "SSL_MODE". Check your configuration. Valid options are "off", "mixed", or "full" (default: "full").'
+    exit 1
+    ;;
+
+esac
