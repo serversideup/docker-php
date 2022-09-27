@@ -30,7 +30,7 @@ ENV BUILD_PHP_VERSION=$PHP_VERSION \
 COPY --from=repo-config /etc/apt/sources.list.d/ /etc/apt/sources.list.d/
 COPY --from=repo-config /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg
 
-ADD php-packages/${PHP_VERSION}.txt /tmp/php-packages.txt
+ADD php-version-packages/${PHP_VERSION}.txt /tmp/php-packages.txt
 
 RUN apt-get update \
     \
