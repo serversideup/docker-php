@@ -46,6 +46,9 @@ This is a list of the docker images this repository creates:
 | fpm-apache   | [![serversideup/php:8.2-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-apache?label=serversideup%2Fphp%3A8.2-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:8.1-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-apache?label=serversideup%2Fphp%3A8.1-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:8.0-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-apache?label=serversideup%2Fphp%3A8.0-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:7.4-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-apache?label=serversideup%2Fphp%3A7.4-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-apache&page=1&ordering=-name) |
 | fpm-nginx    | [![serversideup/php:8.2-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-nginx?label=serversideup%2Fphp%3A8.2-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:8.1-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-nginx?label=serversideup%2Fphp%3A8.1-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:8.0-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-nginx?label=serversideup%2Fphp%3A8.0-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:7.4-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-nginx?label=serversideup%2Fphp%3A7.4-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx&page=1&ordering=-name) |
 
+#### 👉 Warning: PHP 8.2 is still in BETA
+PHP 8.2 is still considered a "pre-release" by the official PHP team. [Learn more here →](https://php.watch/versions)
+
 ### Usage
 Simply use this image name pattern in any of your projects:
 ```sh
@@ -281,6 +284,7 @@ COMPOSER\_ALLOW\_SUPERUSER|Disable warning about running as super-user|all|"1"
 COMPOSER\_HOME|The COMPOSER\_HOME var allows you to change the Composer home directory. This is a hidden, global (per-user on the machine) directory that is shared between all projects.|all|"/composer"
 COMPOSER\_MAX\_PARALLEL\_HTTP|Set to an integer to configure how many files can be downloaded in parallel. This defaults to 12 and must be between 1 and 50. If your proxy has issues with concurrency maybe you want to lower this. Increasing it should generally not result in performance gains.|all|"24"
 S6\_VERBOSITY|Set the verbosity of "S6 Overlay" (the init system these images are based on). The default is "1" (print warnings and errors). The scale goes from 1 to 5, but the output will quickly become very noisy. If you're having issues, start here. You can also customize many other variables. (<a href="https://github.com/just-containers/s6-overlay#customizing-s6-behaviour">Official docs</a>)|all|"1"
+SSL\_MODE| Configure how you would like to handle SSL. This can be "off" (HTTP only), "mixed" (HTTP + HTTPS), or "full" (HTTPS only) | fpm-nginx,<br />fpm-apache |"full"
 
 # Other customizations
 
@@ -357,13 +361,31 @@ Refer to the official instructions of the extension that you are trying to insta
 Make sure to use the same version number as well. For example... If you are using `8.0` and want to install the **php-imagick** package, use the name `php8.0-imagick` during install (see my examples above).
 
 ### Production SSL Configurations
-You have a few options for running SSL. By default, we generate a self-signed certificate for simple local development. For production use, we recommend using [Traefik](https://traefik.io/) or [Caddy](https://caddyserver.com/) as a proxy to your actual container. This is what we do and it's really nice to use the automatic Let's Encrypt SSL management with these products.
+By default, we generate a self-signed certificate for simple local development. For production use, we recommend using  as a proxy to your actual container. 
 
-If you really want you use your own provided certificate, you'll just need to use [Docker Volumes](https://docs.docker.com/storage/volumes/) and mount the `/etc/ssl/web` folder with these two files in that directory:
+You have a few options for using SSL in production. **These configurations are only supported in the `php-apache` and `php-nginx` configurations.**
+
+| Value of `$SSL_MODE` | Description |
+| --- | --- |
+| "off" | This will disable any SSL management and will use HTTP only. Direct all your container traffic to port 80.|
+| "mixed" | This will support HTTP and HTTPS connections. You can send traffic to port 80 or 443. |
+| "full" (default) | This will provide "end-to-end encryption" to your web server. Any HTTP traffic will be redirected to HTTPS. |
+
+#### Using your own certificates
+If you use `mixed` or `full` for your "SSL_MODE", we will check for certificate pairs at the following locations:
 
 1. /etc/ssl/web/ssl.crt
 1. /etc/ssl/web/ssl.key
 
+Simply use [Docker Volumes](https://docs.docker.com/storage/volumes/) and mount the `/etc/ssl/web` folder with these two files in that directory.
+
+If we do not find a certificate pair, we will generate a self-signed certificate pair for you.
+
+### The easiest way to get a trusted certificate
+1. Use a proxy that supports Let's Encrypt (like [Traefik](https://traefik.io/) or [Caddy](https://caddyserver.com/))
+1. Make sure you allow your proxy to direct traffic encrypted with self-signed certificates (if you're proxying to the container with a self-signed certificate)
+
+This is what we do and it's really nice to use the automatic Let's Encrypt SSL management with these products.
 
 # Submitting issues and pull requests
 Since there are a lot of dependencies on these images, please understand that it can make it complicated on merging your pull request.
