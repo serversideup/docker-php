@@ -13,7 +13,8 @@ ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
     PHP_PM_MAX_CHILDREN="20" \
     PHP_PM_START_SERVERS="2" \
     PHP_PM_MIN_SPARE_SERVERS="1" \
-    PHP_PM_MAX_SPARE_SERVERS="3"
+    PHP_PM_MAX_SPARE_SERVERS="3" \
+    SSL_MODE="full"
 
 # install`nginx` (web server) & `msmtp` (smtp client)
 RUN apt-get update \
@@ -27,7 +28,8 @@ RUN apt-get update \
     \
     # cleanup
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /var/www/html/*
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /var/www/html/* \
+    && rm -f /etc/nginx/sites-enabled/default
 
 # Copy over S6 configurations
 COPY --chmod=755 etc/s6-overlay/ /etc/s6-overlay/
