@@ -24,7 +24,8 @@ ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
     APACHE_RUN_USER="webuser" \
     APACHE_RUN_GROUP="webgroup" \
     APACHE_DOCUMENT_ROOT="/var/www/html/public/" \
-    DEBIAN_FRONTEND=noninteractive
+    DEBIAN_FRONTEND=noninteractive \
+    SSL_MODE="full"
 
 # install`apach2` (web server) & `msmtp` (smtp client)
 RUN apt-get update \
@@ -59,9 +60,11 @@ RUN apt-get update \
     # configure permissions on the webroot
     && chown -R webuser:webgroup $WEBUSER_HOME \
     \
-    # ensure Apache does not start automatically
+    # ensure Apache does not start automatically and disable the default site
     && service apache2 stop \
-    && update-rc.d apache2 disable
+    && update-rc.d apache2 disable \
+    && a2dissite 000-default.conf \
+    && rm -rf /etc/apache2/sites-available/*
 
 COPY etc/apache2/ /etc/apache2/
 
