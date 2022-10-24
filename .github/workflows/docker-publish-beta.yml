@@ -1,12 +1,9 @@
 name: Docker Publish (Beta Images)
 
 on:
-  # When changes are pushed to the "dev" branch, run it
   push:
     branches:
       - dev
-
-  # Run every week at 0800 UTC to update the images
   schedule:
     - cron: '0 8 * * 1'
 
