@@ -1,8 +1,10 @@
 name: Docker Publish (Production Images)
 
 on:
-  release:
-    types: [published]
+  # When changes are pushed to the "main" branch, run it
+  push:
+    branches:
+      - main
 
   # Run every week at 0800 UTC to update the images
   schedule:
