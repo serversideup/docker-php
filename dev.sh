@@ -1,88 +1,77 @@
 #!/bin/bash
 
-##########################
-# Bash settings
-
-# #exit on error
+#exit on error
 set -e
 
-# perform cleanup on error
-trap 'catch' EXIT
+##########################
+# Environment Settings
+DEV_UPSTREAM_CHANNEL="beta-"
+DEV_BASE_OS_FLAVOR="ubuntu"
+DEV_BASE_OS_VERSION="22.04"
+
+# UI Colors
+function ui_set_yellow {
+    printf $'\033[0;33m'
+}
+
+function ui_set_green {
+    printf $'\033[0;32m'
+}
+
+function ui_set_red {
+    printf $'\033[0;31m'
+}
+
+function ui_reset_colors {
+    printf "\e[0m"
+}
+
+# Script Configurations
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 ##########################
-# Variables and font colors
-
-# Set to match our local development docker registry
-DEVELOPMENT_REPO_URL="localhost:5000"
-
-##########################
-# Execute other build script
-
-# Run a build and include all variables
-source ./build.sh
+# Set versions to build
+if [ $# -eq 0 ]; then
+    # Set versions
+    phpVersions=(
+        7.4
+        8.0
+        8.1
+        8.2
+    )
+else
+    phpVersions=$1
+fi
 
 ##########################
 # Functions
 
-function cleanup {
-    # Set all files back to original repo name
-    find $SCRIPT_DIR/$OUTPUT_DIR/ -name 'Dockerfile' -exec sed -i.bak "s/FROM $DEVELOPMENT_REPO_URL\/php/FROM serversideup\/php/" {} \; 
-    remove_backup_files
+function build (){
+        label=$(echo $1 | tr '[:lower:]' '[:upper:]')
+        ui_set_yellow && echo "⚡️ Running build for $label - ${2} ..." && ui_reset_colors  
+
+        # Use "docker build"
+        docker build \
+            --build-arg UPSTREAM_CHANNEL="${DEV_UPSTREAM_CHANNEL}" \
+            --build-arg BASE_OS_FLAVOR="${DEV_BASE_OS_FLAVOR}" \
+            --build-arg BASE_OS_VERSION="${DEV_BASE_OS_VERSION}" \
+            --build-arg PHP_VERSION="${2}" \
+            -t "serversideup/php:beta-${2}-$1" \
+            $SCRIPT_DIR/src/$1/
+        
+        ui_set_green && echo "✅ Build completed for $label - ${2} ..." && ui_reset_colors
 }
 
-function catch {
-    if [ "$?" != "0" ]; then
-        ui_set_red && echo "❌ An error has occurred, see above. Cleaning things up..." && ui_reset_colors
-        # error handling goes here
-        cleanup
-    fi
-}
-
-function set_local_registry {
-
-    # Unfortunately I have to use a workaround here to make it Linux & macOS friendly (https://stackoverflow.com/a/44864004)
-    # Temporarily set images to our local registry. 
-    find $SCRIPT_DIR/$OUTPUT_DIR/ -name 'Dockerfile' -exec sed -i.bak "s/FROM serversideup\/php/FROM $DEVELOPMENT_REPO_URL\/php/" {} \;
-
-    remove_backup_files
-}
-
-function remove_backup_files {
-    # Remove our temporary backup files (related to https://stackoverflow.com/a/44864004)
-    find $SCRIPT_DIR/$OUTPUT_DIR -name '*.bak' -exec rm {} \;
-}
-
-function build {
+function build_versions {
     # Grab each PHP version defined in `build.sh` and deploy these images to our LOCAL registry
     for version in ${phpVersions[@]}; do
-
-        ##############
-        # CLI 
-        ui_set_yellow && echo "⚡️ Running build for CLI - ${version[$i]} ..." && ui_reset_colors       
-        docker build -t "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-cli" $OUTPUT_DIR/${version[$i]}/cli/
-        docker push "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-cli"
-
-        # FPM
-        ui_set_yellow && echo "⚡️ Running build for FPM - ${version[$i]} ..." && ui_reset_colors    
-        docker build -t "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm" $OUTPUT_DIR/${version[$i]}/fpm/
-        docker push "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm"
-
-        # FPM-APACHE
-        ui_set_yellow && echo "⚡️ Running build for FPM-APACHE - ${version[$i]} ..." && ui_reset_colors
-        docker build -t "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm-apache" $OUTPUT_DIR/${version[$i]}/fpm-apache/
-        docker push "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm-apache"
-
-        # FPM-NGINX
-        ui_set_yellow && echo "⚡️ Running build for FPM-NGINX - ${version[$i]} ..." && ui_reset_colors
-        docker build -t "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm-nginx" $OUTPUT_DIR/${version[$i]}/fpm-nginx/
-        docker push "${DEVELOPMENT_REPO_URL}/php:${version[$i]}-fpm-nginx"
-
+        build cli ${version[$i]} 
+        build fpm ${version[$i]}
+        build fpm-apache ${version[$i]}
+        build fpm-nginx ${version[$i]}
     done
 }
 
 ##########################
 # Main script starts here
-
-set_local_registry
-build
-cleanup
+build_versions

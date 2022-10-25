@@ -32,19 +32,20 @@ All of our software is free an open to the world. None of this can be brought to
 </a>
 
 #### Individual Supporters
-<p align="center">
-		<a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-empty-state.png" alt="Sponsors"></a>
-</p>
+<!-- supporters --><a href="https://github.com/deligoez"><img src="https://github.com/deligoez.png" width="40px" alt="deligoez" /></a>&nbsp;&nbsp;<!-- supporters -->
 
 # Available Docker Images
 This is a list of the docker images this repository creates:
 
-| ⚙️ Variation | ✨ Version | 🚀 Size |
-|--------------|------------|------------|
-| cli          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-cli&page=1&ordering=-name) | [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-cli)](https://hub.docker.com/r/serversideup/php/tags?name=cli&page=1&ordering=-name) |
-| fpm          | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm&page=1&ordering=-name)  | [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=fpm&page=1&ordering=-name) |
-| fpm-apache   | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-apache&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-apache&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-apache&page=1&ordering=-name)   | [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=fpm-apache&page=1&ordering=-name) |
-| fpm-nginx    | [7.4](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx&page=1&ordering=-name), [8.0](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx&page=1&ordering=-name), [8.1](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-nginx&page=1&ordering=-name)   |  [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=fpm-nginx&page=1&ordering=-name) |
+| ⚙️ Variation | 🚀 Version |
+| ------------ | ---------- |
+| cli          | [![serversideup/php:8.2-cli](https://img.shields.io/docker/image-size/serversideup/php/8.2-cli?label=serversideup%2Fphp%3A8.2-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-cli&page=1&ordering=-name)<br />[![serversideup/php:8.1-cli](https://img.shields.io/docker/image-size/serversideup/php/8.1-cli?label=serversideup%2Fphp%3A8.1-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-cli&page=1&ordering=-name)<br />[![serversideup/php:8.0-cli](https://img.shields.io/docker/image-size/serversideup/php/8.0-cli?label=serversideup%2Fphp%3A8.0-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli&page=1&ordering=-name)<br />[![serversideup/php:7.4-cli](https://img.shields.io/docker/image-size/serversideup/php/7.4-cli?label=serversideup%2Fphp%3A7.4-cli)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli&page=1&ordering=-name) |
+| fpm          | [![serversideup/php:8.2-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm?label=serversideup%2Fphp%3A8.2-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm&page=1&ordering=-name)<br />[![serversideup/php:8.1-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm?label=serversideup%2Fphp%3A8.1-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm&page=1&ordering=-name)<br />[![serversideup/php:8.0-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm?label=serversideup%2Fphp%3A8.0-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm&page=1&ordering=-name)<br />[![serversideup/php:7.4-fpm](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm?label=serversideup%2Fphp%3A7.4-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm&page=1&ordering=-name) |
+| fpm-apache   | [![serversideup/php:8.2-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-apache?label=serversideup%2Fphp%3A8.2-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:8.1-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-apache?label=serversideup%2Fphp%3A8.1-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:8.0-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-apache?label=serversideup%2Fphp%3A8.0-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:7.4-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-apache?label=serversideup%2Fphp%3A7.4-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-apache&page=1&ordering=-name) |
+| fpm-nginx    | [![serversideup/php:8.2-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-nginx?label=serversideup%2Fphp%3A8.2-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:8.1-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-nginx?label=serversideup%2Fphp%3A8.1-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:8.0-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-nginx?label=serversideup%2Fphp%3A8.0-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:7.4-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-nginx?label=serversideup%2Fphp%3A7.4-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx&page=1&ordering=-name) |
+
+#### 👉 Warning: PHP 8.2 is still in BETA
+PHP 8.2 is still considered a "pre-release" by the official PHP team. [Learn more here →](https://php.watch/versions)
 
 ### Usage
 Simply use this image name pattern in any of your projects:
@@ -55,6 +56,7 @@ For example... If I wanted to run **PHP 8.0** with **FPM + NGINX**, I would use 
 ```sh
 serversideup/php:8.0-fpm-nginx
 ```
+
 
 ### Real-life working example
 You can see a bigger picture on how these images are used from Development to Production by viewing this video that shows a high level overview how we deploy "[ROAST](https://roastandbrew.coffee/)" which is a demo production app for [our book](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-vuejs/).
@@ -67,9 +69,15 @@ Click the image below to view the video:
 ✅ The image builds automatically run weekly (Tuesday at 0800 UTC) for latest security updates.
 
 ### How these images are built
-All images are built off of the official Ubuntu 20.04 docker image. We first build our CLI image, then our FPM, etc. Here is what this looks like:
+All images are built off of the official Ubuntu 22.04 docker image. We first build our CLI image, then our FPM, etc. Here is what this looks like:
 
-<img src="https://raw.githubusercontent.com/serversideup/docker-php/main/.github/dependency-diagram.png" alt="Dependency Diagram">
+```mermaid
+graph TD;
+    A[Ubuntu 22.04 + S6 Overlay] --> C[CLI];
+    C[CLI] --> D[FPM];
+    D[FPM] --> E[FPM-NIGNX];
+    D[FPM] --> F[FPM-APACHE];
+```
 
 # Where do you host your stuff?
 We get this question often. Our biggest principle is: **your infrastructure should be able to run anywhere.**
@@ -253,6 +261,7 @@ PHP\_PM\_START\_SERVERS|The number of child processes created on startup. Used o
 PHP\_POOL\_NAME|Set the name of your PHP-FPM pool (helpful when running multiple sites on a single server).|fpm,<br />fpm-nginx,<br />fpm-apache|"www"
 PHP\_POST\_MAX\_SIZE|Sets max size of post data allowed. (<a href="https://www.php.net/manual/en/ini.core.php#ini.post-max-size">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"100M"
 PHP\_UPLOAD\_MAX\_FILE\_SIZE|The maximum size of an uploaded file. (<a href="https://www.php.net/manual/en/ini.core.php#ini.upload-max-filesize">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"100M"
+PHP\_OPEN\_BASEDIR|Limit the files that can be accessed by PHP to the specified directory-tree, including the file itself.|fpm,<br />fpm-nginx,<br />fpm-apache|$WEBUSER\_HOME:/dev/stdout:/tmp
 AUTORUN\_ENABLED|Enable or disable all autoruns. It's advised to set this to `false` in certain CI environments (especially during a composer install)|fpm,<br />fpm-nginx,<br />fpm-apache|"true"
 AUTORUN\_LARAVEL\_STORAGE\_LINK|Automatically run "php artisan storage:link" on container start|fpm,<br />fpm-nginx,<br />fpm-apache|"true"
 AUTORUN\_LARAVEL\_MIGRATION|Automatically run "php artisan migrate --force" on container start. This is **not** recommended for large or distributed apps. Run your migrations manually instead.|fpm,<br />fpm-nginx,<br />fpm-apache|"false"
@@ -269,6 +278,11 @@ APACHE\_RUN\_USER|Set the username of what Apache should run as.|fpm-apache|"web
 APACHE\_START\_SERVERS|Sets the number of child server processes created on startup.(<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#startservers">Official docs</a>)|fpm-apache|"2"
 APACHE\_THREAD\_LIMIT|Set the maximum configured value for ThreadsPerChild for the lifetime of the Apache httpd process. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#threadlimit">Official docs</a>)|fpm-apache|"64"
 APACHE\_THREADS\_PER\_CHILD|This directive sets the number of threads created by each child process. (<a href="https://httpd.apache.org/docs/2.4/mod/mpm\_common.html#threadsperchild">Official docs</a>)|fpm-apache|"25"
+COMPOSER\_ALLOW\_SUPERUSER|Disable warning about running as super-user|all|"1"
+COMPOSER\_HOME|The COMPOSER\_HOME var allows you to change the Composer home directory. This is a hidden, global (per-user on the machine) directory that is shared between all projects.|all|"/composer"
+COMPOSER\_MAX\_PARALLEL\_HTTP|Set to an integer to configure how many files can be downloaded in parallel. This defaults to 12 and must be between 1 and 50. If your proxy has issues with concurrency maybe you want to lower this. Increasing it should generally not result in performance gains.|all|"24"
+S6\_VERBOSITY|Set the verbosity of "S6 Overlay" (the init system these images are based on). The default is "1" (print warnings and errors). The scale goes from 1 to 5, but the output will quickly become very noisy. If you're having issues, start here. You can also customize many other variables. (<a href="https://github.com/just-containers/s6-overlay#customizing-s6-behaviour">Official docs</a>)|all|"1"
+SSL\_MODE| Configure how you would like to handle SSL. This can be "off" (HTTP only), "mixed" (HTTP + HTTPS), or "full" (HTTPS only) | fpm-nginx,<br />fpm-apache |"full"
 
 # Other customizations
 
@@ -345,13 +359,31 @@ Refer to the official instructions of the extension that you are trying to insta
 Make sure to use the same version number as well. For example... If you are using `8.0` and want to install the **php-imagick** package, use the name `php8.0-imagick` during install (see my examples above).
 
 ### Production SSL Configurations
-You have a few options for running SSL. By default, we generate a self-signed certificate for simple local development. For production use, we recommend using [Traefik](https://traefik.io/) or [Caddy](https://caddyserver.com/) as a proxy to your actual container. This is what we do and it's really nice to use the automatic Let's Encrypt SSL management with these products.
+By default, we generate a self-signed certificate for simple local development. For production use, we recommend using  as a proxy to your actual container. 
 
-If you really want you use your own provided certificate, you'll just need to use [Docker Volumes](https://docs.docker.com/storage/volumes/) and mount the `/etc/ssl/web` folder with these two files in that directory:
+You have a few options for using SSL in production. **These configurations are only supported in the `php-apache` and `php-nginx` configurations.**
+
+| Value of `$SSL_MODE` | Description |
+| --- | --- |
+| "off" | This will disable any SSL management and will use HTTP only. Direct all your container traffic to port 80.|
+| "mixed" | This will support HTTP and HTTPS connections. You can send traffic to port 80 or 443. |
+| "full" (default) | This will provide "end-to-end encryption" to your web server. Any HTTP traffic will be redirected to HTTPS. |
+
+#### Using your own certificates
+If you use `mixed` or `full` for your "SSL_MODE", we will check for certificate pairs at the following locations:
 
 1. /etc/ssl/web/ssl.crt
 1. /etc/ssl/web/ssl.key
 
+Simply use [Docker Volumes](https://docs.docker.com/storage/volumes/) and mount the `/etc/ssl/web` folder with these two files in that directory.
+
+If we do not find a certificate pair, we will generate a self-signed certificate pair for you.
+
+### The easiest way to get a trusted certificate
+1. Use a proxy that supports Let's Encrypt (like [Traefik](https://traefik.io/) or [Caddy](https://caddyserver.com/))
+1. Make sure you allow your proxy to direct traffic encrypted with self-signed certificates (if you're proxying to the container with a self-signed certificate)
+
+This is what we do and it's really nice to use the automatic Let's Encrypt SSL management with these products.
 
 # Submitting issues and pull requests
 Since there are a lot of dependencies on these images, please understand that it can make it complicated on merging your pull request.

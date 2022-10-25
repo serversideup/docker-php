@@ -1,44 +1,36 @@
 # Contribution guide
 Thanks for your interest in contributing to this project!
 
-As stated in the README, there are a lot of dependencies on these images, so please understand that it can make it complicated on merging your pull request.
+As stated in the README, there are a lot of down-stream dependencies on these images, so please understand that it can make it complicated on merging your pull request.
 
 We'd love to have your help, but it might be best to explain your intentions first before contributing.
 
 # Project dependencies
 You must have these installed on your system.
 * Docker (container system): https://www.docker.com/products/docker-desktop
-* Yasha (templating engine): https://github.com/kblomqvist/yasha
 
 # How things work
-1. All templates are stored in the `/templates` folder
-1. I have a Git "Pre-Commit" hook that runs `build.sh`
-1. `build.sh` copies the templates and applies the templates with [yasha](https://github.com/kblomqvist/yasha)
-1. All generated files are then stored in the `/generated-dockerfiles` folder
-1. Github Actions will read the generated files and build images from the generated files
+1. All files are stored in the `/src` folder
+1. Github Actions will automatically build and deploy the images
 
 # Running things locally
-Run this command to bring up a temporary local registry at `localhost:5000` (Press `CTRL+C` to exit):
-```sh
-docker run --rm -p 5000:5000 --name registry registry:2
-```
-This will create a temporary local registry that we can now use for testing Dockerfiles locally, for example:
-```Dockerfile
-FROM localhost:5000/php:8.1-cli
 
-CMD php -v
-```
+To run a build, simply run `./dev.sh` (with Docker Desktop Running). This will automatically build the beta images on your local machine. If you want to only build a specific version, you pass it a version you want to build (example: `./dev.sh 8.1`)
 
-To do this, all I need to run is the `dev.sh` on my machine to run a build of all images for my local machine.
+#### Viewing the images
+After running the build, you should be able to run `docker images` to see all available images on your machine. Everything built with `./dev.sh` will be tagged `serversideup/php:beta-*`.
 
-#### Inspect images
-This is helpful for inspecting images:
-```sh
-docker run --rm -it localhost:5000/php:8.1-cli bash
-```
+### Beta Images
+| ⚙️ Variation | 🚀 Version |
+| ------------ | ---------- |
+| cli          | [![serversideup/php:beta-8.2-cli](https://img.shields.io/docker/image-size/serversideup/php/beta-8.2-cli?label=serversideup%2Fphp%3Abeta-8.2-cli)](https://hub.docker.com/r/serversideup/php/?name=beta-8.2-cli&page=1&ordering=-name)<br />[![serversideup/php:beta-8.1-cli](https://img.shields.io/docker/image-size/serversideup/php/beta-8.1-cli?label=serversideup%2Fphp%3Abeta-8.1-cli)](https://hub.docker.com/r/serversideup/php/?name=beta-8.1-cli&page=1&ordering=-name)<br />[![serversideup/php:beta-8.0-cli](https://img.shields.io/docker/image-size/serversideup/php/beta-8.0-cli?label=serversideup%2Fphp%3Abeta-8.0-cli)](https://hub.docker.com/r/serversideup/php/?name=beta-8.0-cli&page=1&ordering=-name)<br />[![serversideup/php:beta-7.4-cli](https://img.shields.io/docker/image-size/serversideup/php/beta-7.4-cli?label=serversideup%2Fphp%3Abeta-7.4-cli)](https://hub.docker.com/r/serversideup/php/?name=beta-7.4-cli&page=1&ordering=-name) |
+| fpm          | [![serversideup/php:beta-8.2-fpm](https://img.shields.io/docker/image-size/serversideup/php/beta-8.2-fpm?label=serversideup%2Fphp%3Abeta-8.2-fpm)](https://hub.docker.com/r/serversideup/php/?name=beta-8.2-fpm&page=1&ordering=-name)<br />[![serversideup/php:beta-8.1-fpm](https://img.shields.io/docker/image-size/serversideup/php/beta-8.1-fpm?label=serversideup%2Fphp%3Abeta-8.1-fpm)](https://hub.docker.com/r/serversideup/php/?name=beta-8.1-fpm&page=1&ordering=-name)<br />[![serversideup/php:beta-8.0-fpm](https://img.shields.io/docker/image-size/serversideup/php/beta-8.0-fpm?label=serversideup%2Fphp%3Abeta-8.0-fpm)](https://hub.docker.com/r/serversideup/php/?name=beta-8.0-fpm&page=1&ordering=-name)<br />[![serversideup/php:beta-7.4-fpm](https://img.shields.io/docker/image-size/serversideup/php/beta-7.4-fpm?label=serversideup%2Fphp%3Abeta-7.4-fpm)](https://hub.docker.com/r/serversideup/php/?name=beta-7.4-fpm&page=1&ordering=-name) |
+| fpm-apache   | [![serversideup/php:beta-8.2-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/beta-8.2-fpm-apache?label=serversideup%2Fphp%3Abeta-8.2-fpm-apache)](https://hub.docker.com/r/serversideup/php/?name=beta-8.2-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:beta-8.1-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/beta-8.1-fpm-apache?label=serversideup%2Fphp%3Abeta-8.1-fpm-apache)](https://hub.docker.com/r/serversideup/php/?name=beta-8.1-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:beta-8.0-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/beta-8.0-fpm-apache?label=serversideup%2Fphp%3Abeta-8.0-fpm-apache)](https://hub.docker.com/r/serversideup/php/?name=beta-8.0-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:beta-7.4-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/beta-7.4-fpm-apache?label=serversideup%2Fphp%3Abeta-7.4-fpm-apache)](https://hub.docker.com/r/serversideup/php/?name=beta-7.4-fpm-apache&page=1&ordering=-name) |
+| fpm-nginx    | [![serversideup/php:beta-8.2-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/beta-8.2-fpm-nginx?label=serversideup%2Fphp%3Abeta-8.2-fpm-nginx)](https://hub.docker.com/r/serversideup/php/?name=beta-8.2-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:beta-8.1-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/beta-8.1-fpm-nginx?label=serversideup%2Fphp%3Abeta-8.1-fpm-nginx)](https://hub.docker.com/r/serversideup/php/?name=beta-8.1-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:beta-8.0-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/beta-8.0-fpm-nginx?label=serversideup%2Fphp%3Abeta-8.0-fpm-nginx)](https://hub.docker.com/r/serversideup/php/?name=beta-8.0-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:beta-7.4-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/beta-7.4-fpm-nginx?label=serversideup%2Fphp%3Abeta-7.4-fpm-nginx)](https://hub.docker.com/r/serversideup/php/?name=beta-7.4-fpm-nginx&page=1&ordering=-name) |
+
 
 #### Running a test web server:
 This is helpful for testing things out:
 ```sh
-docker run --rm -v $(pwd):/var/www/html -p 80:80 -p 443:443 localhost:5000/php:8.1-fpm-nginx
+docker run --rm -v $(pwd):/var/www/html -p 80:80 -p 443:443 serversideup/php:beta-8.1-fpm-nginx
 ```

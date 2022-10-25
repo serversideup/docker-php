@@ -1,0 +1,34 @@
+#!/command/with-contenv bash
+generate_ssl() {
+    if [ ! -f /etc/ssl/web/ssl.key ]; then
+        echo "🏃‍♂️ An SSL key was not detected, so I'll generate a self-signed SSL certificate pair for you..."
+        mkdir -p /etc/ssl/web/
+        openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout /etc/ssl/web/ssl.key -out /etc/ssl/web/ssl.crt -days 365
+    fi
+}
+
+case $SSL_MODE in
+
+  off)
+    echo "🔓 SSL_MODE has been DISABLED, setting the web server to work in HTTP only..."
+    ln -sf /etc/nginx/sites-available/ssl-off /etc/nginx/sites-enabled/ssl-off
+    ;;
+
+  mixed)
+    echo "🔒 SSL_MODE has been set to MIXED, setting the web server to work in HTTP + HTTPS..."
+    generate_ssl
+    ln -sf /etc/nginx/sites-available/ssl-mixed /etc/nginx/sites-enabled/ssl-mixed
+    ;;
+
+  full)
+    echo "🔐 SSL_MODE has set to FULL, setting the web server to work in HTTPS only..."
+    generate_ssl
+    ln -sf /etc/nginx/sites-available/ssl-full /etc/nginx/sites-enabled/ssl-full
+    ;;
+
+  *)
+    echo '❌ You provided an invalid option for the environment variable "SSL_MODE". Check your configuration. Valid options are "off", "mixed", or "full" (default: "full").'
+    exit 1
+    ;;
+
+esac

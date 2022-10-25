@@ -1,0 +1,29 @@
+#!/command/with-contenv bash
+
+# Exit on error
+set -e
+
+# Check to see if an Artisan file exists and assume it means Laravel is configured.
+if [ -f $WEBUSER_HOME/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; then
+        echo "🏃‍♂️ Checking for Laravel automations..."
+
+        ############################################################################
+        # Automated database migrations
+        ############################################################################
+        if [ ${AUTORUN_LARAVEL_MIGRATION:="false"} == "true" ]; then
+            echo "🚀 Running migrations..."
+            s6-setuidgid webuser php $WEBUSER_HOME/artisan migrate --force
+        fi
+
+        ############################################################################
+        # Automated storage linking
+        ############################################################################
+        if [ ${AUTORUN_LARAVEL_STORAGE_LINK:="true"} == "true" ]; then
+            echo "🔐 Linking the storage..."
+            s6-setuidgid webuser php $WEBUSER_HOME/artisan storage:link
+        fi
+else
+    echo "👉 Skipping Laravel automations because we could not detect a Laravel install or it was specifcally disabled..."
+fi
+
+exit 0
