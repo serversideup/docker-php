@@ -1,5 +1,5 @@
 <p align="center">
-		<img src="https://raw.githubusercontent.com/serversideup/docker-php/main/.github/header.png" width="1200" alt="Docker Images Logo">
+		<img src=".github/header.png" width="1280" alt="Docker Images Logo">
 </p>
 <p align="center">
 	<a href="https://actions-badge.atrox.dev/serversideup/docker-php/goto?ref=main"><img alt="Build Status" src="https://img.shields.io/github/workflow/status/serversideup/docker-php/Docker%20Publish%20(Production%20Images)"></a>
