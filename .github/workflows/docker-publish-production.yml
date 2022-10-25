@@ -62,10 +62,3 @@ jobs:
           provider: dockerhub
           short_description: 'PHP images optimized for Laravel, WordPress, and more!'
           readme_file: 'README.md'
-
-  trigger_downstream_jobs:
-    needs: push
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Trigger downstream builds
-        run: curl --fail --output "/dev/null" --silent --show-error -X POST -F token=${{ secrets.DOWNSTREAM_BUILD_TOKEN }} -F ref=$GITHUB_REF ${{ secrets.DOWNSTREAM_BUILD_WEBHOOK_ENDPOINT }}
