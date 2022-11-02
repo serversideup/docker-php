@@ -59,7 +59,7 @@ function build (){
             -t "serversideup/php:beta-${2}-$1" \
             $SCRIPT_DIR/src/$1/
         
-        ui_set_green && echo "✅ Build completed for $label - ${2} ..." && ui_reset_colors
+        ui_set_green && echo "✅ Build completed for $label - ${2} (serversideup/php:beta-${2}-$1)" && ui_reset_colors
 }
 
 function build_versions {
