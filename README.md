@@ -32,7 +32,7 @@ All of our software is free an open to the world. None of this can be brought to
 </a>
 
 #### Individual Supporters
-<!-- supporters --><a href="https://github.com/deligoez"><img src="https://github.com/deligoez.png" width="40px" alt="deligoez" /></a>&nbsp;&nbsp;<!-- supporters -->
+<!-- supporters --><a href="https://github.com/deligoez"><img src="https://github.com/deligoez.png" width="40px" alt="deligoez" /></a>&nbsp;&nbsp;<a href="https://github.com/alexjustesen"><img src="https://github.com/alexjustesen.png" width="40px" alt="alexjustesen" /></a>&nbsp;&nbsp;<!-- supporters -->
 
 # Available Docker Images
 This is a list of the docker images this repository creates:
