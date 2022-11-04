@@ -3,7 +3,7 @@ name: Docker Publish (Beta Images)
 on:
   push:
     branches:
-      - dev
+      - main
   schedule:
     - cron: '0 8 * * 1'
 
@@ -14,6 +14,8 @@ jobs:
       upstream-channel-prefix: "beta-"
       tag-prefix: "beta-"
       php-variation: cli
+      checkout-type: branch
+      checkout-reference: main
     secrets: inherit
 
   fpm:
@@ -23,6 +25,8 @@ jobs:
       upstream-channel-prefix: "beta-"
       tag-prefix: "beta-"
       php-variation: fpm
+      checkout-type: branch
+      checkout-reference: main
     secrets: inherit
 
   fpm-nginx:
@@ -32,6 +36,8 @@ jobs:
       upstream-channel-prefix: "beta-"
       tag-prefix: "beta-"
       php-variation: fpm-nginx
+      checkout-type: branch
+      checkout-reference: main
     secrets: inherit
 
   fpm-apache:
@@ -41,4 +47,6 @@ jobs:
       upstream-channel-prefix: "beta-"
       tag-prefix: "beta-"
       php-variation: fpm-apache
+      checkout-type: branch
+      checkout-reference: main
     secrets: inherit
