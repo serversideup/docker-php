@@ -106,4 +106,4 @@ jobs:
             linux/arm64/v8
           pull: true
           push: true
-          tags: serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}
+          tags: $DOCKER_TAGS
