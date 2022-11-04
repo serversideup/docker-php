@@ -88,7 +88,7 @@ jobs:
         run: echo "DOCKER_TAGS=serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}" >> $GITHUB_ENV
 
       - name: "🚀 Set docker tags: Release"
-        if: inputs.checkout-type == 'branch'
+        if: inputs.checkout-type == 'latest-stable'
         run: echo "DOCKER_TAGS=serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }},serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}-v${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}" >> $GITHUB_ENV
 
       - name: Build and push
