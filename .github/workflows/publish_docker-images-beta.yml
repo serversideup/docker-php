@@ -9,7 +9,7 @@ on:
 
 jobs:
   cli:
-    uses: ./.github/workflows/workflow-docker-publish.yml
+    uses: ./.github/workflows/services/docker-build-and-publish.yml
     with:
       upstream-channel-prefix: "beta-"
       tag-prefix: "beta-"
@@ -20,7 +20,7 @@ jobs:
 
   fpm:
     needs: cli
-    uses: ./.github/workflows/workflow-docker-publish.yml
+    uses: ./.github/workflows/services/docker-build-and-publish.yml
     with:
       upstream-channel-prefix: "beta-"
       tag-prefix: "beta-"
@@ -31,7 +31,7 @@ jobs:
 
   fpm-nginx:
     needs: fpm
-    uses: ./.github/workflows/workflow-docker-publish.yml
+    uses: ./.github/workflows/services/docker-build-and-publish.yml
     with:
       upstream-channel-prefix: "beta-"
       tag-prefix: "beta-"
@@ -42,7 +42,7 @@ jobs:
 
   fpm-apache:
     needs: fpm
-    uses: ./.github/workflows/workflow-docker-publish.yml
+    uses: ./.github/workflows/services/docker-build-and-publish.yml
     with:
       upstream-channel-prefix: "beta-"
       tag-prefix: "beta-"

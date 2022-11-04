@@ -1,15 +1,13 @@
 name: Docker Publish (Production Images)
 
 on:
-  push:
-    branches:
-      - main
+  #release
   schedule:
     - cron: '0 8 * * 2'
 
 jobs:
   cli:
-    uses: ./.github/workflows/workflow-docker-publish.yml
+    uses: ./.github/workflows/services/docker-build-and-publish.yml
     with:
       upstream-channel-prefix: ''
       tag-prefix: ''
@@ -18,7 +16,7 @@ jobs:
 
   fpm:
     needs: cli
-    uses: ./.github/workflows/workflow-docker-publish.yml
+    uses: ./.github/workflows/services/docker-build-and-publish.yml
     with:
       upstream-channel-prefix: ''
       tag-prefix: ''
@@ -27,7 +25,7 @@ jobs:
 
   fpm-nginx:
     needs: fpm
-    uses: ./.github/workflows/workflow-docker-publish.yml
+    uses: ./.github/workflows/services/docker-build-and-publish.yml
     with:
       upstream-channel-prefix: ''
       tag-prefix: ''
@@ -36,7 +34,7 @@ jobs:
 
   fpm-apache:
     needs: fpm
-    uses: ./.github/workflows/workflow-docker-publish.yml
+    uses: ./.github/workflows/services/docker-build-and-publish.yml
     with:
       upstream-channel-prefix: ''
       tag-prefix: ''
