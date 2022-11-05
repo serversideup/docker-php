@@ -55,7 +55,7 @@ jobs:
         if: inputs.checkout-type  == 'latest-stable'
         id: latest-stable-version
         run: |
-          echo "LATEST_STABLE_VERSION=$(curl --silent --header "Accept: application/vnd.github.v3.sha" "https://api.github.com/repos/jaydrogers/github-actions-test/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')" >> $GITHUB_OUTPUT
+          echo "LATEST_STABLE_VERSION=$(curl --silent --header "Accept: application/vnd.github.v3.sha" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')" >> $GITHUB_OUTPUT
 
       - name: Confirm release tag
         if: inputs.checkout-type  == 'latest-stable'
