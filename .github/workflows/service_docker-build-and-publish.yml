@@ -89,7 +89,7 @@ jobs:
 
       - name: "🚀 Set docker tags: Release"
         if: inputs.checkout-type == 'latest-stable'
-        run: echo "DOCKER_TAGS=serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }},serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}-${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}" >> $GITHUB_ENV
+        run: echo "DOCKER_TAGS=serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}, serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}-${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v3
