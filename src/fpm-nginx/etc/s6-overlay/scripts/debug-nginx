@@ -5,6 +5,9 @@ if [[ $DEBUG_OUTPUT && $DEBUG_OUTPUT == true ]]; then
 
     # Set PHP FPM to debug mode
     sed -i 's/^;log_level.*/log_level = debug/' /etc/php/current_version/fpm/php-fpm.conf
+    echo 'php_admin_value[display_errors] = On' >  /etc/php/current_version/fpm/pool.d/zzz-debug.conf
+    echo 'php_admin_value[display_startup_errors] = On' >>  /etc/php/current_version/fpm/pool.d/zzz-debug.conf
+    echo 'php_admin_value[error_reporting] = 32767' >>  /etc/php/current_version/fpm/pool.d/zzz-debug.conf
 
     echo "🔥 NGINX and PHP-FPM are in DEBUG MODE 🔥"
 fi

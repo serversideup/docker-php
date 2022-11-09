@@ -249,8 +249,9 @@ PUID|User ID the webserver and PHP should run as.|all|9999
 PGID|Group ID the webserver and PHP should run as.|all|9999
 WEBUSER\_HOME|BETA: You can change the home of the web user if needed.|all (except *-nginx)|/var/www/html
 PHP\_DATE\_TIMEZONE|Control your timezone. (<a href="https://www.php.net/manual/en/datetime.configuration.php#ini.date.timezone">Official Docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"UTC"
-PHP\_DISPLAY\_ERRORS|Show PHP errors on screen. (<a href="https://www.php.net/manual/en/errorfunc.configuration.php#ini.display-errors">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|On
-PHP\_ERROR\_REPORTING|Set PHP error reporting level. (<a href="https://www.php.net/manual/en/errorfunc.configuration.php#ini.error-reporting">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"E\_ALL & ~E\_DEPRECATED & ~E\_STRICT"
+PHP\_DISPLAY\_ERRORS|Show PHP errors on screen. (<a href="https://www.php.net/manual/en/errorfunc.configuration.php#ini.display-errors">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|Off
+PHP\_DISPLAY\_STARTUP\_ERRORS|Even when display\_errors is on, errors that occur during PHP's startup sequence are not displayed. (<a href="https://www.php.net/manual/en/errorfunc.configuration.php#ini.display-startup-errors">Official docs</a>)| |Off
+PHP\_ERROR\_REPORTING|Set PHP error reporting level. Must be a number. <a href="https://maximivanov.github.io/php-error-reporting-calculator/">Use this tool for help.</a> (<a href="https://www.php.net/manual/en/errorfunc.configuration.php#ini.error-reporting">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"22527"
 PHP\_MAX\_EXECUTION\_TIME|Set the maximum time in seconds a script is allowed to run before it is terminated by the parser. (<a href="https://www.php.net/manual/en/info.configuration.php#ini.max-execution-time">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"99"
 PHP\_MEMORY\_LIMIT|Set the maximum amount of memory in bytes that a script is allowed to allocate. (<a href="https://www.php.net/manual/en/ini.core.php#ini.memory-limit">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|"256M"
 PHP\_PM\_CONTROL|Choose how the process manager will control the number of child processes. (<a href="https://www.php.net/manual/en/install.fpm.configuration.php">Official docs</a>)|fpm,<br />fpm-nginx,<br />fpm-apache|**fpm:** dynamic<br />**fpm-apache:** ondemand<br />**fpm-nginx:** ondemand
@@ -282,7 +283,7 @@ COMPOSER\_ALLOW\_SUPERUSER|Disable warning about running as super-user|all|"1"
 COMPOSER\_HOME|The COMPOSER\_HOME var allows you to change the Composer home directory. This is a hidden, global (per-user on the machine) directory that is shared between all projects.|all|"/composer"
 COMPOSER\_MAX\_PARALLEL\_HTTP|Set to an integer to configure how many files can be downloaded in parallel. This defaults to 12 and must be between 1 and 50. If your proxy has issues with concurrency maybe you want to lower this. Increasing it should generally not result in performance gains.|all|"24"
 S6\_VERBOSITY|Set the verbosity of "S6 Overlay" (the init system these images are based on). The default is "1" (print warnings and errors). The scale goes from 1 to 5, but the output will quickly become very noisy. If you're having issues, start here. You can also customize many other variables. (<a href="https://github.com/just-containers/s6-overlay#customizing-s6-behaviour">Official docs</a>)|all|"1"
-SSL\_MODE| Configure how you would like to handle SSL. This can be "off" (HTTP only), "mixed" (HTTP + HTTPS), or "full" (HTTPS only) | fpm-nginx,<br />fpm-apache |"full"
+SSL\_MODE|Configure how you would like to handle SSL. This can be "off" (HTTP only), "mixed" (HTTP + HTTPS), or "full" (HTTPS only)|fpm-nginx,<br />fpm-apache|"full"
 
 # Other customizations
 
