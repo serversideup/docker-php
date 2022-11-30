@@ -23,7 +23,7 @@ if [ -f $WEBUSER_HOME/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; the
             s6-setuidgid webuser php $WEBUSER_HOME/artisan storage:link
         fi
 else
-    echo "👉 Skipping Laravel automations because we could not detect a Laravel install or it was specifcally disabled..."
+    echo "👉 Skipping Laravel automations because we could not detect a Laravel install or it was specifically disabled..."
 fi
 
 exit 0
