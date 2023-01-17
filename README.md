@@ -2,7 +2,7 @@
 		<img src="https://raw.githubusercontent.com/serversideup/docker-php/main/.github/img/header.png" width="1280" alt="Docker Images Logo">
 </p>
 <p align="center">
-	<a href="https://actions-badge.atrox.dev/serversideup/docker-php/goto?ref=main"><img alt="Build Status" src="https://img.shields.io/github/workflow/status/serversideup/docker-php/Docker%20Publish%20(Production%20Images)"></a>
+	<a href="https://github.com/serversideup/docker-php/actions/workflows/publish_docker-images-production.yml"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/serversideup/docker-php/publish_docker-images-production.yml?branch=main"></a>
 	<a href="https://github.com/serversideup/docker-php/blob/main/LICENSE" target="_blank"><img src="https://badgen.net/github/license/serversideup/docker-php" alt="License"></a>
 	<a href="https://github.com/sponsors/serversideup"><img src="https://badgen.net/badge/icon/Support%20Us?label=GitHub%20Sponsors&color=orange" alt="Support us"></a>
   <br />
