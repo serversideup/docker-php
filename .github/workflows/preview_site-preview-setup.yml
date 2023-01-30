@@ -18,9 +18,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           dist: /docs/.output/public
           teardown: 'true'
+          failOnError: 'true'
           build: |
             cd ./docs
             yarn install --frozen-lockfile
             npx nuxi generate
-      - name: Get the preview_url
-        run: echo "url => ${{ steps.preview_step.outputs.preview_url }}"
