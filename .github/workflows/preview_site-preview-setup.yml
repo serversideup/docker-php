@@ -12,10 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: |
+
+      # Run build commands natively, with the preview action
+      # (because of the project existing in a sub-directory)
+      - run: | 
               yarn install --frozen-lockfile
               npx nuxi generate
         working-directory: ./docs
+
+      # Deploy with surge, but don't use the build command within the
+      # action (because of the issues with the project in a sub-directory)
       - uses: afc163/surge-preview@v1
         with:
           surge_token: ${{ secrets.SURGE_TOKEN }}
@@ -23,4 +29,4 @@ jobs:
           dist: /docs/.output/public
           teardown: 'true'
           failOnError: 'true'
-          build: yarn --version
+          build: yarn --version # Pass a simple command. We don't want to build here
