@@ -12,6 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - run: |
+              yarn install --frozen-lockfile
+              npx nuxi generate
+        working-directory: ./docs
       - uses: afc163/surge-preview@v1
         with:
           surge_token: ${{ secrets.SURGE_TOKEN }}
@@ -19,7 +23,4 @@ jobs:
           dist: /docs/.output/public
           teardown: 'true'
           failOnError: 'true'
-          build: |
-            cd ./docs
-            yarn install --frozen-lockfile
-            npx nuxi generate
+          build: yarn --version
