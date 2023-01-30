@@ -2,7 +2,7 @@ name: 🔂 Surge PR Preview
 
 on:
   pull_request:
-  types: [opened, synchronize, reopened, closed]
+    types: [opened, synchronize, reopened, closed]
   push:
     paths:
       - docs/**
