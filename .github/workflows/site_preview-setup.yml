@@ -27,6 +27,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: docker-php
-          directory: .output/public
-          workingDirectory: docs/
+          directory: docs/.output/public
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
