@@ -9,7 +9,7 @@ export default defineNuxtConfig({
         '@nuxtjs/tailwindcss',
         '@vueuse/nuxt'
     ],
-    
+
     content: {
 
     },
