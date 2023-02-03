@@ -6,7 +6,9 @@
 
         <p class="text-slate-300 font-inter text-xl mt-4 lg:text-2xl lg:mt-8 lg:text-center">Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.</p>
         
-        <img class="w-full mt-8 lg:mt-16" src="/images/placeholder-hero-video.png"/>
+        <video loop autoplay muted class="w-full mt-8 lg:mt-16" src="https://docker-php-public-assets.serversideup.net/docker-demo.mp4">
+
+        </video>
     </div>
 </template>
 

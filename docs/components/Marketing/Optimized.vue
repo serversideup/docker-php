@@ -6,7 +6,9 @@
 
         <p class="text-slate-300 font-inter text-center font-normal text-xl lg:text-2xl">Horizon, queues, tasks, storage linking, migrations - these images handle it all.</p>
 
-        <img class="w-full mt-16" src="/images/placeholder-optimized-video.png"/>
+        <video loop autoplay muted class="w-full mt-16" src="https://docker-php-public-assets.serversideup.net/docker-laravel-horizon-demo.mp4">
+
+        </video>
     </div>
 </template>
 
