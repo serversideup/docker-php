@@ -1,10 +1,10 @@
 <template>
-    <div>
-        <NuxtLink :to="'/'">Home</NuxtLink>
-        <br>
-        <NuxtLink :to="'/docs'">Docs</NuxtLink>
-        <br>
-        This is the home page
+    <div class="w-full flex flex-col">
+        <MarketingHero/>
+        <MarketingGrid/>
+        <MarketingOptimized/>
+        <MarketingDevToProd/>
+        <MarketingFollowAlong/>
     </div>
 </template>
 
