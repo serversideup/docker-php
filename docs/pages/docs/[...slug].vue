@@ -1,17 +1,14 @@
 <template>
-    <div>
-        <NuxtLink :to="'/'">Home</NuxtLink>
-        <br>
-        <NuxtLink :to="'/docs'">Docs</NuxtLink>
-
-        <ContentRenderer :value="doc"/>
-    </div>
-    
+  <ContentDoc :path="route.path" 
+      class="prose dark:prose-invert" 
+      tag="article" />
 </template>
 
 <script setup>
-const { path } = useRoute()
-const { data:doc } = await useAsyncData(`content-${path}`, () => {
-  return queryContent().where({ _path: path }).findOne()
+definePageMeta({
+  layout: 'docs',
 })
+
+const route = useRoute();
+
 </script>

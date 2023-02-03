@@ -8,8 +8,15 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
-    "@nuxt/content": "^2.3.0",
-    "nuxt": "^3.0.0",
+    "@nuxt/content": "^2.4.1",
+    "@nuxt/image-edge": "^1.0.0-27907872.f4dd19d",
+    "@nuxtjs/color-mode": "^3.2.0",
+    "@nuxtjs/tailwindcss": "^6.3.0",
+    "@headlessui/vue": "^1.7.8",
+    "@tailwindcss/typography": "^0.5.9",
+    "@vueuse/core": "^9.12.0",
+    "@vueuse/nuxt": "^9.12.0",
+    "nuxt": "^3.1.0",
     "surge": "^0.23.1"
   }
 }
