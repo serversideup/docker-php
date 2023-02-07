@@ -12,6 +12,7 @@ jobs:
 
         - run: | 
                 yarn install --frozen-lockfile
+                yarn build
                 npx nuxi generate
           working-directory: ./docs
 
