@@ -10,3 +10,4 @@ on:
 jobs:
   preview:
     uses: ./.github/workflows/service_build-static-site.yml
+    secrets: inherit
