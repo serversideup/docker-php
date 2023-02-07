@@ -1,0 +1,25 @@
+on:
+  workflow_call:
+
+jobs:
+  build-site:
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+        deployments: write
+      steps:
+        - uses: actions/checkout@v3
+
+        - run: | 
+                yarn install --frozen-lockfile
+                npx nuxi generate
+          working-directory: ./docs
+
+        - name: Publish to Cloudflare Pages
+          uses: cloudflare/pages-action@v1
+          with:
+            apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+            accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+            projectName: docker-php
+            directory: docs/.output/public
+            gitHubToken: ${{ secrets.GITHUB_TOKEN }}
