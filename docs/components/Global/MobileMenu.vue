@@ -56,10 +56,33 @@
             <NuxtLink :to="'/docs'" class="flex items-center justify-center w-[136px] py-2 font-bold font-inter text-white rounded-lg bg-blue-600 text-sm mb-12 hover:bg-blue-500">
                 Get Started &rarr;
             </NuxtLink>
+
+            <div class="w-full" v-for="(group, groupIndex) in navigation.children" :key="'mobile-navigation-group-'+groupIndex">
+                <h2 class="text-xs font-semibold text-zinc-900 dark:text-white" v-if="group._path != '/docs'">
+                    {{ group.title }}
+                </h2>
+                <ul v-if="group._path != '/docs'" role="list" class="border-l border-transparent">
+                    <li v-for="link in group.children"
+                    :key="link.href">
+                        <NuxtLink 
+                            :to="link._path"
+                            class="flex justify-between gap-2 py-1 pr-3 text-sm transition pl-4"
+                            :class="{
+                                'text-zinc-900 dark:text-white': link._path === route.path,
+                                'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white': link._path != route.path
+                            }">
+                                
+                                <span class="truncate">{{ link.title }}</span>
+                                
+                        </NuxtLink>
+                    </li>
+                </ul>
+            </div>
         </div>
     </transition>
 </template>
 
 <script setup>
-const props = defineProps(['show']);
+const props = defineProps(['show', 'navigation']);
+const route = useRoute();
 </script>

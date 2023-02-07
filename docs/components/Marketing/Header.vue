@@ -87,12 +87,14 @@
             </nav>
 
             <GlobalMobileMenu
-                :show="showMobileMenu"/>
+                :show="showMobileMenu"
+                :navigation="navigation"/>
         </div>
     </header>
 </template>
 
 <script setup>
+const props = defineProps(['navigation']);
 const showMobileMenu = ref(false);
 
 const toggleMobileNav = () => {

@@ -6,7 +6,7 @@
                     <img src="/images/logos/server-side-up-logo-horizontal.svg" class="mr-[10px]"/>
                 </NuxtLink>
                 
-                <a @click.stop="showMenu = true" class="cursor-pointer flex items-center relative" style="box-shadow: 0px 20px 24px -4px rgba(16, 24, 40, 0.08), 0px 8px 8px -4px rgba(16, 24, 40, 0.03);">
+                <button type="button" @click.stop="showMenu = true" class="cursor-pointer flex items-center relative" style="box-shadow: 0px 20px 24px -4px rgba(16, 24, 40, 0.08), 0px 8px 8px -4px rgba(16, 24, 40, 0.03);">
                     <span class="font-inter tracking-[.1em] uppercase text-[8px] font-bold text-slate-300">Browse Products</span>
                     <svg class="ml-2" width="8" height="5" viewBox="0 0 8 5" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M1 0.985321L4 3.98532L7 0.985321" stroke="#CBD5E1" stroke-linecap="round" stroke-linejoin="round"/>
@@ -81,7 +81,7 @@
                                     <span class="group-hover:underline">Spin</span>
                             </NuxtLink>
                     </div>
-                </a>
+                </button>
             </div>
 
             <div class="items-center hidden lg:flex">
