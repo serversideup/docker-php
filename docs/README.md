@@ -6,6 +6,12 @@ All docs are located in the [./content](./content/) folder if you're just lookin
 
 ## Setup
 
+Ensure you're in the right directory.
+
+```bash
+cd docs/
+```
+
 Make sure to install the dependencies:
 
 ```bash
@@ -25,13 +31,13 @@ yarn dev
 Build the application for production:
 
 ```bash
-npm run build
+yarn build
 ```
 
 Locally preview production build:
 
 ```bash
-npm run preview
+yarn preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
