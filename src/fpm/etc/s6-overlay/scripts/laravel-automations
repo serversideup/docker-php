@@ -12,7 +12,7 @@ if [ -f $WEBUSER_HOME/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; the
         ############################################################################
         if [ ${AUTORUN_LARAVEL_MIGRATION:="false"} == "true" ]; then
             echo "🚀 Running migrations..."
-            s6-setuidgid webuser php $WEBUSER_HOME/artisan migrate --force
+            s6-setuidgid webuser php $WEBUSER_HOME/artisan migrate --force --isolated
         fi
 
         ############################################################################
