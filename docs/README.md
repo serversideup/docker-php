@@ -1,6 +1,8 @@
-# Nuxt 3 Minimal Starter
+# Documentation & Static Site, generated with Nuxt Content
+This is a documentation site built on top of Nuxt Content (v3).
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+# Docs location
+All docs are located in the [./content](./content/) folder if you're just looking for the docs in plaint text.
 
 ## Setup
 
