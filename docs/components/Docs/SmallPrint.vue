@@ -4,16 +4,16 @@
             &copy; Copyright {{ copyright }}. All rights reserved.
         </p>
         <div class="flex gap-4">
-            <NuxtLink :to="'https://twitter.com'" class="group">
+            <NuxtLink :to="'https://twitter.com/serversideup'" class="group">
                 <span class="sr-only">Twitter</span>
                 <IconsSocialTwitter class="h-5 w-5 fill-zinc-700 transition group-hover:fill-zinc-900 dark:group-hover:fill-zinc-500"/>
             </NuxtLink>
-            <NuxtLink :to="'https://github.com'" class="group">
+            <NuxtLink :to="'https://github.com/serversideup/docker-php'" class="group">
                 <span class="sr-only">GitHub</span>
                 <IconsSocialGitHub class="h-5 w-5 fill-zinc-700 transition group-hover:fill-zinc-900 dark:group-hover:fill-zinc-500"/>
             </NuxtLink>
-            <NuxtLink :to="'https://discord.com'" class="group">
-                <span class="sr-only">Twitter</span>
+            <NuxtLink :to="'https://serversideup.net/discord'" class="group">
+                <span class="sr-only">Discord</span>
                 <IconsSocialDiscord class="h-5 w-5 fill-zinc-700 transition group-hover:fill-zinc-900 dark:group-hover:fill-zinc-500"/>
             </NuxtLink>
         </div>
