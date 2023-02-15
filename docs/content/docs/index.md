@@ -2,7 +2,7 @@
 
 <video loop autoplay muted class="w-full" src="https://docker-php-public-assets.serversideup.net/docker-demo.mp4"></video>
 
-## What's PHP Docker Images?
+## What's "PHP Docker Images"?
 ::badges
 ::
 
