@@ -65,7 +65,7 @@
                     </NuxtLink>  
 
                     <NuxtLink 
-                        :href="'https://github.com/serversideup'"
+                        :href="'https://github.com/serversideup/docker-php'"
                         target="_blank"
                         class="flex items-center font-inter font-bold text-slate-300 text-sm rounded py-[6px] px-2 hover:bg-gray-900 xl:text-lg">
                             <div class="flex items-center justify-center w-5 h-5 mr-2">
