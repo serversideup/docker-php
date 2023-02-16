@@ -1,6 +1,6 @@
 <template>
     <header class="w-full py-4 px-6 lg:px-8">
-        <div class="max-w-[1440px] mx-auto flex items-center justify-between">
+        <div class="flex items-center justify-between">
             <NuxtLink :to="'/'">
                 <img class="w-52 xl:w-72" src="/images/logos/php-docker-logo.svg"/>
             </NuxtLink>

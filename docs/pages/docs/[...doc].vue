@@ -8,14 +8,6 @@
             <div class="contents lg:overflow-y-scroll lg:pointer-events-none lg:z-40 lg:flex lg:top-[126px]">
                 <div class="contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:px-6 lg:pt-4 lg:pb-8 lg:dark:border-white/10 xl:w-80">
                     
-                    <!-- <div class="hidden lg:flex">
-                        <NuxtLink :to="'/'" aria-label="Home">
-                            <DocsLogo class="h-6"/>
-                        </NuxtLink>
-                    </div> -->
-
-                    <!-- <DocsHeader/> -->
-
                     <DocsNavigation 
                         class="hidden lg:block"
                         :navigation="navigation[0]"
@@ -47,12 +39,14 @@ definePageMeta({
 const route = useRoute();
 
 const { data: navigation } = await useAsyncData('navigation', () => {
-    return fetchContentNavigation('/docs');
+    return fetchContentNavigation();
 })
+
+console.log( navigation.value );
 
 const surround = await queryContent('docs')
                     .only(['_path', 'title'])
-                    .findSurround( route.path );
+                    .findSurround( route.path ); 
 
 const { data: activePage } = await useAsyncData('active-page', () => queryContent( route.path ).findOne() );
 

@@ -1,6 +1,6 @@
 <template>
     <header class="w-full bg-[#1F252C] px-4 py-3 lg:px-8">
-        <div class="max-w-[1440px] mx-auto flex items-center justify-between">
+        <div class="flex items-center justify-between">
             <div class="flex items-center">
                 <NuxtLink :to="'https://serversideup.net'">
                     <img src="/images/logos/server-side-up-logo-horizontal.svg" class="mr-[10px]"/>
