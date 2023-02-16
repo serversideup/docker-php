@@ -53,6 +53,7 @@
                     
                     <NuxtLink 
                         :href="'https://community.serversideup.net/'"
+                        target="_blank"
                         class="flex items-center font-inter font-bold text-slate-300 text-sm rounded py-[6px] px-2 hover:bg-gray-900 xl:text-lg">
                             <div class="flex items-center justify-center w-5 h-5 mr-2">
                                 <svg width="22" height="20" viewBox="0 0 22 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full max-h-full">
@@ -65,6 +66,7 @@
 
                     <NuxtLink 
                         :href="'https://github.com/serversideup'"
+                        target="_blank"
                         class="flex items-center font-inter font-bold text-slate-300 text-sm rounded py-[6px] px-2 hover:bg-gray-900 xl:text-lg">
                             <div class="flex items-center justify-center w-5 h-5 mr-2">
                                 <svg width="20" height="22" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full max-h-full">
@@ -75,7 +77,7 @@
                             Github
                     </NuxtLink>  
 
-                    <NuxtLink :to="'https://github.com/sponsors/serversideup'" class="flex items-center px-[14px] py-2 font-bold font-inter text-white rounded-lg border border-solid border-slate-700 bg-slate-800 hover:bg-slate-700 text-sm">
+                    <NuxtLink target="_blank" :to="'https://github.com/sponsors/serversideup'" class="flex items-center px-[14px] py-2 font-bold font-inter text-white rounded-lg border border-solid border-slate-700 bg-slate-800 hover:bg-slate-700 text-sm">
                         Sponsor
                         <img class="ml-[10px]" src="/images/icons/heart.svg"/>
                     </NuxtLink>
