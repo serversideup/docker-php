@@ -1,23 +1,10 @@
 <template>
     <div class="my-16 xl:max-w-none">
-        <!-- <Heading level={2} id="guides">
+        <AppHeading2 id="guides">
             Guides
-        </Heading> -->
+        </AppHeading2>
         <div class="not-prose mt-4 grid grid-cols-1 gap-8 border-t pt-10 border-white/5 sm:grid-cols-2 xl:grid-cols-4">
-            <div v-for="guide in guides"
-                :key="guide.href">
-                <h3 class="text-sm font-semibold text-white">
-                    {{ guide.name }}
-                </h3>
-                <p class="mt-1 text-sm text-zinc-400">
-                    {{ guide.description }}
-                </p>
-                <p class="mt-4">
-                    <AppLink :href="guide.href" :variant="'text'" :arrow="'right'">
-                        Read More
-                    </AppLink>
-                </p>
-            </div>
+            <slot/>
         </div>
     </div>
 </template>

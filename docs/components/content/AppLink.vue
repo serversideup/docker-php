@@ -41,6 +41,6 @@ const variantStyles = ref({
     secondary: 'rounded-full py-1 px-3 bg-zinc-800/40 text-zinc-400 ring-1 ring-inset ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-300',
     filled: 'rounded-full py-1 px-3 bg-emerald-500 text-white hover:bg-emerald-400',
     outline: 'rounded-full py-1 px-3 ring-1 ring-inset hover:bg-zinc-900/2.5 hover:text-zinc-900 text-zinc-400 ring-white/10 hover:bg-white/5 hover:text-white',
-    text: 'text-emerald-400 hover:text-emerald-500',
+    text: 'text-link hover:text-link',
 })
 </script>
