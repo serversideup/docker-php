@@ -14,6 +14,8 @@ export default defineNuxtConfig({
         markdown: {
             tags: {
                 h2: 'AppHeading2',
+                h3: 'AppHeading3',
+                h4: 'AppHeading4'
             }
         },
 
