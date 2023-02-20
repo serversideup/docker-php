@@ -1,5 +1,5 @@
 <template>
-    <transition name="slide-in-right">
+    <transition name="slide-in-top">
         <div id="mobile-menu" v-show="show" class="px-6 pt-7 right-0 bottom-0 bg-black w-full absolute flex flex-col z-50 top-[112px] overflow-y-scroll">
             <button type="button" 
                 class="flex items-center font-inter font-bold text-slate-300 text-xl mb-6">
