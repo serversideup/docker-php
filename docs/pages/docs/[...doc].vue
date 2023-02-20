@@ -43,7 +43,7 @@ const { data: navigation } = await useAsyncData('navigation', () => {
 
 const surround = await queryContent('docs')
                     .only(['_path', 'title'])
-                    .findSurround( route.path ); 
+                    .findSurround( route.path );
 
 const { data: activePage } = await useAsyncData('active-page', () => queryContent( route.path ).findOne() );
 

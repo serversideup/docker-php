@@ -27,7 +27,7 @@ export default defineNuxtConfig({
               // Theme used if `html.sepia`
               sepia: 'monokai'
             }
-        },
+        }
     },
 
     colorMode: {
