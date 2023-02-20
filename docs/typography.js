@@ -253,7 +253,7 @@ module.exports = ({ theme }) => ({
           borderBottomWidth: '0',
         },
         'tbody td': {
-          verticalAlign: 'baseline',
+          // verticalAlign: 'baseline',
         },
         tfoot: {
           borderTopWidth: '1px',
