@@ -1,5 +1,6 @@
 <template>
-    <header class="w-full py-4 px-6 lg:px-8">
+    <div class="w-full">
+    <header class="w-full py-4 px-6 backdrop-blur z-50 lg:px-8" :class="{ 'fixed top-[43px]': fixed }">
         <div class="flex items-center justify-between">
             <NuxtLink :to="'/'">
                 <img class="w-52 xl:w-72" src="/images/logos/php-docker-logo.svg"/>
@@ -88,15 +89,26 @@
                 </div>
             </nav>
 
-            <GlobalMobileMenu
-                :show="showMobileMenu"
-                :navigation="navigation"/>
+            
         </div>
     </header>
+    <GlobalMobileMenu
+        :show="showMobileMenu"
+        :navigation="navigation"/>
+</div>
 </template>
 
 <script setup>
-const props = defineProps(['navigation']);
+const props = defineProps({ 
+    navigation: {
+        default(){
+            return []
+        }
+    },
+    fixed: {
+        default: false
+    }
+});
 const showMobileMenu = ref(false);
 
 const toggleMobileNav = () => {

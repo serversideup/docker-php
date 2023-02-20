@@ -1,5 +1,5 @@
 <template>
-    <div class="mx-auto max-w-[940px] flex flex-col px-6 py-16 lg:py-32">
+    <div class="mx-auto max-w-[940px] flex flex-col px-6 py-32 lg:py-48">
         <h1 class="font-inter text-[32px] leading-[32px] text-white font-bold lg:text-center lg:text-[64px] lg:leading-[64px]">
             Production-ready PHP environments <span class="text-green-500">in seconds.</span>
         </h1>

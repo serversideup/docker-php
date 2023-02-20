@@ -1,5 +1,5 @@
 <template>
-    <header class="w-full bg-[#1F252C] px-4 py-3 lg:px-8">
+    <header class="w-full bg-[#1F252C] px-4 py-3 lg:px-8" :class="{ 'fixed': fixed }">
         <div class="flex items-center justify-between">
             <div class="flex items-center">
                 <NuxtLink :to="'https://serversideup.net'">
@@ -127,6 +127,12 @@
 </template>
 
 <script setup>
+const props = defineProps({
+    fixed: {
+        default: false
+    }
+});
+
 const links = reactive([
     {
         url: 'https://serversideup.net',

@@ -12,9 +12,11 @@
             <Meta name="msapplication-TileColor" content="#da532c"/>
             <Meta name="theme-color" content="#ffffff"/>
         </Head>
-        <GlobalServerSideUp/>
+        <GlobalServerSideUp
+            :fixed="true"/>
         <MarketingHeader
-            :navigation="navigation[0]"/>
+            :navigation="navigation[0]"
+            :fixed="true"/>
         <slot></slot>        
     </div>
 </template>

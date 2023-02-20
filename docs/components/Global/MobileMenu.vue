@@ -1,6 +1,6 @@
 <template>
     <transition name="slide-in-top">
-        <div id="mobile-menu" v-show="show" class="px-6 pt-7 right-0 bottom-0 bg-black w-full absolute flex flex-col z-50 top-[112px] overflow-y-scroll">
+        <div id="mobile-menu" v-show="show" class="px-6 pt-7 right-0 bottom-0 bg-black w-full fixed flex flex-col z-50 top-[112px] overflow-y-scroll">
             <button type="button" 
                 class="flex items-center font-inter font-bold text-slate-300 text-xl mb-6">
                     <div class="flex items-center justify-center w-5 h-5 mr-2">
@@ -57,11 +57,34 @@
                 Get Started &rarr;
             </NuxtLink>
 
+            <div class="w-full">
+                <h2 class="text-xs font-semibold text-white">
+                    {{ navigation.title }}
+                </h2>
+
+                <ul role="list" class="border-l border-white/20">
+                    <li>
+                        <NuxtLink 
+                            :to="navigation._path"
+                            class="flex justify-between gap-2 py-1 pr-3 text-sm transition pl-4"
+                            :class="{
+                                'text-white': navigation._path === route.path,
+                                'text-zinc-400 hover:text-white': navigation._path != route.path
+                            }"
+                            @click="resetOverflow()">
+                                
+                                <span class="truncate">{{ navigation.title }}</span>
+                                
+                        </NuxtLink>
+                    </li>
+                </ul>
+            </div>
+
             <div class="w-full" v-for="(group, groupIndex) in navigation.children" :key="'mobile-navigation-group-'+groupIndex">
                 <h2 class="text-xs font-semibold text-white" v-if="group._path != '/docs'">
                     {{ group.title }}
                 </h2>
-                <ul v-if="group._path != '/docs'" role="list" class="border-l border-transparent">
+                <ul v-if="group._path != '/docs'" role="list" class="border-l border-white/20">
                     <li v-for="link in group.children"
                     :key="link.href">
                         <NuxtLink 
@@ -70,7 +93,8 @@
                             :class="{
                                 'text-white': link._path === route.path,
                                 'text-zinc-400 hover:text-white': link._path != route.path
-                            }">
+                            }"
+                            @click="resetOverflow()">
                                 
                                 <span class="truncate">{{ link.title }}</span>
                                 
@@ -85,4 +109,9 @@
 <script setup>
 const props = defineProps(['show', 'navigation']);
 const route = useRoute();
+
+const resetOverflow = () => {
+    document.documentElement.classList.remove('overflow-y-hidden');
+    document.body.classList.remove('overflow-y-hidden');
+}
 </script>
