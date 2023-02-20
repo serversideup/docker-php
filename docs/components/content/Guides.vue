@@ -3,13 +3,13 @@
         <!-- <Heading level={2} id="guides">
             Guides
         </Heading> -->
-        <div class="not-prose mt-4 grid grid-cols-1 gap-8 border-t border-zinc-900/5 pt-10 dark:border-white/5 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="not-prose mt-4 grid grid-cols-1 gap-8 border-t pt-10 border-white/5 sm:grid-cols-2 xl:grid-cols-4">
             <div v-for="guide in guides"
                 :key="guide.href">
-                <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">
+                <h3 class="text-sm font-semibold text-white">
                     {{ guide.name }}
                 </h3>
-                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                <p class="mt-1 text-sm text-zinc-400">
                     {{ guide.description }}
                 </p>
                 <p class="mt-4">

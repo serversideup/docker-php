@@ -21,7 +21,7 @@ export default defineNuxtConfig({
             // OR
             theme: {
               // Default theme (same as single string)
-              default: 'github-light',
+              default: 'github-dark',
               // Theme used if `html.dark`
               dark: 'github-dark',
               // Theme used if `html.sepia`

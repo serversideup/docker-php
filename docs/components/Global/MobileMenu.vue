@@ -58,7 +58,7 @@
             </NuxtLink>
 
             <div class="w-full" v-for="(group, groupIndex) in navigation.children" :key="'mobile-navigation-group-'+groupIndex">
-                <h2 class="text-xs font-semibold text-zinc-900 dark:text-white" v-if="group._path != '/docs'">
+                <h2 class="text-xs font-semibold text-white" v-if="group._path != '/docs'">
                     {{ group.title }}
                 </h2>
                 <ul v-if="group._path != '/docs'" role="list" class="border-l border-transparent">
@@ -68,8 +68,8 @@
                             :to="link._path"
                             class="flex justify-between gap-2 py-1 pr-3 text-sm transition pl-4"
                             :class="{
-                                'text-zinc-900 dark:text-white': link._path === route.path,
-                                'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white': link._path != route.path
+                                'text-white': link._path === route.path,
+                                'text-zinc-400 hover:text-white': link._path != route.path
                             }">
                                 
                                 <span class="truncate">{{ link.title }}</span>

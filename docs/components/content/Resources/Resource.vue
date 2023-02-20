@@ -1,23 +1,23 @@
 <template>
     <div @mousemove="onMouseMove($event)" 
-        class="group relative flex rounded-2xl bg-zinc-50 transition-shadow hover:shadow-md hover:shadow-zinc-900/5 dark:bg-white/2.5 dark:hover:shadow-black/5">
+        class="group relative flex rounded-2xl transition-shadow hover:shadow-md bg-white/2.5 hover:shadow-black/5">
         <Pattern
             :mouse-x="mouseX"
             :mouse-y="mouseY"
             :pattern="resource.pattern"/>
 
-            <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-zinc-900/7.5 group-hover:ring-zinc-900/10 dark:ring-white/10 dark:group-hover:ring-white/20" ></div>
+            <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 group-hover:ring-white/20" ></div>
 
             <div class="relative rounded-2xl px-4 pt-16 pb-4">
                 <ResourceIcon :icon="resource.icon"/>
             
-                <h3 class="mt-4 text-sm font-semibold leading-7 text-zinc-900 dark:text-white">
+                <h3 class="mt-4 text-sm font-semibold leading-7 text-white">
                     <NuxtLink :to="resource.href">
                         <span class="absolute inset-0 rounded-2xl" />
                         {{ resource.name }}
                     </NuxtLink>
                 </h3>
-                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                <p class="mt-1 text-sm text-zinc-400">
                     {{ resource.description }}
                 </p>
             </div>

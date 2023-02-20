@@ -7,9 +7,9 @@
                 :x="'50%'"
                 :y="pattern.y"
                 :squares="pattern.squares"
-                class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/[0.02] stroke-black/5 dark:fill-white/1 dark:stroke-white/2.5"/>
+                class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-white/1 stroke-white/2.5"/>
         </div>
-        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#D7EDEA] to-[#F4FBDF] opacity-0 transition duration-300 group-hover:opacity-100 dark:from-[#202D2E] dark:to-[#303428]"
+        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r opacity-0 transition duration-300 group-hover:opacity-100 from-[#202D2E] to-[#303428]"
             :style="{
                 'mask-image': maskImage
             }"></div>
@@ -23,7 +23,7 @@
                     :x="'50%'"
                     :y="pattern.y"
                     :squares="pattern.squares"
-                    class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/50 stroke-black/70 dark:fill-white/2.5 dark:stroke-white/10"/>
+                    class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-white/2.5 stroke-white/10"/>
         </div>
     </div>
 </template>

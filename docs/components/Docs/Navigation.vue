@@ -2,12 +2,12 @@
     <nav>
         <ul role="list">
             <li class="relative my-6">
-                <h2 class="text-xs font-semibold text-zinc-900 dark:text-white">
+                <h2 class="text-xs font-semibold text-white">
                     {{ navigation[0].title }}
                 </h2>
                 <div class="relative mt-3 pl-2">
                     
-                    <div class="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/5"></div>
+                    <div class="absolute inset-y-0 left-2 w-px bg-white/5"></div>
 
                     <ul role="list" class="border-l border-transparent">
                         <li>
@@ -15,8 +15,8 @@
                                 :to="navigation[0]._path"
                                 class="flex justify-between gap-2 py-1 pr-3 text-sm transition pl-4"
                                 :class="{
-                                    'text-zinc-900 dark:text-white': navigation[0]._path === route.path,
-                                    'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white': navigation[0]._path != route.path
+                                    'text-white': navigation[0]._path === route.path,
+                                    'text-zinc-400 hover:text-white': navigation[0]._path != route.path
                                 }">
                                     <span class="truncate">{{ navigation[0].title }}</span>   
                             </NuxtLink>

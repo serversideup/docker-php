@@ -6,7 +6,7 @@
                 <code v-text="name"></code>
             </dd>
             <dt class="sr-only">Type</dt>
-            <dd class="font-mono text-xs text-zinc-400 dark:text-zinc-500" v-text="type"></dd>
+            <dd class="font-mono text-xs text-zinc-500" v-text="type"></dd>
             <dt class="sr-only">Description</dt>
             <dd class="w-full flex-none [&>:first-child]:mt-0 [&>:last-child]:mb-0">
                 <slot/>

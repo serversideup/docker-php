@@ -3,7 +3,7 @@
         <AppHeading2 :id="'resources'">
             Resources
         </AppHeading2>
-        <div class="not-prose mt-4 grid grid-cols-1 gap-8 border-t border-zinc-900/5 pt-10 dark:border-white/5 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="not-prose mt-4 grid grid-cols-1 gap-8 border-t pt-10 border-white/5 sm:grid-cols-2 xl:grid-cols-4">
             <Resource v-for="resource in resources"
                 :key="resource.href"
                 :resource="resource"/>

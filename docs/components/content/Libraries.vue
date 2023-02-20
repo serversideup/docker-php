@@ -3,13 +3,13 @@
         <!-- <Heading level={2} id="official-libraries">
             Official libraries
         </Heading> -->
-        <div class="not-prose mt-4 grid grid-cols-1 gap-x-6 gap-y-10 border-t border-zinc-900/5 pt-10 dark:border-white/5 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
+        <div class="not-prose mt-4 grid grid-cols-1 gap-x-6 gap-y-10 border-t pt-10 border-white/5 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
             <div v-for="library in libraries" :key="library.name" class="flex flex-row-reverse gap-6">
                 <div class="flex-auto">
-                    <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">
+                    <h3 class="text-sm font-semibold text-white">
                         {{ library.name }}
                     </h3>
-                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    <p class="mt-1 text-sm text-zinc-400">
                         {{ library.description }}
                     </p>
                     <p class="mt-4">
