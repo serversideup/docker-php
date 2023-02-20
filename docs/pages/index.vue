@@ -12,4 +12,8 @@
 definePageMeta({
     layout: 'marketing'
 });
+
+useHead({
+    title: 'PHP Docker Images - Server Side Up'
+})
 </script>
