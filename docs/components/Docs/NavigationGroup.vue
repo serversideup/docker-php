@@ -17,7 +17,7 @@
             )}
             </AnimatePresence> -->
 
-            <ul role="list" class="border-l border-transparent">
+            <ul role="list" class="border-l border-white/20">
                 <li v-for="link in group.children"
                     :key="link.href">
                         <NuxtLink 

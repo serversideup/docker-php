@@ -9,7 +9,7 @@
                     
                     <div class="absolute inset-y-0 left-2 w-px bg-white/5"></div>
 
-                    <ul role="list" class="border-l border-transparent">
+                    <ul role="list" class="border-l border-white/20">
                         <li>
                             <NuxtLink 
                                 :to="navigation[0]._path"
