@@ -2,7 +2,7 @@ module.exports = ({ theme }) => ({
     DEFAULT: {
       css: {
         '--tw-prose-body': theme('colors.zinc.700'),
-        '--tw-prose-headings': theme('colors.zinc.900'),
+        '--tw-prose-headings': theme('colors.white'),
         '--tw-prose-links': theme('colors.link'),
         '--tw-prose-links-hover': theme('colors.link'),
         '--tw-prose-links-underline': theme('colors.link / 0.3'),
