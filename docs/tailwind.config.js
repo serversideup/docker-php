@@ -25,6 +25,9 @@ module.exports = {
             boxShadow: {
                 glow: '0 0 4px rgb(0 0 0 / 0.1)',
             },
+            colors: {
+                link: '#3B82F6'
+            },
             fontFamily: {
                 'inter': ['Inter', 'sans-serif']
             },
