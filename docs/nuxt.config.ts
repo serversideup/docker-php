@@ -6,6 +6,7 @@ export default defineNuxtConfig({
         '@nuxtjs/color-mode',
         '@nuxt/content',
         '@nuxt/image-edge',
+        '@nuxtjs/plausible',
         '@nuxtjs/tailwindcss',
         '@vueuse/nuxt'
     ],
@@ -34,6 +35,10 @@ export default defineNuxtConfig({
 
     colorMode: {
         classSuffix: ''
+    },
+
+    plausible: {
+        apiHost: 'https://a.521dimensions.com'
     },
 
     tailwindcss: {
