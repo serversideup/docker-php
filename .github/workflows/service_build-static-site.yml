@@ -15,6 +15,9 @@ jobs:
                 yarn build
                 npx nuxi generate
           working-directory: ./docs
+          env:
+            ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+            ALGOLIA_APPLICATION_ID: ${{ secrets.ALGOLIA_APPLICATION_ID }}
 
         - name: Publish to Cloudflare Pages
           uses: cloudflare/pages-action@v1
