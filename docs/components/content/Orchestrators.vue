@@ -35,19 +35,19 @@ const orchestrators = ref([
         href: 'https://docs.docker.com/get-started/',
         name: 'Docker',
         description: 'Docker is a tool that enables users to deploy applications inside isolated containers for easy development and deployment.',
-        logo: '/images/logos/docker.svg',
+        logo: 'images/logos/docker.svg',
     },
     {
         href: 'https://kubernetes.io/docs/concepts/containers/images/',
         name: 'Kubernetes',
         description: 'Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications.',
-        logo: '/images/logos/kubernetes.svg',
+        logo: 'images/logos/kubernetes.svg',
     },
     {
         href: 'https://developer.hashicorp.com/nomad/docs/drivers/docker',
         name: 'HashiCorp Nomad',
         description: 'HashiCorp Nomad is an open-source cluster scheduler that automates deployment, management & scaling of apps across public, private or hybrid clouds.',
-        logo: '/images/logos/nomad.svg',
+        logo: 'images/logos/nomad.svg',
     }
 ])
 </script>
