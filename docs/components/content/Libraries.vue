@@ -20,7 +20,7 @@
                         </AppLink>
                     </p>
                 </div>
-                <nuxt-img
+                <img
                     :src=library.logo
                     alt=""
                     class="h-12 w-12"/>
