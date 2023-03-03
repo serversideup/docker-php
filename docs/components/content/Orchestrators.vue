@@ -4,16 +4,16 @@
             Official orchestrators
         </Heading> -->
         <div class="not-prose mt-4 grid grid-cols-1 gap-x-6 gap-y-10 border-t pt-10 border-white/5 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
-            <div v-for="orchestrator in orchestrators" :key="orchestrator.name" class="flex flex-row-reverse gap-6">
+            <div class="flex flex-row-reverse gap-6">
                 <div class="flex-auto">
                     <h3 class="text-sm font-semibold text-white">
-                        {{ orchestrator.name }}
+                        Docker
                     </h3>
                     <p class="mt-1 text-sm text-zinc-400">
-                        {{ orchestrator.description }}
+                        Docker is a tool that enables users to deploy applications inside isolated containers for easy development and deployment.
                     </p>
                     <p class="mt-4">
-                        <AppLink :href="orchestrator.href"
+                        <AppLink :href="'https://docs.docker.com/get-started/'"
                             :variant="'text'"
                             :arrow="'right'">
                                 Read more
@@ -21,33 +21,52 @@
                     </p>
                 </div>
                 <nuxt-img
-                    :src=orchestrator.logo
+                    src="/images/logos/docker.svg"
+                    alt=""
+                    class="h-12 w-12"/>
+            </div>
+            <div class="flex flex-row-reverse gap-6">
+                <div class="flex-auto">
+                    <h3 class="text-sm font-semibold text-white">
+                        Kubernetes
+                    </h3>
+                    <p class="mt-1 text-sm text-zinc-400">
+                        Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications.
+                    </p>
+                    <p class="mt-4">
+                        <AppLink :href="'https://kubernetes.io/docs/concepts/containers/images/'"
+                            :variant="'text'"
+                            :arrow="'right'">
+                                Read more
+                        </AppLink>
+                    </p>
+                </div>
+                <nuxt-img
+                    src="images/logos/kubernetes.svg"
+                    alt=""
+                    class="h-12 w-12"/>
+            </div>
+            <div class="flex flex-row-reverse gap-6">
+                <div class="flex-auto">
+                    <h3 class="text-sm font-semibold text-white">
+                        HashiCorp Nomad
+                    </h3>
+                    <p class="mt-1 text-sm text-zinc-400">
+                        HashiCorp Nomad is an open-source cluster scheduler that automates deployment, management & scaling of apps across public, private or hybrid clouds.
+                    </p>
+                    <p class="mt-4">
+                        <AppLink :href="'https://developer.hashicorp.com/nomad/docs/drivers/docker'"
+                            :variant="'text'"
+                            :arrow="'right'">
+                                Read more
+                        </AppLink>
+                    </p>
+                </div>
+                <nuxt-img
+                    src="/images/logos/nomad.svg"
                     alt=""
                     class="h-12 w-12"/>
             </div>
         </div>
     </div>
 </template>
-
-<script setup>
-const orchestrators = ref([
-    {
-        href: 'https://docs.docker.com/get-started/',
-        name: 'Docker1',
-        description: 'Docker is a tool that enables users to deploy applications inside isolated containers for easy development and deployment.',
-        logo: 'images/logos/docker.svg',
-    },
-    {
-        href: 'https://kubernetes.io/docs/concepts/containers/images/',
-        name: 'Kubernetes',
-        description: 'Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications.',
-        logo: 'images/logos/kubernetes.svg',
-    },
-    {
-        href: 'https://developer.hashicorp.com/nomad/docs/drivers/docker',
-        name: 'HashiCorp Nomad',
-        description: 'HashiCorp Nomad is an open-source cluster scheduler that automates deployment, management & scaling of apps across public, private or hybrid clouds.',
-        logo: 'images/logos/nomad.svg',
-    }
-])
-</script>
