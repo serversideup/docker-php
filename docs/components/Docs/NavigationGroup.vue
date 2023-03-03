@@ -22,13 +22,16 @@
                     :key="link.href">
                         <NuxtLink 
                             :to="link._path"
-                            class="flex justify-between gap-2 py-1 pr-3 text-sm transition pl-4"
+                            class="flex justify-between gap-2 py-1 pr-3 text-sm transition"
                             :class="{
                                 'text-white': link._path === route.path,
                                 'text-zinc-400 hover:text-white': link._path != route.path
                             }">
                                 
-                                <span class="truncate">{{ link.title }}</span>
+                                <span class="pl-4 truncate"
+                                    :class="{
+                                        '-ml-[1px] border-l border-blue-500': link._path === route.path
+                                    }">{{ link.title }}</span>
                                 
                         </NuxtLink>
                         <ul v-if="link._path == route.path">

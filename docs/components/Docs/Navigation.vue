@@ -13,12 +13,15 @@
                         <li>
                             <NuxtLink 
                                 :to="navigation[0]._path"
-                                class="flex justify-between gap-2 py-1 pr-3 text-sm transition pl-4"
+                                class="flex justify-between gap-2 pr-3 text-sm transition"
                                 :class="{
                                     'text-white': navigation[0]._path === route.path,
                                     'text-zinc-400 hover:text-white': navigation[0]._path != route.path
                                 }">
-                                    <span class="truncate">{{ navigation[0].title }}</span>   
+                                    <span class="pl-4 truncate"
+                                    :class="{
+                                        '-ml-[1px] border-l border-blue-500': navigation[0]._path === route.path
+                                    }">{{ navigation[0].title }}</span>   
                             </NuxtLink>
                         </li>
                     </ul>
