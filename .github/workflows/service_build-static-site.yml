@@ -12,6 +12,7 @@ jobs:
 
         - name: Set env file
           run: echo $BASE_64_SECRET | base64 -d > .env
+          working-directory: ./docs
           env:
             BASE_64_SECRET: ${{ secrets.ENV_FILE_BASE64 }}
 
