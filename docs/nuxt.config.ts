@@ -37,6 +37,12 @@ export default defineNuxtConfig({
         classSuffix: ''
     },
 
+    nitro: {
+        prerender: {
+            routes: ['/sitemap.xml']
+        }
+    },
+
     plausible: {
         apiHost: 'https://a.521dimensions.com'
     },
