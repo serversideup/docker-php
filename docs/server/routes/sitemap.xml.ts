@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
     for (const doc of docs) {
         sitemap.write({
-            url: doc._path,
+            url: '/open-source/docker-php'+doc._path,
             changefreq: 'monthly'
         })
     }
