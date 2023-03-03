@@ -33,7 +33,7 @@
 const orchestrators = ref([
     {
         href: 'https://docs.docker.com/get-started/',
-        name: 'Docker',
+        name: 'Docker1',
         description: 'Docker is a tool that enables users to deploy applications inside isolated containers for easy development and deployment.',
         logo: 'images/logos/docker.svg',
     },
