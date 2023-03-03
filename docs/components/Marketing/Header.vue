@@ -7,11 +7,7 @@
             </NuxtLink>
 
             <div class="flex items-center lg:hidden">
-                <button @click="search()" class="flex items-center justify-center w-6 h-6 mr-4 cursor-pointer">
-                    <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M19 19.9673L13.0001 13.9673M15 8.96729C15 12.8333 11.866 15.9673 8 15.9673C4.13401 15.9673 1 12.8333 1 8.96729C1 5.10129 4.13401 1.96729 8 1.96729C11.866 1.96729 15 5.10129 15 8.96729Z" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
+                <AlgoliaDocSearch :placeholder="''"/>
 
                 <button @click="toggleMobileNav()" class="flex items-center justify-center w-6 h-6 cursor-pointer">
                     <div id="nav-icon" class="w-[18px] h-3 relative" :class="{
@@ -29,16 +25,7 @@
             
             <nav class="items-center hidden lg:flex">
                 <div class="flex items-center gap-4 lg:gap-4 xl:gap-8 mr-8">
-                    <button type="button" 
-                        class="flex items-center font-inter font-bold text-slate-300 text-sm rounded py-[6px] px-2 hover:bg-gray-900 xl:text-lg">
-                            <div class="flex items-center justify-center w-5 h-5 mr-2">
-                                <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full max-h-full">
-                                    <path d="M19 19.4468L13.0001 13.4468M15 8.44684C15 12.3128 11.866 15.4468 8 15.4468C4.13401 15.4468 1 12.3128 1 8.44684C1 4.58084 4.13401 1.44684 8 1.44684C11.866 1.44684 15 4.58084 15 8.44684Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </div>
-                            
-                            Search
-                    </button>
+                    <GlobalSearch/>
 
                     <NuxtLink 
                         :href="'/docs'"

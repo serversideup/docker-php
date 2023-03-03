@@ -20,5 +20,10 @@
     "nuxt": "^3.1.0",
     "sitemap": "^7.1.1",
     "surge": "^0.23.1"
+  },
+  "dependencies": {
+    "@docsearch/css": "^3.3.3",
+    "@docsearch/js": "^3.3.3",
+    "@nuxtjs/algolia": "^1.5.0"
   }
 }

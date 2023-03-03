@@ -1,7 +1,7 @@
 <template>
     <transition name="slide-in-top">
         <div id="mobile-menu" v-show="show" class="px-6 pt-7 right-0 bottom-0 bg-black w-full fixed flex flex-col z-50 top-[112px] overflow-y-scroll">
-            <button type="button" 
+            <!-- <button type="button" 
                 class="flex items-center font-inter font-bold text-slate-300 text-xl mb-6">
                     <div class="flex items-center justify-center w-5 h-5 mr-2">
                         <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full max-h-full">
@@ -10,7 +10,7 @@
                     </div>
                     
                     Search
-            </button>
+            </button> -->
 
             <NuxtLink 
                 :href="'/docs'"
@@ -73,7 +73,10 @@
                             }"
                             @click="resetOverflow()">
                                 
-                                <span class="truncate">{{ navigation.title }}</span>
+                                <span class="truncate"
+                                    :class="{
+                                        '-ml-[1px] border-l border-blue-500': navigation._path === route.path,
+                                    }">{{ navigation.title }}</span>
                                 
                         </NuxtLink>
                     </li>
@@ -89,14 +92,17 @@
                     :key="link.href">
                         <NuxtLink 
                             :to="link._path"
-                            class="flex justify-between gap-2 py-1 pr-3 text-sm transition pl-4"
+                            class="flex justify-between gap-2 py-1 pr-3 text-sm transition"
                             :class="{
                                 'text-white': link._path === route.path,
                                 'text-zinc-400 hover:text-white': link._path != route.path
                             }"
                             @click="resetOverflow()">
                                 
-                                <span class="truncate">{{ link.title }}</span>
+                                <span class="pl-4 truncate"
+                                    :class="{
+                                        '-ml-[1px] border-l border-blue-500': link._path === route.path
+                                    }">{{ link.title }}</span>
                                 
                         </NuxtLink>
                     </li>

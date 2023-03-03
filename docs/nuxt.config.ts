@@ -3,6 +3,7 @@ import tailwindTypography from '@tailwindcss/typography'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
     modules: [
+        '@nuxtjs/algolia',
         '@nuxtjs/color-mode',
         '@nuxt/content',
         '@nuxt/image-edge',
@@ -10,6 +11,15 @@ export default defineNuxtConfig({
         '@nuxtjs/tailwindcss',
         '@vueuse/nuxt'
     ],
+
+    algolia: {
+        apiKey: process.env.ALGOLIA_SEARCH_API_KEY,
+        applicationId: process.env.ALGOLIA_APPLICATION_ID,
+
+        docSearch: {
+            indexName: process.env.ALGOLIA_INDEX
+        }
+    },
 
     content: {
         markdown: {

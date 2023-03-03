@@ -5,11 +5,6 @@
         </h2>
 
         <div class="relative mt-3 pl-2">
-            <!-- <AnimatePresence initial={!isInsideMobileNavigation}>
-                {isActiveGroup && (
-                    <VisibleSectionHighlight group={group} pathname={router.pathname} />
-                )}
-            </AnimatePresence> -->
             <div class="absolute inset-y-0 left-2 w-px bg-white/5"></div>
 
             <ul role="list" class="border-l border-white/20">
