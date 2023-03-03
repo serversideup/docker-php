@@ -20,7 +20,7 @@
                         </AppLink>
                     </p>
                 </div>
-                <nuxt-img
+                <img
                     src="/images/logos/docker.svg"
                     alt=""
                     class="h-12 w-12"/>
@@ -41,8 +41,8 @@
                         </AppLink>
                     </p>
                 </div>
-                <nuxt-img
-                    src="images/logos/kubernetes.svg"
+                <img
+                    src="/images/logos/kubernetes.svg"
                     alt=""
                     class="h-12 w-12"/>
             </div>
@@ -62,7 +62,7 @@
                         </AppLink>
                     </p>
                 </div>
-                <nuxt-img
+                <img
                     src="/images/logos/nomad.svg"
                     alt=""
                     class="h-12 w-12"/>
