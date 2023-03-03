@@ -10,7 +10,9 @@
                     <div class="absolute inset-y-0 left-2 w-px bg-white/5"></div>
 
                     <ul role="list" class="border-l border-white/20">
-                        <li>
+                        <li :class="{
+                                'rounded-lg bg-white/5 -ml-4 pl-4': navigation[0]._path === route.path
+                            }">
                             <NuxtLink 
                                 :to="navigation[0]._path"
                                 class="flex justify-between gap-2 pr-3 text-sm transition"

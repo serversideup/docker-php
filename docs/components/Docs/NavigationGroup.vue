@@ -11,15 +11,13 @@
                 )}
             </AnimatePresence> -->
             <div class="absolute inset-y-0 left-2 w-px bg-white/5"></div>
-            <!-- <AnimatePresence initial={false}>
-            {isActiveGroup && (
-                <ActivePageMarker group={group} pathname={router.pathname} />
-            )}
-            </AnimatePresence> -->
 
             <ul role="list" class="border-l border-white/20">
                 <li v-for="link in group.children"
-                    :key="link.href">
+                    :key="link.href"
+                    :class="{
+                        'rounded-lg bg-white/5 -ml-4 pl-4': link._path === route.path
+                    }">
                         <NuxtLink 
                             :to="link._path"
                             class="flex justify-between gap-2 py-1 pr-3 text-sm transition"
