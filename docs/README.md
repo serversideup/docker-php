@@ -12,6 +12,12 @@ Ensure you're in the right directory.
 cd docs/
 ```
 
+Copy over the environment variable example file.
+
+```bash
+cp .env.example .env
+```
+
 Make sure to install the dependencies:
 
 ```bash
