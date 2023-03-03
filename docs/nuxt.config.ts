@@ -47,6 +47,13 @@ export default defineNuxtConfig({
         apiHost: 'https://a.521dimensions.com'
     },
 
+    runtimeConfig: {
+        public: {
+            basePath: process.env.NUXT_APP_BASE_URL,
+            domain: process.env.TOP_LEVEL_DOMAIN
+        }
+    },
+
     tailwindcss: {
         config: {
             plugins: [tailwindTypography]

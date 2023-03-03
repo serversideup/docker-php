@@ -36,6 +36,23 @@ definePageMeta({
 })
 
 const route = useRoute();
+const { basePath, domain } = useRuntimeConfig().public;
+const { data: activePage } = await useAsyncData('active-page', () => queryContent( route.path ).findOne() );
+
+useSeoMeta({
+    ogLocale: 'en_US',
+    ogUrl: domain+route.path,
+    ogType: 'website',
+    ogSiteName: 'Server Side Up - Docker PHP',
+    ogImage: domain+basePath+'/images/og.png',
+    ogImageWidth: 1200,
+    ogImageHeight: 675,
+    ogImageType: 'image/png',
+    twitterCard: 'summary_large_image',
+    twitterDescription: () => activePage.value?.description,
+    twitterImage: domain+basePath+'/images/og.png',
+    twitterSite: '@serversideup'
+})
 
 const { data: navigation } = await useAsyncData('navigation', () => {
     return fetchContentNavigation();
@@ -44,8 +61,6 @@ const { data: navigation } = await useAsyncData('navigation', () => {
 const surround = await queryContent('docs')
                     .only(['_path', 'title'])
                     .findSurround( route.path );
-
-const { data: activePage } = await useAsyncData('active-page', () => queryContent( route.path ).findOne() );
 
 const toc = computed(() => {
     return activePage.value.body.children.filter( (element) => {
