@@ -15,7 +15,7 @@
                     <div v-show="showMenu"
                         ref="menuRef"
                         class="absolute shadow-sm z-10 bg-white rounded-b-lg p-4 w-64 top-[28px] flex flex-col">
-                            <span class="font-inter font-bold text-black text-[12px] py-4">Open-Source Projects</span>
+                            <span class="font-inter font-bold text-black text-[14px]">Our Open-Source Projects</span>
                             <NuxtLink
                                 @click="showMenu = false"
                                 :to="'https://github.com/serversideup/amplitudejs'"
@@ -49,7 +49,7 @@
                             </NuxtLink>
                             <NuxtLink
                                 @click="showMenu = false"
-                                :to="'https://github.com/serversideup/docker-php'"
+                                :to="'https://serversideup.net/open-source/docker-php'"
                                 class="flex items-center text-[12px] font-medium font-inter py-2 group">
                                     <div class="w-3 h-3 flex items-center justify-center mr-2">
                                         <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
