@@ -14,6 +14,7 @@
                     </p>
                     <p class="mt-4">
                         <AppLink :href="'https://docs.docker.com/get-started/'"
+                            :target="'_blank'"
                             :variant="'text'"
                             :arrow="'right'">
                                 Read more
@@ -35,6 +36,7 @@
                     </p>
                     <p class="mt-4">
                         <AppLink :href="'https://kubernetes.io/docs/concepts/containers/images/'"
+                            :target="'_blank'"
                             :variant="'text'"
                             :arrow="'right'">
                                 Read more
@@ -56,6 +58,7 @@
                     </p>
                     <p class="mt-4">
                         <AppLink :href="'https://developer.hashicorp.com/nomad/docs/drivers/docker'"
+                            :target="'_blank'"
                             :variant="'text'"
                             :arrow="'right'">
                                 Read more
