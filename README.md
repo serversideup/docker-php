@@ -73,28 +73,6 @@ graph TD;
     D[FPM] --> F[FPM-APACHE];
 ```
 
-# Where do you host your stuff?
-We get this question often. Our biggest principle is: **your infrastructure should be able to run anywhere.**
-
-We believe privacy and control is the #1 priority when it comes to hosting infrastructure. We try to avoid the "big clouds" as much as possible because we're not comfortable that all 3 major players practice data mining of users and their products usually contain some sort of "vendor-lock".
-
-We run all of our production servers on the latest LTS release of Ubuntu Server. The hosts we use are below. Some may be affiliate links that kick a few bucks at no extra cost to you, but they do not affect our recommendations at all. 
-
-## [Vultr](https://vultr.grsm.io/create)
-**Our current favorite.** Excellent performance and value. Lots of datacenter options too.
-
-## [Digital Ocean](https://m.do.co/c/f3bad4b927ca)
-Lots of developer love here. Not the best performing servers, but they do have a lot of awesome products!
-
-## [Linode](https://www.linode.com/?r=5a1b585e4eb919d3d89ad242bd1bb2924754c444)
-Great performance and great support. These guys have really enhanced their offering over the last few years.
-
-### Benchmarks
-If you're shopping for a host, [check out the benchmarks we've ran →](https://www.notion.so/521dimensions/Benchmark-Results-for-Self-hosted-Gitlab-Server-c6eca7c5f16d4bb8aeb989174fc58ffe)
-
-### Can I run this on another host?
-Sure! It all depends what platform you want to use, but if it supports Docker images, you likely can run it. These images are designed to give you freedom no matter where you want to run them.
-
 # About this project
 We're taking the extra effort to open source as much as we can. Not only could this potentially help someone learn a little bit of Docker, but it makes it a *heck of a lot* easier for us to work with you on new open source ideas.
 
