@@ -2,7 +2,7 @@
 This is a documentation site built on top of Nuxt Content (v3).
 
 # Docs location
-All docs are located in the [./content](./content/) folder if you're just looking for the docs in plain text.
+All docs are located in the [./content](./content/docs) folder if you're just looking for the docs in plain text.
 
 ## Setup
 
