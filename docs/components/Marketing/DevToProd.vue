@@ -13,7 +13,7 @@
                     <span class="text-slate-300 font-inter text-lg text-center lg:text-left">100% free & open source. Available on GitHub & DockerHub.</span>
                 </div>
 
-                <a class="flex items-center px-[20px] py-3 font-bold font-inter text-white rounded-lg bg-blue-600 text-xl mt-6 lg:px-[14px] lg:py-2 lg:mt-0">
+                <a href="docs/getting-started/installation" class="flex items-center px-[20px] py-3 font-bold font-inter text-white rounded-lg bg-blue-600 text-xl mt-6 lg:px-[14px] lg:py-2 lg:mt-0">
                     View the Images &rarr;
                 </a>
             </div>
