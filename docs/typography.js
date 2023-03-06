@@ -238,6 +238,7 @@ module.exports = ({ theme }) => ({
           paddingRight: theme('spacing.2'),
           paddingBottom: theme('spacing.2'),
           paddingLeft: theme('spacing.2'),
+          textAlign: 'left'
         },
         'thead th:first-child': {
           paddingLeft: '0',
@@ -254,6 +255,7 @@ module.exports = ({ theme }) => ({
         },
         'tbody td': {
           // verticalAlign: 'baseline',
+          textAlign: 'left'
         },
         tfoot: {
           borderTopWidth: '1px',
