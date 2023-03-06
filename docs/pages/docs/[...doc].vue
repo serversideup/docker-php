@@ -34,6 +34,7 @@
 
 definePageMeta({
     layout: 'docs',
+    middleware: ['directory']
 })
 
 const route = useRoute();
