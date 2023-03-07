@@ -22,6 +22,8 @@ export default defineNuxtConfig({
     },
 
     content: {
+        documentDriven: true,
+
         markdown: {
             tags: {
                 h2: 'AppHeading2',
