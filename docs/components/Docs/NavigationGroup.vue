@@ -28,17 +28,17 @@
                                 
                         </NuxtLink>
                         <ul v-if="link._path == route.path">
-                            <li v-for="( link, linkIndex ) in toc"
+                            <li v-for="( link, linkIndex ) in toc.links"
                                 :key="'link-'+linkIndex">
                                     <NuxtLink 
-                                        @click="scrollTo('#'+link.props.id)"
-                                        :to="'#'+link.props.id"
+                                        @click="scrollTo('#'+link.id)"
+                                        :to="'#'+link.id"
                                         class="flex justify-between gap-2 py-1 pr-3 text-sm transition pl-7 text-zinc-400 hover:text-white">
-                                            <span class="truncate">{{ link.tag == 'app-heading-2' ? link.props.text : link.children[0].value }}</span>
+                                            <span class="truncate">{{ link.text }}</span>
 
-                                            <DocsTag v-if="link.tag == 'app-heading-2' && link.props.tag != ''" :variant="'small'" :color="'zinc'">
+                                            <!-- <DocsTag v-if="link.tag == 'app-heading-2' && link.props.tag != ''" :variant="'small'" :color="'zinc'">
                                                 {{ link.props.tag }}
-                                            </DocsTag>
+                                            </DocsTag> -->
                                     </NuxtLink>
                             </li>
                         </ul>

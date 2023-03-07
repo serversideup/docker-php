@@ -5,8 +5,8 @@
                 <h2 class="text-xs font-semibold text-white">
                     {{ navigation[0].title }}
                 </h2>
-                <div class="relative mt-3 pl-2">
-                    
+
+                <div class="relative mt-3 pl-2">    
                     <div class="absolute inset-y-0 left-2 w-px bg-white/5"></div>
 
                     <ul role="list" class="border-l border-white/20">
@@ -29,6 +29,7 @@
                     </ul>
                 </div>
             </li>
+
             <DocsNavigationGroup
                 v-for="(group, groupIndex) in navigation[0].children"
                 :key="'navigation-group-'+groupIndex"
@@ -36,7 +37,8 @@
                 :toc="toc"
                 :class="{
                     'md:mt-0': groupIndex === 0
-                }"/>
+                }"
+            />
 
             <li class="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
                 <AppLink :href="'#'" :variant="'filled'" class="w-full">
@@ -48,6 +50,7 @@
 </template>
 
 <script setup>
-const props = defineProps(['navigation', 'toc']);
 const route = useRoute();
+
+const { navigation, toc } = useContent();
 </script>

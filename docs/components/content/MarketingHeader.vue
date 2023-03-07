@@ -76,29 +76,24 @@
             </div>
         </div>
     </header>
+
     <GlobalMobileMenu
         :show="showMobileMenu"
-        :navigation="navigation"/>
+        :navigation="navigation[0]"/>
 </div>
 </template>
 
 <script setup>
 const props = defineProps({ 
-    navigation: {
-        default(){
-            return []
-        }
-    },
     fixed: {
         default: false
     }
 });
-const showMobileMenu = ref(false);
 
+const showMobileMenu = ref(false);
 const toggleMobileNav = () => {
     showMobileMenu.value = showMobileMenu.value ? false : true;
 }
-
 watch(showMobileMenu, ( newValue ) => {
     if( newValue ){
         document.documentElement.classList.add('overflow-y-hidden');
@@ -108,4 +103,6 @@ watch(showMobileMenu, ( newValue ) => {
         document.body.classList.remove('overflow-y-hidden');
     }
 });
+
+const { navigation } = useContent();
 </script>

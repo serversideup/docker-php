@@ -12,12 +12,16 @@
             <Meta name="msapplication-TileColor" content="#da532c"/>
             <Meta name="theme-color" content="#ffffff"/>
         </Head>
+        
         <GlobalServerSideUp
             :fixed="true"/>
+
         <MarketingHeader
-            :navigation="navigation[0]"
             :fixed="true"/>
-        <slot></slot>        
+            
+        <div class="w-full flex flex-col">
+            <slot></slot>
+        </div>
     </div>
 </template>
 
@@ -28,10 +32,27 @@ useHead({
     },
     bodyAttrs: {
         class: 'antialiased'
-    }
+    },
+    title: 'PHP Docker Images - Server Side Up'
 })
 
-const { data: navigation } = await useAsyncData('navigation', () => {
-    return fetchContentNavigation('/docs');
+const route = useRoute();
+const { basePath, domain } = useRuntimeConfig().public;
+
+useSeoMeta({
+    ogLocale: 'en_US',
+    ogUrl: domain+route.path,
+    ogType: 'website',
+    ogSiteName: 'Server Side Up - Docker PHP',
+    ogImage: domain+basePath+'/images/.png',
+    ogImageWidth: 1200,
+    ogImageHeight: 675,
+    ogImageType: 'image/png',
+    ogDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
+    twitterCard: 'summary_large_image',
+    twitterDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
+    twitterImage: domain+basePath+'/images/social-image_1200x600.png',
+    twitterSite: '@serversideup'
 })
+
 </script>
