@@ -81,20 +81,6 @@ Our philosophy is: **What you run in production is what you should be running in
 
 You'd be shocked how many people create a Docker image and use it in the local development only. These images are designed with the intention of being deployed to the open and wild Internet.
 
-## 🔧 Optimized for Laravel and WordPress
-We have a ton of helpful scripts and security settings configured for managing Laravel and WordPress.
-
-## 🔑 WordPress & Security Optimizations
-* Hardening of Apache & NGINX included
-* Disabling of XML-RPC
-* Preventative access to sensitive version control or CI files
-* Protection against other common attacks
-
-See our [Apache security.conf](https://raw.githubusercontent.com/serversideup/docker-php/main/php/8.0/fpm-apache/etc/apache2/conf-available/security.conf) and [NGINX security.conf](https://raw.githubusercontent.com/serversideup/docker-php/main/php/8.0/fpm-nginx/etc/nginx/server-opts.d/security.conf) for more detail.
-
-### Examples of running WordPress
-If you're looking for a deeper example on how we run our WordPress blog, [Server Side Up](https://serversideup.net), check out this repository for a boilerplate example: https://github.com/serversideup/docker-wordpress
-
 ## 🧐 Based off of [S6 Overlay](https://github.com/just-containers/s6-overlay)
 S6 Overlay is very helpful in managing a container's lifecycle that has multiple processes.
 
