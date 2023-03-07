@@ -51,7 +51,6 @@ For example... If I wanted to run **PHP 8.0** with **FPM + NGINX**, I would use 
 serversideup/php:8.0-fpm-nginx
 ```
 
-
 ### Real-life working example
 You can see a bigger picture on how these images are used from Development to Production by viewing this video that shows a high level overview how we deploy "[ROAST](https://roastandbrew.coffee/)" which is a demo production app for [our book](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-vuejs/).
 
@@ -61,17 +60,6 @@ Click the image below to view the video:
 
 ### Updates
 ✅ The image builds automatically run weekly (Tuesday at 0800 UTC) for latest security updates.
-
-### How these images are built
-All images are built off of the official Ubuntu 22.04 docker image. We first build our CLI image, then our FPM, etc. Here is what this looks like:
-
-```mermaid
-graph TD;
-    A[Ubuntu 22.04 + S6 Overlay] --> C[CLI];
-    C[CLI] --> D[FPM];
-    D[FPM] --> E[FPM-NIGNX];
-    D[FPM] --> F[FPM-APACHE];
-```
 
 # Why these images and not other ones?
 These images have a few key differences. These images are:
@@ -87,6 +75,16 @@ S6 Overlay is very helpful in managing a container's lifecycle that has multiple
 **Wait... Isn't Docker supposed to be a "single process per container"?** Yes, that's what it's like in a perfect world. Unfortunately PHP isn't like that. You need both a web server and a PHP-FPM server to see your files in order for your application to load.
 
 We follow the [S6 Overlay Philosophy](https://github.com/just-containers/s6-overlay#the-docker-way) on how we can still get a single, disposable, and repeatable image of our application out to our servers.
+
+## See all the differences
+If you're looking to understand more the key differences with these PHP images, check out our documentation site.
+
+[Read more about the key differences with these images →](https://serversideup.net/open-source/docker-php/docs/getting-started/these-images-vs-others)
+
+# Documentation
+We have everything fully documented and available on our website. If you find an issue, everything is located under the `/docs` folder or the `/docs/content` folder if you're looking to submit a change to the documentation.
+
+[View the Documentation →](https://serversideup.net/open-source/docker-php/docs)
 
 # Submitting issues and pull requests
 Since there are a lot of dependencies on these images, please understand that it can make it complicated on merging your pull request.
