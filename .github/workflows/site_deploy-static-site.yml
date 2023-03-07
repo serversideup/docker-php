@@ -1,0 +1,11 @@
+name: 🚀 Deploy Static Site
+
+on:
+  push:
+    paths:
+      - docs/**
+
+jobs:
+  deploy-static-site:
+    uses: ./.github/workflows/service_build-static-site.yml
+    secrets: inherit

@@ -3,9 +3,6 @@ name: 🔂 CloudFlare Pages Preview
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
-  push:
-    paths:
-      - docs/**
 
 jobs:
   preview:
