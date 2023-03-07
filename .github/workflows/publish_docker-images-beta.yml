@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - src/**
   schedule:
     - cron: '0 8 * * 1'
 
