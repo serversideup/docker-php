@@ -76,7 +76,7 @@ S6 Overlay is very helpful in managing a container's lifecycle that has multiple
 
 We follow the [S6 Overlay Philosophy](https://github.com/just-containers/s6-overlay#the-docker-way) on how we can still get a single, disposable, and repeatable image of our application out to our servers.
 
-## See all the differences
+## 🤩 See all the differences
 If you're looking to understand more the key differences with these PHP images, check out our documentation site.
 
 [Read more about the key differences with these images →](https://serversideup.net/open-source/docker-php/docs/getting-started/these-images-vs-others)
