@@ -1,0 +1,13 @@
+name: 🔂 CloudFlare Pages Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  push:
+    paths:
+      - docs/**
+
+jobs:
+  preview:
+    uses: ./.github/workflows/service_build-static-site.yml
+    secrets: inherit
