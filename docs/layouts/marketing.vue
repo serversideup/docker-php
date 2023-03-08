@@ -44,14 +44,14 @@ useSeoMeta({
     ogUrl: domain+route.path,
     ogType: 'website',
     ogSiteName: 'Server Side Up - Docker PHP',
-    ogImage: domain+basePath+'/images/social-image_1200x600.png',
+    ogImage: domain+basePath+'/images/social-image.png',
     ogImageWidth: 1200,
     ogImageHeight: 600,
     ogImageType: 'image/png',
     ogDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
     twitterCard: 'summary_large_image',
     twitterDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
-    twitterImage: domain+basePath+'/images/social-image_1200x600.png',
+    twitterImage: domain+basePath+'/images/social-image.png',
     twitterSite: '@serversideup'
 })
 
