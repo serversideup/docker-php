@@ -25,7 +25,7 @@ jobs:
             echo $BASE_64_SECRET | base64 -d > .env
           working-directory: ./docs
           env:
-            BASE_64_SECRET: ${{ secrets.ENV_FILE_BASE64_PROD }}
+            BASE_64_SECRET: ${{ secrets.ENV_FILE_BASE64 }}
 
         - run: | 
                 yarn install --frozen-lockfile
