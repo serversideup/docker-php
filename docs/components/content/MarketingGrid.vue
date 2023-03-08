@@ -5,64 +5,51 @@
         </h2>
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div v-for="(feature, index) in features"
-                :key="'feature-'+index"
-                class="p-4 bg-gray-900 rounded-lg flex flex-col">
-                    <img :src="feature.image" class="w-11 h-11 mb-2"/>  
-                    <span class="font-inter text-lg text-slate-50 font-bold mb-2">{{ feature.title }}</span>
-                    <span class="font-inter text-slate-300 text-base">{{ feature.description }}</span>
+            <div class="p-4 bg-gray-900 rounded-lg flex flex-col">
+                <img src="/images/icons/rocket-square.svg" class="w-11 h-11 mb-2"/>  
+                <span class="font-inter text-lg text-slate-50 font-bold mb-2">Production-ready</span>
+                <span class="font-inter text-slate-300 text-base">Built to be performant and secure to exist on the wild web.</span>
+            </div>
+            <div class="p-4 bg-gray-900 rounded-lg flex flex-col">
+                <img src="/images/icons/heart-square.svg" class="w-11 h-11 mb-2"/>  
+                <span class="font-inter text-lg text-slate-50 font-bold mb-2">Native Health Checks</span>
+                <span class="font-inter text-slate-300 text-base">Be 100% confident your application is actually running.</span>
+            </div>
+            <div class="p-4 bg-gray-900 rounded-lg flex flex-col">
+                <img src="/images/icons/lightning-square.svg" class="w-11 h-11 mb-2"/>  
+                <span class="font-inter text-lg text-slate-50 font-bold mb-2">High Performance</span>
+                <span class="font-inter text-slate-300 text-base">These images perform faster than the official PHP images.</span>
+            </div>
+            <div class="p-4 bg-gray-900 rounded-lg flex flex-col">
+                <img src="/images/icons/stars-square.svg" class="w-11 h-11 mb-2"/>  
+                <span class="font-inter text-lg text-slate-50 font-bold mb-2">Customizable & Flexible</span>
+                <span class="font-inter text-slate-300 text-base">Environment variables make customizations a breeze.</span>
+            </div>
+            <div class="p-4 bg-gray-900 rounded-lg flex flex-col">
+                <img src="/images/icons/ubuntu-square.svg" class="w-11 h-11 mb-2"/>  
+                <span class="font-inter text-lg text-slate-50 font-bold mb-2">Built on Ubuntu 22.04</span>
+                <span class="font-inter text-slate-300 text-base">Work in a familiar and powerful operating system environment.</span>
+            </div>
+            <div class="p-4 bg-gray-900 rounded-lg flex flex-col">
+                <img src="/images/icons/shield-square.svg" class="w-11 h-11 mb-2"/>  
+                <span class="font-inter text-lg text-slate-50 font-bold mb-2">Built with Ondřej PHP</span>
+                <span class="font-inter text-slate-300 text-base">All packages are sourced from the highly reliable Ondřej PHP repo.</span>
+            </div>
+            <div class="p-4 bg-gray-900 rounded-lg flex flex-col">
+                <img src="/images/icons/nginx-square.svg" class="w-11 h-11 mb-2"/>  
+                <span class="font-inter text-lg text-slate-50 font-bold mb-2">NGINX + PHP-FPM</span>
+                <span class="font-inter text-slate-300 text-base">We offer NGINX + PHP-FPM support out of the box.</span>
+            </div>
+            <div class="p-4 bg-gray-900 rounded-lg flex flex-col">
+                <img src="/images/icons/logging-square.svg" class="w-11 h-11 mb-2"/>  
+                <span class="font-inter text-lg text-slate-50 font-bold mb-2">Unified Logging</span>
+                <span class="font-inter text-slate-300 text-base">All logs are directed to STDOUT & STDERR for centralized output.</span>
+            </div>
+            <div class="p-4 bg-gray-900 rounded-lg flex flex-col">
+                <img src="/images/icons/heartbeat-square.svg" class="w-11 h-11 mb-2"/>  
+                <span class="font-inter text-lg text-slate-50 font-bold mb-2">Built with S6 Overlay</span>
+                <span class="font-inter text-slate-300 text-base">An extremely intelligent and powerful method to running PHP.</span>
             </div>
         </div>
     </section>
 </template>
-
-<script setup>
-const features = reactive([
-    {
-        title: 'Production-ready',
-        description: 'Built to be performant and secure to exist on the wild web.',
-        image: '/images/icons/rocket-square.svg'
-    },
-    {
-        title: 'Native Health Checks',
-        description: 'Be 100% confident your application is actually running.',
-        image: '/images/icons/heart-square.svg'
-    },
-    {
-        title: 'High Performance',
-        description: 'These images perform faster than the official PHP images.',
-        image: '/images/icons/lightning-square.svg'
-    },
-    {
-        title: 'Customizable & Flexible',
-        description: 'Environment variables make customizations a breeze.',
-        image: '/images/icons/stars-square.svg'
-    },
-    {
-        title: 'Built on Ubuntu 22.04',
-        description: 'Work in a familiar and powerful operating system environment.',
-        image: '/images/icons/ubuntu-square.svg'
-    },
-    {
-        title: 'Built with Ondřej PHP',
-        description: 'All packages are sourced from the highly reliable Ondřej PHP repo.',
-        image: '/images/icons/shield-square.svg'
-    },
-    {
-        title: 'NGINX + PHP-FPM',
-        description: 'We offer NGINX + PHP-FPM support out of the box.',
-        image: '/images/icons/nginx-square.svg'
-    },
-    {
-        title: 'Unified Logging',
-        description: 'All logs are directed to STDOUT & STDERR for centralized output.',
-        image: '/images/icons/logging-square.svg'
-    },
-    {
-        title: 'Built with S6 Overlay',
-        description: 'An extremely intelligent and powerful method to running PHP.',
-        image: '/images/icons/heartbeat-square.svg'
-    }
-])
-
-</script>
