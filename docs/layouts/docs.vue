@@ -62,9 +62,11 @@ useSeoMeta({
     ogImageWidth: 1200,
     ogImageHeight: 627,
     ogImageType: 'image/png',
+    ogTitle: () => page.value?.head.title,
     twitterCard: 'summary_large_image',
     twitterDescription: () => page.value?.description,
     twitterImage: domain+basePath+'/images/social-image.jpg',
-    twitterSite: '@serversideup'
+    twitterSite: '@serversideup',
+    twitterTitle: () => page.value?.head.title
 })
 </script>

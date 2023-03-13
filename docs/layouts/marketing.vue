@@ -49,10 +49,12 @@ useSeoMeta({
     ogImageHeight: 627,
     ogImageType: 'image/png',
     ogDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
+    ogTitle: 'Server Side Up - Docker PHP',
     twitterCard: 'summary_large_image',
     twitterDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
     twitterImage: domain+basePath+'/images/social-image.jpg',
-    twitterSite: '@serversideup'
+    twitterSite: '@serversideup',
+    twitterTitle: 'Server Side Up - Docker PHP'
 })
 
 </script>
