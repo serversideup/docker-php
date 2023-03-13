@@ -41,7 +41,7 @@ const { basePath, domain } = useRuntimeConfig().public;
 
 useSeoMeta({
     ogLocale: 'en_US',
-    ogUrl: domain+route.path,
+    ogUrl: domain+basePath+route.path,
     ogType: 'website',
     ogSiteName: 'Server Side Up - Docker PHP',
     ogImage: domain+basePath+'/images/social-image.png',
