@@ -46,7 +46,7 @@ useSeoMeta({
     ogSiteName: 'Server Side Up - Docker PHP',
     ogImage: domain+basePath+'/images/social-image.jpg',
     ogImageWidth: 1200,
-    ogImageHeight: 600,
+    ogImageHeight: 627,
     ogImageType: 'image/png',
     ogDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
     twitterCard: 'summary_large_image',
