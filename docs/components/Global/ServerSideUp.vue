@@ -14,8 +14,35 @@
 
                     <div v-show="showMenu"
                         ref="menuRef"
-                        class="absolute shadow-sm z-10 bg-white rounded-b-lg p-4 w-64 top-[28px] flex flex-col">
-                            <span class="font-inter font-bold text-black text-[14px]">Our Open-Source Projects</span>
+                        class="absolute shadow-sm z-10 bg-white rounded-b-lg p-4 w-64 top-[28px] flex flex-col content-left text-left">
+                            <span class="font-inter font-bold text-black text-[14px]">Books</span>
+                            <NuxtLink
+                                @click="showMenu = false"
+                                :to="'https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-nuxt3/'"
+                                class="flex items-center text-[12px] font-medium font-inter py-2 group">
+                                    <div class="w-3 h-3 flex items-center justify-center mr-2">
+                                        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <g clip-path="url(#clip0_2716_52308)">
+                                                <path d="M8.1 36H27.9C32.374 36 36 32.373 36 27.9V21H0V27.9C0 32.373 3.626 36 8.1 36Z" fill="#001E26" />
+                                                <path d="M36 10H0V21H36V10Z" fill="#001E26" />
+                                                <path d="M27.9 0H8.1C3.626 0 0 3.626 0 8.1V10H36V8.1C36 3.626 32.374 0 27.9 0Z" fill="#001E26" />
+                                                <path d="M16.854 12.943L18.592 9.976L16.994 7.249C16.576 6.534 15.657 6.295 14.942 6.713C14.227 7.131 13.987 8.05 14.406 8.765L16.854 12.943Z" fill="#5ED687" />
+                                                <path d="M20.786 6.71401C20.07 6.29501 19.151 6.53501 18.734 7.25001L10.09 22H13.567L21.321 8.76701C21.74 8.05201 21.5 7.13301 20.786 6.71401Z" fill="#5ED687" />
+                                                <path d="M28.521 26.92L20.91 13.933L20.147 15.236C19.703 16.186 19.643 17.26 19.962 18.247L25.934 28.438C26.213 28.914 26.714 29.179 27.229 29.179C27.486 29.179 27.748 29.113 27.986 28.973C28.701 28.554 28.94 27.635 28.521 26.92Z" fill="#5ED687" />
+                                                <path d="M19.473 21.919L19.302 21.63C19.154 21.406 18.99 21.196 18.804 21.009H6.3C5.471 21.009 4.8 21.674 4.8 22.493C4.8 23.312 5.471 23.977 6.3 23.977H19.694C19.888 23.324 19.835 22.595 19.473 21.919Z" fill="#5ED687" />
+                                                <path d="M10.66 26.961C10.173 26.405 9.47 26.027 8.63 26.002H8.626C8.309 25.993 7.998 26.028 7.694 26.089L7.207 26.92C6.788 27.635 7.028 28.554 7.743 28.973C7.981 29.113 8.243 29.179 8.5 29.179C9.015 29.179 9.517 28.913 9.795 28.438L10.66 26.961Z" fill="#5ED687" />
+                                                <path d="M24.196 21.009H29.7C30.529 21.009 31.2 21.674 31.2 22.493C31.2 23.312 30.529 23.977 29.7 23.977H24.306C24.112 23.324 24.01 21.196 24.196 21.009Z" fill="#5ED687" />
+                                            </g>
+                                            <defs>
+                                                <clipPath id="clip0_2716_52308">
+                                                    <rect width="36" height="36" fill="white" />
+                                                </clipPath>
+                                            </defs>
+                                        </svg>
+                                    </div>
+                                    <span class="group-hover:underline">Ultimate Guide To APIs & SPAs</span>
+                            </NuxtLink>
+                            <span class="font-inter font-bold text-black text-[14px] mt-2">Open-Source Projects</span>
                             <NuxtLink
                                 @click="showMenu = false"
                                 :to="'https://github.com/serversideup/amplitudejs'"
