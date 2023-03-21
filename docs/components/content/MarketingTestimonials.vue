@@ -31,12 +31,7 @@
                 <span class="font-inter font-bold leading-6 text-2xl text-white">Žiga Zajc</span>
                 <span class="text-slate-300 font-inter text-base">CEO of <NuxtLink href="https://rabbit-company.com/" target="_blank" class="underline">Rabbit Company</NuxtLink></span>
                 <p class="font-inter font-normal text-base text-slate-50 mt-2">
-                    Your image with FPM can handle all requests like a champ.
-                    <br><br>
-                    Official php apache image = 68.855749 requests/second
-                    <br><br>
-                    Your image =
-                    484.290793 requests/second
+                    Based on our performance testing, the PHP-FPM image by Server Side Up has the capability to manage 484 requests per second without any project limitations. In comparison, the official PHP image is only able to handle 68 requests per second.
                 </p>
             </div>
         </div>
