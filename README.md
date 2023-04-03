@@ -1,5 +1,5 @@
 <p align="center">
-		<img src="https://raw.githubusercontent.com/serversideup/docker-php/main/.github/img/header.png" width="1280" alt="Docker Images Logo">
+		<a href="https://serversideup.net/open-source/docker-php/"><img src="https://raw.githubusercontent.com/serversideup/docker-php/main/.github/img/header.png" width="1280" alt="Docker Images Logo"></a>
 </p>
 <p align="center">
 	<a href="https://github.com/serversideup/docker-php/actions/workflows/publish_docker-images-production.yml"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/serversideup/docker-php/publish_docker-images-production.yml?branch=main"></a>
