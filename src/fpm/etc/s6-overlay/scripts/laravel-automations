@@ -8,6 +8,14 @@ if [ -f $WEBUSER_HOME/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; the
         echo "🏃‍♂️ Checking for Laravel automations..."
 
         ############################################################################
+        # Automated fixing folder permission
+        ############################################################################
+        if [ ${AUTORUN_LARAVEL_PERMISSION:="true"} == "true" ]; then
+            echo "🔑 Fixing folder permission..."
+            s6-setuidgid root chown -R webuser:webgroup /var/www/html/storage /var/www/html/bootstrap/cache
+        fi
+
+        ############################################################################
         # Automated database migrations
         ############################################################################
         if [ ${AUTORUN_LARAVEL_MIGRATION:="false"} == "true" ]; then
