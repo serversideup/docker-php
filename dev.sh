@@ -6,8 +6,6 @@ set -e
 ##########################
 # Environment Settings
 DEV_UPSTREAM_CHANNEL="beta-"
-DEV_BASE_OS_FLAVOR="ubuntu"
-DEV_BASE_OS_VERSION="22.04"
 
 # UI Colors
 function ui_set_yellow {
@@ -33,12 +31,19 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 # Set versions to build
 if [ $# -eq 0 ]; then
     # Set versions
-    phpVersions=(
-        7.4
-        8.0
-        8.1
-        8.2
-    )
+    phpVersions=()
+
+    echo "Running build for these PHP versions..."
+    # Loop through each .txt file in the current directory
+    for file in src/cli/php-version-packages/*.txt; do
+        # Trim the extension off the filename and add it to the array
+        phpVersion=$(basename -- "$file")
+        phpVersion="${phpVersion%.*}"
+        phpVersions+=("$phpVersion")
+
+        # Print the filename without the extension
+        echo "$phpVersion"
+    done
 else
     phpVersions=$1
 fi
@@ -53,8 +58,6 @@ function build (){
         # Use "docker build"
         docker build \
             --build-arg UPSTREAM_CHANNEL="${DEV_UPSTREAM_CHANNEL}" \
-            --build-arg BASE_OS_FLAVOR="${DEV_BASE_OS_FLAVOR}" \
-            --build-arg BASE_OS_VERSION="${DEV_BASE_OS_VERSION}" \
             --build-arg PHP_VERSION="${2}" \
             -t "serversideup/php:beta-${2}-$1" \
             $SCRIPT_DIR/src/$1/

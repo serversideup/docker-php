@@ -1,7 +1,8 @@
 ARG UPSTREAM_CHANNEL=''
 ARG BASE_OS_FLAVOR='ubuntu'
 ARG BASE_OS_VERSION='22.04'
-ARG BASE_IMAGE="serversideup/s6-overlay:${UPSTREAM_CHANNEL}${BASE_OS_FLAVOR}-${BASE_OS_VERSION}"
+ARG S6_OVERLAY_VERSION='v3.1.2.1'
+ARG BASE_IMAGE="serversideup/s6-overlay:${UPSTREAM_CHANNEL}${BASE_OS_FLAVOR}-${BASE_OS_VERSION}-${S6_OVERLAY_VERSION}"
 
 # add ondrej repository
 FROM ${BASE_IMAGE} as repo-config
@@ -14,7 +15,7 @@ RUN apt-get update \
 FROM ${BASE_IMAGE}
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
-ARG PHP_VERSION='8.1'
+ARG PHP_VERSION='8.2'
 
 ENV BUILD_PHP_VERSION=$PHP_VERSION \
     DEBIAN_FRONTEND=noninteractive \
