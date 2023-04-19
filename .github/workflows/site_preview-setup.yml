@@ -2,7 +2,7 @@ name: 🔂 CloudFlare Pages Preview
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [opened, synchronize, reopened]
 
 jobs:
   build-site:
