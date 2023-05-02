@@ -59,10 +59,10 @@ function build (){
         docker build \
             --build-arg UPSTREAM_CHANNEL="${DEV_UPSTREAM_CHANNEL}" \
             --build-arg PHP_VERSION="${2}" \
-            -t "serversideup/php:beta-${2}-$1" \
+            -t "ramageek/bcrud:beta-${2}-$1" \
             $SCRIPT_DIR/src/$1/
 
-        ui_set_green && echo "✅ Build completed for $label - ${2} (serversideup/php:beta-${2}-$1)" && ui_reset_colors
+        ui_set_green && echo "✅ Build completed for $label - ${2} (ramageek/bcrud:beta-${2}-$1)" && ui_reset_colors
 }
 
 function build_versions {
