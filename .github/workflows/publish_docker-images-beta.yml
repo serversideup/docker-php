@@ -40,3 +40,13 @@ jobs:
       php-variation: fpm-nginx
       checkout-type: branch
     secrets: inherit
+
+  fpm-nginx-npm:
+    needs: fpm-nginx
+    uses: ./.github/workflows/service_docker-build-and-publish.yml
+    with:
+      upstream-channel-prefix: "beta-"
+      tag-prefix: "beta-"
+      php-variation: fpm-nginx-npm
+      checkout-type: branch
+    secrets: inherit
