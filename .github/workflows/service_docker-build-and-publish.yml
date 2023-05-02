@@ -37,7 +37,7 @@ jobs:
         if: inputs.checkout-type  == 'branch'
         with:
           ref: ${{ steps.branch-name.outputs.current_branch }}
-      
+
       ##
       # Checkout latest stable release (for production releases)
       ##
@@ -51,7 +51,7 @@ jobs:
         if: inputs.checkout-type  == 'latest-stable'
         run: |
           echo "Latest Stable Release Tag: ${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}"
-        
+
       - name: Checkout latest stable tag
         if: inputs.checkout-type  == 'latest-stable'
         uses: actions/checkout@v3
@@ -72,14 +72,14 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      
+
       - name: "👨‍🔬 Set docker tags: Non-Release "
         if: inputs.checkout-type == 'branch'
         run: echo "DOCKER_TAGS=ramageek/bcrud:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}" >> $GITHUB_ENV
 
       - name: "🚀 Set docker tags: Release"
         if: inputs.checkout-type == 'latest-stable'
-        run: echo "DOCKER_TAGS=ramageek/bcrud:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}, serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}-${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}" >> $GITHUB_ENV
+        run: echo "DOCKER_TAGS=ramageek/bcrud:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}, ramageek/bcrud:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}-${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v3

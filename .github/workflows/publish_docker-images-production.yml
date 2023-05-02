@@ -37,16 +37,6 @@ jobs:
       checkout-type: latest-stable
     secrets: inherit
 
-  fpm-apache:
-    needs: fpm
-    uses: ./.github/workflows/service_docker-build-and-publish.yml
-    with:
-      upstream-channel-prefix: ''
-      tag-prefix: ''
-      php-variation: fpm-apache
-      checkout-type: latest-stable
-    secrets: inherit
-
   update_container_readme:
     runs-on: ubuntu-latest
     name: Push README to Docker Hub

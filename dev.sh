@@ -53,7 +53,7 @@ fi
 
 function build (){
         label=$(echo $1 | tr '[:lower:]' '[:upper:]')
-        ui_set_yellow && echo "⚡️ Running build for $label - ${2} ..." && ui_reset_colors  
+        ui_set_yellow && echo "⚡️ Running build for $label - ${2} ..." && ui_reset_colors
 
         # Use "docker build"
         docker build \
@@ -61,16 +61,15 @@ function build (){
             --build-arg PHP_VERSION="${2}" \
             -t "serversideup/php:beta-${2}-$1" \
             $SCRIPT_DIR/src/$1/
-        
+
         ui_set_green && echo "✅ Build completed for $label - ${2} (serversideup/php:beta-${2}-$1)" && ui_reset_colors
 }
 
 function build_versions {
     # Grab each PHP version defined in `build.sh` and deploy these images to our LOCAL registry
     for version in ${phpVersions[@]}; do
-        build cli ${version[$i]} 
+        build cli ${version[$i]}
         build fpm ${version[$i]}
-        build fpm-apache ${version[$i]}
         build fpm-nginx ${version[$i]}
     done
 }
