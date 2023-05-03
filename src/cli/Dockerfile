@@ -8,7 +8,7 @@ ARG BASE_IMAGE="serversideup/s6-overlay:${UPSTREAM_CHANNEL}${BASE_OS_FLAVOR}-${B
 FROM ${BASE_IMAGE} as repo-config
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gnupg2 ca-certificates software-properties-common git \
+    && apt-get install -y --no-install-recommends gnupg2 ca-certificates software-properties-common \
     && add-apt-repository -y ppa:ondrej/php
 
 # build final image
@@ -45,6 +45,7 @@ RUN apt-get update \
         ca-certificates \
         curl \
         unzip \
+        git \
     \
     # install PHP packages
     && apt-get update \
