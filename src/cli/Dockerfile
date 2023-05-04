@@ -29,6 +29,7 @@ ENV BUILD_PHP_VERSION=$PHP_VERSION \
     PUID=9999 \
     PGID=9999
 
+COPY .bash_aliases /root/.bash_aliases
 COPY --from=repo-config /etc/apt/sources.list.d/ /etc/apt/sources.list.d/
 COPY --from=repo-config /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg /etc/apt/trusted.gpg.d/ondrej-ubuntu-php.gpg
 
