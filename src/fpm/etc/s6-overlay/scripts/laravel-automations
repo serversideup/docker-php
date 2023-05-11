@@ -22,6 +22,14 @@ if [ -f $WEBUSER_HOME/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; the
             echo "🔐 Linking the storage..."
             s6-setuidgid webuser php $WEBUSER_HOME/artisan storage:link
         fi
+
+        ############################################################################
+        # Automated fixing folder permission
+        ############################################################################
+        if [ ${AUTORUN_LARAVEL_PERMISSION:="true"} == "true" ]; then
+            echo "🔑 Fixing folder permission..."
+            s6-setuidgid root chown -R webuser:webgroup $WEBUSER_HOME/storage $WEBUSER_HOME/bootstrap/cache
+        fi
 else
     echo "👉 Skipping Laravel automations because we could not detect a Laravel install or it was specifically disabled..."
 fi
