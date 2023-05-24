@@ -18,6 +18,7 @@ LABEL maintainer="Jay Rogers (@jaydrogers)"
 ARG PHP_VERSION='8.2'
 
 ENV BUILD_PHP_VERSION=$PHP_VERSION \
+    S6_CMD_ARG0='s6-setuidgid webuser' \
     DEBIAN_FRONTEND=noninteractive \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
