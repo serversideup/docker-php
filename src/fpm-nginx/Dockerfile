@@ -2,6 +2,12 @@ ARG  UPSTREAM_CHANNEL=''
 ARG PHP_VERSION='8.2'
 ARG BASE_IMAGE="serversideup/php:${UPSTREAM_CHANNEL}${PHP_VERSION}-fpm"
 
+FROM ${BASE_IMAGE} as repo-config
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gnupg2 ca-certificates software-properties-common \
+    && add-apt-repository -y ppa:ondrej/nginx
+
 FROM ${BASE_IMAGE}
 
 LABEL maintainer="Jay Rogers (@jaydrogers)"
@@ -15,6 +21,9 @@ ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
     PHP_PM_MIN_SPARE_SERVERS="1" \
     PHP_PM_MAX_SPARE_SERVERS="3" \
     SSL_MODE="full"
+    
+COPY --from=repo-config /etc/apt/sources.list.d/ /etc/apt/sources.list.d/
+COPY --from=repo-config /etc/apt/trusted.gpg.d/ondrej-ubuntu-nginx.gpg /etc/apt/trusted.gpg.d/ondrej-ubuntu-nginx.gpg
 
 # install`nginx` (web server) & `msmtp` (smtp client)
 RUN apt-get update \
