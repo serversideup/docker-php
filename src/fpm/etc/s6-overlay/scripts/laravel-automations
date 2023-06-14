@@ -8,6 +8,28 @@ if [ -f $WEBUSER_HOME/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; the
         echo "🏃‍♂️ Checking for Laravel automations..."
 
         ############################################################################
+        # Automated Laravel Cache
+        ############################################################################
+        if [ ${AUTORUN_LARAVEL_CONFIG_CACHE:="true"} == "true" ]; then
+            echo "🗄️ Running config cache..."
+            s6-setuidgid webuser php $WEBUSER_HOME/artisan config:cache
+        fi
+
+        if [ ${AUTORUN_LARAVEL_VIEW_CACHE:="true"} == "true" ]; then
+            echo "🗄️ Running event cache..."
+            s6-setuidgid webuser php $WEBUSER_HOME/artisan event:cache
+        fi
+
+        if [ ${AUTORUN_LARAVEL_VIEW_CACHE:="true"} == "true" ]; then
+            echo "🗄️ Running view cache..."
+            s6-setuidgid webuser php $WEBUSER_HOME/artisan view:cache
+        fi
+
+        if [ ${AUTORUN_LARAVEL_ROUTE_CACHE:="true"} == "true" ]; then
+            echo "🗄️ Running route cache..."
+            s6-setuidgid webuser php $WEBUSER_HOME/artisan route:cache
+        fi
+        ############################################################################
         # Automated database migrations
         ############################################################################
         if [ ${AUTORUN_LARAVEL_MIGRATION:="false"} == "true" ]; then
