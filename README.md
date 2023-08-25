@@ -12,11 +12,11 @@
 </p>
 
 ## Introduction
-`PHP Docker Images` is an optimized set of Docker Images for running PHP in production. Everything is designed around the developer experience. Gone are the days of configuring each environment differently.
+`PHP Docker Images` is an optimized set of Docker Images for running PHP in production. Everything is designed around improving the developer experience with PHP and Docker. Gone are the days of configuring each environment differently, and gone are the days of trying to figure out why your code works in one environment and not the other.
 
-These images are highly optimized to run modern PHP applications, no matter the environment.
+These images are highly optimized to run modern PHP applications, no matter where you want your application to run.
 
-These images are ***very different*** than other PHP Docker Images.
+Experience the ***true difference*** of using these images vs the other options out there.
 
 [Read more about the key differences with these images →](https://serversideup.net/open-source/docker-php/docs/getting-started/these-images-vs-others)
 
