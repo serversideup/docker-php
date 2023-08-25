@@ -13,15 +13,23 @@
 
 Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers). We're a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
 
+<div align="center">
+
+| <div align="center">Dan Pastori</div>                  | <div align="center">Jay Rogers</div>                                 |
+| ----------------------------- | ------------------------------------------ |
+| <div align="center"><img src="https://serversideup.net/wp-content/uploads/2023/08/dan.jpg" title="Dan Pastori" width="150px"><br /><a href="https://twitter.com/danpastori"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/twitter.svg" title="Twitter" width="24px"></a><a href="https://github.com/danpastori"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/github.svg" title="GitHub" width="24px"></a></div>                        | <div align="center"><img src="https://serversideup.net/wp-content/uploads/2023/08/jay.jpg" title="Jay Rogers" width="150px"><br /><a href="https://twitter.com/jaydrogers"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/twitter.svg" title="Twitter" width="24px"></a><a href="https://github.com/jaydrogers"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/github.svg" title="GitHub" width="24px"></a></div>                                       |
+
+</div>
+
 ### Find us at:
 
-* 📖 [Blog](https://serversideup.net) - get the latest guides and free courses on all things web/mobile development.
-* 🙋 [Community](https://community.serversideup.net) - get friendly help from our community members.
-* 🤵‍♂️ [Get Professional Help](https://serversideup.net/get-help) - get guaranteed responses within next business day.
-* 💻 [GitHub](https://github.com/serversideup) - check out our other open source projects
-* 📫 [Newsletter](https://serversideup.net/subscribe) - skip the algorithms and get quality content right to your inbox
-* 🐥 [Twitter](https://twitter.com/serversideup) - you can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers)
-* ❤️ [Sponsor Us](https://github.com/sponsors/serversideup) - please consider sponsoring us so we can create more helpful resources
+* **📖 [Blog](https://serversideup.net)** - get the latest guides and free courses on all things web/mobile development.
+* **🙋 [Community](https://community.serversideup.net)** - get friendly help from our community members.
+* **🤵‍♂️ [Get Professional Help](https://serversideup.net/get-help)** - get guaranteed responses within next business day.
+* **💻 [GitHub](https://github.com/serversideup)** - check out our other open source projects
+* **📫 [Newsletter](https://serversideup.net/subscribe)** - skip the algorithms and get quality content right to your inbox
+* **🐥 [Twitter](https://twitter.com/serversideup)** - you can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers)
+* **❤️ [Sponsor Us](https://github.com/sponsors/serversideup)** - please consider sponsoring us so we can create more helpful resources
 
 ### Our Sponsors
 All of our software is free an open to the world. None of this can be brought to you without the financial backing of our sponsors.
