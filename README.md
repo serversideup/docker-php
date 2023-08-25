@@ -75,10 +75,10 @@ Click the image below to view the video:
 As an open-source project, we strive for transparency and collaboration in our development process. We greatly appreciate any contributions members of our community can provide. Whether you're fixing bugs, proposing features, improving documentation, or spreading awareness - your involvement strengthens the project. Please review our [contribution guidelines](https://serversideup.net/open-source/docker-php/docs/getting-started/contributing) and [code of conduct](./.github/code_of_conduct.md) to understand how we work together respectfully.
 
 - **Bug Report**: If you're experiencing an issue while using these images, please [create an issue](https://github.com/serversideup/docker-php/issues/new/choose).
-- **Feature Request**: If you have ideas that could improve this project, please [submit a feature request](https://github.com/serversideup/docker-php/discussions/66).
-- **Documentation**: If you believe our documentation could be improved, learn how to [submit a documentation change](./docs/README.md).
-- **Community Support**: We're appreciate any effort to help others on [GitHub Discussions](https://github.com/serversideup/docker-php/discussions) or [Discord](https://serversideup.net/discord)
-- **Security Report**: If you find a critical security flaw, please let us know via [our responsible disclosure policy](https://www.notion.so/Responsible-Disclosure-Policy-421a6a3be1714d388ebbadba7eebbdc8).
+- **Feature Request**: Make this project better by [submitting a feature request](https://github.com/serversideup/docker-php/discussions/66).
+- **Documentation**: Improve our documentation by [submitting a documentation change](./docs/README.md).
+- **Community Support**: Help others on [GitHub Discussions](https://github.com/serversideup/docker-php/discussions) or [Discord](https://serversideup.net/discord)
+- **Security Report**: Report critical security issues via [our responsible disclosure policy](https://www.notion.so/Responsible-Disclosure-Policy-421a6a3be1714d388ebbadba7eebbdc8).
 
 Need help getting started? Join our Discord community and we'll help you get started!
 
