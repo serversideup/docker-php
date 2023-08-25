@@ -72,13 +72,13 @@ Click the image below to view the video:
 - **[GitHub](https://github.com/serversideup/docker-php)** for source code, bug reports, and project management.
 
 ## Contributing
-As an open-source project, we strive for transparency and collaboration in our development process. We greatly appreciate any contributions members of our community can provide. Whether you're fixing bugs, proposing features, improving documentation, or spreading awareness - your involvement strengthens these PHP Docker Images. Please review our [contribution guidelines](https://serversideup.net/open-source/docker-php/docs/getting-started/contributing) and [code of conduct](./.github/code_of_conduct.md) to understand how we work together respectfully.
+As an open-source project, we strive for transparency and collaboration in our development process. We greatly appreciate any contributions members of our community can provide. Whether you're fixing bugs, proposing features, improving documentation, or spreading awareness - your involvement strengthens the project. Please review our [contribution guidelines](https://serversideup.net/open-source/docker-php/docs/getting-started/contributing) and [code of conduct](./.github/code_of_conduct.md) to understand how we work together respectfully.
 
 - **Bug Report**: If you're experiencing an issue while using these images, please [create an issue](https://github.com/serversideup/docker-php/issues/new/choose).
-- **Feature Request**: If you have any ideas that could improve this project, we welcome you to [submit a feature request](https://github.com/serversideup/docker-php/discussions/66).
-- **Documentation**: If you found an error or believe our documentation could be improved, learn how to [submit a documentation change](./docs/README.md).
-- **Community Support**: We're always looking for people to help others on [GitHub Discussions](https://github.com/serversideup/docker-php/discussions) or our [Discord Community](https://serversideup.net/discord)
-- **Security Report**: If you find a critical security flaw, please open an issue or learn more about [our responsible disclosure policy](https://www.notion.so/Responsible-Disclosure-Policy-421a6a3be1714d388ebbadba7eebbdc8).
+- **Feature Request**: If you have ideas that could improve this project, please [submit a feature request](https://github.com/serversideup/docker-php/discussions/66).
+- **Documentation**: If you believe our documentation could be improved, learn how to [submit a documentation change](./docs/README.md).
+- **Community Support**: We're appreciate any effort to help others on [GitHub Discussions](https://github.com/serversideup/docker-php/discussions) or [Discord](https://serversideup.net/discord)
+- **Security Report**: If you find a critical security flaw, please let us know via [our responsible disclosure policy](https://www.notion.so/Responsible-Disclosure-Policy-421a6a3be1714d388ebbadba7eebbdc8).
 
 Need help getting started? Join our Discord community and we'll help you get started!
 
