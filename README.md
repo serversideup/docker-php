@@ -11,6 +11,8 @@
   <a href="https://serversideup.net/discord"><img alt="Discord" src="https://img.shields.io/discord/910287105714954251?color=blueviolet"></a>
 </p>
 
+Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers). We're a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
+
 <div align="center">
 
 | <div align="center">Dan Pastori</div>                  | <div align="center">Jay Rogers</div>                                 |
@@ -18,8 +20,6 @@
 | <div align="center"><a href="https://twitter.com/danpastori"><img src="https://serversideup.net/wp-content/uploads/2023/08/dan.jpg" title="Dan Pastori" width="150px"></a><br /><a href="https://twitter.com/danpastori"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/twitter.svg" title="Twitter" width="24px"></a><a href="https://github.com/danpastori"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/github.svg" title="GitHub" width="24px"></a></div>                        | <div align="center"><a href="https://twitter.com/jaydrogers"><img src="https://serversideup.net/wp-content/uploads/2023/08/jay.jpg" title="Jay Rogers" width="150px"></a><br /><a href="https://twitter.com/jaydrogers"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/twitter.svg" title="Twitter" width="24px"></a><a href="https://github.com/jaydrogers"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/github.svg" title="GitHub" width="24px"></a></div>                                       |
 
 </div>
-
-Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers). We're a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
 
 ### Find us at:
 
@@ -31,6 +31,10 @@ Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/ja
 * **🐥 [Twitter](https://twitter.com/serversideup)** - you can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers)
 * **❤️ [Sponsor Us](https://github.com/sponsors/serversideup)** - please consider sponsoring us so we can create more helpful resources
 
+### Our products
+We're a 100% fully independent & bootstrapped team who love building open source products. If you enjoy the quality of this product, be sure to check out our other projects.
+
+
 ### Our Sponsors
 All of our software is free an open to the world. None of this can be brought to you without the financial backing of our sponsors.
 
@@ -39,7 +43,7 @@ All of our software is free an open to the world. None of this can be brought to
 #### Individual Supporters
 <!-- supporters --><a href="https://github.com/deligoez"><img src="https://github.com/deligoez.png" width="40px" alt="deligoez" /></a>&nbsp;&nbsp;<a href="https://github.com/alexjustesen"><img src="https://github.com/alexjustesen.png" width="40px" alt="alexjustesen" /></a>&nbsp;&nbsp;<a href="https://github.com/jeremykenedy"><img src="https://github.com/jeremykenedy.png" width="40px" alt="jeremykenedy" /></a>&nbsp;&nbsp;<!-- supporters -->
 
-# Available Docker Images
+## Available Docker Images
 This is a list of the docker images this repository creates:
 
 | ⚙️ Variation | 🚀 Version |
@@ -89,12 +93,12 @@ If you're looking to understand more the key differences with these PHP images, 
 
 [Read more about the key differences with these images →](https://serversideup.net/open-source/docker-php/docs/getting-started/these-images-vs-others)
 
-# Documentation
+## Documentation
 We have everything fully documented and available on our website. If you find an issue, everything is located under the `/docs` folder or the `/docs/content` folder if you're looking to submit a change to the documentation.
 
 [View the Documentation →](https://serversideup.net/open-source/docker-php/docs)
 
-# Submitting issues and pull requests
+## Submitting issues and pull requests
 Since there are a lot of dependencies on these images, please understand that it can make it complicated on merging your pull request.
 
 We'd love to have your help, but it might be best to explain your intentions first before contributing.
