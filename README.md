@@ -11,28 +11,38 @@
   <a href="https://serversideup.net/discord"><img alt="Discord" src="https://img.shields.io/discord/910287105714954251?color=blueviolet"></a>
 </p>
 
-Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers). We're a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
+## Introduction
+`PHP Docker Images` is an optimized set of Docker Images for running PHP applications in production. Everything is designed around improving the developer experience with PHP and Docker. Gone are the days of configuring each environment differently, and gone are the days of trying to figure out why your code works in one environment and not the other.
 
-### Find us at:
+These images are highly optimized to run modern PHP applications, no matter where you want your application to run.
 
-* 📖 [Blog](https://serversideup.net) - get the latest guides and free courses on all things web/mobile development.
-* 🙋 [Community](https://community.serversideup.net) - get friendly help from our community members.
-* 🤵‍♂️ [Get Professional Help](https://serversideup.net/get-help) - get guaranteed responses within next business day.
-* 💻 [GitHub](https://github.com/serversideup) - check out our other open source projects
-* 📫 [Newsletter](https://serversideup.net/subscribe) - skip the algorithms and get quality content right to your inbox
-* 🐥 [Twitter](https://twitter.com/serversideup) - you can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers)
-* ❤️ [Sponsor Us](https://github.com/sponsors/serversideup) - please consider sponsoring us so we can create more helpful resources
+Experience the ***true difference*** of using these images vs the other options out there.
 
-### Our Sponsors
-All of our software is free an open to the world. None of this can be brought to you without the financial backing of our sponsors.
+[Read more about the key differences with these images →](https://serversideup.net/open-source/docker-php/docs/getting-started/these-images-vs-others)
 
-<p align="center"><a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-box.png" alt="Sponsors"></a></p>
+<details open>
+<summary>
+ Features
+</summary> <br />
 
-#### Individual Supporters
-<!-- supporters --><a href="https://github.com/deligoez"><img src="https://github.com/deligoez.png" width="40px" alt="deligoez" /></a>&nbsp;&nbsp;<a href="https://github.com/alexjustesen"><img src="https://github.com/alexjustesen.png" width="40px" alt="alexjustesen" /></a>&nbsp;&nbsp;<a href="https://github.com/jeremykenedy"><img src="https://github.com/jeremykenedy.png" width="40px" alt="jeremykenedy" /></a>&nbsp;&nbsp;<!-- supporters -->
+|<img width="100%" alt="Production-Ready" src="https://serversideup.net/wp-content/uploads/2023/08/production-ready.png">|<img width="100%" alt="Native Health Checks" src="https://serversideup.net/wp-content/uploads/2023/08/native-health-checks.png">|<img width="100%" alt="High Performance" src="https://serversideup.net/wp-content/uploads/2023/08/high-performance.png">|
+|:---:|:---:|:---:|
+|<img width="100%" alt="Customizable and Flexible" src="https://serversideup.net/wp-content/uploads/2023/08/customizable-flexible.png">|<img width="100%" alt="Built on Ubuntu 22.04" src="https://serversideup.net/wp-content/uploads/2023/08/built-on-ubuntu.png">|<img width="100%" alt="Built with Ondrej PHP" src="https://serversideup.net/wp-content/uploads/2023/08/built-with-ondrej.png">|
+|<img width="100%" alt="NGINX + PHP-FPM" src="https://serversideup.net/wp-content/uploads/2023/08/nginx-php.png">|<img width="100%" alt="Unified Logging" src="https://serversideup.net/wp-content/uploads/2023/08/unified-logging.png">|<img width="100%" alt="Built with S6 Overlay" src="https://serversideup.net/wp-content/uploads/2023/08/built-with-s6.png">|
 
-# Available Docker Images
-This is a list of the docker images this repository creates:
+</details>
+
+## Usage
+This repository creates a number of Docker image variations, allowing you to choose exactly what you need.
+
+Simply use this image name pattern in any of your projects:
+```sh
+serversideup/php:{{version}}-{{variation-name}}
+```
+For example... If I wanted to run **PHP 8.2** with **FPM + NGINX**, I would use this image:
+```sh
+serversideup/php:8.2-fpm-nginx
+```
 
 | ⚙️ Variation | 🚀 Version |
 | ------------ | ---------- |
@@ -41,16 +51,6 @@ This is a list of the docker images this repository creates:
 | fpm-apache   | [![serversideup/php:8.2-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-apache?label=serversideup%2Fphp%3A8.2-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:8.1-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-apache?label=serversideup%2Fphp%3A8.1-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:8.0-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-apache?label=serversideup%2Fphp%3A8.0-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-apache&page=1&ordering=-name)<br />[![serversideup/php:7.4-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-apache?label=serversideup%2Fphp%3A7.4-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-apache&page=1&ordering=-name) |
 | fpm-nginx    | [![serversideup/php:8.2-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-nginx?label=serversideup%2Fphp%3A8.2-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:8.1-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-nginx?label=serversideup%2Fphp%3A8.1-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:8.0-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-nginx?label=serversideup%2Fphp%3A8.0-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx&page=1&ordering=-name)<br />[![serversideup/php:7.4-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-nginx?label=serversideup%2Fphp%3A7.4-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx&page=1&ordering=-name) |
 
-### Usage
-Simply use this image name pattern in any of your projects:
-```sh
-serversideup/php:{{version}}-{{variation-name}}
-```
-For example... If I wanted to run **PHP 8.0** with **FPM + NGINX**, I would use this image:
-```sh
-serversideup/php:8.0-fpm-nginx
-```
-
 ### Real-life working example
 You can see a bigger picture on how these images are used from Development to Production by viewing this video that shows a high level overview how we deploy "[ROAST](https://roastandbrew.coffee/)" which is a demo production app for [our book](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-vuejs/).
 
@@ -58,38 +58,65 @@ Click the image below to view the video:
 
 [![Laravel + NuxtJS From Dev to production](https://img.youtube.com/vi/PInGAWnvkjM/0.jpg)](https://www.youtube.com/watch?v=PInGAWnvkjM)
 
-### Updates
-✅ The image builds automatically run weekly (Tuesday at 0800 UTC) for latest security updates.
+## Resources
+- **[Website](https://serversideup.net/open-source/docker-php/)** overview of the product.
+- **[Docs](https://serversideup.net/open-source/docker-php/docs)** for a deep-dive on how to use the product.
+- **[Discord](https://serversideup.net/discord)** for friendly support from the community and the team.
+- **[GitHub](https://github.com/serversideup/docker-php)** for source code, bug reports, and project management.
 
-# Why these images and not other ones?
-These images have a few key differences. These images are:
+## Contributing
+As an open-source project, we strive for transparency and collaboration in our development process. We greatly appreciate any contributions members of our community can provide. Whether you're fixing bugs, proposing features, improving documentation, or spreading awareness - your involvement strengthens the project. Please review our [contribution guidelines](https://serversideup.net/open-source/docker-php/docs/getting-started/contributing) and [code of conduct](./.github/code_of_conduct.md) to understand how we work together respectfully.
 
-## 🚀 These images are used in production
-Our philosophy is: **What you run in production is what you should be running in development.**
+- **Bug Report**: If you're experiencing an issue while using these images, please [create an issue](https://github.com/serversideup/docker-php/issues/new/choose).
+- **Feature Request**: Make this project better by [submitting a feature request](https://github.com/serversideup/docker-php/discussions/66).
+- **Documentation**: Improve our documentation by [submitting a documentation change](./docs/README.md).
+- **Community Support**: Help others on [GitHub Discussions](https://github.com/serversideup/docker-php/discussions) or [Discord](https://serversideup.net/discord).
+- **Security Report**: Report critical security issues via [our responsible disclosure policy](https://www.notion.so/Responsible-Disclosure-Policy-421a6a3be1714d388ebbadba7eebbdc8).
 
-You'd be shocked how many people create a Docker image and use it in the local development only. These images are designed with the intention of being deployed to the open and wild Internet.
+Need help getting started? Join our Discord community and we'll help you out!
 
-## 🧐 Based off of [S6 Overlay](https://github.com/just-containers/s6-overlay)
-S6 Overlay is very helpful in managing a container's lifecycle that has multiple processes.
+<a href="https://serversideup.net/discord"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/join-discord.svg" title="Join Discord"></a>
 
-**Wait... Isn't Docker supposed to be a "single process per container"?** Yes, that's what it's like in a perfect world. Unfortunately PHP isn't like that. You need both a web server and a PHP-FPM server to see your files in order for your application to load.
+## Our Sponsors
+All of our software is free an open to the world. None of this can be brought to you without the financial backing of our sponsors.
 
-We follow the [S6 Overlay Philosophy](https://github.com/just-containers/s6-overlay#the-docker-way) on how we can still get a single, disposable, and repeatable image of our application out to our servers.
+<p align="center"><a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-box.png" alt="Sponsors"></a></p>
 
-## 🤩 See all the differences
-If you're looking to understand more the key differences with these PHP images, check out our documentation site.
+#### Individual Supporters
+<!-- supporters --><a href="https://github.com/deligoez"><img src="https://github.com/deligoez.png" width="40px" alt="deligoez" /></a>&nbsp;&nbsp;<a href="https://github.com/alexjustesen"><img src="https://github.com/alexjustesen.png" width="40px" alt="alexjustesen" /></a>&nbsp;&nbsp;<a href="https://github.com/jeremykenedy"><img src="https://github.com/jeremykenedy.png" width="40px" alt="jeremykenedy" /></a>&nbsp;&nbsp;<!-- supporters -->
 
-[Read more about the key differences with these images →](https://serversideup.net/open-source/docker-php/docs/getting-started/these-images-vs-others)
+## About Us
+We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers) - a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
 
-# Documentation
-We have everything fully documented and available on our website. If you find an issue, everything is located under the `/docs` folder or the `/docs/content` folder if you're looking to submit a change to the documentation.
+<div align="center">
 
-[View the Documentation →](https://serversideup.net/open-source/docker-php/docs)
+| <div align="center">Dan Pastori</div>                  | <div align="center">Jay Rogers</div>                                 |
+| ----------------------------- | ------------------------------------------ |
+| <div align="center"><a href="https://twitter.com/danpastori"><img src="https://serversideup.net/wp-content/uploads/2023/08/dan.jpg" title="Dan Pastori" width="150px"></a><br /><a href="https://twitter.com/danpastori"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/twitter.svg" title="Twitter" width="24px"></a><a href="https://github.com/danpastori"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/github.svg" title="GitHub" width="24px"></a></div>                        | <div align="center"><a href="https://twitter.com/jaydrogers"><img src="https://serversideup.net/wp-content/uploads/2023/08/jay.jpg" title="Jay Rogers" width="150px"></a><br /><a href="https://twitter.com/jaydrogers"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/twitter.svg" title="Twitter" width="24px"></a><a href="https://github.com/jaydrogers"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/github.svg" title="GitHub" width="24px"></a></div>                                       |
 
-# Submitting issues and pull requests
-Since there are a lot of dependencies on these images, please understand that it can make it complicated on merging your pull request.
+</div>
 
-We'd love to have your help, but it might be best to explain your intentions first before contributing.
+### Find us at:
 
-### Like we said -- we're always learning
-If you find a critical security flaw, please open an issue or learn more about [our responsible disclosure policy](https://www.notion.so/Responsible-Disclosure-Policy-421a6a3be1714d388ebbadba7eebbdc8).
+* **📖 [Blog](https://serversideup.net)** - get the latest guides and free courses on all things web/mobile development.
+* **🙋 [Community](https://community.serversideup.net)** - get friendly help from our community members.
+* **🤵‍♂️ [Get Professional Help](https://serversideup.net/get-help)** - get guaranteed responses within next business day.
+* **💻 [GitHub](https://github.com/serversideup)** - check out our other open source projects
+* **📫 [Newsletter](https://serversideup.net/subscribe)** - skip the algorithms and get quality content right to your inbox
+* **🐥 [Twitter](https://twitter.com/serversideup)** - you can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers)
+* **❤️ [Sponsor Us](https://github.com/sponsors/serversideup)** - please consider sponsoring us so we can create more helpful resources
+
+## Our products
+If you appreciate this project, be sure to check out our other projects.
+
+### 📚 Books
+- **[The Ultimate Guide to Building APIs & SPAs](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-nuxt3/)**: Build web & mobile apps from the same codebase.
+
+### 🛠️ Software-as-a-Service
+- **[Bugflow](https://bugflow.io/)**: Get visual bug reports directly in GitHub, GitLab, and more.
+- **[SelfHost Pro](https://selfhostpro.com/)**: Connect Stripe or Lemonsqueezy to a private docker registry for self-hosted apps.
+
+### 🌍 Open Source
+- **[AmplitudeJS](https://521dimensions.com/open-source/amplitudejs)**: Open-source HTML5 & JavaScript Web Audio Library.
+- **[Spin](https://serversideup.net/open-source/spin/)**: Laravel Sail alternative for running Docker from development → production.
+- **[Financial Freedom](https://github.com/serversideup/financial-freedom)**: Open source alternative to Mint, YNAB, & Monarch Money.
