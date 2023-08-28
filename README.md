@@ -110,7 +110,7 @@ We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydro
 If you appreciate this project, be sure to check out our other projects.
 
 ### 📚 Books
-- **[The Ultimate Guide to Building APIs & Single-page Applications](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-nuxt3/)**: Learn how to build web & mobile apps from the same codebase.
+- **[The Ultimate Guide to Building APIs & SPAs](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-nuxt3/)**: Build web & mobile apps from the same codebase.
 
 ### 🛠️ Software-as-a-Service
 - **[Bugflow](https://bugflow.io/)**: Get visual bug reports directly in GitHub, GitLab, and more.
