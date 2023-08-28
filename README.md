@@ -117,6 +117,6 @@ If you appreciate this project, be sure to check out our other projects.
 - **[SelfHost Pro](https://selfhostpro.com/)**: Connect Stripe or Lemonsqueezy to a private docker registry for self-hosted apps.
 
 ### 🌍 Open Source
-- **[AmplitudeJS](https://521dimensions.com/open-source/amplitudejs)**: Open-source HTML5 Web Audio Library
+- **[AmplitudeJS](https://521dimensions.com/open-source/amplitudejs)**: Open-source HTML5 & JavaScript Web Audio Library.
 - **[Spin](https://serversideup.net/open-source/spin/)**: Laravel Sail alternative for running Docker from development → production.
 - **[Financial Freedom](https://github.com/serversideup/financial-freedom)**: Open source alternative to Mint, YNAB, & Monarch Money.
