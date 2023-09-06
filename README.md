@@ -100,7 +100,7 @@ We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydro
 
 * **📖 [Blog](https://serversideup.net)** - get the latest guides and free courses on all things web/mobile development.
 * **🙋 [Community](https://community.serversideup.net)** - get friendly help from our community members.
-* **🤵‍♂️ [Get Professional Help](https://serversideup.net/get-help)** - get guaranteed responses within next business day.
+* **🤵‍♂️ [Get Professional Help](https://serversideup.net/professional-support)** - get guaranteed responses within next business day.
 * **💻 [GitHub](https://github.com/serversideup)** - check out our other open source projects
 * **📫 [Newsletter](https://serversideup.net/subscribe)** - skip the algorithms and get quality content right to your inbox
 * **🐥 [Twitter](https://twitter.com/serversideup)** - you can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers)
