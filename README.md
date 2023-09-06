@@ -63,6 +63,7 @@ Click the image below to view the video:
 - **[Docs](https://serversideup.net/open-source/docker-php/docs)** for a deep-dive on how to use the product.
 - **[Discord](https://serversideup.net/discord)** for friendly support from the community and the team.
 - **[GitHub](https://github.com/serversideup/docker-php)** for source code, bug reports, and project management.
+- **[Get Professional Help](https://serversideup.net/professional-support)** - Get video + screen-sharing help directly from the core contributors.
 
 ## Contributing
 As an open-source project, we strive for transparency and collaboration in our development process. We greatly appreciate any contributions members of our community can provide. Whether you're fixing bugs, proposing features, improving documentation, or spreading awareness - your involvement strengthens the project. Please review our [contribution guidelines](https://serversideup.net/open-source/docker-php/docs/getting-started/contributing) and [code of conduct](./.github/code_of_conduct.md) to understand how we work together respectfully.
