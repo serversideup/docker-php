@@ -98,13 +98,13 @@ We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydro
 
 ### Find us at:
 
-* **📖 [Blog](https://serversideup.net)** - get the latest guides and free courses on all things web/mobile development.
-* **🙋 [Community](https://community.serversideup.net)** - get friendly help from our community members.
-* **🤵‍♂️ [Get Professional Help](https://serversideup.net/professional-support)** - get guaranteed responses within next business day.
-* **💻 [GitHub](https://github.com/serversideup)** - check out our other open source projects
-* **📫 [Newsletter](https://serversideup.net/subscribe)** - skip the algorithms and get quality content right to your inbox
-* **🐥 [Twitter](https://twitter.com/serversideup)** - you can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers)
-* **❤️ [Sponsor Us](https://github.com/sponsors/serversideup)** - please consider sponsoring us so we can create more helpful resources
+* **📖 [Blog](https://serversideup.net)** - Get the latest guides and free courses on all things web/mobile development.
+* **🙋 [Community](https://community.serversideup.net)** - Get friendly help from our community members.
+* **🤵‍♂️ [Get Professional Help](https://serversideup.net/professional-support)** - Get video + screen-sharing support from the core contributors.
+* **💻 [GitHub](https://github.com/serversideup)** - Check out our other open source projects.
+* **📫 [Newsletter](https://serversideup.net/subscribe)** - Skip the algorithms and get quality content right to your inbox.
+* **🐥 [Twitter](https://twitter.com/serversideup)** - You can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers).
+* **❤️ [Sponsor Us](https://github.com/sponsors/serversideup)** - Please consider sponsoring us so we can create more helpful resources.
 
 ## Our products
 If you appreciate this project, be sure to check out our other projects.
