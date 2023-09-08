@@ -61,7 +61,7 @@ RUN apt-get update \
     && echo "export APACHE_RUN_GROUP=${APACHE_RUN_GROUP}" >> /etc/apache2/envvars \
     \
     # configure permissions on the webroot
-    && chown -R webuser:webgroup $WEBUSER_HOME \
+    && chown -R webuser:webgroup $WEB_APP_DIRECTORY \
     \
     # ensure Apache does not start automatically and disable the default site
     && service apache2 stop \
