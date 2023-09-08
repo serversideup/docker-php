@@ -1,5 +1,21 @@
 #!/command/with-contenv bash
 
+PUID=${PUID:-9999}
+PGID=${PGID:-9999}
+WEB_APP_DIRECTORY=${WEB_APP_DIRECTORY:-"/var/www/html"}
+
+if [[ $PUID != 9999 || $PGID != 9999 ]]; then
+    
+    # Change the group ID
+    groupmod -o -g "$PGID" webgroup
+    
+    # Change the User ID
+    usermod -o -u "$PUID" webuser
+    
+    # Make sure the home directory is updated with the proper UID & GID
+    chown webuser:webgroup $WEBUSER_HOME
+fi
+
 if [[ $S6_LOGGING != 1 ]]; then
 echo '
 --------------------------------------------------------------------
