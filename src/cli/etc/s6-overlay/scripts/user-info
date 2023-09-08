@@ -17,12 +17,12 @@ echo '
 To support Server Side Up projects visit:
 https://serversideup.net/sponsor
 -------------------------------------
-Non-privileged User Information
+Container Information
 -------------------------------------'
 echo "
 Username:    $(whoami)
-User uid:    $(id -u webuser)
-User gid:    $(id -g webuser)
+User uid:    $(id -u "$(whoami)")
+User gid:    $(id -g "$(whoami)")
 App dir:     $WEB_APP_DIRECTORY
 -------------------------------------
 "
