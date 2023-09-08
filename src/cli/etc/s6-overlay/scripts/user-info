@@ -1,16 +1,12 @@
 #!/command/with-contenv bash
 
-PUID=${PUID:-9999}
-PGID=${PGID:-9999}
-WEBUSER_HOME=${WEBUSER_HOME:-"/var/www/html"}
-
 if [[ $S6_LOGGING != 1 ]]; then
 echo '
 --------------------------------------------------------------------
-____                             ____  _     _        _   _
+ ____                             ____  _     _        _   _
 / ___|  ___ _ ____   _____ _ __  / ___|(_) __| | ___  | | | |_ __
 \___ \ / _ \  __\ \ / / _ \  __| \___ \| |/ _` |/ _ \ | | | |  _ \
-___) |  __/ |   \ V /  __/ |     ___) | | (_| |  __/ | |_| | |_) |
+ ___) |  __/ |   \ V /  __/ |     ___) | | (_| |  __/ | |_| | |_) |
 |____/ \___|_|    \_/ \___|_|    |____/|_|\__,_|\___|  \___/| .__/
                                                             |_|
 
@@ -21,11 +17,13 @@ echo '
 To support Server Side Up projects visit:
 https://serversideup.net/sponsor
 -------------------------------------
-GID/UID
+Non-privileged User Information
 -------------------------------------'
 echo "
+Username:    $(whoami)
 User uid:    $(id -u webuser)
 User gid:    $(id -g webuser)
+Home dir:    $(eval echo "~")
 -------------------------------------
 "
 fi
