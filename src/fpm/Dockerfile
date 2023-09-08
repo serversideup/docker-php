@@ -12,7 +12,7 @@ ENV PHP_DATE_TIMEZONE="UTC" \
     PHP_ERROR_REPORTING="22527" \
     PHP_MEMORY_LIMIT="256M" \
     PHP_MAX_EXECUTION_TIME="99" \
-    PHP_OPEN_BASEDIR="$WEBUSER_HOME:/dev/stdout:/tmp" \
+    PHP_OPEN_BASEDIR="$WEB_APP_DIRECTORY:/dev/stdout:/tmp" \
     PHP_POST_MAX_SIZE="100M" \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     PHP_POOL_NAME="www" \
@@ -45,6 +45,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* /var/www/html/*
 
 COPY --chmod=755 etc/s6-overlay/ /etc/s6-overlay/
+
+COPY --chmod=755 usr/local/bin/ /usr/local/bin/
 
 COPY etc/php/fpm/pool.d/ /etc/php/current_version/fpm/pool.d/
 

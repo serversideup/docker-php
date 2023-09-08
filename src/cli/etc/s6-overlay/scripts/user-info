@@ -23,7 +23,7 @@ echo "
 Username:    $(whoami)
 User uid:    $(id -u webuser)
 User gid:    $(id -g webuser)
-Home dir:    $(eval echo "~")
+App dir:     $WEB_APP_DIRECTORY
 -------------------------------------
 "
 fi
