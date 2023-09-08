@@ -37,8 +37,12 @@ ADD php-version-packages/${PHP_VERSION}.txt /tmp/php-packages.txt
 RUN apt-get update \
     \
     # configure web user and group
-    && groupadd -r -g $PGID webgroup \
-    && useradd --no-log-init -r -s /usr/bin/bash -d $WEBUSER_HOME -u $PUID -g $PGID webuser \
+    && groupadd -g $PGID webgroup \
+    && useradd --no-log-init -s /usr/bin/bash -m -u $PUID -g $PGID webuser \
+    \
+    # ensure the web app directory exists with proper permissions
+    && mkdir -p $WEB_APP_DIRECTORY \
+    && chown -R webuser:webgroup $WEB_APP_DIRECTORY \
     \
     # install dependencies
     && apt-get -y --no-install-recommends install \
