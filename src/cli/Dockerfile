@@ -66,4 +66,7 @@ WORKDIR /var/www/html
 
 ENTRYPOINT ["/init"]
 
+# drop to our unprivileged user
+USER webuser
+
 CMD ["php", "-a"]

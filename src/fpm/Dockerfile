@@ -1,5 +1,5 @@
 ARG UPSTREAM_CHANNEL=''
-ARG PHP_VERSION='8.1'
+ARG PHP_VERSION='8.2'
 ARG BASE_IMAGE="serversideup/php:${UPSTREAM_CHANNEL}${PHP_VERSION}-cli"
 
 FROM ${BASE_IMAGE}
@@ -21,6 +21,9 @@ ENV PHP_DATE_TIMEZONE="UTC" \
     PHP_PM_START_SERVERS="2" \
     PHP_PM_MIN_SPARE_SERVERS="1" \
     PHP_PM_MAX_SPARE_SERVERS="3"
+
+# switch to root so we can install packages
+USER 0
 
 # install `php-fpm` (php server) and `libfcgi-bin` (for healthchecks)
 RUN apt-get update \
@@ -44,6 +47,9 @@ RUN apt-get update \
 COPY --chmod=755 etc/s6-overlay/ /etc/s6-overlay/
 
 COPY etc/php/fpm/pool.d/ /etc/php/current_version/fpm/pool.d/
+
+# drop to our unprivileged user
+USER webuser
 
 ENTRYPOINT ["/init" ]
 

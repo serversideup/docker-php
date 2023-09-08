@@ -12,7 +12,7 @@ if [ -f $WEBUSER_HOME/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; the
         ############################################################################
         if [ ${AUTORUN_LARAVEL_MIGRATION:="false"} == "true" ]; then
             echo "🚀 Running migrations..."
-            s6-setuidgid webuser php $WEBUSER_HOME/artisan migrate --force --isolated
+            php $WEBUSER_HOME/artisan migrate --force --isolated
         fi
 
         ############################################################################
@@ -23,7 +23,7 @@ if [ -f $WEBUSER_HOME/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; the
                 echo "✅ Storage already linked..."
             else
                 echo "🔐 Linking the storage..."
-                s6-setuidgid webuser php $WEBUSER_HOME/artisan storage:link
+                php $WEBUSER_HOME/artisan storage:link
             fi
         fi
 else

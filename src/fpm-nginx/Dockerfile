@@ -1,5 +1,5 @@
 ARG UPSTREAM_CHANNEL=''
-ARG PHP_VERSION='8.1'
+ARG PHP_VERSION='8.2'
 ARG BASE_IMAGE="serversideup/php:${UPSTREAM_CHANNEL}${PHP_VERSION}-fpm"
 
 FROM ${BASE_IMAGE}
@@ -15,6 +15,9 @@ ENV MSMTP_RELAY_SERVER_HOSTNAME="mailhog" \
     PHP_PM_MIN_SPARE_SERVERS="1" \
     PHP_PM_MAX_SPARE_SERVERS="3" \
     SSL_MODE="full"
+
+# switch to root so we can install packages
+USER 0
 
 # install`nginx` (web server) & `msmtp` (smtp client)
 RUN apt-get update \
@@ -37,6 +40,9 @@ COPY --chmod=755 etc/s6-overlay/ /etc/s6-overlay/
 COPY etc/nginx/ /etc/nginx/
 
 COPY etc/php/fpm/pool.d/ /etc/php/current_version/fpm/pool.d/
+
+# drop to our unprivileged user
+USER webuser
 
 EXPOSE 80
 EXPOSE 443
