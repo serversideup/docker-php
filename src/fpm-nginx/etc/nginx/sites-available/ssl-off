@@ -1,5 +1,0 @@
-# HTTP configuration
-#
-server {
-	include /etc/nginx/site-opts.d/http.conf;
-}
