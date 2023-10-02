@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Check if the current user is root (UID 0)
-if [ "$(id -u)" -ne 0 ]; then
+if [[ $EUID -ne 0 ]]; then
     echo "Error: You are not the root user. You need to set 'USER 0' and then trigger this command. This command will only work during a Docker build."
     exit 1
 fi

@@ -66,6 +66,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY --chmod=755 etc/s6-overlay/ /etc/s6-overlay/
 
+COPY --chmod=755 usr/local/bin/ /usr/local/bin/
+
 WORKDIR /var/www/html
 
 ENTRYPOINT ["/init"]

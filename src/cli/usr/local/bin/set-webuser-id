@@ -1,0 +1,23 @@
+#!/bin/bash
+set -x
+PUID=${PUID:-9999}
+PGID=${PGID:-9999}
+WEB_APP_DIRECTORY=${WEB_APP_DIRECTORY:-"/var/www/html"}
+
+# Check if the current user is root (UID 0)
+if [[ $EUID -ne 0 ]]; then
+    echo "Error: You are not the root user. You need to set 'USER 0' and then trigger this command. This command will only work during a Docker build."
+    exit 1
+fi
+    
+if [[ $PUID != 9999 || $PGID != 9999 ]]; then
+    echo "👉 Changing the webgroup ID to $PGID..."
+    groupmod -o -g "$PGID" webgroup
+
+    echo "👉 Changing the webuser ID to $PUID..."
+    usermod -o -u "$PUID" webuser
+
+    # Make sure the home directory is updated with the proper UID & GID
+    echo "👉 Updating the permissions for $WEB_APP_DIRECTORY..."
+    chown webuser:webgroup $WEB_APP_DIRECTORY
+fi

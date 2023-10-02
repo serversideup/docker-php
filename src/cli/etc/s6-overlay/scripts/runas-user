@@ -1,8 +1,6 @@
 #!/command/with-contenv bash
 
-if [ "$(id -u)" -e 0 ]; then
-    echo "Warning: The container is running as 'root', but will still run PHP as 'webuser'. Mounted volumes may require manual permissions changes outside of the container."
-
+if [[ $EUID == 0 ]]; then
     # Execute our custom script to check & set the webuser id
     set-webuser-id
 fi
@@ -21,15 +19,33 @@ Brought to you by serversideup.net
 --------------------------------------------------------------------'
 
 echo '
-To support Server Side Up projects visit:
+🙌 To support Server Side Up projects visit:
 https://serversideup.net/sponsor
+
 -------------------------------------
-Container Information
+ℹ️ Container Information
 -------------------------------------'
-echo "
-Username:    $(whoami)
-User uid:    $(id -u "$(whoami)")
-User gid:    $(id -g "$(whoami)")
+if [[ $EUID == 0 ]]; then
+echo "👉 Warning: The container is running as 'root'.
+The container will run PHP as 'webuser', but
+mounted volumes may require manual permissions
+changes outside of the container.
+
+Docker user:   $(whoami)
+Docker uid:    $(id -u "$(whoami)")
+Docker gid:    $(id -g "$(whoami)")
+App dir:        $WEB_APP_DIRECTORY
+
+Running PHP as...
+Web username:  webuser
+Webuser uid:   $(id -u webuser)
+Webuser gid:   $(id -g webuser)
+-------------------------------------
+"
+else
+echo "Docker user:    $(whoami)
+Docker uid:    $(id -u "$(whoami)")
+Docker gid:    $(id -g "$(whoami)")
 App dir:     $WEB_APP_DIRECTORY
 -------------------------------------
 "
