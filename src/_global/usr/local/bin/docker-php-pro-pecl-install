@@ -5,4 +5,4 @@ for ext in "$@"; do
     pecl install $ext
 done
 
-docker-php-ext-enable $@
+docker-php-ext-enable "$@"
