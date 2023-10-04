@@ -33,8 +33,6 @@ function save_php_version_data_from_url {
     echo "⚡️ Getting PHP Versions..."
     ui_reset_colors
 
-    rc_version_jq='.'  # Set a default value that represents no change in jq.
-
     rc_additions=""
     
     if [[ ${#PHP_RC_VERSIONS[@]} -ne 0 ]]; then  # If PHP_RC_VERSIONS is not empty:
