@@ -1,8 +1,0 @@
-#!/bin/sh
-set -e
-
-for ext in "$@"; do
-    pecl install $ext
-done
-
-docker-php-ext-enable "$@"

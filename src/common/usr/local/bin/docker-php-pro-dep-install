@@ -1,0 +1,38 @@
+#!/bin/sh
+set -e
+
+if [ -z "$DEPENDENCY_PACKAGES" ]; then
+    echo "🔔 WARNING: The DEPENDENCY_PACKAGES variable is not set. Continuing without installing additional packages."
+fi
+
+
+# Convert comma-delimited package names to space-separated
+DEP_PACKAGES="$(echo $DEPENDENCY_PACKAGES | tr ',' ' ')"
+
+# Determine the Operating System
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+else
+    echo "Unable to determine the OS."
+    exit 1
+fi
+
+# Installation commands and clean-up processes based on OS
+case $NAME in
+    "Debian GNU/Linux")
+        INSTALL_CMD="apt-get update && apt-get install -y $DEP_PACKAGES"
+        CLEANUP_CMD="apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*"
+        ;;
+    "Alpine Linux")
+        INSTALL_CMD="apk update && apk add --no-cache $DEP_PACKAGES"
+        CLEANUP_CMD="rm -rf /var/cache/apk/*"
+        ;;
+    *)
+        echo "Unsupported OS: $NAME"
+        exit 1
+        ;;
+esac
+
+# Execute Installation & Cleanup
+$INSTALL_CMD && $CLEANUP_CMD
+echo "Installation complete."
