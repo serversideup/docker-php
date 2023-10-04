@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+if [ $# -eq 0 ]; then
+    echo "🔔 WARNING: No packages were passed to the PECL installation script. We're assuming you don't want any additional packages installed."
+fi
+
+# Convert comma-delimited package names to space-separated
+PECL_PACKAGES="$(echo $@ | tr ',' ' ')"
+
+for ext in $PECL_PACKAGES; do
+        pecl install "$ext"
+done
+
+docker-php-ext-enable "$@"
