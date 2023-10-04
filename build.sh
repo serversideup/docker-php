@@ -25,7 +25,7 @@ function ui_reset_colors {
     printf "\e[0m"
 }
 
-function assemble_php_version_data_from_url {
+function save_php_version_data_from_url {
     # Fetch the JSON from the PHP website
     json_data=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
 
