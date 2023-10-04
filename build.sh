@@ -60,7 +60,7 @@ function save_php_version_data_from_url {
             to_entries[] |
             {
                 \"minor_version\": .key,
-                \"patch_versions\": [ .value.version | tostring ]  # Quoting the version number
+                \"patch_versions\": [ .value.version | tostring ]
             }
             ]
         }
