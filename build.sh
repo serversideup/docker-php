@@ -38,9 +38,9 @@ function save_php_version_data_from_url {
     if [[ ${#PHP_RC_VERSIONS[@]} -ne 0 ]]; then  # If PHP_RC_VERSIONS is not empty:
         for rc_version in "${PHP_RC_VERSIONS[@]}"; do
             rc_jq="{
-                \"minor_version\": \"$rc_version\",
-                \"release_candidate_version\": true,
-                \"patch_versions\": [\"$rc_version\"]
+                \"minor\": \"$rc_version\",
+                \"release_candidate\": true,
+                \"patch\": [\"$rc_version\"]
             }"
             # Add each RC version to the end of the .php_versions[0].minor_versions array.
             rc_additions+=" | .php_versions[0].minor_versions += [$rc_jq]"
@@ -54,12 +54,12 @@ function save_php_version_data_from_url {
         . as \$major |
         to_entries[] |
         {
-            \"major_version\": .key,
+            \"major\": .key,
             \"minor_versions\": [
             .value |
             to_entries[] |
             {
-                \"minor_version\": .key,
+                \"minor\": .key,
                 \"patch_versions\": [ .value.version | tostring ]
             }
             ]
