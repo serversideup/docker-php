@@ -81,54 +81,64 @@ function save_php_version_data_from_url {
 }
 
 generate_docker_build_commands() {
-  local php_versions_file=$PHP_VERSIONS_CONFIG_FILE
-  local build_config_file=$BUILD_BUILD_CONFIG_FILE
+    local php_versions_file=$PHP_VERSIONS_CONFIG_FILE
+    local build_config_file=$BUILD_BUILD_CONFIG_FILE
 
-  # Extract base OS versions and default OS
-  local base_os_versions=($(yq e '.base_os_versions[].name' $build_config_file))
-  local default_os=$(yq e '.base_os_versions[] | select(.default == true).name' $build_config_file)
+    # Extract base OS versions and default OS
+    local base_os_versions=($(yq e '.base_os_versions[].name' $build_config_file))
+    local default_os=$(yq e '.base_os_versions[] | select(.default == true).name' $build_config_file)
+    local latest_major=$(yq e '.php_versions[].major' $php_versions_file | tail -1)
 
-# For each PHP version
-for major in $(yq e '.php_versions[].major' $php_versions_file); do
-  for minor in $(yq e ".php_versions[] | select(.major == \"$major\").minor_versions[].minor" $php_versions_file); do
-    # Fetch the latest patch for the current minor version
-    latest_patch=$(yq e ".php_versions[] | select(.major == \"$major\") | .minor_versions[] | select(.minor == \"$minor\") | (.patch_versions[]? // .patch[0])" $php_versions_file | tail -1)
-    
-    for patch in $(yq e ".php_versions[].minor_versions[] | select(.minor == \"$minor\").patch_versions[]" $php_versions_file); do
-      # For each PHP variation
-      for variation in $(yq e '.php_variations[].name' $build_config_file); do
-        # For each OS
-        for os in "${base_os_versions[@]}"; do
-          # Set our main command
-          docker_command="docker build "
+    # For each PHP version
+    for major in $(yq e '.php_versions[].major' $php_versions_file); do
+        latest_minor=$(yq e ".php_versions[] | select(.major == \"$major\") | .minor_versions[] | select(.release_candidate != true) | .minor" $php_versions_file | tail -1)
 
-          # Use the varation's Dockefile
-          docker_command+=$'-f src/variations/'"$variation"'/Dockerfile '
+        for minor in $(yq e ".php_versions[] | select(.major == \"$major\").minor_versions[].minor" $php_versions_file); do
+            # Fetch the latest patch for the current minor version
+            latest_patch=$(yq e ".php_versions[] | select(.major == \"$major\") | .minor_versions[] | select(.minor == \"$minor\") | (.patch_versions[]? // .patch[0])" $php_versions_file | tail -1)
 
-          # Set the build arguments
-          docker_command+=$'--build-arg BASE_OS_VERSION='"$os"' '
-          docker_command+=$'--build-arg PHP_VERSION=php:'"$patch"' '
-          docker_command+=$'--build-arg PHP_VARIATION='"$variation"' '
-          
-          # Set the version tagging
-          docker_command+=$'-t serversideup/php-pro-'"$variation"':'"$patch"' '
+            for patch in $(yq e ".php_versions[].minor_versions[] | select(.minor == \"$minor\").patch_versions[]" $php_versions_file); do
+                # For each PHP variation
+                for variation in $(yq e '.php_variations[].name' $build_config_file); do
+                    # For each OS
+                    for os in "${base_os_versions[@]}"; do
+                        # Set our main command
+                        docker_command="docker build "
 
-          # If the patch is the latest for its minor version, tag it with the minor version
-          if [ "$patch" == "$latest_patch" ]; then
-            docker_command+=$'-t serversideup/php-pro-'"$variation"':'"$minor"' '
-          fi
-          
-          # Wrap up the command with the context of the current directory
-          docker_command+=$'.'
+                        # Use the varation's Dockefile
+                        docker_command+=$'-f src/variations/'"$variation"'/Dockerfile '
 
-          echo "$docker_command"
+                        # Set the build arguments
+                        docker_command+=$'--build-arg BASE_OS_VERSION='"$os"' '
+                        docker_command+=$'--build-arg PHP_VERSION=php:'"$patch"' '
+                        docker_command+=$'--build-arg PHP_VARIATION='"$variation"' '
+
+                        # Set the version tagging
+                        docker_command+=$'-t serversideup/php-pro-'"$variation"':'"$patch"' '
+
+                        if [[ "$patch" == "$latest_patch" && "$default_os" == "$os" ]]; then
+                            docker_command+=$'-t serversideup/php-pro-'"$variation"':'"$minor"' '
+                        fi
+
+                        if [[ "$minor" == "$latest_minor" && "$default_os" == "$os" ]]; then
+                            docker_command+=$'-t serversideup/php-pro-'"$variation"':'"$major"' '
+                        fi
+
+                        if [[ "$major" == "$latest_major" && "$default_os" == "$os" ]]; then
+                            docker_command+=$'-t serversideup/php-pro-'"$variation"':'"latest"' '
+                        fi
+
+                        # Wrap up the command with the context of the current directory
+                        docker_command+=$'.'
+
+                        echo "$docker_command"
+                    done
+                done
+            done
         done
-      done
     done
-  done
-done
-
 }
+
 
 ##########################
 # Main script starts here
