@@ -25,7 +25,7 @@ function ui_reset_colors {
     printf "\e[0m"
 }
 
-function get_active_php_versions {
+function assemble_php_version_data_from_url {
     # Fetch the JSON from the PHP website
     json_data=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
 
@@ -33,23 +33,20 @@ function get_active_php_versions {
     echo "⚡️ Getting PHP Versions..."
     ui_reset_colors
 
-    # Check if the array PHP_RC_VERSIONS has any elements (i.e., is not empty).
     rc_version_jq='.'  # Set a default value that represents no change in jq.
+
+    rc_additions=""
     
     if [[ ${#PHP_RC_VERSIONS[@]} -ne 0 ]]; then  # If PHP_RC_VERSIONS is not empty:
-        rc_array="["  # Initialize an empty JSON array string.
-        
-        # Loop through each version in PHP_RC_VERSIONS to construct the JSON representation.
         for rc_version in "${PHP_RC_VERSIONS[@]}"; do
-            # For each RC version, append its JSON structure to the rc_array string.
-            rc_array+="{\"minor_version\": \"$rc_version\", \"patch_versions\": [\"$rc_version\"]},"
+            rc_jq="{
+                \"minor_version\": \"$rc_version\",
+                \"release_candidate_version\": true,
+                \"patch_versions\": [\"$rc_version\"]
+            }"
+            # Add each RC version to the end of the .php_versions[0].minor_versions array.
+            rc_additions+=" | .php_versions[0].minor_versions += [$rc_jq]"
         done
-        
-        rc_array=${rc_array%,}  # Remove the trailing comma from the constructed JSON string.
-        rc_array+="]"  # Close the JSON array.
-        
-        # Construct the jq transformation to set the development versions in the main data.
-        rc_version_jq=".php_versions[0].development_versions=$rc_array"
     fi
 
     # Parse the fetched JSON data and transform it to a specific YAML structure using jq and yq.
@@ -65,13 +62,13 @@ function get_active_php_versions {
             to_entries[] |
             {
                 \"minor_version\": .key,
-                \"patch_versions\": [ .value.version ]
+                \"patch_versions\": [ .value.version | tostring ]  # Quoting the version number
             }
             ]
         }
         ]
     }
-    | $rc_version_jq" | yq eval -P -)
+    $rc_additions" | yq eval -P -)
 
     # Print the transformed YAML data to the console.
     echo "$yaml_data"
@@ -86,4 +83,4 @@ function get_active_php_versions {
 
 ##########################
 # Main script starts here
-get_active_php_versions
+save_php_version_data_from_url
