@@ -1,0 +1,15 @@
+# Supported OS versions
+base_os_versions:
+  - name: bookworm
+    default: true
+  - name: alpine
+
+# PHP build variations
+php_variations:
+  - name: cli
+  - name: fpm
+  - name: fpm-nginx
+    base_variation: fpm
+  - name: fpm-apache
+    base_variation: fpm
+  - name: nginx-unit
