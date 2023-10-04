@@ -142,5 +142,5 @@ generate_docker_build_commands() {
 
 ##########################
 # Main script starts here
-# save_php_version_data_from_url
+save_php_version_data_from_url
 generate_docker_build_commands
