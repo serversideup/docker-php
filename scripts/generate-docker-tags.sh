@@ -15,8 +15,6 @@ DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php-pro-$PHP_BUILD_VARIATI
 PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"$SCRIPT_DIR/conf/php-versions.yml"}"
 DEFAULT_BASE_OS="${DEFAULT_BASE_OS:-"bookworm"}"
 
-
-
 ##########################
 # Functions
 
@@ -60,25 +58,31 @@ check_vars() {
   return 0
 }
 
-echo_tag_set() {
-  echo_color_message blue "🐳 Set tag: $1"
+add_docker_tag() {
+  docker_tag=$1
+  DOCKER_TAGS+="$docker_tag"
+
+  # Trim commas for a better output
+  docker_tag="${docker_tag//,}"
+  echo_color_message blue "🐳 Set tag: $docker_tag"
 }
 
 assemble_docker_tags() {
   # Store arguments
-  php_build_version=$1
+  build_patch_version=$1
+  build_base_os=$2
 
-  # Extract major and minor versions from php_build_version
-  build_major_version="${php_build_version%%.*}"
-  build_minor_version="${php_build_version%.*}"
+  # Extract major and minor versions from build_patch_version
+  build_major_version="${build_patch_version%%.*}"
+  build_minor_version="${build_patch_version%.*}"
 
   # Fetch version data from the PHP
   latest_global_major=$(yq e '.php_versions[-1].major' $PHP_VERSIONS_FILE)
   latest_global_minor=$(yq e ".php_versions[] | select(.major == \"$latest_global_major\") | .minor_versions[-1].minor" $PHP_VERSIONS_FILE)
-  latest_minor_within_build_major=$(yq e ".php_versions[] | select(.major == \"$build_major_version\") | .minor_versions[-1].minor" $PHP_VERSIONS_FILE)
-  latest_patch_within_build_minor=$(yq e ".php_versions[] | select(.major == \"$build_major_version\") | .minor_versions[] | select(.minor == \"$build_minor_version\") | .patch_versions[-1]" $PHP_VERSIONS_FILE)
+  latest_minor_within_build_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg bmv "$build_major_version" '.php_versions[] | select(.major == $bmv) | .minor_versions | map(.minor | split(".") | .[1] | tonumber) | max | $bmv + "." + tostring')
+  latest_patch_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg bmv "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $bmv) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
 
-  echo_color_message yellow "⚡️ PHP Build Version: $php_build_version"
+  echo_color_message green "⚡️ PHP Build Version: $build_patch_version"
 
   echo_color_message yellow "👇 Calculated Build Versions:"
   echo "Build Major Version: $build_major_version"
@@ -91,31 +95,30 @@ assemble_docker_tags() {
   echo "Latest Patch Version within Build Minor: $latest_patch_within_build_minor"
   
   # Set default tag
-  DOCKER_TAGS="$DOCKER_REPOSITORY:$1"
+  DOCKER_TAGS=""
+  add_docker_tag "$DOCKER_REPOSITORY:$build_patch_version"
+  add_docker_tag ",$DOCKER_REPOSITORY:$build_patch_version-$build_base_os"
 
-  echo_tag_set "$DOCKER_TAGS"
+  if [[ "$build_patch_version" == "$latest_patch_within_build_minor" ]]; then
+    add_docker_tag ",$DOCKER_REPOSITORY:$build_minor_version-$build_base_os"
+    if [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]; then
+      add_docker_tag ",$DOCKER_REPOSITORY:$build_minor_version"
+    fi
+  fi
 
+  if [[ "$build_minor_version" == "$latest_minor_within_build_major" ]]; then
+    add_docker_tag ",$DOCKER_REPOSITORY:$build_major_version-$build_base_os"
+    if [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]; then
+      add_docker_tag ",$DOCKER_REPOSITORY:$build_major_version"
+    fi
+  fi
 
-
-# # Fetch the latest minor version for the given major version
-# latest_minor=$(yq e ".php_versions[] | select(.major == \"$major_version\") | .minor_versions[-1].minor" versions.yml)
-
-# # Check if the given php_build_version minor version is the latest
-# if [[ "$minor_version" == "$latest_minor" ]]; then
-#     echo "It's the latest minor version for major version $major_version."
-# else
-#     echo "It's not the latest minor version for major version $major_version."
-# fi
-
-# # Fetch the latest patch version for the given major.minor version
-# latest_patch=$(yq e ".php_versions[] | select(.major == \"$major_version\") | .minor_versions[] | select(.minor == \"$minor_version\") | .patch_versions[-1]" versions.yml)
-
-# # Check if the given php_build_version is the latest patch version for its major.minor version
-# if [[ "$php_build_version" == "$latest_patch" ]]; then
-#     echo "It's the latest patch version for $minor_version."
-# else
-#     echo "It's not the latest patch version for $minor_version."
-# fi
+  if [[ "$build_major_version" == "$latest_global_major" ]]; then
+    add_docker_tag ",$DOCKER_REPOSITORY:$build_base_os"
+    if [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]; then
+      add_docker_tag ",$DOCKER_REPOSITORY:latest"
+    fi
+  fi
 
 # # Save to GitHub's environment
 # echo "DOCKER_TAGS=${DOCKER_TAGS}" >> $GITHUB_ENV
@@ -133,4 +136,4 @@ check_vars \
   PHP_BUILD_VARIATION \
   PHP_BUILD_BASE_OS
 
-assemble_docker_tags $PHP_BUILD_VERSION
+assemble_docker_tags $PHP_BUILD_VERSION $PHP_BUILD_BASE_OS
