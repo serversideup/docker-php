@@ -28,7 +28,7 @@ function ui_reset_colors {
 
 function save_php_version_data_from_url {
     # Fetch the JSON from the PHP website
-    json_data=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
+    local json_data=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
 
     ui_set_yellow
     echo "⚡️ Getting PHP Versions..."
@@ -49,7 +49,7 @@ function save_php_version_data_from_url {
     fi
 
     # Parse the fetched JSON data and transform it to a specific YAML structure using jq and yq.
-    yaml_data=$(echo "$json_data" | jq -r "
+    local yaml_data=$(echo "$json_data" | jq -r "
     {
         \"php_versions\": [
         . as \$major |
@@ -142,5 +142,20 @@ generate_docker_build_commands() {
 
 ##########################
 # Main script starts here
+VARIATION=""
+BASE_OS=""
+VERSION=""
+
+# Parse arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --variation) VARIATION="$2"; shift ;;
+        --base-os) BASE_OS="$2"; shift ;;
+        --version) VERSION="$2"; shift ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
+    esac
+    shift
+done
+
 save_php_version_data_from_url
 generate_docker_build_commands
