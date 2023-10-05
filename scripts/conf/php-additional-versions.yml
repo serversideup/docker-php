@@ -33,7 +33,7 @@ php_versions:
       - minor: "8.2"
         patch_versions:
           - 8.2.10
-          - 8.2.9
           - 8.2.8
           - 8.2.7
+          - 8.2.9
           - 8.2.6
