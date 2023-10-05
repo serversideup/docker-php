@@ -47,6 +47,7 @@ function echo_color_message (){
 }
 
 function save_php_version_data_from_url {
+    echo_color_message yellow "⚡️ Getting PHP Versions..."
     # Fetch the JSON from the PHP website
     local json_data=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
 
@@ -119,9 +120,6 @@ function merge_php_version_data {
 
 ##########################
 # Main script starts here
-
-echo_color_message yellow "⚡️ Getting PHP Versions..."
-
 
 save_php_version_data_from_url
 
