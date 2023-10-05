@@ -34,7 +34,7 @@ function save_php_version_data_from_url {
     echo "⚡️ Getting PHP Versions..."
     ui_reset_colors
 
-    rc_additions=""
+    rc_version_additions=""
     
     if [[ ${#PHP_RC_VERSIONS[@]} -ne 0 ]]; then  # If PHP_RC_VERSIONS is not empty:
         for rc_version in "${PHP_RC_VERSIONS[@]}"; do
@@ -44,7 +44,7 @@ function save_php_version_data_from_url {
                 \"patch\": [\"$rc_version\"]
             }"
             # Add each RC version to the end of the .php_versions[0].minor_versions array.
-            rc_additions+=" | .php_versions[0].minor_versions += [$rc_jq]"
+            rc_version_additions+=" | .php_versions[0].minor_versions += [$rc_jq]"
         done
     fi
 
@@ -80,7 +80,19 @@ function save_php_version_data_from_url {
     ui_reset_colors
 }
 
-generate_docker_build_commands() {
+get_configuration_value() {
+    local command_line_variable="$1"
+    local yaml_query="$2"
+    local config_file="$3"
+
+    if [[ -z "$command_line_variable" ]]; then
+        echo "$(yq e "$yaml_query" $config_file)"
+    else
+        echo "$command_line_variable"
+    fi
+}
+
+generate_all_docker_build_commands() {
     local php_versions_file=$PHP_VERSIONS_CONFIG_FILE
     local build_config_file=$BUILD_BUILD_CONFIG_FILE
 
@@ -96,7 +108,7 @@ generate_docker_build_commands() {
         for minor in $(yq e ".php_versions[] | select(.major == \"$major\").minor_versions[].minor" $php_versions_file); do
             # Fetch the latest patch for the current minor version
             latest_patch=$(yq e ".php_versions[] | select(.major == \"$major\") | .minor_versions[] | select(.minor == \"$minor\") | (.patch_versions[]? // .patch[0])" $php_versions_file | tail -1)
-
+ 
             for patch in $(yq e ".php_versions[].minor_versions[] | select(.minor == \"$minor\").patch_versions[]" $php_versions_file); do
                 # For each PHP variation
                 for variation in $(yq e '.php_variations[].name' $build_config_file); do
@@ -139,6 +151,10 @@ generate_docker_build_commands() {
     done
 }
 
+generate_specific_docker_build_commands() {
+    
+}
+
 
 ##########################
 # Main script starts here
@@ -158,4 +174,9 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 save_php_version_data_from_url
-generate_docker_build_commands
+
+if [ -z "$VARIATION" ] && [ -z "$BASE_OS" ] && [ -z "$VERSION" ]; then
+    generate_all_docker_build_commands
+else
+    generate_specific_docker_build_commands "$VARIATION" "$BASE_OS" "$VERSION"
+fi
