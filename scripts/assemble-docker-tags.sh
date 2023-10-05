@@ -133,7 +133,7 @@ assemble_docker_tags() {
     fi
   fi
 
-  echo_color_message green "🚀 Final Docker Tags Being Shipped: $DOCKER_TAGS"
+  echo_color_message green "🚀 Summary of Docker Tags Being Shipped: $DOCKER_TAGS"
 
   # Save to GitHub's environment
   if [[ $CI == "true" ]]; then
