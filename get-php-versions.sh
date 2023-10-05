@@ -75,11 +75,19 @@ function save_php_version_data_from_url {
 
     # Save the transformed YAML data to the designated file (PHP_VERSIONS_CONFIG_FILE).
     echo "$yaml_data" > $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE
+
+    ui_set_green
+    echo "✅ PHP Version data downloaded from $PHP_VERSIONS_ACTIVE_JSON_FEED"
+    ui_reset_colors
 }
 
 function finalize_php_version_data {
     # Move the downloaded PHP versions file to the final file.
     mv $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE $FINAL_PHP_VERSIONS_CONFIG_FILE
+
+    ui_set_green
+    echo "✅ Data is finalized compiled into $FINAL_PHP_VERSIONS_CONFIG_FILE"
+    ui_reset_colors
 
     cat $FINAL_PHP_VERSIONS_CONFIG_FILE
 
