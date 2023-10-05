@@ -4,13 +4,18 @@ set -e
 
 ##########################
 # Environment Settings
-BUILD_BUILD_CONFIG_FILE="${BUILD_BUILD_CONFIG_FILE:-"build-config.yml"}"
-PHP_VERSIONS_CONFIG_FILE="${PHP_VERSIONS_CONFIG_FILE:-"php-versions-conf.yml"}"
-PHP_VERSIONS_ACTIVE_JSON_FEED="${PHP_VERSIONS_ACTIVE_JSON_FEED:-"https://www.php.net/releases/active.php"}"
 
 # Manual setting for PHP RC versions. Change this to add or remove RC versions.
 # Separate each version with a space. Example: ("8.3-rc" "8.4-rc")
 PHP_RC_VERSIONS=("8.3-rc")
+
+# PHP Versions JSON feed URL
+PHP_VERSIONS_ACTIVE_JSON_FEED="${PHP_VERSIONS_ACTIVE_JSON_FEED:-"https://www.php.net/releases/active.php"}"
+
+# File settings
+ADDITIONAL_PHP_VERSIONS_CONFIG_FILE="${ADDITIONAL_PHP_VERSIONS_CONFIG_FILE:-"php-additional-versions.yml"}"
+DOWNLOADED_PHP_VERSIONS_CONFIG_FILE="php-versions-downloaded.yml.tmp"
+FINAL_PHP_VERSIONS_CONFIG_FILE="php-versions.yml"
 
 # UI Colors
 function ui_set_yellow {
@@ -32,10 +37,6 @@ function ui_reset_colors {
 function save_php_version_data_from_url {
     # Fetch the JSON from the PHP website
     local json_data=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
-
-    ui_set_yellow
-    echo "⚡️ Getting PHP Versions..."
-    ui_reset_colors
 
     rc_version_additions=""
     
@@ -72,17 +73,46 @@ function save_php_version_data_from_url {
     }
     $rc_version_additions" | yq eval -P -)
 
-    # Print the transformed YAML data to the console.
-    echo "$yaml_data"
-
     # Save the transformed YAML data to the designated file (PHP_VERSIONS_CONFIG_FILE).
-    echo "$yaml_data" > $PHP_VERSIONS_CONFIG_FILE
+    echo "$yaml_data" > $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE
+}
+
+function finalize_php_version_data {
+    # Move the downloaded PHP versions file to the final file.
+    mv $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE $FINAL_PHP_VERSIONS_CONFIG_FILE
+
+    cat $FINAL_PHP_VERSIONS_CONFIG_FILE
 
     ui_set_green
-    echo "✅ Saved PHP Versions to $PHP_VERSIONS_CONFIG_FILE"
+    echo "✅ Saved PHP versions to $FINAL_PHP_VERSIONS_CONFIG_FILE"
     ui_reset_colors
 }
 
+function merge_php_version_data {
+    
+    # Combine the files
+    yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE $ADDITIONAL_PHP_VERSIONS_CONFIG_FILE -i $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE
+
+    # Sort the patches
+    yq eval '.php_versions[] .minor_versions[] .patch_versions |= sort' $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE -i
+
+    # Remove duplicates
+    yq eval '.php_versions[].minor_versions[].patch_versions |= unique' $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE -i
+}
+
+
 ##########################
 # Main script starts here
+
+ui_set_yellow
+echo "⚡️ Getting PHP Versions..."
+ui_reset_colors
+
 save_php_version_data_from_url
+
+if [ -f $ADDITIONAL_PHP_VERSIONS_CONFIG_FILE ]; then
+    echo HERE
+    merge_php_version_data
+fi
+
+finalize_php_version_data

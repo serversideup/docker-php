@@ -3,4 +3,5 @@ package-lock.json
 package.json
 yarn.lock
 node_modules
-php-versions-conf.yml
+php-versions.yml
+*.tmp
