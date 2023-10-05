@@ -8,8 +8,8 @@ set -e
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Required variables to set
-PHP_BUILD_VERSION="${PHP_BUILD_VERSION:-"$1"}"
-PHP_BUILD_VARIATION="${PHP_BUILD_VARIATION:-"$2"}"
+PHP_BUILD_VARIATION="${PHP_BUILD_VARIATION:-"$1"}"
+PHP_BUILD_VERSION="${PHP_BUILD_VERSION:-"$2"}"
 PHP_BUILD_BASE_OS="${PHP_BUILD_BASE_OS:-"$3"}"
 DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php-pro-$PHP_BUILD_VARIATION"}"
 PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"$SCRIPT_DIR/conf/php-versions.yml"}"
@@ -49,9 +49,12 @@ function echo_color_message (){
 }
 
 check_vars() {
-  for var_name in "$@"; do
-    if [ -z "${!var_name}" ]; then
-      echo "Variable $var_name is unset or empty."
+  message=$1
+  shift
+
+  for variable in "$@"; do
+    if [ -z "${!variable}" ]; then
+      echo_color_message red "$message: $variable"
       return 1
     fi
   done
@@ -81,6 +84,16 @@ assemble_docker_tags() {
   latest_global_minor=$(yq e ".php_versions[] | select(.major == \"$latest_global_major\") | .minor_versions[-1].minor" $PHP_VERSIONS_FILE)
   latest_minor_within_build_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg bmv "$build_major_version" '.php_versions[] | select(.major == $bmv) | .minor_versions | map(.minor | split(".") | .[1] | tonumber) | max | $bmv + "." + tostring')
   latest_patch_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg bmv "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $bmv) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
+
+  check_vars \
+    "🚨 Missing critical build variable. Check the script logic and logs" \
+    build_patch_version \
+    build_major_version \
+    build_minor_version \
+    latest_global_major \
+    latest_global_minor \
+    latest_minor_within_build_major \
+    latest_patch_within_build_minor
 
   echo_color_message green "⚡️ PHP Build Version: $build_patch_version"
 
@@ -120,8 +133,13 @@ assemble_docker_tags() {
     fi
   fi
 
-# # Save to GitHub's environment
-# echo "DOCKER_TAGS=${DOCKER_TAGS}" >> $GITHUB_ENV
+  echo_color_message green "🚀 Final Docker Tags Being Shipped: $DOCKER_TAGS"
+
+  # Save to GitHub's environment
+  if [[ $CI == "true" ]]; then
+    echo "DOCKER_TAGS=${DOCKER_TAGS}" >> $GITHUB_ENV
+    echo_color_message green "✅ Saved Docker Tags to "GITHUB_ENV""
+  fi
 }
 
 ##########################
@@ -129,11 +147,18 @@ assemble_docker_tags() {
 
 # Check that all required variables are set
 check_vars \
+  "🚨 Required variables not set" \
+  PHP_BUILD_VARIATION \
+  PHP_BUILD_VERSION \
+  PHP_BUILD_BASE_OS \
   DOCKER_REPOSITORY \
   PHP_VERSIONS_FILE \
-  DEFAULT_BASE_OS \
-  PHP_BUILD_VERSION \
-  PHP_BUILD_VARIATION \
-  PHP_BUILD_BASE_OS
+  DEFAULT_BASE_OS
+
+
+if [[ ! -f $PHP_VERSIONS_FILE ]]; then
+  echo_color_message red "🚨 PHP Versions file not found at $PHP_VERSIONS_FILE"
+  exit 1
+fi
 
 assemble_docker_tags $PHP_BUILD_VERSION $PHP_BUILD_BASE_OS
