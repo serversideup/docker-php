@@ -89,6 +89,10 @@ function finalize_php_version_data {
 }
 
 function merge_php_version_data {
+
+    ui_set_yellow
+    echo "⚡️ Combining data from $ADDITIONAL_PHP_VERSIONS_CONFIG_FILE..."
+    ui_reset_colors
     
     # Combine the files
     yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE $ADDITIONAL_PHP_VERSIONS_CONFIG_FILE -i $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE
@@ -111,7 +115,6 @@ ui_reset_colors
 save_php_version_data_from_url
 
 if [ -f $ADDITIONAL_PHP_VERSIONS_CONFIG_FILE ]; then
-    echo HERE
     merge_php_version_data
 fi
 
