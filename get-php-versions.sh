@@ -7,7 +7,10 @@ set -e
 BUILD_BUILD_CONFIG_FILE="${BUILD_BUILD_CONFIG_FILE:-"build-config.yml"}"
 PHP_VERSIONS_CONFIG_FILE="${PHP_VERSIONS_CONFIG_FILE:-"php-versions-conf.yml"}"
 PHP_VERSIONS_ACTIVE_JSON_FEED="${PHP_VERSIONS_ACTIVE_JSON_FEED:-"https://www.php.net/releases/active.php"}"
-PHP_RC_VERSIONS=("8.3-rc")  # Separate multiple versions by a space
+
+# Manual setting for PHP RC versions. Change this to add or remove RC versions.
+# Separate each version with a space. Example: ("8.3-rc" "8.4-rc")
+PHP_RC_VERSIONS=("8.3-rc")
 
 # UI Colors
 function ui_set_yellow {
