@@ -121,11 +121,11 @@ function merge_php_version_data {
 ##########################
 # Main script starts here
 
-if [[ "$CI" == "true" ]] && (! command -v jq &> /dev/null || ! command -v yq &> /dev/null); then
-  echo_color_message yellow "🏃‍♂️ CI is true and either jq or yq is not installed"
-  echo_color_message yellow "⬇️ Installing jq and yq..."
-  source $SCRIPT_DIR/install-jq-and-yq.sh
-fi
+# if [[ $CI == true ]] && (! command -v jq &> /dev/null || ! command -v yq &> /dev/null); then
+#   echo_color_message yellow "🏃‍♂️ CI is true and either jq or yq is not installed"
+#   echo_color_message yellow "⬇️ Installing jq and yq..."
+#   source $SCRIPT_DIR/install-jq-and-yq.sh
+# fi
 
 save_php_version_data_from_url
 

@@ -10,7 +10,7 @@ on:
         type: string
       php-versions-file:
         type: string
-        default: 'php-versions.yml'
+        default: 'scripts/conf/php-versions.yml'
       default-base-os:
         type: string
         default: 'bookworm'
@@ -40,7 +40,7 @@ jobs:
     - name: Assemble PHP versions into the matrix. 😎
       id: get-php-versions
       run: |
-        PHP_VERSIONS=$(yq e '.php_versions[].minor_versions[].patch_versions[]' -j ${{ inputs.php-versions-file }})
+        PHP_VERSIONS=$(yq e '.php_versions[].minor_versions[].patch_versions[]' -o=json ${{ inputs.php-versions-file }})
         echo "::set-output name=php-versions-json::${PHP_VERSIONS}"
 
   docker-publish:
