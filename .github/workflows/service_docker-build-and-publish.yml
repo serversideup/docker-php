@@ -158,23 +158,3 @@ jobs:
   #         pull: true
   #         push: true
   #         tags: ${{ env.DOCKER_TAGS }}
-
-  # update_container_readme:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       php-variations: ${{fromJson(needs.setup-matrix.outputs.php-variations)}}
-  #   name: Push README to Docker Hub
-  #   steps:
-  #     - name: git checkout
-  #       uses: actions/checkout@v3
-  #       with:
-  #         ref: main
-
-  #     - name: push README to Dockerhub
-  #       uses: peter-evans/dockerhub-description@v3
-  #       with:
-  #         username: ${{ secrets.DOCKER_HUB_README_USERNAME }}
-  #         password: ${{ secrets.DOCKER_HUB_README_PASSWORD }}
-  #         repository: serversideup/php-pro-${{ matrix.php-variations }}
-  #         short-description: ${{ github.event.repository.description }}
