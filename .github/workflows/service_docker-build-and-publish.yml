@@ -1,31 +1,53 @@
 on:
   workflow_call:
     inputs:
-      upstream-channel-prefix:
-        required: true
-        type: string
-        default: ''
       tag-prefix:
         required: true
         type: string
-        default: 'beta-'
-      php-variation:
-        required: true
-        type: string
+        default: 'edge-'
       checkout-type:
         required: true
         type: string
+      php-versions-file:
+        type: string
+        default: 'php-versions.yml'
+      default-base-os:
+        type: string
+        default: 'bookworm'
+      docker-repository-prefix:
+        type: string
+        default: 'serversideup/php-pro-'      
 
 jobs:
+  setup-matrix:
+    runs-on: ubuntu-22.04
+    outputs:
+      php-variations: '["cli","fpm","fpm-nginx","fpm-apache","nginx-unit"]'
+      base-os-versions: '["bookworm","alpine"]'
+      php-versions-json: ${{ steps.get-php-versions.outputs.php-versions }}
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+    
+    - name: Prepare PHP versions for the matrix. 😎
+      run: |
+        chmod +x ./get-php-versions.sh
+        ./get-php-versions.sh
+
+    - name: Assemble PHP versions into the matrix. 😎
+      id: get-php-versions
+      run: |
+        PHP_VERSIONS=$(yq e '.php_versions[].minor_versions[].patch_versions[]' -j ${{ inputs.php-versions-file }})
+        echo "::set-output name=php-versions-json::${PHP_VERSIONS}"
+
   docker-publish:
+    needs: setup-matrix
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        php-version: 
-          - "7.4"
-          - "8.0"
-          - "8.1"
-          - "8.2"
+        base-os-versions: ${{fromJson(needs.setup-matrix.outputs.base-os-versions)}}
+        php-variations: ${{fromJson(needs.setup-matrix.outputs.php-variations)}}
+        php-versions: ${{ fromJson(needs.setup-matrix.outputs.php-versions-json) }}
     steps:
       ##
       # Checkout branch (for push deployments)
@@ -74,26 +96,54 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      
-      - name: "👨‍🔬 Set docker tags: Non-Release "
-        if: inputs.checkout-type == 'branch'
-        run: echo "DOCKER_TAGS=serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}" >> $GITHUB_ENV
 
-      - name: "🚀 Set docker tags: Release"
-        if: inputs.checkout-type == 'latest-stable'
-        run: echo "DOCKER_TAGS=serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}, serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}-${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}" >> $GITHUB_ENV
+      - name: "📦 Assemble the Docker Tags"
+        run: |
+          chmod +x ./generate-docker-tags.sh
+          ./generate-docker-tags.sh
+        env:
+          DOCKER_REPOSITORY: ${{ matrix.docker-repository-prefix}}-${{ matrix.php-variations }}
+          PHP_VERSIONS_FILE: ${{ inputs.php-versions-file }}
+          DEFAULT_BASE_OS: ${{ inputs.default-base-os }}
+          PHP_BUILD_VERSION: ${{ matrix.php-version }}
+          PHP_BUILD_VARIATION: ${{ matrix.php-variations }}
+          PHP_BUILD_BASE_OS: ${{ matrix.base-os-versions }}
+          CHECKOUT_TYPE: ${{ inputs.checkout-type }}
+          DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          build-args: |
-            UPSTREAM_CHANNEL=${{ inputs.upstream-channel-prefix }}
-            PHP_VERSION=${{ matrix.php-version }}
-          context: src/${{ inputs.php-variation }}/.
-          platforms: |
-            linux/amd64
-            linux/arm/v7
-            linux/arm64/v8
-          pull: true
-          push: true
-          tags: ${{ env.DOCKER_TAGS }}
+  #     - name: Build and push
+  #       uses: docker/build-push-action@v3
+  #       with:
+  #         file: src/variations/${{ matrix.php-variations }}/Dockerfile
+  #         build-args: |
+  #           BASE_OS_VERSION=${{ matrix.base-os-versions }}
+  #           PHP_VERSION=${{ matrix.php-version }}
+  #           PHP_VARIATION=${{ matrix.php-variations }}
+  #         context: src/${{ matrix.php-variations }}/.
+  #         platforms: |
+  #           linux/amd64
+  #           linux/arm/v7
+  #           linux/arm64/v8
+  #         pull: true
+  #         push: true
+  #         tags: ${{ env.DOCKER_TAGS }}
+
+  # update_container_readme:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       php-variations: ${{fromJson(needs.setup-matrix.outputs.php-variations)}}
+  #   name: Push README to Docker Hub
+  #   steps:
+  #     - name: git checkout
+  #       uses: actions/checkout@v3
+  #       with:
+  #         ref: main
+
+  #     - name: push README to Dockerhub
+  #       uses: peter-evans/dockerhub-description@v3
+  #       with:
+  #         username: ${{ secrets.DOCKER_HUB_README_USERNAME }}
+  #         password: ${{ secrets.DOCKER_HUB_README_PASSWORD }}
+  #         repository: serversideup/php-pro-${{ matrix.php-variations }}
+  #         short-description: ${{ github.event.repository.description }}
