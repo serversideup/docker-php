@@ -5,13 +5,14 @@ on:
   push:
     branches:
       - feature/php-source
-    # paths:
-    #   - src/**
+    paths:
+      - src/**
+      - .github/workflows/**
+      - scripts/**
   schedule:
     - cron: '0 8 * * 1'
 
 jobs:
-
   build-beta-images:
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
