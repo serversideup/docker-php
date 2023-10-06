@@ -41,7 +41,7 @@ jobs:
       id: get-php-versions
       run: |
         PHP_VERSIONS=$(yq e '.php_versions[].minor_versions[].patch_versions[]' -o=json ${{ inputs.php-versions-file }})
-        echo "::set-output name=php-versions-json::${PHP_VERSIONS}"
+        echo "php-versions-json::${PHP_VERSIONS}" >> $GITHUB_OUTPUT
 
   docker-publish:
     needs: setup-matrix
