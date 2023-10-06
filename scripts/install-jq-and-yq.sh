@@ -11,3 +11,7 @@ wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BINARY
 # Install JQ with wget
 wget https://github.com/jqlang/jq/releases/download/jq-$JQ_VERSION/jq-linux-$ARCHITECTURE -O /usr/bin/jq && \
   chmod +x /usr/bin/jq
+
+echo "✅ Installation complete!"
+echo "YQ Version: $(yq --version)"
+echo "JQ Version: $(jq --version)"
