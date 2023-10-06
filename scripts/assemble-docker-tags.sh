@@ -160,6 +160,12 @@ assemble_docker_tags() {
 ##########################
 # Main Script
 
+if [[ "$CI" == "true" ]] && (! command -v jq &> /dev/null || ! command -v yq &> /dev/null); then
+  echo_color_message yellow "🏃‍♂️ CI is true and either jq or yq is not installed"
+  echo_color_message yellow "⬇️ Installing jq and yq..."
+  source $SCRIPT_DIR/install-jq-and-yq.sh
+fi
+
 # Check that all required variables are set
 check_vars \
   "🚨 Required variables not set" \
