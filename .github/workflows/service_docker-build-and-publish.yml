@@ -63,8 +63,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        php-versions: ${{ fromJson(needs.setup-matrix.outputs.php-versions-json) }}
         base-os-versions: ${{fromJson(needs.setup-matrix.outputs.base-os-versions)}}
+        php-versions: ${{ fromJson(needs.setup-matrix.outputs.php-versions-json) }}
         php-variations: ${{fromJson(needs.setup-matrix.outputs.php-variations)}}
 
     steps:
