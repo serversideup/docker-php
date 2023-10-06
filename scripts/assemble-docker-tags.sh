@@ -12,11 +12,9 @@ PHP_BUILD_VARIATION="${PHP_BUILD_VARIATION:-"$1"}"
 PHP_BUILD_VERSION="${PHP_BUILD_VERSION:-"$2"}"
 PHP_BUILD_BASE_OS="${PHP_BUILD_BASE_OS:-"$3"}"
 DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php-pro-$PHP_BUILD_VARIATION"}"
-PHP_VERSIONS_FILE_NAME="${PHP_VERSIONS_FILE:-"php-versions.yml"}"
+PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"scripts/conf/php-versions.yml"}"
 DEFAULT_BASE_OS="${DEFAULT_BASE_OS:-"bookworm"}"
 CHECKOUT_TYPE="${CHECKOUT_TYPE:-"branch"}"
-
-PHP_VERSIONS_FILE="./conf/$PHP_VERSIONS_FILE_NAME"
 
 # Support auto tagging of "edge" builds
 if [[ -z "$DOCKER_TAG_PREFIX" && "$CHECKOUT_TYPE" == "branch" ]]; then
