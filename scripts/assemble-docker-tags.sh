@@ -4,9 +4,6 @@ set -e
 ##########################
 # Environment Settings
 
-# Script variables
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-
 # Required variables to set
 PHP_BUILD_VARIATION="${PHP_BUILD_VARIATION:-"$1"}"
 PHP_BUILD_VERSION="${PHP_BUILD_VERSION:-"$2"}"
