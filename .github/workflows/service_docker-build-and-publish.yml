@@ -16,10 +16,7 @@ on:
         default: 'bookworm'
       docker-repository-prefix:
         type: string
-        default: 'serversideup/php-pro-'
-env:
-  YQ_VERSION: "4.35.2"
-  JQ_VERSION: "1.7"   
+        default: 'serversideup/php-pro'
 
 jobs:
   setup-matrix:
