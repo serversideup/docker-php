@@ -85,6 +85,26 @@ add_docker_tag() {
   echo_color_message blue "🐳 Set tag: ${tag_name//,}  "
 }
 
+function is_latest_patch() {
+    [[ "$build_patch_version" == "$latest_patch_within_build_minor" ]]
+}
+
+function is_latest_minor() {
+    [[ "$build_minor_version" == "$latest_minor_within_build_major" ]]
+}
+
+function is_latest_major() {
+    [[ "$build_major_version" == "$latest_global_major" ]]
+}
+
+function is_default_base_os() {
+    [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]
+}
+
+function is_latest_stable_release() {
+    [[ "$CHECKOUT_TYPE" == "latest-stable" ]]
+}
+
 assemble_docker_tags() {
   # Store arguments
   build_patch_version=$1
@@ -127,19 +147,26 @@ assemble_docker_tags() {
   add_docker_tag "$build_patch_version"
   add_docker_tag "$build_patch_version-$build_base_os"
 
-  if [[ "$build_patch_version" == "$latest_patch_within_build_minor" ]]; then
+  if is_latest_patch; then
     add_docker_tag "$build_minor_version-$build_base_os"
-    if [[ "$build_minor_version" == "$latest_minor_within_build_major" ]]; then
+    
+    if is_default_base_os; then
+      add_docker_tag "$build_minor_version"
+    fi
+
+    if is_latest_minor; then
       add_docker_tag "$build_major_version-$build_base_os"
-        if [[ "$build_major_version" == "$latest_global_major" ]]; then
-          add_docker_tag "$build_base_os"
-          if [[ "$build_base_os" == "$DEFAULT_BASE_OS" && "$CHECKOUT_TYPE" == "latest-stable" ]]; then
-            add_docker_tag "latest"
-          fi
-        fi
-      if [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]; then
+
+      if is_default_base_os; then
         add_docker_tag "$build_major_version"
-        add_docker_tag "$build_minor_version"
+      fi
+
+      if is_latest_major; then
+        add_docker_tag "$build_base_os"
+        
+        if is_default_base_os && is_latest_stable_release ]]; then
+          add_docker_tag "latest"
+        fi
       fi
     fi
   fi
