@@ -10,7 +10,7 @@ on:
         type: string
       php-versions-file:
         type: string
-        default: 'conf/php-versions.yml'
+        default: 'php-versions.yml'
       default-base-os:
         type: string
         default: 'bookworm'
@@ -39,18 +39,17 @@ jobs:
     
     - name: Ensure our PHP Versions file exists.
       run: |
-        PHP_VERSIONS_SCRIPT_LOCATION="scripts/${{ inputs.php-versions-file }}"
-        if [ ! -f $PHP_VERSIONS_SCRIPT_LOCATION ]; then
+        if [ ! -f "scripts/conf/${{ inputs.php-versions-file }}" ]; then
           echo "PHP Versions file does not exist. Exiting."
           exit 1
         else
-          cat $PHP_VERSIONS_SCRIPT_LOCATION
+          cat scripts/conf/${{ inputs.php-versions-file }}
         fi
 
     - name: Assemble PHP versions into the matrix. 😎
       id: get-php-versions
       run: |
-        PHP_VERSIONS_JSON=$(yq -o=json scripts/${{ inputs.php-versions-file }} | jq -c '[.php_versions[] | .minor_versions[] | .patch_versions[]] | sort_by(split(".") | map(tonumber)) | reverse')
+        PHP_VERSIONS_JSON=$(yq -o=json scripts/conf/${{ inputs.php-versions-file }} | jq -c '[.php_versions[] | .minor_versions[] | .patch_versions[]] | sort_by(split(".") | map(tonumber)) | reverse')
         echo "php-versions-json=${PHP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
   
 
@@ -117,7 +116,7 @@ jobs:
           ./scripts/assemble-docker-tags.sh
         env:
           DOCKER_REPOSITORY: ${{ matrix.docker-repository-prefix}}-${{ matrix.php-variations }}
-          PHP_VERSIONS_FILE_RELATIVE_LOCATION: ${{ inputs.php-versions-file }}
+          PHP_VERSIONS_FILE_NAME: "${{ inputs.php-versions-file }}"
           DEFAULT_BASE_OS: ${{ inputs.default-base-os }}
           PHP_BUILD_VERSION: ${{ matrix.php-versions }}
           PHP_BUILD_VARIATION: ${{ matrix.php-variations }}
