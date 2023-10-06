@@ -49,7 +49,7 @@ jobs:
     - name: Assemble PHP versions into the matrix. 😎
       id: get-php-versions
       run: |
-        PHP_VERSIONS_JSON=$(yq -o=json ${{ inputs.php-versions-file }} | jq -c '[.php_versions[] | .minor_versions[] | .patch_versions[]] | sort_by(split(".") | map(tonumber)) | reverse')
+        PHP_VERSIONS_JSON=$(yq -o=json ${{ inputs.php-versions-file }} | jq -c '[.php_versions[] | .minor_versions[] | .patch_versions[]]')
         echo "php-versions-json=${PHP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
   
     - name: Upload the php-versions.yml file
