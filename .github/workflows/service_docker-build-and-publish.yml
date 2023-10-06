@@ -47,13 +47,8 @@ jobs:
     - name: Assemble PHP versions into the matrix. 😎
       id: get-php-versions
       run: |
-        PHP_VERSIONS_JSON=$(yq e '.php_versions[].minor_versions[].patch_versions[]' -o=json ${{ inputs.php-versions-file }})
-        echo "php-versions-json::${PHP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
-
-    - name: Show JSON output of versions
-      run: |
-        echo "PHP Versions JSON: ${{ steps.get-php-versions.outputs.php-versions }}"
-        
+        PHP_VERSIONS_JSON=$(yq -o=json '.php_versions[].minor_versions[].patch_versions[]' ${{ inputs.php-versions-file }})
+        echo "php-versions-json::${PHP_VERSIONS_JSON}" >> $GITHUB_OUTPUT        
 
   docker-publish:
     needs: setup-matrix
