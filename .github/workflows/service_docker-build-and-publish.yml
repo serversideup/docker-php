@@ -52,6 +52,11 @@ jobs:
         PHP_VERSIONS_JSON=$(yq -o=json ${{ inputs.php-versions-file }} | jq -c '[.php_versions[] | .minor_versions[] | .patch_versions[]] | sort_by(split(".") | map(tonumber)) | reverse')
         echo "php-versions-json=${PHP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
   
+    - name: Upload the php-versions.yml file
+      uses: actions/upload-artifact@v2
+      with:
+        name: php-versions.yml
+        path: ${{ inputs.php-versions-file }}
 
   docker-publish:
     needs: setup-matrix
@@ -94,7 +99,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}
-
+      ##
+      # Download artifacts
+      ##
+      - name: Download PHP Versions file
+        uses: actions/download-artifact@v2
+        with:
+          name: php-versions.yml
+          path: "${{ inputs.php-versions-file }}"
       ##
       # Docker build & publish
       ##
