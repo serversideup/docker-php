@@ -5,8 +5,8 @@ on:
   push:
     branches:
       - feature/php-source
-    paths:
-      - src/**
+    # paths:
+    #   - src/**
   schedule:
     - cron: '0 8 * * 1'
 
