@@ -1,6 +1,7 @@
 #!/bin/bash
-#set -x
 set -e
+# set -x
+# trap read DEBUG
 
 ##########################
 # Environment Settings
@@ -51,20 +52,6 @@ function save_php_version_data_from_url {
     # Fetch the JSON from the PHP website
     local json_data=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
 
-    rc_version_additions=""
-    
-    if [[ ${#PHP_RC_VERSIONS[@]} -ne 0 ]]; then  # If PHP_RC_VERSIONS is not empty:
-        for rc_version in "${PHP_RC_VERSIONS[@]}"; do
-            rc_jq="{
-                \"minor\": \"$rc_version\",
-                \"release_candidate\": true,
-                \"patch\": [\"$rc_version\"]
-            }"
-            # Add each RC version to the end of the .php_versions[0].minor_versions array.
-            rc_version_additions+=" | .php_versions[0].minor_versions += [$rc_jq]"
-        done
-    fi
-
     # Parse the fetched JSON data and transform it to a specific YAML structure using jq and yq.
     local yaml_data=$(echo "$json_data" | jq -r "
     {
@@ -83,8 +70,7 @@ function save_php_version_data_from_url {
             ]
         }
         ]
-    }
-    $rc_version_additions" | yq eval -P -)
+    }" | yq eval -P -)
 
     # Save the transformed YAML data to the designated file (PHP_VERSIONS_CONFIG_FILE).
     echo "$yaml_data" > $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE
@@ -109,14 +95,43 @@ function merge_php_version_data {
     
     # Combine the files
     yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE $ADDITIONAL_PHP_VERSIONS_CONFIG_FILE -i $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE
+}
 
+function append_php_rc_versions {
+    echo_color_message yellow "⚡️ Adding PHP RC versions..."
+    
+    # Convert YAML to JSON
+    json_data=$(yq eval -o=json "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE")
+    
+    # Loop through each RC version
+    for rc_version in "${PHP_RC_VERSIONS[@]}"; do
+        major_version="${rc_version%%.*}"
+        
+        # Construct the new RC version entry as a JSON string
+        rc_json="{\"minor\": \"$rc_version\", \"release_candidate\": true, \"patch_versions\": [\"$rc_version\"]}"
+        
+        # Add the new RC version entry to the JSON data
+        json_data=$(echo "$json_data" | jq --argjson rc_json "$rc_json" --arg major "$major_version" '
+        (.php_versions[] | select(.major == $major) | .minor_versions) += [$rc_json]
+        ')
+    done
+    
+    # Convert updated JSON data back to YAML
+    updated_yaml=$(echo "$json_data" | yq eval -P -)
+    
+    # Save the updated YAML data back to the file
+    echo "$updated_yaml" > "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE"
+    
+    echo_color_message green "✅ PHP RC versions appended."
+}
+
+function sort_php_versions {
     # Sort the patches
     yq eval '.php_versions[] .minor_versions[] .patch_versions |= sort' $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE -i
 
     # Remove duplicates
     yq eval '.php_versions[].minor_versions[].patch_versions |= unique' $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE -i
 }
-
 
 ##########################
 # Main script starts here
@@ -126,5 +141,11 @@ save_php_version_data_from_url
 if [ -f $ADDITIONAL_PHP_VERSIONS_CONFIG_FILE ]; then
     merge_php_version_data
 fi
+
+if [ ${#PHP_RC_VERSIONS[@]} -ne 0 ]; then
+    append_php_rc_versions
+fi
+
+sort_php_versions
 
 finalize_php_version_data
