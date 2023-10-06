@@ -39,7 +39,7 @@ jobs:
     
     - name: Ensure our PHP Versions file exists.
       run: |
-        if [ ! -f "${{ inputs.php-versions-file }}" ]; then
+        if [ ! -f "scripts/${{ inputs.php-versions-file }}" ]; then
           echo "PHP Versions file does not exist. Exiting."
           exit 1
         else
