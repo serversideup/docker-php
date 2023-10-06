@@ -14,6 +14,14 @@ PHP_BUILD_BASE_OS="${PHP_BUILD_BASE_OS:-"$3"}"
 DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php-pro-$PHP_BUILD_VARIATION"}"
 PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"$SCRIPT_DIR/conf/php-versions.yml"}"
 DEFAULT_BASE_OS="${DEFAULT_BASE_OS:-"bookworm"}"
+CHECKOUT_TYPE="${CHECKOUT_TYPE:-"branch"}"
+
+# Support auto tagging of "edge" builds
+if [[ -z "$DOCKER_TAG_PREFIX" && "$CHECKOUT_TYPE" == "branch" ]]; then
+  DOCKER_TAG_PREFIX="edge-"
+else
+  DOCKER_TAG_PREFIX="${DOCKER_TAG_PREFIX:-""}"
+fi
 
 ##########################
 # Functions
@@ -62,12 +70,19 @@ check_vars() {
 }
 
 add_docker_tag() {
-  docker_tag=$1
-  DOCKER_TAGS+="$docker_tag"
+  docker_tag_suffix=$1
+  tag_name="$DOCKER_REPOSITORY:$DOCKER_TAG_PREFIX$docker_tag_suffix"
+
+  if [[ -z "$DOCKER_TAGS" ]]; then
+    # Do not prefix with comma
+    DOCKER_TAGS+="$tag_name"
+  else
+    # Add a comma to separate the tags
+    DOCKER_TAGS+=",$tag_name"
+  fi
 
   # Trim commas for a better output
-  docker_tag="${docker_tag//,}"
-  echo_color_message blue "🐳 Set tag: $docker_tag"
+  echo_color_message blue "🐳 Set tag: ${tag_name//,}  "
 }
 
 assemble_docker_tags() {
@@ -109,27 +124,27 @@ assemble_docker_tags() {
   
   # Set default tag
   DOCKER_TAGS=""
-  add_docker_tag "$DOCKER_REPOSITORY:$build_patch_version"
-  add_docker_tag ",$DOCKER_REPOSITORY:$build_patch_version-$build_base_os"
+  add_docker_tag "$build_patch_version"
+  add_docker_tag "$build_patch_version-$build_base_os"
 
   if [[ "$build_patch_version" == "$latest_patch_within_build_minor" ]]; then
-    add_docker_tag ",$DOCKER_REPOSITORY:$build_minor_version-$build_base_os"
+    add_docker_tag "$build_minor_version-$build_base_os"
     if [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]; then
-      add_docker_tag ",$DOCKER_REPOSITORY:$build_minor_version"
+      add_docker_tag "$build_minor_version"
     fi
   fi
 
   if [[ "$build_minor_version" == "$latest_minor_within_build_major" ]]; then
-    add_docker_tag ",$DOCKER_REPOSITORY:$build_major_version-$build_base_os"
+    add_docker_tag "$build_major_version-$build_base_os"
     if [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]; then
-      add_docker_tag ",$DOCKER_REPOSITORY:$build_major_version"
+      add_docker_tag "$build_major_version"
     fi
   fi
 
   if [[ "$build_major_version" == "$latest_global_major" ]]; then
-    add_docker_tag ",$DOCKER_REPOSITORY:$build_base_os"
-    if [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]; then
-      add_docker_tag ",$DOCKER_REPOSITORY:latest"
+    add_docker_tag "$build_base_os"
+    if [[ "$build_base_os" == "$DEFAULT_BASE_OS" && "$CHECKOUT_TYPE" == "latest-stable" ]]; then
+      add_docker_tag "latest"
     fi
   fi
 
@@ -153,8 +168,8 @@ check_vars \
   PHP_BUILD_BASE_OS \
   DOCKER_REPOSITORY \
   PHP_VERSIONS_FILE \
-  DEFAULT_BASE_OS
-
+  DEFAULT_BASE_OS \
+  CHECKOUT_TYPE
 
 if [[ ! -f $PHP_VERSIONS_FILE ]]; then
   echo_color_message red "🚨 PHP Versions file not found at $PHP_VERSIONS_FILE"
