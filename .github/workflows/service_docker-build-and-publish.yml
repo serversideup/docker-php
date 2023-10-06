@@ -39,11 +39,12 @@ jobs:
     
     - name: Ensure our PHP Versions file exists.
       run: |
-        if [ ! -f "scripts/${{ inputs.php-versions-file }}" ]; then
+        PHP_VERSIONS_SCRIPT_LOCATION="scripts/${{ inputs.php-versions-file }}"
+        if [ ! -f $PHP_VERSIONS_SCRIPT_LOCATION ]; then
           echo "PHP Versions file does not exist. Exiting."
           exit 1
         else
-          cat ${{ inputs.php-versions-file }}
+          cat $PHP_VERSIONS_SCRIPT_LOCATION
         fi
 
     - name: Assemble PHP versions into the matrix. 😎
