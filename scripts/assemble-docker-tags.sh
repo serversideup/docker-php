@@ -114,7 +114,7 @@ assemble_docker_tags() {
   # Fetch version data from the PHP
   latest_global_major=$(yq e '.php_versions[-1].major' $PHP_VERSIONS_FILE)
   latest_global_minor=$(yq e ".php_versions[] | select(.major == \"$latest_global_major\") | .minor_versions[-1].minor" $PHP_VERSIONS_FILE)
-  latest_minor_within_build_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(.minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
+  latest_minor_within_build_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
   latest_patch_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
 
   check_vars \
