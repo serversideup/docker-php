@@ -27,7 +27,7 @@ jobs:
     outputs:
       php-variations: '["cli","fpm","fpm-nginx","fpm-apache","nginx-unit"]'
       base-os-versions: '["bookworm","alpine"]'
-      php-versions-json: ${{ steps.get-php-versions.outputs.php-versions }}
+      php-versions-json: ${{ steps.get-php-versions.outputs.php-versions-json }}
     steps:
     - name: Check out code
       uses: actions/checkout@v3
@@ -40,8 +40,8 @@ jobs:
     - name: Assemble PHP versions into the matrix. 😎
       id: get-php-versions
       run: |
-        PHP_VERSIONS=$(yq e '.php_versions[].minor_versions[].patch_versions[]' -o=json ${{ inputs.php-versions-file }})
-        echo "php-versions-json::${PHP_VERSIONS}" >> $GITHUB_OUTPUT
+        PHP_VERSIONS_JSON=$(yq e '.php_versions[].minor_versions[].patch_versions[]' -o=json ${{ inputs.php-versions-file }})
+        echo "php-versions-json::${PHP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
 
     - name: Show JSON output of versions
       run: |
