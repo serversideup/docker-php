@@ -116,7 +116,7 @@ jobs:
           ./scripts/assemble-docker-tags.sh
         env:
           DOCKER_REPOSITORY: ${{ matrix.docker-repository-prefix}}-${{ matrix.php-variations }}
-          PHP_VERSIONS_FILE: ${{ inputs.php-versions-file }}
+          PHP_VERSIONS_FILE: "./${{ inputs.php-versions-file }}"
           DEFAULT_BASE_OS: ${{ inputs.default-base-os }}
           PHP_BUILD_VERSION: ${{ matrix.php-versions }}
           PHP_BUILD_VARIATION: ${{ matrix.php-variations }}
