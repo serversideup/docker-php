@@ -42,6 +42,8 @@ jobs:
         if [ ! -f "${{ inputs.php-versions-file }}" ]; then
           echo "PHP Versions file does not exist. Exiting."
           exit 1
+        else
+          cat ${{ inputs.php-versions-file }}
         fi
 
     - name: Assemble PHP versions into the matrix. 😎
