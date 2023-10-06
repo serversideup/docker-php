@@ -10,7 +10,7 @@ on:
         type: string
       php-versions-file:
         type: string
-        default: 'scripts/conf/php-versions.yml'
+        default: 'conf/php-versions.yml'
       default-base-os:
         type: string
         default: 'bookworm'
