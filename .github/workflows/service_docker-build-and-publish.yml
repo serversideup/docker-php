@@ -106,7 +106,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: php-versions.yml
-          path: "${{ inputs.php-versions-file }}"
+          path: ./artifacts
+      
+      - name: Move PHP Versions file
+        run: mv ./artifacts/php-versions.yml ${{ inputs.php-versions-file }}
+      
       ##
       # Docker build & publish
       ##
