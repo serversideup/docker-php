@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - feature/php-source
     paths:
       - src/**
   schedule:
@@ -12,41 +12,9 @@ on:
 
 jobs:
 
-  cli:
+  build-beta-images:
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
-      upstream-channel-prefix: "beta-"
       tag-prefix: "beta-"
-      php-variation: cli
-      checkout-type: branch
-    secrets: inherit
-
-  fpm:
-    needs: cli
-    uses: ./.github/workflows/service_docker-build-and-publish.yml
-    with:
-      upstream-channel-prefix: "beta-"
-      tag-prefix: "beta-"
-      php-variation: fpm
-      checkout-type: branch
-    secrets: inherit
-
-  fpm-nginx:
-    needs: fpm
-    uses: ./.github/workflows/service_docker-build-and-publish.yml
-    with:
-      upstream-channel-prefix: "beta-"
-      tag-prefix: "beta-"
-      php-variation: fpm-nginx
-      checkout-type: branch
-    secrets: inherit
-
-  fpm-apache:
-    needs: fpm
-    uses: ./.github/workflows/service_docker-build-and-publish.yml
-    with:
-      upstream-channel-prefix: "beta-"
-      tag-prefix: "beta-"
-      php-variation: fpm-apache
       checkout-type: branch
     secrets: inherit
