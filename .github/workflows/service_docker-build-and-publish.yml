@@ -112,8 +112,8 @@ jobs:
 
       - name: "📦 Assemble the Docker Tags"
         run: |
-          chmod +x ./generate-docker-tags.sh
-          ./generate-docker-tags.sh
+          chmod +x ./scripts/generate-docker-tags.sh
+          ./scripts/generate-docker-tags.sh
         env:
           DOCKER_REPOSITORY: ${{ matrix.docker-repository-prefix}}-${{ matrix.php-variations }}
           PHP_VERSIONS_FILE: ${{ inputs.php-versions-file }}
