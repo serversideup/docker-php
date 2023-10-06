@@ -181,6 +181,8 @@ if [[ ! -f $PHP_VERSIONS_FILE ]]; then
   echo_color_message red "🚨 PHP Versions file not found at $PHP_VERSIONS_FILE"
   echo "Current directory: $(pwd)"
   echo "Contents of $(dirname $PHP_VERSIONS_FILE): $(ls -al $(dirname $PHP_VERSIONS_FILE))"
+  echo "Contents of the file:"
+  cat $PHP_VERSIONS_FILE
   exit 1
 fi
 
