@@ -118,7 +118,7 @@ jobs:
           DOCKER_REPOSITORY: ${{ matrix.docker-repository-prefix}}-${{ matrix.php-variations }}
           PHP_VERSIONS_FILE: ${{ inputs.php-versions-file }}
           DEFAULT_BASE_OS: ${{ inputs.default-base-os }}
-          PHP_BUILD_VERSION: ${{ matrix.php-version }}
+          PHP_BUILD_VERSION: ${{ matrix.php-versions }}
           PHP_BUILD_VARIATION: ${{ matrix.php-variations }}
           PHP_BUILD_BASE_OS: ${{ matrix.base-os-versions }}
           CHECKOUT_TYPE: ${{ inputs.checkout-type }}
@@ -130,7 +130,7 @@ jobs:
   #         file: src/variations/${{ matrix.php-variations }}/Dockerfile
   #         build-args: |
   #           BASE_OS_VERSION=${{ matrix.base-os-versions }}
-  #           PHP_VERSION=${{ matrix.php-version }}
+  #           PHP_VERSION=${{ matrix.php-versions }}
   #           PHP_VARIATION=${{ matrix.php-variations }}
   #         context: src/${{ matrix.php-variations }}/.
   #         platforms: |
