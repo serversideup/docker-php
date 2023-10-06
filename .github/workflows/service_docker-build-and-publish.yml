@@ -14,6 +14,9 @@ on:
       default-base-os:
         type: string
         default: 'bookworm'
+      default-image-variation:
+        type: string
+        default: 'cli'
       docker-repo-name:
         type: string
         default: 'serversideup/php-pro'
@@ -129,9 +132,10 @@ jobs:
           chmod +x ./scripts/assemble-docker-tags.sh
           ./scripts/assemble-docker-tags.sh
         env:
-          DOCKER_REPOSITORY: "${{ inputs.docker-repo-name }}${{ matrix.php-variations }}"
+          DOCKER_REPOSITORY: "${{ inputs.docker-repo-name }}"
           PHP_VERSIONS_FILE: "${{ inputs.php-versions-file }}"
           DEFAULT_BASE_OS: ${{ inputs.default-base-os }}
+          DEFAULT_IMAGE_VARIATION: ${{ inputs.default-image-variation }}
           PHP_BUILD_VERSION: ${{ matrix.php-versions }}
           PHP_BUILD_VARIATION: ${{ matrix.php-variations }}
           PHP_BUILD_BASE_OS: ${{ matrix.base-os-versions }}
