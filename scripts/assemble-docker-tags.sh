@@ -8,8 +8,9 @@ set -e
 PHP_BUILD_VARIATION="${PHP_BUILD_VARIATION:-"$1"}"
 PHP_BUILD_VERSION="${PHP_BUILD_VERSION:-"$2"}"
 PHP_BUILD_BASE_OS="${PHP_BUILD_BASE_OS:-"$3"}"
-DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php-pro-$PHP_BUILD_VARIATION"}"
+DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php-pro"}"
 PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"scripts/conf/php-versions.yml"}"
+DEFAULT_IMAGE_VARIATION="${DEFAULT_IMAGE_VARIATION:-"cli"}"
 DEFAULT_BASE_OS="${DEFAULT_BASE_OS:-"bookworm"}"
 CHECKOUT_TYPE="${CHECKOUT_TYPE:-"branch"}"
 
@@ -102,10 +103,15 @@ function is_checkout_type_of_latest_stable() {
     [[ "$CHECKOUT_TYPE" == "latest-stable" ]]
 }
 
+function is_default_variation() {
+    [[ "$PHP_BUILD_VARIATION" == "$DEFAULT_IMAGE_VARIATION" ]]
+}
+
 assemble_docker_tags() {
   # Store arguments
   build_patch_version=$1
   build_base_os=$2
+  build_variation=$3
 
   # Extract major and minor versions from build_patch_version
   build_major_version="${build_patch_version%%.*}"
@@ -140,27 +146,34 @@ assemble_docker_tags() {
   
   # Set default tag
   DOCKER_TAGS=""
-  add_docker_tag "$build_patch_version"
-  add_docker_tag "$build_patch_version-$build_base_os"
+  add_docker_tag "$build_patch_version-$build_variation-$build_base_os"
+
+  if is_default_base_os; then
+    add_docker_tag "$build_patch_version-$build_variation"
+  fi
 
   if is_latest_stable_patch; then
-    add_docker_tag "$build_minor_version-$build_base_os"
-    
-    if is_default_base_os; then
+    add_docker_tag "$build_minor_version-$build_variation-$build_base_os"
+
+    if is_default_variation; then
+      add_docker_tag "$build_minor_version-$build_base_os"
+    fi
+
+    if is_default_base_os && is_default_variation; then
       add_docker_tag "$build_minor_version"
     fi
 
     if is_latest_minor_within_build_major; then
-      add_docker_tag "$build_major_version-$build_base_os"
+      add_docker_tag "$build_major_version-$build_variation-$build_base_os"
 
-      if is_default_base_os; then
+      if is_default_base_os && is_default_variation; then
         add_docker_tag "$build_major_version"
       fi
 
-      if is_latest_major; then
+      if is_latest_major && is_default_variation; then
         add_docker_tag "$build_base_os"
         
-        if is_default_base_os && is_checkout_type_of_latest_stable ]]; then
+        if is_default_base_os && is_checkout_type_of_latest_stable && is_default_variation; then
           add_docker_tag "latest"
         fi
       fi
@@ -199,4 +212,4 @@ if [[ ! -f $PHP_VERSIONS_FILE ]]; then
   exit 1
 fi
 
-assemble_docker_tags $PHP_BUILD_VERSION $PHP_BUILD_BASE_OS
+assemble_docker_tags $PHP_BUILD_VERSION $PHP_BUILD_BASE_OS $PHP_BUILD_VARIATION
