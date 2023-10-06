@@ -129,22 +129,18 @@ assemble_docker_tags() {
 
   if [[ "$build_patch_version" == "$latest_patch_within_build_minor" ]]; then
     add_docker_tag "$build_minor_version-$build_base_os"
-    if [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]; then
-      add_docker_tag "$build_minor_version"
-    fi
-  fi
-
-  if [[ "$build_minor_version" == "$latest_minor_within_build_major" ]]; then
-    add_docker_tag "$build_major_version-$build_base_os"
-    if [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]; then
-      add_docker_tag "$build_major_version"
-    fi
-  fi
-
-  if [[ "$build_major_version" == "$latest_global_major" ]]; then
-    add_docker_tag "$build_base_os"
-    if [[ "$build_base_os" == "$DEFAULT_BASE_OS" && "$CHECKOUT_TYPE" == "latest-stable" ]]; then
-      add_docker_tag "latest"
+    if [[ "$build_minor_version" == "$latest_minor_within_build_major" ]]; then
+      add_docker_tag "$build_major_version-$build_base_os"
+        if [[ "$build_major_version" == "$latest_global_major" ]]; then
+          add_docker_tag "$build_base_os"
+          if [[ "$build_base_os" == "$DEFAULT_BASE_OS" && "$CHECKOUT_TYPE" == "latest-stable" ]]; then
+            add_docker_tag "latest"
+          fi
+        fi
+      if [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]; then
+        add_docker_tag "$build_major_version"
+        add_docker_tag "$build_minor_version"
+      fi
     fi
   fi
 
