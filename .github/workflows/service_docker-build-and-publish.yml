@@ -28,11 +28,21 @@ jobs:
     steps:
     - name: Check out code
       uses: actions/checkout@v3
+
+    - name: Install yq and jq
+      run: |
+        ARCHITECTURE=$(dpkg --print-architecture) 
+        BINARY=yq_linux_${ARCHITECTURE} 
+        wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}.tar.gz -O - |\
+        tar xz && mv ${BINARY} /usr/bin/yq
+        apt update && apt install -y jq
+      env:
+        YQ_VERSION: 4.35.2
     
     - name: Prepare PHP versions for the matrix. 😎
       run: |
-        chmod +x ./get-php-versions.sh
-        ./get-php-versions.sh
+        chmod +x ./scripts/get-php-versions.sh
+        ./scripts/get-php-versions.sh
 
     - name: Assemble PHP versions into the matrix. 😎
       id: get-php-versions
@@ -96,6 +106,16 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+
+      - name: Install yq and jq
+        run: |
+          ARCHITECTURE=$(dpkg --print-architecture) 
+          BINARY=yq_linux_${ARCHITECTURE} 
+          wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}.tar.gz -O - |\
+          tar xz && mv ${BINARY} /usr/bin/yq
+          apt update && apt install -y jq
+        env:
+          YQ_VERSION: 4.35.2
 
       - name: "📦 Assemble the Docker Tags"
         run: |
