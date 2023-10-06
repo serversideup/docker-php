@@ -82,23 +82,23 @@ add_docker_tag() {
   echo_color_message blue "🐳 Set tag: ${tag_name//,}  "
 }
 
-function is_latest_patch() {
-    [[ "$build_patch_version" == "$latest_patch_within_build_minor" ]]
+function is_latest_stable_patch() {
+    [[ "$build_patch_version" == "$latest_patch_within_build_minor" && "$build_patch_version" != *"rc"* ]]
 }
 
-function is_latest_minor() {
-    [[ "$build_minor_version" == "$latest_minor_within_build_major" ]]
+function is_latest_minor_within_build_major() {
+    [[ "$build_minor_version" == "$latest_minor_within_build_major" && "$build_minor_version" != *"rc"* ]]
 }
 
 function is_latest_major() {
-    [[ "$build_major_version" == "$latest_global_major" ]]
+    [[ "$build_major_version" == "$latest_global_stable_major" ]]
 }
 
 function is_default_base_os() {
     [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]
 }
 
-function is_latest_stable_release() {
+function is_checkout_type_of_latest_stable() {
     [[ "$CHECKOUT_TYPE" == "latest-stable" ]]
 }
 
@@ -112,8 +112,8 @@ assemble_docker_tags() {
   build_minor_version="${build_patch_version%.*}"
 
   # Fetch version data from the PHP
-  latest_global_major=$(yq e '.php_versions[-1].major' $PHP_VERSIONS_FILE)
-  latest_global_minor=$(yq e ".php_versions[] | select(.major == \"$latest_global_major\") | .minor_versions[-1].minor" $PHP_VERSIONS_FILE)
+  latest_global_stable_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r '[.php_versions[] | select(.major | test("-rc") | not) | .major | tonumber] | max | tostring')
+  latest_global_stable_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg latest_global_stable_major "$latest_global_stable_major" '.php_versions[] | select(.major == $latest_global_stable_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $latest_global_stable_major + "." + tostring')
   latest_minor_within_build_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
   latest_patch_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
 
@@ -122,10 +122,9 @@ assemble_docker_tags() {
     build_patch_version \
     build_major_version \
     build_minor_version \
-    latest_global_major \
-    latest_global_minor \
-    latest_minor_within_build_major \
-    latest_patch_within_build_minor
+    latest_global_stable_major \
+    latest_global_stable_minor \
+    latest_minor_within_build_major
 
   echo_color_message green "⚡️ PHP Build Version: $build_patch_version"
 
@@ -134,8 +133,8 @@ assemble_docker_tags() {
   echo "Build Minor Version: $build_minor_version"
 
   echo_color_message yellow "🧐 Queried results from $PHP_VERSIONS_FILE"
-  echo "Latest Global Major Version: $latest_global_major"
-  echo "Latest Global Minor Version: $latest_global_minor"
+  echo "Latest Global Major Version: $latest_global_stable_major"
+  echo "Latest Global Minor Version: $latest_global_stable_minor"
   echo "Latest Minor Version within Build Major: $latest_minor_within_build_major"
   echo "Latest Patch Version within Build Minor: $latest_patch_within_build_minor"
   
@@ -144,14 +143,14 @@ assemble_docker_tags() {
   add_docker_tag "$build_patch_version"
   add_docker_tag "$build_patch_version-$build_base_os"
 
-  if is_latest_patch; then
+  if is_latest_stable_patch; then
     add_docker_tag "$build_minor_version-$build_base_os"
     
     if is_default_base_os; then
       add_docker_tag "$build_minor_version"
     fi
 
-    if is_latest_minor; then
+    if is_latest_minor_within_build_major; then
       add_docker_tag "$build_major_version-$build_base_os"
 
       if is_default_base_os; then
@@ -161,7 +160,7 @@ assemble_docker_tags() {
       if is_latest_major; then
         add_docker_tag "$build_base_os"
         
-        if is_default_base_os && is_latest_stable_release ]]; then
+        if is_default_base_os && is_checkout_type_of_latest_stable ]]; then
           add_docker_tag "latest"
         fi
       fi
