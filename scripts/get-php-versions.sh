@@ -1,7 +1,7 @@
 #!/bin/bash
 set -oue pipefail
-# set -x
-# trap read DEBUG
+set -x
+trap read DEBUG
 
 ##########################
 # Environment Settings
@@ -99,18 +99,23 @@ function merge_php_version_data {
 
     # Use 'echo' to pass the JSON data to 'jq'
     merged_json=$(jq -s '
-        .[0].php_versions + .[1].php_versions
-        | group_by(.major)
-        | map({
-            major: .[0].major,
-            minor_versions: map(
-                .minor_versions[]
-            ) | group_by(.minor)
-            | map({
-                minor: .[0].minor,
-                patch_versions: map(.patch_versions[]) | flatten
-            })
-        })
+        {
+            php_versions: (
+                .[0].php_versions + .[1].php_versions
+                | group_by(.major)
+                | map({
+                    major: .[0].major,
+                    minor_versions: (
+                        map(.minor_versions[]) 
+                        | group_by(.minor)
+                        | map({
+                            minor: .[0].minor,
+                            patch_versions: map(.patch_versions[]) | flatten
+                        })
+                    )
+                })
+            )
+        }
     ' <(echo "$downloaded_json_data") <(echo "$additional_json_data"))
 
     # Convert updated JSON data back to YAML
@@ -120,6 +125,7 @@ function merge_php_version_data {
     echo "$merged_yaml" > "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE"
     
 }
+
 
 function append_php_rc_versions {
     echo_color_message yellow "⚡️ Adding PHP RC versions..."
@@ -136,7 +142,7 @@ function append_php_rc_versions {
         
         # Add the new RC version entry to the JSON data
         json_data=$(echo "$json_data" | jq --argjson rc_json "$rc_json" --arg major "$major_version" '
-        map(if .major == $major then (.minor_versions += [$rc_json]) else . end)
+        (.php_versions[] | select(.major == $major) | .minor_versions) += [$rc_json]
         ')
     done
     
