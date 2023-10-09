@@ -1,7 +1,7 @@
 #!/bin/bash
 set -oue pipefail
-# set -x
-# trap read DEBUG
+set -x
+trap read DEBUG
 
 ##########################
 # Environment Settings
@@ -91,10 +91,34 @@ function finalize_php_version_data {
 
 function merge_php_version_data {
 
+    # Convert YAML to JSON
+    downloaded_json_data=$(yq eval -o=json "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE")
+    additional_json_data=$(yq eval -o=json "$ADDITIONAL_PHP_VERSIONS_CONFIG_FILE")
+
     echo_color_message yellow "⚡️ Combining data from $ADDITIONAL_PHP_VERSIONS_CONFIG_FILE..."
+
+    # Use 'echo' to pass the JSON data to 'jq'
+    merged_json=$(jq -s '
+        .[0].php_versions + .[1].php_versions
+        | group_by(.major)
+        | map({
+            major: .[0].major,
+            minor_versions: map(
+                .minor_versions[]
+            ) | group_by(.minor)
+            | map({
+                minor: .[0].minor,
+                patch_versions: map(.patch_versions[]) | flatten
+            })
+        })
+    ' <(echo "$downloaded_json_data") <(echo "$additional_json_data"))
+
+    # Convert updated JSON data back to YAML
+    merged_yaml=$(echo "$merged_json" | yq eval -P -)
     
-    # Combine the files
-    yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE $ADDITIONAL_PHP_VERSIONS_CONFIG_FILE -i $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE
+    # Save the merged YAML data back to the file
+    echo "$merged_yaml" > "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE"
+    
 }
 
 function append_php_rc_versions {
@@ -112,7 +136,7 @@ function append_php_rc_versions {
         
         # Add the new RC version entry to the JSON data
         json_data=$(echo "$json_data" | jq --argjson rc_json "$rc_json" --arg major "$major_version" '
-        (.php_versions[] | select(.major == $major) | .minor_versions) += [$rc_json]
+        map(if .major == $major then (.minor_versions += [$rc_json]) else . end)
         ')
     done
     
@@ -123,14 +147,6 @@ function append_php_rc_versions {
     echo "$updated_yaml" > "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE"
     
     echo_color_message green "✅ PHP RC versions appended."
-}
-
-function sort_php_versions {
-    # Sort the patches
-    yq eval '.php_versions[] .minor_versions[] .patch_versions |= sort' $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE -i
-
-    # Remove duplicates
-    yq eval '.php_versions[].minor_versions[].patch_versions |= unique' $DOWNLOADED_PHP_VERSIONS_CONFIG_FILE -i
 }
 
 ##########################
@@ -145,7 +161,5 @@ fi
 if [ ${#PHP_RC_VERSIONS[@]} -ne 0 ]; then
     append_php_rc_versions
 fi
-
-sort_php_versions
 
 finalize_php_version_data
