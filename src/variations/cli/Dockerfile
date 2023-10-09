@@ -14,7 +14,6 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
-COPY --chmod=755 etc/entrypoint.d/ /etc/entrypoint.d/
 
 # install pecl extensions & dependencies
 RUN docker-php-pro-dep-install $DEPENDENCY_PACKAGES \
