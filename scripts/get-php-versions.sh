@@ -1,7 +1,7 @@
 #!/bin/bash
 set -oue pipefail
-set -x
-trap read DEBUG
+# set -x
+# trap read DEBUG
 
 ##########################
 # Environment Settings
