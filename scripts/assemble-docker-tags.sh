@@ -1,5 +1,5 @@
 #/bin/bash
-set -oue pipefail
+set -oe pipefail
 
 ##########################
 # Environment Settings
