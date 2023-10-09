@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -oue pipefail
 # set -x
 # trap read DEBUG
 
