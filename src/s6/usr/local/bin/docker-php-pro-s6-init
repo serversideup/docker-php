@@ -7,3 +7,33 @@ set -e
 # This script is used to take scripts from "/etc/entrypoint.d" and move them
 # to the S6 Overlay structure.
 
+S6_HOME="/etc/s6-overlay"
+
+for file in /etc/entrypoint.d/*.sh; do
+    [ -e "$file" ] || continue # Skip if no files match
+    
+    # Get the base name of the file
+    base=$(basename "$file" .sh)
+    
+    # Create the service directory for that file
+    mkdir -p "${S6_HOME}/s6-rc.d/${base}"
+    
+    # Set service type to "oneshot"
+    echo "oneshot" > "${S6_HOME}/s6-rc.d/${base}/type"
+
+    # Set the "up" script
+    echo "${S6_HOME}/scripts/${base}" > "${S6_HOME}/s6-rc.d/${base}/up"
+
+    # Place empty file in contents.d
+    touch "${S6_HOME}/s6-rc.d/user/contents.d/${base}"
+
+    # Ensure the ${S6_HOME}/scripts/ directory exists
+    mkdir -p "${S6_HOME}/scripts"
+
+    # Link the script in the script directory
+    ln -s "${file}" "${S6_HOME}/scripts/${base}"
+
+done
+
+
+
