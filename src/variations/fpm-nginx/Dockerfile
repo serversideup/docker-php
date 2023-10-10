@@ -40,8 +40,8 @@ COPY --chmod=755 src/s6/ /
 COPY --from=build /opt/s6/ /
 
 # install pecl extensions & dependencies
-RUN docker-php-pro-dep-install $DEPENDENCY_PACKAGES \
-    docker-php-pro-pecl-install $PECL_PACKAGES \
+RUN docker-php-pro-dep-install $DEPENDENCY_PACKAGES && \
+    docker-php-pro-pecl-install $PECL_PACKAGES && \
     docker-php-pro-s6-init
 
 # install composer from Composer's official Docker image
