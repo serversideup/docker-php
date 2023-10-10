@@ -7,8 +7,8 @@ set -e
 # This script is used to execute scripts from "/etc/entrypoint.d" and then
 # execute the CMD passed in from the Dockerfile.
 
-# Execute scripts from /etc/entrypoint.d/
-for f in /etc/entrypoint.d/*; do
+# Execute scripts from /etc/entrypoint.d/ in numeric order
+find /etc/entrypoint.d/ -type f -name '*.sh' | sort -n -t- -k1 | while IFS= read -r f; do
     [ -e "$f" ] || continue  # skip if not exists
     case "$f" in
         *.sh)     . "$f" ;;
