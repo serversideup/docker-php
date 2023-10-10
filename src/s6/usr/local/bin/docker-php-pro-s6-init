@@ -34,6 +34,3 @@ for file in /etc/entrypoint.d/*.sh; do
     ln -s "${file}" "${S6_HOME}/scripts/${base}"
 
 done
-
-
-
