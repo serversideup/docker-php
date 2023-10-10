@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+###############################################
+# Usage: docker-php-pro-pecl-install [packages]
+###############################################
+# This script installs PECL packages passed in as arguments.
+
 if [ $# -eq 0 ]; then
     echo "🔔 WARNING: No packages were passed to the PECL installation script. We're assuming you don't want any additional packages installed."
 fi

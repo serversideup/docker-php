@@ -1,6 +1,12 @@
 #!/bin/sh
 set -e
 
+###############################################
+# Usage: docker-php-pro-entrypoint
+###############################################
+# This script is used to execute scripts from "/etc/entrypoint.d" and then
+# execute the CMD passed in from the Dockerfile.
+
 # Execute scripts from /etc/entrypoint.d/
 for f in /etc/entrypoint.d/*; do
     [ -e "$f" ] || continue  # skip if not exists
