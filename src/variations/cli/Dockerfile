@@ -16,7 +16,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
 COPY --chmod=755 src/common/ /
 
 # install pecl extensions & dependencies
-RUN docker-php-pro-dep-install $DEPENDENCY_PACKAGES \
+RUN docker-php-pro-dep-install $DEPENDENCY_PACKAGES && \
     docker-php-pro-pecl-install $PECL_PACKAGES
 
 # install composer from Composer's official Docker image
