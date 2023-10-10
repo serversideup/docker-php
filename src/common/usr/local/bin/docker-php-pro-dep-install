@@ -8,6 +8,7 @@ set -ouex
 
 if [ "$#" -eq 0 ]; then
     echo "🔔 WARNING: No packages were passed to this script. Continuing without installing additional packages."
+    exit 0
 fi
 
 DEP_PACKAGES="$@"

@@ -8,6 +8,7 @@ set -e
 
 if [ $# -eq 0 ]; then
     echo "🔔 WARNING: No packages were passed to the PECL installation script. We're assuming you don't want any additional packages installed."
+    exit 0
 fi
 
 # Convert comma-delimited package names to space-separated
