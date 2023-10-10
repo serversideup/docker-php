@@ -11,8 +11,8 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PROJECT_ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
 
-PHP_BUILD_VARIATION="${PHP_BUILD_VARIATION:-"$1"}"
-PHP_BUILD_VERSION="${PHP_BUILD_VERSION:-"$2"}"
+PHP_BUILD_VERSION="${PHP_BUILD_VERSION:-"$1"}"
+PHP_BUILD_VARIATION="${PHP_BUILD_VARIATION:-"$2"}"
 PHP_BUILD_BASE_OS="${PHP_BUILD_BASE_OS:-"$3"}"
 DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php-pro"}"
 
@@ -75,4 +75,4 @@ check_vars \
   PHP_BUILD_VERSION \
   PHP_BUILD_BASE_OS \
 
-build_docker_image "$PHP_BUILD_VARIATION" "$PHP_BUILD_VERSION" "$PHP_BUILD_BASE_OS"
+build_docker_image
