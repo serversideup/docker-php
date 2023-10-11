@@ -11,7 +11,6 @@ set -oue
 
 S6_VERSION=$(cat /s6-overlay_version.txt)
 mkdir -p $S6_DIR
-docker-php-pro-dep-install $S6_SRC_DEP
 export SYS_ARCH=$(uname -m)
 case "$SYS_ARCH" in
     aarch64 ) export S6_ARCH='aarch64' ;;
@@ -24,11 +23,16 @@ case "$SYS_ARCH" in
     *       ) export S6_ARCH='x86_64'  ;;
 esac
 
-untar (){
+untar() {
     echo "⏬ Downloading $1"
-    wget -O- $1 | tar Jxp -C $S6_DIR
+    curl -L $1 -o - | tar Jxp -C $S6_DIR
 }
 
 echo "⬇️ Downloading s6 overlay:${S6_ARCH}-${S6_VERSION} for ${SYS_ARCH}"
 untar ${S6_SRC_URL}/${S6_VERSION}/s6-overlay-noarch.tar.xz
 untar ${S6_SRC_URL}/${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.xz
+
+# Ensure "php-fpm-healthcheck" is installed
+echo "⬇️ Downloading php-fpm-healthcheck"
+curl -o /usr/local/bin/php-fpm-healthcheck https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/master/php-fpm-healthcheck
+chmod +x /usr/local/bin/php-fpm-healthcheck
