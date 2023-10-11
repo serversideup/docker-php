@@ -1,4 +1,4 @@
 #!/command/execlineb -P
 with-contenv
 s6-notifyoncheck -d
-/usr/sbin/php-fpm --nodaemonize
+/usr/local/sbin/php-fpm --nodaemonize
