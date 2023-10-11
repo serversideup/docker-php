@@ -1,0 +1,43 @@
+#!/bin/sh
+set -oe
+
+###################################################
+# Usage: docker-php-pro-dep-install-debian [debian-packages]
+###################################################
+# This script installs debian packages that are passed to it
+
+############
+# Sanity checks
+############
+if [ -f /etc/os-release ]; then
+    # Source the os-release file (including the $NAME variable)
+    . /etc/os-release
+else
+    echo "docker-php-pro-dep-install-debian: Unable to determine the OS."
+    exit 1
+fi
+
+if [ "$NAME" != "Debian GNU/Linux" || $# -eq 0 ]; then
+    echo "docker-php-pro-dep-install-debian: No arugments were passed or the OS is not Debian GNU/Linux."
+    exit 1
+fi
+
+############
+# Functions
+############
+convert_comma_delimited_to_space_separated() {
+    echo $1 | tr ',' ' '
+}
+
+############
+# Main
+############
+DEP_PACKAGES=$(convert_comma_delimited_to_space_separated "$@")
+echo "🤖 Installing: $DEP_PACKAGES"
+apt-get update && apt-get install -y $DEP_PACKAGES
+
+
+echo "🧼 Cleaning up installation of: $DEP_PACKAGES"
+apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+echo "⚡️ Completed installation of: $DEP_PACKAGES"

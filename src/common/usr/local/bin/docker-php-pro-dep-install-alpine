@@ -1,0 +1,43 @@
+#!/bin/sh
+set -oe
+
+###################################################
+# Usage: docker-php-pro-dep-install-alpine [alpine-packages]
+###################################################
+# This script installs alpine packages that are passed to it
+
+############
+# Sanity checks
+############
+if [ -f /etc/os-release ]; then
+    # Source the os-release file (including the $NAME variable)
+    . /etc/os-release
+else
+    echo "docker-php-pro-dep-install-alpine: Unable to determine the OS."
+    exit 1
+fi
+
+if [ "$NAME" != "Alpine Linux" || $# -eq 0 ]; then
+    echo "docker-php-pro-dep-install-alpine: No arugments were passed or the OS is not Alpine Linux."
+    exit 1
+fi
+
+############
+# Functions
+############
+convert_comma_delimited_to_space_separated() {
+    echo $1 | tr ',' ' '
+}
+
+############
+# Main
+############
+DEP_PACKAGES=$(convert_comma_delimited_to_space_separated "$@")
+echo "🤖 Installing: $DEP_PACKAGES"
+apk update && apk add --no-cache $DEP_PACKAGES
+
+
+echo "🧼 Cleaning up installation of: $DEP_PACKAGES"
+rm -rf /var/cache/apk/*
+
+echo "⚡️ Completed installation of: $DEP_PACKAGES"
