@@ -1,0 +1,11 @@
+# HTTP configuration
+#
+server {
+	include /etc/nginx/site-opts.d/http.conf;
+}
+
+# HTTPS configuration
+#
+server {
+	include /etc/nginx/site-opts.d/https.conf;
+}
