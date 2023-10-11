@@ -10,27 +10,38 @@ set -e
 S6_HOME="/etc/s6-overlay"
 
 for file in /etc/entrypoint.d/*.sh; do
-    [ -e "$file" ] || continue # Skip if no files match
-    
-    # Get the base name of the file
-    base=$(basename "$file" .sh)
-    
-    # Create the service directory for that file
-    mkdir -p "${S6_HOME}/s6-rc.d/${base}"
-    
-    # Set service type to "oneshot"
-    echo "oneshot" > "${S6_HOME}/s6-rc.d/${base}/type"
+  [ -e "$file" ] || continue # Skip if no files match
+  
+  # Get the base name of the file
+  base=$(basename "$file" .sh)
+  
+  # Create the service directory for that file
+  mkdir -p "${S6_HOME}/s6-rc.d/${base}"
+  
+  # Set service type to "oneshot"
+  echo "oneshot" > "${S6_HOME}/s6-rc.d/${base}/type"
 
-    # Set the "up" script
-    echo "${S6_HOME}/scripts/${base}" > "${S6_HOME}/s6-rc.d/${base}/up"
+  # Set the "up" script
+  echo "${S6_HOME}/scripts/${base}" > "${S6_HOME}/s6-rc.d/${base}/up"
 
-    # Place empty file in contents.d
-    touch "${S6_HOME}/s6-rc.d/user/contents.d/${base}"
+  # Place empty file in contents.d
+  touch "${S6_HOME}/s6-rc.d/user/contents.d/${base}"
 
-    # Ensure the ${S6_HOME}/scripts/ directory exists
-    mkdir -p "${S6_HOME}/scripts"
+  # Ensure the ${S6_HOME}/scripts/ directory exists
+  mkdir -p "${S6_HOME}/scripts"
 
-    # Link the script in the script directory
-    ln -s "${file}" "${S6_HOME}/scripts/${base}"
+  # Link the script in the script directory
+  ln -s "${file}" "${S6_HOME}/scripts/${base}"
+
+  # Esnsure the script has the correct file header for S6
+  sed -i '1s%^#!/bin/sh$%#!/command/with-contenv sh%' "${file}"
+  
+  if [ -n "$previous_base" ]; then
+      # Set the dependency from the previous script
+      echo "$previous_base" >> "${S6_HOME}/s6-rc.d/${base}/dependencies"
+  fi
+
+  # Set the previous file for the next loop
+  previous_base="$base"
 
 done

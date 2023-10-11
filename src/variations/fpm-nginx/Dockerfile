@@ -35,6 +35,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
 # copy our scripts
 COPY --chmod=755 src/common/ /
 COPY --chmod=755 src/s6/ /
+COPY --chmod=755 src/variations/fpm-nginx/etc/ /etc/
 
 # copy s6-overlay from build
 COPY --from=build /opt/s6/ /

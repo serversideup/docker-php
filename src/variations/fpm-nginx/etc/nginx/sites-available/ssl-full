@@ -1,0 +1,17 @@
+# HTTP Redirect configuration
+#
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	server_name _;
+
+	# Redirect all HTTP traffic to HTTPS
+	return 301 https://$host$request_uri;
+}
+
+# HTTPS configuration
+#
+server {
+	include /etc/nginx/site-opts.d/https.conf;
+}
