@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #exit on error
-set -oex pipefail
+set -oe pipefail
 
 ##########################################################################
 # Usage: build.sh --variation <variation> --version <version> --os <os>
