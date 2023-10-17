@@ -1,0 +1,42 @@
+#!/bin/sh
+set -e
+
+###################################################
+# Usage: docker-php-pro-apt-import-key-debian <signing-key-url> <signing_fingerprint> <signing_key_output_file>
+###################################################
+# This script installs alpine packages that are passed to it
+
+SIGNING_KEY_URL="$1"
+SIGNING_FINGERPRINT="$2"
+SIGNING_KEY_OUTPUT_FILE="$3"
+
+############
+# Sanity checks
+############
+if [ ! -f /etc/os-release ]; then
+    echo "docker-php-pro-apt-import-key-debian: Unable to determine the OS."
+    exit 1
+fi
+
+# Source the os-release file (including the $NAME variable)
+. /etc/os-release
+
+if [ "$NAME" != "Debian GNU/Linux" ] || [ $# -eq 0 ]; then
+    echo "WARNING(docker-php-pro-apt-import-key-debian): No arguments were passed or the OS is not Debian GNU/Linux. Continuing..."
+    exit 0
+fi
+
+############
+# Main
+############
+
+# Import signing key
+curl "$SIGNING_KEY_URL" | gpg --dearmor | tee "$SIGNING_KEY_OUTPUT_FILE"
+
+# Verify signing key
+VALID_KEY=$(gpg --dry-run --quiet --no-keyring --import --import-options import-show "$SIGNING_KEY_OUTPUT_FILE" | grep "$SIGNING_FINGERPRINT")
+
+if [ -z "$VALID_KEY" ]; then
+    echo "ERROR (docker-php-pro-apt-import-key-debian): Key did not match signing signature!"
+    exit 1
+fi

@@ -17,9 +17,9 @@ else
     exit 1
 fi
 
-if [ "$NAME" != "Alpine Linux" || $# -eq 0 ]; then
-    echo "docker-php-pro-dep-install-alpine: No arugments were passed or the OS is not Alpine Linux."
-    exit 1
+if [ "$NAME" != "Alpine Linux" ] || [ $# -eq 0 ]; then
+    echo "WARNING (docker-php-pro-dep-install-alpine): No arugments were passed or the OS is not Alpine Linux. Continuing..."
+    exit 0
 fi
 
 ############
@@ -34,7 +34,8 @@ convert_comma_delimited_to_space_separated() {
 ############
 DEP_PACKAGES=$(convert_comma_delimited_to_space_separated "$@")
 echo "🤖 Installing: $DEP_PACKAGES"
-apk update && apk add --no-cache $DEP_PACKAGES
+apk update 
+apk add --no-cache $DEP_PACKAGES
 
 
 echo "🧼 Cleaning up installation of: $DEP_PACKAGES"

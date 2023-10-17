@@ -4,9 +4,9 @@ ARG PHP_VARIATION='fpm-nginx'
 ARG BASE_IMAGE="php:${PHP_VERSION}-fpm-${BASE_OS_VERSION}"
 
 ##########
-# Build
+# S6 Build
 ##########
-FROM ${BASE_IMAGE} as build
+FROM ${BASE_IMAGE} as s6-build
 
 ARG S6_DIR='/opt/s6/'
 ARG S6_SRC_URL="https://github.com/just-containers/s6-overlay/releases/download"
@@ -16,6 +16,27 @@ COPY --chmod=755 src/common/ /
 COPY --chmod=755 src/s6/ /
 
 RUN docker-php-pro-s6-install
+
+##########
+# NGINX Signing Key
+##########
+FROM ${BASE_IMAGE} as nginx-key-setup
+
+ENV SINGING_KEY_URL="https://nginx.org/keys/nginx_signing.key" \
+    SIGNING_FINGERPRINT="573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" \
+    SIGNING_KEY_OUTPUT_FILE="/usr/share/keyrings/nginx-archive-keyring.gpg"
+
+# copy our scripts
+COPY --chmod=755 src/common/ /
+
+RUN docker-php-pro-dep-install-debian "curl gnupg2 ca-certificates lsb-release debian-archive-keyring" && \
+    docker-php-pro-apt-import-key-debian "${SINGING_KEY_URL}" "${SIGNING_FINGERPRINT}" "${SIGNING_KEY_OUTPUT_FILE}" && \
+    \
+    # setup apt repository for stable nginx packages
+    echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian `lsb_release -cs` nginx" | tee /etc/apt/sources.list.d/nginx.list && \
+    \
+    # setup repository pinning to prefer nginx packages over debian packages
+    printf "Package: *\nPin: origin nginx.org\nPin-Priority: 900\n" > /etc/apt/preferences.d/99nginx
 
 ##########
 # Main
@@ -31,24 +52,55 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     LOG_LEVEL=info \
+    PHP_DATE_TIMEZONE="UTC" \
+    PHP_DISPLAY_ERRORS=Off \
+    PHP_DISPLAY_STARTUP_ERRORS=Off \
+    PHP_ERROR_REPORTING="22527" \
+    PHP_MAX_EXECUTION_TIME="99" \
+    PHP_MEMORY_LIMIT="256M" \
+    PHP_PM_CONTROL=dynamic \
+    PHP_PM_MAX_CHILDREN="20" \
+    PHP_PM_MAX_SPARE_SERVERS="3" \
+    PHP_PM_MIN_SPARE_SERVERS="1" \
+    PHP_PM_START_SERVERS="2" \
+    PHP_POOL_NAME="www" \
+    PHP_POST_MAX_SIZE="100M" \
+    PHP_SESSION_COOKIE_SECURE=false \
+    PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     S6_KEEP_ENV=1
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
 COPY --chmod=755 src/s6/ /
-COPY --chmod=755 src/variations/fpm-nginx/etc/ /etc/
 
-# copy s6-overlay from build
-COPY --from=build /opt/s6/ /
+# copy s6-overlay from s6-build
+COPY --from=s6-build /opt/s6/ /
 
-# copy php-fpm-healthcheck from build
-COPY --from=build /usr/local/bin/php-fpm-healthcheck /usr/local/bin/php-fpm-healthcheck
+# copy php-fpm-healthcheck from s6-build
+COPY --from=s6-build /usr/local/bin/php-fpm-healthcheck /usr/local/bin/php-fpm-healthcheck
+
+# Copy NGINX setup files from the nginx-key-setup stage
+COPY --from=nginx-key-setup /usr/share/keyrings/nginx-archive-keyring.gpg /usr/share/keyrings/
+COPY --from=nginx-key-setup /etc/apt/sources.list.d/nginx.list /etc/apt/sources.list.d/
+COPY --from=nginx-key-setup /etc/apt/preferences.d/99nginx /etc/apt/preferences.d/
 
 # install pecl extensions & dependencies
 RUN docker-php-pro-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-pro-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
     docker-php-pro-pecl-install $PECL_PACKAGES && \
-    docker-php-pro-s6-init
+    docker-php-pro-s6-init && \
+    \
+    # install nginx
+    docker-php-pro-dep-install-debian "nginx" && \
+    docker-php-pro-dep-install-alpine "nginx" && \
+    # clear all php provided fpm configurations
+    rm -rf /usr/local/etc/php-fpm.d/*.conf
+
+# Copy our nginx configurations
+COPY --chmod=755 src/variations/fpm-nginx/etc/ /etc/
+
+# copy our fpm configurations
+COPY --chmod=755 src/php-fpm.d/ /
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
