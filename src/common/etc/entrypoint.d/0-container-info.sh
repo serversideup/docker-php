@@ -1,4 +1,8 @@
 #!/bin/sh
+if [ "$LOG_LEVEL" = "trace" ]; then
+  set -x
+fi
+
 if [ $LOG_LEVEL != "off" ]; then
 echo '
 --------------------------------------------------------------------
