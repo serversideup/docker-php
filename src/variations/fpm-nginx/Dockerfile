@@ -44,14 +44,17 @@ RUN docker-php-pro-dep-install-debian "curl gnupg2 ca-certificates lsb-release d
 FROM ${BASE_IMAGE}
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
-ARG DEPENDENCY_PACKAGES_ALPINE='fcgi'
-ARG DEPENDENCY_PACKAGES_BOOKWORM='libfcgi-bin'
+ARG DEPENDENCY_PACKAGES_ALPINE='fcgi gettext'
+ARG DEPENDENCY_PACKAGES_BOOKWORM='libfcgi-bin gettext-base'
 ARG PECL_PACKAGES
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
-    LOG_LEVEL=info \
+    LOG_LEVEL=warn \
+    NGINX_SERVER_TOKENS=off \
+    NGINX_USER=nginx \
+    NGINX_WEBROOT=/var/www/html/public \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
@@ -67,7 +70,13 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
-    S6_KEEP_ENV=1
+    S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
+    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
+    S6_KEEP_ENV=1 \
+    S6_VERBOSITY=1 \
+    SSL_MODE=off \
+    SSL_CERTIFICATE_FILE=/etc/ssl/private/web.crt \
+    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/web.key
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -94,7 +103,10 @@ RUN docker-php-pro-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-pro-dep-install-debian "nginx" && \
     docker-php-pro-dep-install-alpine "nginx" && \
     # clear all php provided fpm configurations
-    rm -rf /usr/local/etc/php-fpm.d/*.conf
+    rm -rf /usr/local/etc/php-fpm.d/*.conf && \
+    # clear all nginx provided configurations
+    rm -rf /etc/nginx/conf.d/*.conf && \
+    rm /etc/nginx/nginx.conf
 
 # Copy our nginx configurations
 COPY --chmod=755 src/variations/fpm-nginx/etc/ /etc/
