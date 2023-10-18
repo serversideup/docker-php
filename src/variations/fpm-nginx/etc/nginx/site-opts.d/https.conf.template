@@ -1,7 +1,11 @@
-listen 80 default_server;
-listen [::]:80 default_server;
+listen 443 http2 ssl default_server;
+listen [::]:443 http2 ssl default_server;
 
-root /var/www/html/public;
+root $NGINX_WEBROOT;
+
+ssl_certificate $SSL_CERTIFICATE_FILE;
+ssl_certificate_key $SSL_PRIVATE_KEY_FILE;
+ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
 
 # Set allowed "index" files
 index index.html index.htm index.php;
@@ -33,8 +37,11 @@ location / {
 
 # Pass "*.php" files to PHP-FPM
 location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass 127.0.0.1:9000;
+    root           html;
+    fastcgi_pass   127.0.0.1:9000;
+    fastcgi_index  index.php;
+    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+    include        fastcgi_params;
 }
 
 # additional config

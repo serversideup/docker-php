@@ -11,7 +11,7 @@ LABEL maintainer="Jay Rogers (@jaydrogers)"
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
-    LOG_LEVEL=info
+    LOG_LEVEL=warn
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
