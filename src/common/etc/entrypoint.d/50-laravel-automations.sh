@@ -1,4 +1,7 @@
 #!/bin/sh
+if [ "$LOG_LEVEL" = "trace" ]; then
+  set -x
+fi
 
 # Exit on error
 set -e
