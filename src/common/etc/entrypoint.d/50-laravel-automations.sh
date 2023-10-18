@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ "$LOG_LEVEL" = "trace" ]; then
+if [ "$LOG_LEVEL" = "debug" ]; then
   set -x
 fi
 

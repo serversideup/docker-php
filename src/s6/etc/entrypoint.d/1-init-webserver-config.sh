@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ "$LOG_LEVEL" = "trace" ]; then
+if [ "$LOG_LEVEL" = "debug" ]; then
   set -x
 fi
 set -e
@@ -55,6 +55,10 @@ enable_nginx_site (){
     # Transform to lowercase
     ssl_mode=$(echo "$ssl_mode" | tr '[:upper:]' '[:lower:]')
 
+    if [ "$ssl_mode" != "off" ]; then
+        validate_ssl
+    fi
+
     # Link the site available to be the active site
     if [ -f "$default_nginx_site_config" ]; then
         echo "ℹ️ NOTICE (init-webserver-config): $default_nginx_site_config already exists, so we'll use the provided configuration."
@@ -64,11 +68,33 @@ enable_nginx_site (){
     fi
 }
 
+validate_ssl(){
+    if [ -z "$SSL_CERTIFICATE_FILE" ] || [ -z "$SSL_PRIVATE_KEY_FILE" ]; then
+        echo "🛑 ERROR (init-webserver-config): SSL_CERTIFICATE_FILE or SSL_PRIVATE_KEY_FILE is not set."
+        return 1
+    fi
+
+    if ([ -f "$SSL_CERTIFICATE_FILE" ] && [ ! -f "$SSL_PRIVATE_KEY_FILE" ]) || 
+       ([ ! -f "$SSL_CERTIFICATE_FILE" ] && [ -f "$SSL_PRIVATE_KEY_FILE" ]); then
+        echo "🛑 ERROR (init-webserver-config): Only one of the SSL certificate or private key exists. Check the SSL_CERTIFICATE_FILE and SSL_PRIVATE_KEY_FILE variables and try again."
+        echo "🛑 ERROR (init-webserver-config): SSL_CERTIFICATE_FILE: $SSL_CERTIFICATE_FILE"
+        echo "🛑 ERROR (init-webserver-config): SSL_PRIVATE_KEY_FILE: $SSL_PRIVATE_KEY_FILE"
+        return 1
+    fi
+
+    if [ -f "$SSL_CERTIFICATE_FILE" ] && [ -f "$SSL_PRIVATE_KEY_FILE" ]; then
+        echo "ℹ️ NOTICE (init-webserver-config): SSL certificate and private key already exist, so we'll use the existing files."
+        return 0
+    fi
+
+    echo "🔐 SSL Keypair not found. Generating self-signed SSL keypair..."
+    mkdir -p /etc/ssl/private/
+    openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout "$SSL_PRIVATE_KEY_FILE" -out "$SSL_CERTIFICATE_FILE" -days 365 >/dev/null 2>&1
+}
 
 ##########
 # Main
 ##########
-
 SERVER_TYPE=$(detect_web_server_type)
 
 if [ "$SERVER_TYPE" = "Apache" ]; then
