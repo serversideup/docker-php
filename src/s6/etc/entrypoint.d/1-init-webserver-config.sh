@@ -3,6 +3,7 @@ if [ "$LOG_LEVEL" = "debug" ]; then
   set -x
 fi
 set -e
+script_name="${0%.sh}"
 
 ##########
 # Functions
@@ -22,12 +23,12 @@ process_template() {
     output_file=$2
 
     if [ -f "$output_file" ]; then
-        echo "ℹ️ NOTICE (init-webserver-config): $output_file already exists, so we'll use the existing file."
+        echo "ℹ️ NOTICE ($script_name): $output_file already exists, so we'll use the existing file."
         return 0
     fi
 
     if [ ! -f "$template_file" ]; then
-        echo "🛑 ERROR (init-webserver-config): Unable to initialize container. $output_file doesn't exist and we're unable to find a template for $template_file."
+        echo "🛑 ERROR ($script_name): Unable to initialize container. $output_file doesn't exist and we're unable to find a template for $template_file."
         return 1
     fi
 
@@ -38,7 +39,7 @@ process_template() {
     for var_name in $(echo "$subst_vars" | tr ',' ' '); do
         eval "value=\$$var_name" # Use eval to get the value of var_name
         if [ -z "$value" ]; then
-            echo "🛑 ERROR (init-webserver-config): Environment variable $var_name is not set."
+            echo "🛑 ERROR ($script_name): Environment variable $var_name is not set."
             return 1
         fi
     done
@@ -61,7 +62,7 @@ enable_nginx_site (){
 
     # Link the site available to be the active site
     if [ -f "$default_nginx_site_config" ]; then
-        echo "ℹ️ NOTICE (init-webserver-config): $default_nginx_site_config already exists, so we'll use the provided configuration."
+        echo "ℹ️ NOTICE ($script_name): $default_nginx_site_config already exists, so we'll use the provided configuration."
     else
         echo "🔐 Enabling NGINX site with SSL \"$ssl_mode\"..."
         # Create the base directory if it doesn't exist
@@ -73,20 +74,20 @@ enable_nginx_site (){
 
 validate_ssl(){
     if [ -z "$SSL_CERTIFICATE_FILE" ] || [ -z "$SSL_PRIVATE_KEY_FILE" ]; then
-        echo "🛑 ERROR (init-webserver-config): SSL_CERTIFICATE_FILE or SSL_PRIVATE_KEY_FILE is not set."
+        echo "🛑 ERROR ($script_name): SSL_CERTIFICATE_FILE or SSL_PRIVATE_KEY_FILE is not set."
         return 1
     fi
 
     if ([ -f "$SSL_CERTIFICATE_FILE" ] && [ ! -f "$SSL_PRIVATE_KEY_FILE" ]) || 
        ([ ! -f "$SSL_CERTIFICATE_FILE" ] && [ -f "$SSL_PRIVATE_KEY_FILE" ]); then
-        echo "🛑 ERROR (init-webserver-config): Only one of the SSL certificate or private key exists. Check the SSL_CERTIFICATE_FILE and SSL_PRIVATE_KEY_FILE variables and try again."
-        echo "🛑 ERROR (init-webserver-config): SSL_CERTIFICATE_FILE: $SSL_CERTIFICATE_FILE"
-        echo "🛑 ERROR (init-webserver-config): SSL_PRIVATE_KEY_FILE: $SSL_PRIVATE_KEY_FILE"
+        echo "🛑 ERROR ($script_name): Only one of the SSL certificate or private key exists. Check the SSL_CERTIFICATE_FILE and SSL_PRIVATE_KEY_FILE variables and try again."
+        echo "🛑 ERROR ($script_name): SSL_CERTIFICATE_FILE: $SSL_CERTIFICATE_FILE"
+        echo "🛑 ERROR ($script_name): SSL_PRIVATE_KEY_FILE: $SSL_PRIVATE_KEY_FILE"
         return 1
     fi
 
     if [ -f "$SSL_CERTIFICATE_FILE" ] && [ -f "$SSL_PRIVATE_KEY_FILE" ]; then
-        echo "ℹ️ NOTICE (init-webserver-config): SSL certificate and private key already exist, so we'll use the existing files."
+        echo "ℹ️ NOTICE ($script_name): SSL certificate and private key already exist, so we'll use the existing files."
         return 0
     fi
 
@@ -108,6 +109,6 @@ elif [ "$SERVER_TYPE" = "NGINX" ]; then
     process_template /etc/nginx/site-opts.d/https.conf.template /etc/nginx/site-opts.d/https.conf
     enable_nginx_site "$SSL_MODE"
 else
-    echo "🛑 ERROR (1-init-webserver-config.sh): Neither Apache nor NGINX could be detected."
+    echo "🛑 ERROR (1-$script_name.sh): Neither Apache nor NGINX could be detected."
     exit 1
 fi
