@@ -124,6 +124,7 @@ RUN docker-php-pro-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     \
     # clear all nginx provided configurations
     rm -rf /etc/nginx/conf.d/*.conf && \
+    rm -rf /etc/nginx/http.d/ && \
     rm /etc/nginx/nginx.conf && \
     \
     # Docker doesn't support conditional COPY, so we have to remove the apt directory if we're on Alpine
