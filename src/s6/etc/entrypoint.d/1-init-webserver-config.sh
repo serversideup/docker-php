@@ -48,7 +48,6 @@ process_template() {
     envsubst "$subst_vars" < "$template_file" > "$output_file"
 }
 
-
 enable_nginx_site (){
     ssl_mode=$1
     default_nginx_site_config="/etc/nginx/conf.d/default.conf"
