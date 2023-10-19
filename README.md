@@ -86,6 +86,14 @@ All of our software is free an open to the world. None of this can be brought to
 #### Individual Supporters
 <!-- supporters --><a href="https://github.com/deligoez"><img src="https://github.com/deligoez.png" width="40px" alt="deligoez" /></a>&nbsp;&nbsp;<a href="https://github.com/alexjustesen"><img src="https://github.com/alexjustesen.png" width="40px" alt="alexjustesen" /></a>&nbsp;&nbsp;<a href="https://github.com/jeremykenedy"><img src="https://github.com/jeremykenedy.png" width="40px" alt="jeremykenedy" /></a>&nbsp;&nbsp;<!-- supporters -->
 
+#### Special thanks
+We'd like to specifically thank a few folks for taking the time for being a sound board that deeply influenced the direction of this project.
+
+Please check out all of their work:
+- [Chris Fidao](https://twitter.com/fideloper)
+- [Joel Clermont](https://twitter.com/joelclermont)
+- [Patricio](https://twitter.com/PatricioOnCode)
+
 ## About Us
 We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers) - a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
 
