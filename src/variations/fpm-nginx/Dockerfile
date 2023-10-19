@@ -29,30 +29,24 @@ ARG SIGNING_KEY_OUTPUT_FILE="/usr/share/keyrings/nginx-archive-keyring.gpg"
 # copy our scripts
 COPY --chmod=755 src/common/ /
 
-RUN if cat /etc/os-release | grep -qi 'Debian'; then \
-        docker-php-pro-dep-install-debian "curl gnupg2 ca-certificates lsb-release debian-archive-keyring" && \
-        \
-        # Import signing key
-        curl "$SIGNING_KEY_URL" | gpg --dearmor | tee "$SIGNING_KEY_OUTPUT_FILE" && \
-        \
-        # Verify signing key
-        VALID_KEY=$(gpg --dry-run --quiet --no-keyring --import --import-options import-show "$SIGNING_KEY_OUTPUT_FILE" | grep "$SIGNING_FINGERPRINT") && \
-        \
-        if [ -z "$VALID_KEY" ]; then \
-            echo "ERROR (docker-php-pro-apt-import-key-debian): Key did not match signing signature!" && \
-            exit 1; \
-        fi && \
-        \
-        # setup apt repository for stable nginx packages
-        echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian `lsb_release -cs` nginx" | tee /etc/apt/sources.list.d/nginx.list && \
-        \
-        # setup repository pinning to prefer nginx packages over debian packages
-        printf "Package: *\nPin: origin nginx.org\nPin-Priority: 900\n" > /etc/apt/preferences.d/99nginx; \
-    else \
-        echo "This system is not a Debian system, so no actions are needed."; \
-        mkdir -p /etc/apt/preferences.d/ && \
-        echo "invalid" > /etc/apt/preferences.d/99nginx; \
-    fi
+RUN docker-php-pro-dep-install-debian "curl gnupg2 ca-certificates lsb-release debian-archive-keyring" && \
+    \
+    # Import signing key
+    curl "$SIGNING_KEY_URL" | gpg --dearmor | tee "$SIGNING_KEY_OUTPUT_FILE" && \
+    \
+    # Verify signing key
+    VALID_KEY=$(gpg --dry-run --quiet --no-keyring --import --import-options import-show "$SIGNING_KEY_OUTPUT_FILE" | grep "$SIGNING_FINGERPRINT") && \
+    \
+    if [ -z "$VALID_KEY" ]; then \
+        echo "ERROR (docker-php-pro-apt-import-key-debian): Key did not match signing signature!" && \
+        exit 1; \
+    fi && \
+    \
+    # setup apt repository for stable nginx packages
+    echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian `lsb_release -cs` nginx" | tee /etc/apt/sources.list.d/nginx.list && \
+    \
+    # setup repository pinning to prefer nginx packages over debian packages
+    printf "Package: *\nPin: origin nginx.org\nPin-Priority: 900\n" > /etc/apt/preferences.d/99nginx
 
 ##########
 # Main
