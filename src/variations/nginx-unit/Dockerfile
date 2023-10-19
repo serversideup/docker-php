@@ -1,0 +1,100 @@
+ARG BASE_OS_VERSION='bookworm'
+ARG PHP_VERSION='8.2'
+ARG PHP_VARIATION='nginx-unit'
+ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
+
+##########
+# Unit Build
+##########
+FROM ${BASE_IMAGE} as build
+ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar mercurial openssl-dev pcre2-dev'
+ARG DEPENDENCY_PACKAGES_BOOKWORM='ca-certificates mercurial build-essential libssl-dev libpcre2-dev curl pkg-config'
+ARG NGINX_UNIT_VERSION='1.31.0'
+
+# copy our scripts
+COPY --chmod=755 src/common/ /
+
+# Download and untar the Nginx Unit source code
+RUN docker-php-pro-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
+    docker-php-pro-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
+    cd /usr/src/ && \
+    hg clone -u ${NGINX_UNIT_VERSION} https://hg.nginx.org/unit && \
+    cd unit
+
+# Configure and build Nginx Unit with PHP module
+WORKDIR /usr/src/unit/
+RUN NCPU="$(getconf _NPROCESSORS_ONLN)" && \
+    CONFIGURE_ARGS="--prefix=/usr \
+                    --statedir=/var/lib/unit \
+                    --control=unix:/var/run/control.unit.sock \
+                    --runstatedir=/var/run \
+                    --pid=/var/run/unit.pid \
+                    --logdir=/var/log \
+                    --log=/var/log/unit.log \
+                    --tmpdir=/var/tmp \
+                    --user=unit \
+                    --group=unit" && \
+    ./configure $CONFIGURE_ARGS && \
+    ./configure php --config=php-config --module=php && \
+    make -j $NCPU all && \
+    make install
+
+##########
+# Main
+##########
+FROM ${BASE_IMAGE}
+LABEL maintainer="Jay Rogers (@jaydrogers)"
+
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_HOME=/composer \
+    COMPOSER_MAX_PARALLEL_HTTP=24 \
+    LOG_LEVEL=warn \
+    PHP_DATE_TIMEZONE="UTC" \
+    PHP_DISPLAY_ERRORS=Off \
+    PHP_DISPLAY_STARTUP_ERRORS=Off \
+    PHP_ERROR_REPORTING="22527" \
+    PHP_MAX_EXECUTION_TIME="99" \
+    PHP_MEMORY_LIMIT="256M" \
+    PHP_PM_CONTROL=dynamic \
+    PHP_PM_MAX_CHILDREN="20" \
+    PHP_PM_MAX_SPARE_SERVERS="3" \
+    PHP_PM_MIN_SPARE_SERVERS="1" \
+    PHP_PM_START_SERVERS="2" \
+    PHP_POOL_NAME="www" \
+    PHP_POST_MAX_SIZE="100M" \
+    PHP_SESSION_COOKIE_SECURE=false \
+    PHP_UPLOAD_MAX_FILE_SIZE="100M" \
+    SSL_MODE=off \
+    SSL_CERTIFICATE_FILE=/etc/ssl/private/web.crt \
+    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/web.key
+
+# Copy NGINX Unit binaries and modules from build stage
+COPY --from=build /usr/sbin/unitd /usr/sbin/
+COPY --from=build /usr/lib/unit/ /usr/lib/unit/
+
+# Copy NGINX Unit state directory from build stage
+COPY --from=build /var/lib/unit/ /var/lib/unit/
+
+# copy our scripts
+COPY --chmod=755 src/common/ /
+
+# install composer from Composer's official Docker image
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Create user and group for running NGINX Unit
+RUN if [ -f "/etc/alpine-release" ]; then \
+        addgroup -S -g 999 unit && \
+        adduser -S -u 999 -G unit -h /nonexistent -s /bin/false unit; \
+    else \
+        addgroup --system --gid 999 unit && \
+        adduser --system --uid 999 --ingroup unit --home /nonexistent --shell /bin/false unit; \
+    fi
+
+# Link logs to stdout for Docker logging
+RUN ln -sf /dev/stdout /var/log/unit.log
+
+# Expose the necessary port(s)
+EXPOSE 80 443
+
+# Set the command to run Nginx Unit
+CMD ["unitd", "--no-daemon"]
