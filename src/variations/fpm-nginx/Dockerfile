@@ -17,26 +17,42 @@ COPY --chmod=755 src/s6/ /
 
 RUN docker-php-pro-s6-install
 
-##########
+####################
 # NGINX Signing Key
-##########
-FROM ${BASE_IMAGE} as nginx-key-setup
+####################
+FROM php:${PHP_VERSION}-fpm-bookworm as nginx-repo-config
 
-ENV SINGING_KEY_URL="https://nginx.org/keys/nginx_signing.key" \
-    SIGNING_FINGERPRINT="573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" \
-    SIGNING_KEY_OUTPUT_FILE="/usr/share/keyrings/nginx-archive-keyring.gpg"
+ARG SIGNING_KEY_URL="https://nginx.org/keys/nginx_signing.key"
+ARG SIGNING_FINGERPRINT="573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62"
+ARG SIGNING_KEY_OUTPUT_FILE="/usr/share/keyrings/nginx-archive-keyring.gpg"
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
 
-RUN docker-php-pro-dep-install-debian "curl gnupg2 ca-certificates lsb-release debian-archive-keyring" && \
-    docker-php-pro-apt-import-key-debian "${SINGING_KEY_URL}" "${SIGNING_FINGERPRINT}" "${SIGNING_KEY_OUTPUT_FILE}" && \
-    \
-    # setup apt repository for stable nginx packages
-    echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian `lsb_release -cs` nginx" | tee /etc/apt/sources.list.d/nginx.list && \
-    \
-    # setup repository pinning to prefer nginx packages over debian packages
-    printf "Package: *\nPin: origin nginx.org\nPin-Priority: 900\n" > /etc/apt/preferences.d/99nginx
+RUN if cat /etc/os-release | grep -qi 'Debian'; then \
+        docker-php-pro-dep-install-debian "curl gnupg2 ca-certificates lsb-release debian-archive-keyring" && \
+        \
+        # Import signing key
+        curl "$SIGNING_KEY_URL" | gpg --dearmor | tee "$SIGNING_KEY_OUTPUT_FILE" && \
+        \
+        # Verify signing key
+        VALID_KEY=$(gpg --dry-run --quiet --no-keyring --import --import-options import-show "$SIGNING_KEY_OUTPUT_FILE" | grep "$SIGNING_FINGERPRINT") && \
+        \
+        if [ -z "$VALID_KEY" ]; then \
+            echo "ERROR (docker-php-pro-apt-import-key-debian): Key did not match signing signature!" && \
+            exit 1; \
+        fi && \
+        \
+        # setup apt repository for stable nginx packages
+        echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian `lsb_release -cs` nginx" | tee /etc/apt/sources.list.d/nginx.list && \
+        \
+        # setup repository pinning to prefer nginx packages over debian packages
+        printf "Package: *\nPin: origin nginx.org\nPin-Priority: 900\n" > /etc/apt/preferences.d/99nginx; \
+    else \
+        echo "This system is not a Debian system, so no actions are needed."; \
+        mkdir -p /etc/apt/preferences.d/ && \
+        echo "invalid" > /etc/apt/preferences.d/99nginx; \
+    fi
 
 ##########
 # Main
@@ -88,12 +104,12 @@ COPY --from=s6-build /opt/s6/ /
 # copy php-fpm-healthcheck from s6-build
 COPY --from=s6-build /usr/local/bin/php-fpm-healthcheck /usr/local/bin/php-fpm-healthcheck
 
-# Copy NGINX setup files from the nginx-key-setup stage
-COPY --from=nginx-key-setup /usr/share/keyrings/nginx-archive-keyring.gpg /usr/share/keyrings/
-COPY --from=nginx-key-setup /etc/apt/sources.list.d/nginx.list /etc/apt/sources.list.d/
-COPY --from=nginx-key-setup /etc/apt/preferences.d/99nginx /etc/apt/preferences.d/
+# Copy NGINX setup files from the nginx-repo-config stage
+COPY --from=nginx-repo-config /usr/share/keyrings/nginx-archive-keyring.gpg /usr/share/keyrings/
+COPY --from=nginx-repo-config /etc/apt/sources.list.d/nginx.list /etc/apt/sources.list.d/
+COPY --from=nginx-repo-config /etc/apt/preferences.d/99nginx /etc/apt/preferences.d/
 
-# install pecl extensions & dependencies
+# install pecl extensions, dependencies, and clean up
 RUN docker-php-pro-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-pro-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
     docker-php-pro-pecl-install $PECL_PACKAGES && \
@@ -102,11 +118,19 @@ RUN docker-php-pro-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     # install nginx
     docker-php-pro-dep-install-debian "nginx" && \
     docker-php-pro-dep-install-alpine "nginx" && \
+    \
     # clear all php provided fpm configurations
     rm -rf /usr/local/etc/php-fpm.d/*.conf && \
+    \
     # clear all nginx provided configurations
     rm -rf /etc/nginx/conf.d/*.conf && \
-    rm /etc/nginx/nginx.conf
+    rm /etc/nginx/nginx.conf && \
+    \
+    # Docker doesn't support conditional COPY, so we have to remove the apt directory if we're on Alpine
+    if cat /etc/os-release | grep -qi 'Alpine'; then \
+        rm -rf /usr/share/keyrings/ && \
+        rm -rf /etc/apt/; \
+    fi
 
 # Copy our nginx configurations
 COPY --chmod=755 src/variations/fpm-nginx/etc/ /etc/
