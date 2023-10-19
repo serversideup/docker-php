@@ -64,6 +64,9 @@ enable_nginx_site (){
         echo "ℹ️ NOTICE (init-webserver-config): $default_nginx_site_config already exists, so we'll use the provided configuration."
     else
         echo "🔐 Enabling NGINX site with SSL \"$ssl_mode\"..."
+        # Create the base directory if it doesn't exist
+        base_dir=$(dirname "$default_nginx_site_config")
+        mkdir -p "$base_dir"
         ln -s "/etc/nginx/sites-available/ssl-$ssl_mode" "$default_nginx_site_config"
     fi
 }
