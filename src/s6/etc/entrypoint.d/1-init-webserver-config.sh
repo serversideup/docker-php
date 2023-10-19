@@ -108,6 +108,6 @@ elif [ "$SERVER_TYPE" = "NGINX" ]; then
     process_template /etc/nginx/site-opts.d/https.conf.template /etc/nginx/site-opts.d/https.conf
     enable_nginx_site "$SSL_MODE"
 else
-    echo "🛑 ERROR (1-$script_name.sh): Neither Apache nor NGINX could be detected."
+    echo "🛑 ERROR ($script_name): Neither Apache nor NGINX could be detected."
     exit 1
 fi
