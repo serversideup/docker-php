@@ -6,7 +6,7 @@ set -oe
 ###################################################
 # This script installs alpine packages that are passed to it
 
-script_name="${0%.sh}"
+script_name=$(basename "${0%.sh}")
 
 ############
 # Sanity checks
@@ -15,12 +15,12 @@ if [ -f /etc/os-release ]; then
     # Source the os-release file (including the $NAME variable)
     . /etc/os-release
 else
-    echo "$script_name: Unable to determine the OS."
+    echo "🛑 ERROR ($script_name): Unable to determine the OS."
     exit 1
 fi
 
 if [ "$NAME" != "Alpine Linux" ] || [ $# -eq 0 ]; then
-    echo "WARNING ($script_name): No arugments were passed or the OS is not Alpine Linux. Continuing..."
+    echo "ℹ️ INFO ($script_name): No arugments were passed or the OS is not Alpine Linux. Continuing..."
     exit 0
 fi
 
