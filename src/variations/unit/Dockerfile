@@ -1,6 +1,6 @@
 ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.2'
-ARG PHP_VARIATION='nginx-unit'
+ARG PHP_VARIATION='unit'
 ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
 
 ##########
@@ -32,8 +32,8 @@ RUN NCPU="$(getconf _NPROCESSORS_ONLN)" && \
                     --logdir=/var/log \
                     --log=/var/log/unit.log \
                     --tmpdir=/var/tmp \
-                    --user=unit \
-                    --group=unit" && \
+                    --user=www-data \
+                    --group=www-data" && \
     ./configure $CONFIGURE_ARGS && \
     ./configure php --config=php-config --module=php && \
     make -j $NCPU all && \
@@ -80,15 +80,6 @@ COPY --chmod=755 src/common/ /
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Create user and group for running NGINX Unit
-RUN if [ -f "/etc/alpine-release" ]; then \
-        addgroup -S -g 999 unit && \
-        adduser -S -u 999 -G unit -h /nonexistent -s /bin/false unit; \
-    else \
-        addgroup --system --gid 999 unit && \
-        adduser --system --uid 999 --ingroup unit --home /nonexistent --shell /bin/false unit; \
-    fi
 
 # Link logs to stdout for Docker logging
 RUN ln -sf /dev/stdout /var/log/unit.log

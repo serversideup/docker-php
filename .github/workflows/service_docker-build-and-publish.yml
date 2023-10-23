@@ -25,7 +25,7 @@ jobs:
   setup-matrix:
     runs-on: ubuntu-22.04
     outputs:
-      php-variations: '["cli","fpm","fpm-nginx","fpm-apache","nginx-unit"]'
+      php-variations: '["cli","fpm","fpm-nginx","fpm-apache","unit"]'
       base-os-versions: '["bookworm","alpine"]'
       php-versions-json: ${{ steps.get-php-versions.outputs.php-versions-json }}
     steps:
