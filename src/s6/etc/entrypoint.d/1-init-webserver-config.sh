@@ -46,6 +46,12 @@ process_template() {
 
     echo "($script_name): Processing $template_file → $output_file..."
     envsubst "$subst_vars" < "$template_file" > "$output_file"
+
+    if [ "$LOG_LEVEL" = "debug" ]; then
+        echo "$script_name: Contents of $output_file:"
+        cat $output_file
+        echo
+    fi
 }
 
 enable_nginx_site (){
