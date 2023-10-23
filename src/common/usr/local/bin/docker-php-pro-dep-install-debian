@@ -7,6 +7,7 @@ set -oe
 # This script installs debian packages that are passed to it
 
 DEBIAN_FRONTEND=noninteractive
+script_name="${0%.sh}"
 
 ############
 # Sanity checks
@@ -15,12 +16,12 @@ if [ -f /etc/os-release ]; then
     # Source the os-release file (including the $NAME variable)
     . /etc/os-release
 else
-    echo "docker-php-pro-dep-install-debian: Unable to determine the OS."
+    echo "$script_name: Unable to determine the OS."
     exit 1
 fi
 
 if [ "$NAME" != "Debian GNU/Linux" ] || [ $# -eq 0 ]; then
-    echo "WARNING (docker-php-pro-dep-install-debian): No arugments were passed or the OS is not Debian GNU/Linux. Continuing..."
+    echo "WARNING ($script_name): No arugments were passed or the OS is not Debian GNU/Linux. Continuing..."
     exit 0
 fi
 

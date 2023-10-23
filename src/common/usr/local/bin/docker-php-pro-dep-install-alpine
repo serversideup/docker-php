@@ -6,6 +6,8 @@ set -oe
 ###################################################
 # This script installs alpine packages that are passed to it
 
+script_name="${0%.sh}"
+
 ############
 # Sanity checks
 ############
@@ -13,12 +15,12 @@ if [ -f /etc/os-release ]; then
     # Source the os-release file (including the $NAME variable)
     . /etc/os-release
 else
-    echo "docker-php-pro-dep-install-alpine: Unable to determine the OS."
+    echo "$script_name: Unable to determine the OS."
     exit 1
 fi
 
 if [ "$NAME" != "Alpine Linux" ] || [ $# -eq 0 ]; then
-    echo "WARNING (docker-php-pro-dep-install-alpine): No arugments were passed or the OS is not Alpine Linux. Continuing..."
+    echo "WARNING ($script_name): No arugments were passed or the OS is not Alpine Linux. Continuing..."
     exit 0
 fi
 

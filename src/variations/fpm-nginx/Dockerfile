@@ -38,7 +38,7 @@ RUN docker-php-pro-dep-install-debian "curl gnupg2 ca-certificates lsb-release d
     VALID_KEY=$(gpg --dry-run --quiet --no-keyring --import --import-options import-show "$SIGNING_KEY_OUTPUT_FILE" | grep "$SIGNING_FINGERPRINT") && \
     \
     if [ -z "$VALID_KEY" ]; then \
-        echo "ERROR (docker-php-pro-apt-import-key-debian): Key did not match signing signature!" && \
+        echo "ERROR: Key did not match signing signature!" && \
         exit 1; \
     fi && \
     \
