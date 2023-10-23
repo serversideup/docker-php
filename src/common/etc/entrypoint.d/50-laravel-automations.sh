@@ -6,11 +6,11 @@ fi
 # Exit on error
 set -e
 
-echo "🏃‍♂️ Laravel automations"
+echo "Laravel automations"
 
 # # Check to see if an Artisan file exists and assume it means Laravel is configured.
 # if [ -f $WEB_APP_DIRECTORY/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; then
-#         echo "🏃‍♂️ Checking for Laravel automations..."
+#         echo "Checking for Laravel automations..."
 
 #         ############################################################################
 #         # Automated database migrations

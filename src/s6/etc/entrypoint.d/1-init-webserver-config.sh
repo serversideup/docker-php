@@ -44,7 +44,7 @@ process_template() {
         fi
     done
 
-    echo "🏃‍♂️ Processing $template_file → $output_file..."
+    echo "($script_name): Processing $template_file → $output_file..."
     envsubst "$subst_vars" < "$template_file" > "$output_file"
 }
 
