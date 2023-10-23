@@ -6,7 +6,7 @@ set -oe
 ###################################################
 # This script installs alpine packages that are passed to it
 
-script_name=$(basename "${0%.sh}")
+script_name="docker-php-pro-dep-install-alpine"
 
 ############
 # Sanity checks

@@ -3,7 +3,7 @@ if [ "$LOG_LEVEL" = "debug" ]; then
   set -x
 fi
 set -e
-script_name=$(basename "${0%.sh}")
+script_name="init-webserver-config"
 
 ##########
 # Functions
