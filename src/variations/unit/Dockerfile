@@ -30,7 +30,7 @@ RUN NCPU="$(getconf _NPROCESSORS_ONLN)" && \
                     --runstatedir=/var/run \
                     --pid=/var/run/unit.pid \
                     --logdir=/var/log \
-                    --log=/var/log/unit.log \
+                    --log=/dev/stdout \
                     --tmpdir=/var/tmp \
                     --user=www-data \
                     --group=www-data" && \
@@ -44,6 +44,9 @@ RUN NCPU="$(getconf _NPROCESSORS_ONLN)" && \
 ##########
 FROM ${BASE_IMAGE}
 LABEL maintainer="Jay Rogers (@jaydrogers)"
+
+ARG DEPENDENCY_PACKAGES_ALPINE='gettext'
+ARG DEPENDENCY_PACKAGES_BOOKWORM='gettext-base'
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
@@ -66,7 +69,10 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/web.crt \
-    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/web.key
+    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/web.key \
+    UNIT_WEBROOT=/var/www/html/public \
+    UNIT_CONFIG_FILE=/etc/unit/config.d/config.json \
+    UNIT_CONFIG_DIRECTORY=/etc/unit/config.d
 
 # Copy NGINX Unit binaries and modules from build stage
 COPY --from=build /usr/sbin/unitd /usr/sbin/
@@ -77,15 +83,20 @@ COPY --from=build /var/lib/unit/ /var/lib/unit/
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
+COPY --chmod=755 src/variations/unit/etc/ /etc/
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Link logs to stdout for Docker logging
-RUN ln -sf /dev/stdout /var/log/unit.log
+# install pecl extensions, dependencies, and clean up
+RUN docker-php-pro-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
+    docker-php-pro-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
+    docker-php-pro-pecl-install $PECL_PACKAGES
 
 # Expose the necessary port(s)
 EXPOSE 80 443
+
+ENTRYPOINT ["docker-php-pro-entrypoint"]
 
 # Set the command to run Nginx Unit
 CMD ["unitd", "--no-daemon"]
