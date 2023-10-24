@@ -6,6 +6,7 @@ WAITLOOPS=5
 SLEEPSEC=1
 UNIT_CONFIG_DIRECTORY=${UNIT_CONFIG_DIRECTORY:-"/etc/unit/config.d"}
 UNIT_CONFIG_FILE=${UNIT_CONFIG_FILE:-"$UNIT_CONFIG_DIRECTORY/config.json"}
+UNIT_SOCKET_LOCATION=${UNIT_SOCKET_LOCATION:-"/var/run/control.unit.sock"}
 
 ##########
 # Functions
@@ -50,28 +51,37 @@ process_template() {
     set_debug_output "cat $output_file"
 }
 
-curl_put()
-{
-    RET=$(/usr/bin/curl -s -w '%{http_code}' -X PUT --data-binary @$1 --unix-socket /var/run/control.unit.sock http://localhost/$2)
-    RET_BODY=$(echo $RET | /bin/sed '$ s/...$//')
-    RET_STATUS=$(echo $RET | /usr/bin/tail -c 4)
-    if [ "$RET_STATUS" -ne "200" ]; then
-        echo "$script_name: Error: HTTP response status code is '$RET_STATUS'"
-        echo "$RET_BODY"
+
+curl_put() {
+    curl_option="$1"
+    curl_value="$2"
+    api_location="$3"
+
+    if [ $curl_option = "--data-binary" ]; then
+        curl_value="@$curl_value"
+    fi
+
+    curl_return=$(/usr/bin/curl -s -w '%{http_code}' -X PUT "$curl_option" "$curl_value" --unix-socket "$UNIT_SOCKET_LOCATION" "http://localhost/$api_location")
+    return_status=$(echo $curl_return | /bin/sed '$ s/...$//')
+    return_body=$(echo $curl_return | /usr/bin/tail -c 4)
+
+    if [ "$return_status" -ne "200" ]; then
+        echo "$script_name: Error: HTTP response status code is '$return_status'"
+        echo "$2"
         return 1
     else
-        echo "$script_name: OK: HTTP response status code is '$RET_STATUS'"
-        echo "$RET_BODY"
+        echo "$script_name: OK: HTTP response status code is '$return_status'"
+        echo "$return_body"
     fi
     return 0
 }
 
 configure_unit() {
     echo "$script_name: Launching Unit daemon to perform initial configuration..."
-    /usr/sbin/$DOCKER_CMD --control unix:/var/run/control.unit.sock
+    /usr/sbin/$DOCKER_CMD --control unix:"$UNIT_SOCKET_LOCATION"
 
     for i in $(/usr/bin/seq $WAITLOOPS); do
-        if [ ! -S /var/run/control.unit.sock ]; then
+        if [ ! -S "$UNIT_SOCKET_LOCATION" ]; then
             echo "$script_name: Waiting for control socket to be created..."
             /bin/sleep $SLEEPSEC
         else
@@ -80,12 +90,12 @@ configure_unit() {
     done
     # even when the control socket exists, it does not mean unit has finished initialisation
     # this curl call will get a reply once unit is fully launched
-    /usr/bin/curl -s -X GET --unix-socket /var/run/control.unit.sock http://localhost/
+    /usr/bin/curl -s -X GET --unix-socket "$UNIT_SOCKET_LOCATION" http://localhost/
 
     echo "$script_name: Looking for certificate bundles in $UNIT_CONFIG_DIRECTORY..."
-    for f in $(/usr/bin/find $UNIT_CONFIG_DIRECTORY -type f -name "*.pem"); do
+    for f in $(/usr/bin/find "$UNIT_CONFIG_DIRECTORY" -type f -name "*.pem"); do
         echo "$script_name: Uploading certificates bundle: $f"
-        curl_put $f "certificates/$(basename $f .pem)"
+        curl_put "--data-binary" "$f" "certificates/$(basename $f .pem)"
     done
 
     set_debug_output "/usr/bin/find $UNIT_CONFIG_DIRECTORY -type f -name \"*.pem\""
@@ -93,34 +103,37 @@ configure_unit() {
     echo "$script_name: Looking for JavaScript modules in $UNIT_CONFIG_DIRECTORY..."
     for f in $(/usr/bin/find $UNIT_CONFIG_DIRECTORY -type f -name "*.js"); do
         echo "$script_name: Uploading JavaScript module: $f"
-        curl_put $f "js_modules/$(basename $f .js)"
+        curl_put "--data-binary" "$f" "js_modules/$(basename $f .js)"
     done
 
     echo "$script_name: Looking for configuration snippets in $UNIT_CONFIG_DIRECTORY..."
-    for f in $(/usr/bin/find $UNIT_CONFIG_DIRECTORY -type f -name "*.json"); do
+    for f in $(/usr/bin/find "$UNIT_CONFIG_DIRECTORY" -type f -name "*.json"); do
         echo "$script_name: Applying configuration $f";
-        curl_put $f "config"
+        curl_put "--data-binary" "$f" "config"
     done
 
     # warn on filetypes we don't know what to do with
-    for f in $(/usr/bin/find $UNIT_CONFIG_DIRECTORY -type f -not -name "*.sh" -not -name "*.template" -not -name "*.json" -not -name "*.pem" -not -name "*.js"); do
+    for f in $(/usr/bin/find "$UNIT_CONFIG_DIRECTORY" -type f -not -name "*.sh" -not -name "*.template" -not -name "*.json" -not -name "*.pem" -not -name "*.js"); do
         echo "$script_name: Ignoring $f";
     done
 
+    echo "$script_name: Setting access log to STDOUT..."
+    curl_put "-d" '"/dev/stdout"' "config/access_log"
+
     echo "$script_name: Stopping Unit daemon after initial configuration..."
-    kill -TERM $(/bin/cat /var/run/unit.pid)
+    kill -TERM "$(/bin/cat /var/run/unit.pid)"
 
     for i in $(/usr/bin/seq $WAITLOOPS); do
-        if [ -S /var/run/control.unit.sock ]; then
+        if [ -S "$UNIT_SOCKET_LOCATION" ]; then
             echo "$script_name: Waiting for control socket to be removed..."
             /bin/sleep $SLEEPSEC
         else
             break
         fi
     done
-    if [ -S /var/run/control.unit.sock ]; then
-        kill -KILL $(/bin/cat /var/run/unit.pid)
-        rm -f /var/run/control.unit.sock
+    if [ -S "$UNIT_SOCKET_LOCATION" ]; then
+        kill -KILL "$(/bin/cat /var/run/unit.pid)"
+        rm -f "$UNIT_SOCKET_LOCATION"
     fi
 
     echo

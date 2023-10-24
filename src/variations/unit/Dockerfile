@@ -33,7 +33,8 @@ RUN NCPU="$(getconf _NPROCESSORS_ONLN)" && \
                     --log=/dev/stdout \
                     --tmpdir=/var/tmp \
                     --user=www-data \
-                    --group=www-data" && \
+                    --group=www-data \
+                    --openssl" && \
     ./configure $CONFIGURE_ARGS && \
     ./configure php --config=php-config --module=php && \
     make -j $NCPU all && \
