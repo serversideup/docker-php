@@ -68,11 +68,11 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     SSL_MODE=off \
-    SSL_CERTIFICATE_FILE=/etc/ssl/private/web.crt \
-    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/web.key \
+    SSL_CERT_BUNDLE_FILE=/etc/ssl/certs/private/bundle.pem \
     UNIT_WEBROOT=/var/www/html/public \
     UNIT_CONFIG_FILE=/etc/unit/config.d/config.json \
-    UNIT_CONFIG_DIRECTORY=/etc/unit/config.d
+    UNIT_CONFIG_DIRECTORY=/etc/unit/config.d \
+    UNIT_CERTIFICATE_NAME=self-signed-web
 
 # Copy NGINX Unit binaries and modules from build stage
 COPY --from=build /usr/sbin/unitd /usr/sbin/

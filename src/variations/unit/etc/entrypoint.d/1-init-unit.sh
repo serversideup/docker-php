@@ -1,10 +1,6 @@
 #!/bin/sh
-if [ "$LOG_LEVEL" = "debug" ]; then
-  set -x
-fi
-
 set -e
-script_name=$(basename "${0%.sh}")
+script_name="init-unit"
 
 WAITLOOPS=5
 SLEEPSEC=1
@@ -14,6 +10,15 @@ UNIT_CONFIG_FILE=${UNIT_CONFIG_FILE:-"$UNIT_CONFIG_DIRECTORY/config.json"}
 ##########
 # Functions
 ##########
+set_debug_output() {
+    if [ "$LOG_LEVEL" = "debug" ]; then
+        echo "👉 $script_name: Output of $*:" >&2
+        echo
+        eval "$@" || { echo "Command $* failed" >&2; return 1; }
+        echo
+    fi
+}
+
 process_template() {
     template_file=$1
     output_file=$2
@@ -42,6 +47,7 @@ process_template() {
 
     echo "$script_name: Processing $template_file → $output_file..."
     envsubst "$subst_vars" < "$template_file" > "$output_file"
+    set_debug_output "cat $output_file"
 }
 
 curl_put()
@@ -60,15 +66,9 @@ curl_put()
     return 0
 }
 
-##########
-# Main
-##########
-if [ "$1" = "unitd" ] || [ "$1" = "unitd-debug" ]; then
-    ssl_mode=$(echo "$SSL_MODE" | tr '[:upper:]' '[:lower:]')
-    process_template "$UNIT_CONFIG_DIRECTORY/ssl-$ssl_mode.json.template" $UNIT_CONFIG_DIRECTORY/config.json
-
+configure_unit() {
     echo "$script_name: Launching Unit daemon to perform initial configuration..."
-    /usr/sbin/$1 --control unix:/var/run/control.unit.sock
+    /usr/sbin/$DOCKER_CMD --control unix:/var/run/control.unit.sock
 
     for i in $(/usr/bin/seq $WAITLOOPS); do
         if [ ! -S /var/run/control.unit.sock ]; then
@@ -87,6 +87,8 @@ if [ "$1" = "unitd" ] || [ "$1" = "unitd-debug" ]; then
         echo "$script_name: Uploading certificates bundle: $f"
         curl_put $f "certificates/$(basename $f .pem)"
     done
+
+    set_debug_output "/usr/bin/find $UNIT_CONFIG_DIRECTORY -type f -name \"*.pem\""
 
     echo "$script_name: Looking for JavaScript modules in $UNIT_CONFIG_DIRECTORY..."
     for f in $(/usr/bin/find $UNIT_CONFIG_DIRECTORY -type f -name "*.js"); do
@@ -124,4 +126,31 @@ if [ "$1" = "unitd" ] || [ "$1" = "unitd-debug" ]; then
     echo
     echo "$script_name: Unit initial configuration complete; ready for start up..."
     echo
+}
+
+validate_ssl(){
+    available_ssl_bundles=$(/usr/bin/find "$UNIT_CONFIG_DIRECTORY" -type f -name "*.pem")
+
+    if [ -n "$available_ssl_bundles" ]; then
+        echo "ℹ️ NOTICE ($script_name): SSL Certbundle already exists, so we'll use the existing files."
+        return 0
+    fi
+
+    echo "$script_name: 🔐 SSL Certbundle not found. Generating self-signed SSL bundle..."
+    mkdir -p /etc/ssl/private/
+    openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.key" -out "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.crt" -days 365 >/dev/null 2>&1
+    cat "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.key" "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.crt" > "$UNIT_CONFIG_DIRECTORY/$UNIT_CERTIFICATE_NAME.pem"
+}
+
+##########
+# Main
+##########
+DOCKER_CMD=$1
+if [ "$DOCKER_CMD" = "unitd" ] || [ "$1" = "unitd-debug" ]; then
+    ssl_mode=$(echo "$SSL_MODE" | tr '[:upper:]' '[:lower:]')
+    process_template "$UNIT_CONFIG_DIRECTORY/ssl-$ssl_mode.json.template" $UNIT_CONFIG_DIRECTORY/config.json
+    if [ "$ssl_mode" != "off" ]; then
+        validate_ssl
+    fi
+    configure_unit
 fi

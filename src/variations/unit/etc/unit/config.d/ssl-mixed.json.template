@@ -1,0 +1,36 @@
+{
+    "listeners": {
+        "*:80": {
+            "pass": "routes"
+        },
+        "*:443": {
+            "pass": "routes",
+            "tls": {
+                "certificate": "${UNIT_CERTIFICATE_NAME}"
+            }
+        }
+    },
+
+    "routes": [
+        {
+            "match": {
+                "uri": "!/index.php"
+            },
+            "action": {
+                "share": "${UNIT_WEBROOT}$uri",
+                "fallback": {
+                    "pass": "applications/php"
+                }
+            }
+        }
+    ],
+
+    "applications": {
+        "php": {
+            "type": "php",
+            "root": "${UNIT_WEBROOT}/",
+            "script": "index.php",
+            "processes": {}
+        }
+    }
+}
