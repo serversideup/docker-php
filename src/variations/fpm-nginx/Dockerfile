@@ -85,8 +85,8 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     S6_KEEP_ENV=1 \
     S6_VERBOSITY=1 \
     SSL_MODE=off \
-    SSL_CERTIFICATE_FILE=/etc/ssl/private/web.crt \
-    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/web.key
+    SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
+    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
