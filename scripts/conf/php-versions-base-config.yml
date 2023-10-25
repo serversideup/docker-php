@@ -26,3 +26,7 @@ php_versions:
         patch_versions:
           - 8.2.10
           - 8.2.8
+      - minor: 8.3-rc
+        release_candidate: true
+        patch_versions:
+          - 8.3-rc

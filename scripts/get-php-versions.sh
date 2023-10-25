@@ -1,4 +1,12 @@
 #!/bin/bash
+###################################################
+# Usage: get-php-versions.sh
+###################################################
+# This file takes the official latest PHP releases from php.net merges them with our
+# "base php configuration". These files get merged into a final file called "php-versions.yml"
+# which is used to build our GitHub Actions jobs.
+
+
 set -oue pipefail
 
 # Uncomment below for step-by-step execution
@@ -7,10 +15,6 @@ set -oue pipefail
 
 ##########################
 # Environment Settings
-
-# Manual setting for PHP RC versions. Change this to add or remove RC versions.
-# Separate each version with a space. Example: ("8.3-rc" "8.4-rc")
-PHP_RC_VERSIONS=("8.3-rc")
 
 # Script variables
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -129,34 +133,6 @@ function merge_php_version_data {
 }
 
 
-function append_php_rc_versions {
-    echo_color_message yellow "⚡️ Adding PHP RC versions..."
-    
-    # Convert YAML to JSON
-    json_data=$(yq eval -o=json "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE")
-    
-    # Loop through each RC version
-    for rc_version in "${PHP_RC_VERSIONS[@]}"; do
-        major_version="${rc_version%%.*}"
-        
-        # Construct the new RC version entry as a JSON string
-        rc_json="{\"minor\": \"$rc_version\", \"release_candidate\": true, \"patch_versions\": [\"$rc_version\"]}"
-        
-        # Add the new RC version entry to the JSON data
-        json_data=$(echo "$json_data" | jq --argjson rc_json "$rc_json" --arg major "$major_version" '
-        (.php_versions[] | select(.major == $major) | .minor_versions) += [$rc_json]
-        ')
-    done
-    
-    # Convert updated JSON data back to YAML
-    updated_yaml=$(echo "$json_data" | yq eval -P -)
-    
-    # Save the updated YAML data back to the file
-    echo "$updated_yaml" > "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE"
-    
-    echo_color_message green "✅ PHP RC versions appended."
-}
-
 ##########################
 # Main script starts here
 
@@ -164,10 +140,6 @@ save_php_version_data_from_url
 
 if [ -f $BASE_PHP_VERSIONS_CONFIG_FILE ]; then
     merge_php_version_data
-fi
-
-if [ ${#PHP_RC_VERSIONS[@]} -ne 0 ]; then
-    append_php_rc_versions
 fi
 
 finalize_php_version_data
