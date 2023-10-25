@@ -26,8 +26,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       php-variations: '["cli","fpm","fpm-nginx","fpm-apache","unit"]'
-      base-os-versions: '["bookworm","alpine"]'
-      php-versions-json: ${{ steps.get-php-versions.outputs.php-versions-json }}
+      php-versions-with-os-mapping-json: ${{ steps.get-php-versions.outputs.php-versions-with-os-mapping-json }}
     steps:
     - name: Check out code
       uses: actions/checkout@v3
@@ -49,8 +48,9 @@ jobs:
     - name: Assemble PHP versions into the matrix. 😎
       id: get-php-versions
       run: |
-        PHP_VERSIONS_JSON=$(yq -o=json ${{ inputs.php-versions-file }} | jq -c '[.php_versions[] | .minor_versions[] | .patch_versions[]]')
-        echo "php-versions-json=${PHP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
+        PHP_VARIATIONS='["cli","fpm","fpm-nginx","fpm-apache","unit"]'
+        MATRIX_JSON=$(yq -o=json scripts/conf/php-versions.yml | jq -c --argjson variations "$PHP_VARIATIONS" '{include: [.php_versions[] | .minor_versions[] | .patch_versions[] as $patch | .base_os[] | .name as $base_os | $variations[] | {patch_version: $patch, base_os: $base_os, php_variation: .}]}')
+        echo "matrix-json=${MATRIX_JSON}" >> $GITHUB_OUTPUT
   
     - name: Upload the php-versions.yml file
       uses: actions/upload-artifact@v3
@@ -62,10 +62,7 @@ jobs:
     needs: setup-matrix
     runs-on: ubuntu-22.04
     strategy:
-      matrix:
-        base-os-versions: ${{fromJson(needs.setup-matrix.outputs.base-os-versions)}}
-        php-versions: ${{ fromJson(needs.setup-matrix.outputs.php-versions-json) }}
-        php-variations: ${{fromJson(needs.setup-matrix.outputs.php-variations)}}
+      matrix: ${{fromJson(needs.setup-matrix.outputs.matrix-json)}}
 
     steps:
       ##
@@ -134,11 +131,10 @@ jobs:
         env:
           DOCKER_REPOSITORY: "${{ inputs.docker-repo-name }}"
           PHP_VERSIONS_FILE: "${{ inputs.php-versions-file }}"
-          DEFAULT_BASE_OS: ${{ inputs.default-base-os }}
           DEFAULT_IMAGE_VARIATION: ${{ inputs.default-image-variation }}
-          PHP_BUILD_VERSION: ${{ matrix.php-versions }}
-          PHP_BUILD_VARIATION: ${{ matrix.php-variations }}
-          PHP_BUILD_BASE_OS: ${{ matrix.base-os-versions }}
+          PHP_BUILD_VERSION: ${{ matrix.patch_version }}
+          PHP_BUILD_VARIATION: ${{ matrix.php_variation }}
+          PHP_BUILD_BASE_OS: ${{ matrix.base_os }}
           CHECKOUT_TYPE: ${{ inputs.checkout-type }}
           DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
 
