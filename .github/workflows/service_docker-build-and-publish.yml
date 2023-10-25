@@ -25,8 +25,7 @@ jobs:
   setup-matrix:
     runs-on: ubuntu-22.04
     outputs:
-      php-variations: '["cli","fpm","fpm-nginx","fpm-apache","unit"]'
-      php-versions-with-os-mapping-json: ${{ steps.get-php-versions.outputs.php-versions-with-os-mapping-json }}
+      php-version-map-json: ${{ steps.get-php-versions.outputs.php-version-map-json }}
     steps:
     - name: Check out code
       uses: actions/checkout@v3
@@ -62,7 +61,7 @@ jobs:
     needs: setup-matrix
     runs-on: ubuntu-22.04
     strategy:
-      matrix: ${{fromJson(needs.setup-matrix.outputs.matrix-json)}}
+      matrix: ${{fromJson(needs.setup-matrix.outputs.php-version-map-json)}}
 
     steps:
       ##
