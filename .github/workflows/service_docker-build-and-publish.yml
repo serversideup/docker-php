@@ -49,7 +49,7 @@ jobs:
       run: |
         PHP_VARIATIONS='["cli","fpm","fpm-nginx","fpm-apache","unit"]'
         MATRIX_JSON=$(yq -o=json scripts/conf/php-versions.yml | jq -c --argjson variations "$PHP_VARIATIONS" '{include: [.php_versions[] | .minor_versions[] | .patch_versions[] as $patch | .base_os[] | .name as $base_os | $variations[] | {patch_version: $patch, base_os: $base_os, php_variation: .}]}')
-        echo "matrix-json=${MATRIX_JSON}" >> $GITHUB_OUTPUT
+        echo "php-version-map-json=${MATRIX_JSON}" >> $GITHUB_OUTPUT
   
     - name: Upload the php-versions.yml file
       uses: actions/upload-artifact@v3
