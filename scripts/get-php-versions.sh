@@ -135,9 +135,5 @@ function merge_php_version_data {
 # Main script starts here
 
 save_php_version_data_from_url
-
-if [ -f $BASE_PHP_VERSIONS_CONFIG_FILE ]; then
-    merge_php_version_data
-fi
-
+merge_php_version_data
 finalize_php_version_data
