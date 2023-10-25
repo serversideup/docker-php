@@ -1,4 +1,15 @@
 #/bin/bash
+###################################################
+# Usage: assemble-docker-tags.sh [--variation <variation> --os <os> --patch-version <patch-version>]
+###################################################
+# This scripts dives deep into the advanced logic of assembling Docker tags for GitHub Actions.
+# If $CI is "true", it outputs the tags to GITHUB_ENV for use in subsequent steps.
+# You can run this locally for debugging. The script has beautiful output and can help debug
+# any advanced logic issues.
+#
+# REQUIRED FILES
+# - PHP_VERSIONS_FILE must be valid and set to a valid file path
+
 set -oe pipefail
 
 ##########################
@@ -107,90 +118,31 @@ function is_default_variation() {
     [[ "$PHP_BUILD_VARIATION" == "$DEFAULT_IMAGE_VARIATION" ]]
 }
 
-assemble_docker_tags() {
-  # Store arguments
-  build_patch_version=$1
-  build_base_os=$2
-  build_variation=$3
-
-  # Extract major and minor versions from build_patch_version
-  build_major_version="${build_patch_version%%.*}"
-  build_minor_version="${build_patch_version%.*}"
-
-  # Fetch version data from the PHP
-  latest_global_stable_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r '[.php_versions[] | select(.major | test("-rc") | not) | .major | tonumber] | max | tostring')
-  latest_global_stable_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg latest_global_stable_major "$latest_global_stable_major" '.php_versions[] | select(.major == $latest_global_stable_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $latest_global_stable_major + "." + tostring')
-  latest_minor_within_build_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
-  latest_patch_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
-
-  check_vars \
-    "🚨 Missing critical build variable. Check the script logic and logs" \
-    build_patch_version \
-    build_major_version \
-    build_minor_version \
-    latest_global_stable_major \
-    latest_global_stable_minor \
-    latest_minor_within_build_major
-
-  echo_color_message green "⚡️ PHP Build Version: $build_patch_version"
-
-  echo_color_message yellow "👇 Calculated Build Versions:"
-  echo "Build Major Version: $build_major_version"
-  echo "Build Minor Version: $build_minor_version"
-
-  echo_color_message yellow "🧐 Queried results from $PHP_VERSIONS_FILE"
-  echo "Latest Global Major Version: $latest_global_stable_major"
-  echo "Latest Global Minor Version: $latest_global_stable_minor"
-  echo "Latest Minor Version within Build Major: $latest_minor_within_build_major"
-  echo "Latest Patch Version within Build Minor: $latest_patch_within_build_minor"
-  
-  # Set default tag
-  DOCKER_TAGS=""
-  add_docker_tag "$build_patch_version-$build_variation-$build_base_os"
-
-  if is_default_base_os; then
-    add_docker_tag "$build_patch_version-$build_variation"
-  fi
-
-  if is_latest_stable_patch; then
-    add_docker_tag "$build_minor_version-$build_variation-$build_base_os"
-
-    if is_default_variation; then
-      add_docker_tag "$build_minor_version-$build_base_os"
-    fi
-
-    if is_default_base_os && is_default_variation; then
-      add_docker_tag "$build_minor_version"
-    fi
-
-    if is_latest_minor_within_build_major; then
-      add_docker_tag "$build_major_version-$build_variation-$build_base_os"
-
-      if is_default_base_os && is_default_variation; then
-        add_docker_tag "$build_major_version"
-      fi
-
-      if is_latest_major && is_default_variation; then
-        add_docker_tag "$build_base_os"
-        
-        if is_default_base_os && is_checkout_type_of_latest_stable && is_default_variation; then
-          add_docker_tag "latest"
-        fi
-      fi
-    fi
-  fi
-
-  echo_color_message green "🚀 Summary of Docker Tags Being Shipped: $DOCKER_TAGS"
-
-  # Save to GitHub's environment
-  if [[ $CI == "true" ]]; then
-    echo "DOCKER_TAGS=${DOCKER_TAGS}" >> $GITHUB_ENV
-    echo_color_message green "✅ Saved Docker Tags to "GITHUB_ENV""
-  fi
-}
-
 ##########################
 # Main Script
+
+# Check arguments (if passed, these arguments are optional and intended for development debugging only)
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --variation)
+        PHP_BUILD_VARIATION="$2"
+        shift 2
+        ;;
+        --os)
+        PHP_BUILD_BASE_OS="$2"
+        shift 2
+        ;;
+        --patch-version)
+        PHP_BUILD_VERSION="$2"
+        shift 2
+        ;;
+        *)
+        echo "🛑 ERROR: Unknown argument passed: $1"
+        exit 1
+        shift
+        ;;
+    esac
+done
 
 # Check that all required variables are set
 check_vars \
@@ -212,4 +164,82 @@ if [[ ! -f $PHP_VERSIONS_FILE ]]; then
   exit 1
 fi
 
-assemble_docker_tags $PHP_BUILD_VERSION $PHP_BUILD_BASE_OS $PHP_BUILD_VARIATION
+# Store arguments
+build_patch_version=$PHP_BUILD_VERSION
+build_base_os=$PHP_BUILD_BASE_OS
+build_variation=$PHP_BUILD_VARIATION
+
+# Extract major and minor versions from build_patch_version
+build_major_version="${build_patch_version%%.*}"
+build_minor_version="${build_patch_version%.*}"
+
+# Fetch version data from the PHP
+latest_global_stable_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r '[.php_versions[] | select(.major | test("-rc") | not) | .major | tonumber] | max | tostring')
+latest_global_stable_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg latest_global_stable_major "$latest_global_stable_major" '.php_versions[] | select(.major == $latest_global_stable_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $latest_global_stable_major + "." + tostring')
+latest_minor_within_build_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
+latest_patch_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
+
+check_vars \
+  "🚨 Missing critical build variable. Check the script logic and logs" \
+  build_patch_version \
+  build_major_version \
+  build_minor_version \
+  latest_global_stable_major \
+  latest_global_stable_minor \
+  latest_minor_within_build_major
+
+echo_color_message green "⚡️ PHP Build Version: $build_patch_version"
+
+echo_color_message yellow "👇 Calculated Build Versions:"
+echo "Build Major Version: $build_major_version"
+echo "Build Minor Version: $build_minor_version"
+
+echo_color_message yellow "🧐 Queried results from $PHP_VERSIONS_FILE"
+echo "Latest Global Major Version: $latest_global_stable_major"
+echo "Latest Global Minor Version: $latest_global_stable_minor"
+echo "Latest Minor Version within Build Major: $latest_minor_within_build_major"
+echo "Latest Patch Version within Build Minor: $latest_patch_within_build_minor"
+
+# Set default tag
+DOCKER_TAGS=""
+add_docker_tag "$build_patch_version-$build_variation-$build_base_os"
+
+if is_default_base_os; then
+  add_docker_tag "$build_patch_version-$build_variation"
+fi
+
+if is_latest_stable_patch; then
+  add_docker_tag "$build_minor_version-$build_variation-$build_base_os"
+
+  if is_default_variation; then
+    add_docker_tag "$build_minor_version-$build_base_os"
+  fi
+
+  if is_default_base_os && is_default_variation; then
+    add_docker_tag "$build_minor_version"
+  fi
+
+  if is_latest_minor_within_build_major; then
+    add_docker_tag "$build_major_version-$build_variation-$build_base_os"
+
+    if is_default_base_os && is_default_variation; then
+      add_docker_tag "$build_major_version"
+    fi
+
+    if is_latest_major && is_default_variation; then
+      add_docker_tag "$build_base_os"
+      
+      if is_default_base_os && is_checkout_type_of_latest_stable && is_default_variation; then
+        add_docker_tag "latest"
+      fi
+    fi
+  fi
+fi
+
+echo_color_message green "🚀 Summary of Docker Tags Being Shipped: $DOCKER_TAGS"
+
+# Save to GitHub's environment
+if [[ $CI == "true" ]]; then
+  echo "DOCKER_TAGS=${DOCKER_TAGS}" >> $GITHUB_ENV
+  echo_color_message green "✅ Saved Docker Tags to "GITHUB_ENV""
+fi
