@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 ###################################################
 # Usage: assemble-docker-tags.sh [--variation <variation> --os <os> --patch-version <patch-version>]
 ###################################################
@@ -7,8 +7,9 @@
 # You can run this locally for debugging. The script has beautiful output and can help debug
 # any advanced logic issues.
 #
-# REQUIRED FILES
+# 👉 REQUIRED FILES
 # - PHP_VERSIONS_FILE must be valid and set to a valid file path
+#  (defaults to scripts/conf/php-versions.yml)
 
 set -oe pipefail
 

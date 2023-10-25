@@ -5,6 +5,10 @@
 # This file takes the official latest PHP releases from php.net merges them with our
 # "base php configuration". These files get merged into a final file called "php-versions.yml"
 # which is used to build our GitHub Actions jobs.
+#
+# 👉 REQUIRED FILES
+# - BASE_PHP_VERSIONS_CONFIG_FILE must be valid and set to a valid file path
+#  (defaults to scripts/conf/php-versions-base-config.yml)
 
 set -oue pipefail
 
