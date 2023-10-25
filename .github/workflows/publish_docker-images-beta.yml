@@ -34,5 +34,5 @@ jobs:
   #       with:
   #         username: ${{ secrets.DOCKER_HUB_README_USERNAME }}
   #         password: ${{ secrets.DOCKER_HUB_README_PASSWORD }}
-  #         repository: serversideup/php-pro
+  #         repository: serversideup/php
   #         short-description: ${{ github.event.repository.description }}

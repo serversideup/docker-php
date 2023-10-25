@@ -19,7 +19,7 @@ on:
         default: 'cli'
       docker-repo-name:
         type: string
-        default: 'serversideup/php-pro'
+        default: 'serversideup/php'
 
 jobs:
   setup-matrix:
