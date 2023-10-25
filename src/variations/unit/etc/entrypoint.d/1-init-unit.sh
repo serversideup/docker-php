@@ -61,13 +61,13 @@ curl_put() {
         curl_value="@$curl_value"
     fi
 
-    curl_return=$(/usr/bin/curl -s -w '%{http_code}' -X PUT "$curl_option" "$curl_value" --unix-socket "$UNIT_SOCKET_LOCATION" "http://localhost/$api_location")
-    return_status=$(echo $curl_return | /bin/sed '$ s/...$//')
-    return_body=$(echo $curl_return | /usr/bin/tail -c 4)
+    curl_return=$(/usr/bin/curl -s -w '\n%{http_code}' -X PUT "$curl_option" "$curl_value" --unix-socket "$UNIT_SOCKET_LOCATION" "http://localhost/$api_location")
+    return_status=$(echo "$curl_return" | tail -n1)
+    return_body=$(echo "$curl_return" | head -n -1)
 
     if [ "$return_status" -ne "200" ]; then
         echo "$script_name: Error: HTTP response status code is '$return_status'"
-        echo "$2"
+        echo "$return_body"
         return 1
     else
         echo "$script_name: OK: HTTP response status code is '$return_status'"
