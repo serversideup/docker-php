@@ -1,7 +1,7 @@
 {
     "listeners": {
         "*:80": {
-            "pass": "routes",
+            "pass": "routes/http-redirect",
             "forwarded": {
                 "client_ip": "CF-Connecting-IP",
                 "recursive": false,
@@ -32,7 +32,7 @@
             }
         },
         "*:443": {
-            "pass": "routes",
+            "pass": "routes/app",
             "tls": {
                 "certificate": "${UNIT_CERTIFICATE_NAME}",
                 "conf_commands": {
@@ -69,20 +69,32 @@
             }
         }
     },
-    "routes": [
-        {
-            "match": {
+    "routes": {
+        "app": [
+            {
+                "match": {
                 "uri": "!/index.php"
-            },
-            "action": {
-                "share": "${UNIT_WEBROOT}$uri",
-                "fallback": {
-                    "pass": "applications/php"
+                },
+                "action": {
+                    "share": "${UNIT_WEBROOT}$uri",
+                    "fallback": {
+                        "pass": "applications/php"
+                    }
                 }
             }
-        }
-    ],
-
+        ],
+        "http-redirect": [
+            {
+                "match": {
+                    "scheme": "http"
+                },
+                "action": {
+                    "return": 301,
+                    "location": "https://$host$uri"
+                }
+            }
+        ]
+    },   
     "applications": {
         "php": {
             "type": "php",
