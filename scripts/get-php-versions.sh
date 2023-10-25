@@ -6,7 +6,6 @@
 # "base php configuration". These files get merged into a final file called "php-versions.yml"
 # which is used to build our GitHub Actions jobs.
 
-
 set -oue pipefail
 
 # Uncomment below for step-by-step execution
