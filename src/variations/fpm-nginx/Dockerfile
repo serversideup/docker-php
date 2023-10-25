@@ -55,7 +55,7 @@ FROM ${BASE_IMAGE}
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi gettext'
-ARG DEPENDENCY_PACKAGES_BOOKWORM='libfcgi-bin gettext-base'
+ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin gettext-base'
 ARG PECL_PACKAGES
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
@@ -105,7 +105,7 @@ COPY --from=nginx-repo-config /etc/apt/preferences.d/99nginx /etc/apt/preference
 
 # install pecl extensions, dependencies, and clean up
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
-    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-pecl-install $PECL_PACKAGES && \
     docker-php-serversideup-s6-init && \
     \

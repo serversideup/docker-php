@@ -8,7 +8,7 @@ ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
 ##########
 FROM ${BASE_IMAGE} as build
 ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar mercurial openssl-dev pcre2-dev'
-ARG DEPENDENCY_PACKAGES_BOOKWORM='ca-certificates mercurial build-essential libssl-dev libpcre2-dev curl pkg-config'
+ARG DEPENDENCY_PACKAGES_DEBIAN='ca-certificates mercurial build-essential libssl-dev libpcre2-dev curl pkg-config'
 ARG NGINX_UNIT_VERSION='1.31.0'
 
 # copy our scripts
@@ -16,7 +16,7 @@ COPY --chmod=755 src/common/ /
 
 # Download and untar the Nginx Unit source code
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
-    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     cd /usr/src/ && \
     hg clone -u ${NGINX_UNIT_VERSION} https://hg.nginx.org/unit && \
     cd unit
@@ -47,7 +47,7 @@ FROM ${BASE_IMAGE}
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
 ARG DEPENDENCY_PACKAGES_ALPINE='gettext'
-ARG DEPENDENCY_PACKAGES_BOOKWORM='gettext-base'
+ARG DEPENDENCY_PACKAGES_DEBIAN='gettext-base'
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
@@ -91,7 +91,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # install pecl extensions, dependencies, and clean up
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
-    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-pecl-install $PECL_PACKAGES
 
 # Expose the necessary port(s)

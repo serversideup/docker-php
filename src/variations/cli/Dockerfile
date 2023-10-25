@@ -2,7 +2,7 @@ ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.2'
 ARG PHP_VARIATION='cli'
 ARG DEPENDENCY_PACKAGES_ALPINE
-ARG DEPENDENCY_PACKAGES_BOOKWORM
+ARG DEPENDENCY_PACKAGES_DEBIAN
 ARG PECL_PACKAGES
 
 FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
@@ -18,7 +18,7 @@ COPY --chmod=755 src/common/ /
 
 # install pecl extensions & dependencies
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
-    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-pecl-install $PECL_PACKAGES
 
 # install composer from Composer's official Docker image
