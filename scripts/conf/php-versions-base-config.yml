@@ -2,6 +2,10 @@ php_versions:
   - major: "7"
     minor_versions:
       - minor: "7.4"
+        base_os:
+          - name: alpine
+          - name: bullseye
+            default: true
         patch_versions:
           - 7.4.33
   - major: "8"
@@ -15,6 +19,10 @@ php_versions:
           - 8.1.23
           - 8.1.22
       - minor: "8.2"
+        base_os:
+          - name: alpine
+          - name: bookworm
+            default: true
         patch_versions:
           - 8.2.10
           - 8.2.8
