@@ -1,4 +1,11 @@
 #!/bin/sh
+###################################################
+# Usage: 1-init-unit.sh
+###################################################
+# This script processes the environment variables used in the Unit configuration template files.
+# Once the templates are processed, the script will enable the configurations and start Unit.
+# This script is executed at container initialization.
+
 set -e
 script_name="init-unit"
 
