@@ -1,6 +1,6 @@
 #!/bin/bash
 ###################################################
-# Usage: assemble-docker-tags.sh [--variation <variation> --os <os> --patch-version <patch-version>]
+# Usage: assemble-docker-tags.sh [--variation <variation> --os <os> --patch-version <patch-version> --latest]
 ###################################################
 # This scripts dives deep into the advanced logic of assembling Docker tags for GitHub Actions.
 # If $CI is "true", it outputs the tags to GITHUB_ENV for use in subsequent steps.
@@ -17,21 +17,11 @@ set -oe pipefail
 # Environment Settings
 
 # Required variables to set
-PHP_BUILD_VARIATION="${PHP_BUILD_VARIATION:-"$1"}"
-PHP_BUILD_VERSION="${PHP_BUILD_VERSION:-"$2"}"
-PHP_BUILD_BASE_OS="${PHP_BUILD_BASE_OS:-"$3"}"
-DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php"}"
-PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"scripts/conf/php-versions.yml"}"
-DEFAULT_IMAGE_VARIATION="${DEFAULT_IMAGE_VARIATION:-"cli"}"
-DEFAULT_BASE_OS="${DEFAULT_BASE_OS:-"bookworm"}"
 CHECKOUT_TYPE="${CHECKOUT_TYPE:-"branch"}"
-
-# Support auto tagging of "edge" builds
-if [[ -z "$DOCKER_TAG_PREFIX" && "$CHECKOUT_TYPE" == "branch" ]]; then
-  DOCKER_TAG_PREFIX="edge-"
-else
-  DOCKER_TAG_PREFIX="${DOCKER_TAG_PREFIX:-""}"
-fi
+DEFAULT_IMAGE_VARIATION="${DEFAULT_IMAGE_VARIATION:-"cli"}"
+DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php"}"
+DOCKER_TAG_PREFIX="${DOCKER_TAG_PREFIX:-"edge-"}"
+PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"scripts/conf/php-versions.yml"}"
 
 ##########################
 # Functions
@@ -108,7 +98,7 @@ function is_latest_major() {
 }
 
 function is_default_base_os() {
-    [[ "$build_base_os" == "$DEFAULT_BASE_OS" ]]
+    [[ "$build_base_os" == "$default_base_os_within_build_minor" ]]
 }
 
 function is_checkout_type_of_latest_stable() {
@@ -137,6 +127,11 @@ while [[ $# -gt 0 ]]; do
         PHP_BUILD_VERSION="$2"
         shift 2
         ;;
+        --latest)
+        DOCKER_TAG_PREFIX=""
+        CHECKOUT_TYPE="latest-stable"
+        shift 1
+        ;;
         *)
         echo "🛑 ERROR: Unknown argument passed: $1"
         exit 1
@@ -153,7 +148,6 @@ check_vars \
   PHP_BUILD_BASE_OS \
   DOCKER_REPOSITORY \
   PHP_VERSIONS_FILE \
-  DEFAULT_BASE_OS \
   CHECKOUT_TYPE
 
 if [[ ! -f $PHP_VERSIONS_FILE ]]; then
@@ -174,11 +168,12 @@ build_variation=$PHP_BUILD_VARIATION
 build_major_version="${build_patch_version%%.*}"
 build_minor_version="${build_patch_version%.*}"
 
-# Fetch version data from the PHP
+# Fetch version data from the PHP Versions file
 latest_global_stable_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r '[.php_versions[] | select(.major | test("-rc") | not) | .major | tonumber] | max | tostring')
 latest_global_stable_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg latest_global_stable_major "$latest_global_stable_major" '.php_versions[] | select(.major == $latest_global_stable_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $latest_global_stable_major + "." + tostring')
 latest_minor_within_build_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
 latest_patch_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
+default_base_os_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .base_os[] | select(.default == true) | .name')
 
 check_vars \
   "🚨 Missing critical build variable. Check the script logic and logs" \
@@ -200,6 +195,7 @@ echo "Latest Global Major Version: $latest_global_stable_major"
 echo "Latest Global Minor Version: $latest_global_stable_minor"
 echo "Latest Minor Version within Build Major: $latest_minor_within_build_major"
 echo "Latest Patch Version within Build Minor: $latest_patch_within_build_minor"
+echo "Default Base OS within Build Minor: $default_base_os_within_build_minor"
 
 # Set default tag
 DOCKER_TAGS=""
