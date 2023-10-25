@@ -1,5 +1,7 @@
 #!/bin/bash
 set -oue pipefail
+
+# Uncomment below for step-by-step execution
 # set -x
 # trap read DEBUG
 
@@ -17,7 +19,7 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PHP_VERSIONS_ACTIVE_JSON_FEED="${PHP_VERSIONS_ACTIVE_JSON_FEED:-"https://www.php.net/releases/active.php"}"
 
 # File settings
-ADDITIONAL_PHP_VERSIONS_CONFIG_FILE="${ADDITIONAL_PHP_VERSIONS_CONFIG_FILE:-"$SCRIPT_DIR/conf/php-additional-versions.yml"}"
+BASE_PHP_VERSIONS_CONFIG_FILE="${BASE_PHP_VERSIONS_CONFIG_FILE:-"$SCRIPT_DIR/conf/php-versions-base-config.yml"}"
 DOWNLOADED_PHP_VERSIONS_CONFIG_FILE="$SCRIPT_DIR/conf/php-versions-downloaded.yml.tmp"
 FINAL_PHP_VERSIONS_CONFIG_FILE="$SCRIPT_DIR/conf/php-versions.yml"
 
@@ -93,9 +95,9 @@ function merge_php_version_data {
 
     # Convert YAML to JSON
     downloaded_json_data=$(yq eval -o=json "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE")
-    additional_json_data=$(yq eval -o=json "$ADDITIONAL_PHP_VERSIONS_CONFIG_FILE")
+    additional_json_data=$(yq eval -o=json "$BASE_PHP_VERSIONS_CONFIG_FILE")
 
-    echo_color_message yellow "⚡️ Combining data from $ADDITIONAL_PHP_VERSIONS_CONFIG_FILE..."
+    echo_color_message yellow "⚡️ Combining data from $BASE_PHP_VERSIONS_CONFIG_FILE..."
 
     # Use 'echo' to pass the JSON data to 'jq'
     merged_json=$(jq -s '
@@ -160,7 +162,7 @@ function append_php_rc_versions {
 
 save_php_version_data_from_url
 
-if [ -f $ADDITIONAL_PHP_VERSIONS_CONFIG_FILE ]; then
+if [ -f $BASE_PHP_VERSIONS_CONFIG_FILE ]; then
     merge_php_version_data
 fi
 
