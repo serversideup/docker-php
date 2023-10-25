@@ -2,7 +2,7 @@
 set -e
 
 ###############################################
-# Usage: docker-php-pro-pecl-install [packages]
+# Usage: docker-php-serversideup-pecl-install [packages]
 ###############################################
 # This script installs PECL packages passed in as arguments.
 

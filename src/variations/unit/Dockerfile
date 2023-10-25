@@ -15,8 +15,8 @@ ARG NGINX_UNIT_VERSION='1.31.0'
 COPY --chmod=755 src/common/ /
 
 # Download and untar the Nginx Unit source code
-RUN docker-php-pro-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
-    docker-php-pro-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
+RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
     cd /usr/src/ && \
     hg clone -u ${NGINX_UNIT_VERSION} https://hg.nginx.org/unit && \
     cd unit
@@ -90,14 +90,14 @@ COPY --chmod=755 src/variations/unit/etc/ /etc/
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # install pecl extensions, dependencies, and clean up
-RUN docker-php-pro-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
-    docker-php-pro-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
-    docker-php-pro-pecl-install $PECL_PACKAGES
+RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
+    docker-php-serversideup-pecl-install $PECL_PACKAGES
 
 # Expose the necessary port(s)
 EXPOSE 80 443
 
-ENTRYPOINT ["docker-php-pro-entrypoint"]
+ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 
 # Set the command to run Nginx Unit
 CMD ["unitd", "--no-daemon"]

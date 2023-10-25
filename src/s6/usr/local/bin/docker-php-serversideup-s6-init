@@ -2,7 +2,7 @@
 set -e
 
 ###############################################
-# Usage: docker-php-pro-s6-init
+# Usage: docker-php-serversideup-s6-init
 ###############################################
 # This script is used to take scripts from "/etc/entrypoint.d" and move them
 # to the S6 Overlay structure.

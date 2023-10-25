@@ -17,11 +17,11 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
 COPY --chmod=755 src/common/ /
 
 # install pecl extensions & dependencies
-RUN docker-php-pro-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
-    docker-php-pro-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
-    docker-php-pro-pecl-install $PECL_PACKAGES
+RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
+    docker-php-serversideup-pecl-install $PECL_PACKAGES
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-ENTRYPOINT ["docker-php-pro-entrypoint"]
+ENTRYPOINT ["docker-php-serversideup-entrypoint"]

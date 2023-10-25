@@ -2,7 +2,7 @@
 set -e
 
 ###############################################
-# Usage: docker-php-pro-entrypoint
+# Usage: docker-php-serversideup-entrypoint
 ###############################################
 # This script is used to execute scripts from "/etc/entrypoint.d" and then
 # execute the CMD passed in from the Dockerfile.

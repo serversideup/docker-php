@@ -15,7 +15,7 @@ ARG S6_SRC_URL="https://github.com/just-containers/s6-overlay/releases/download"
 COPY --chmod=755 src/common/ /
 COPY --chmod=755 src/s6/ /
 
-RUN docker-php-pro-s6-install
+RUN docker-php-serversideup-s6-install
 
 ####################
 # NGINX Signing Key
@@ -29,7 +29,7 @@ ARG SIGNING_KEY_OUTPUT_FILE="/usr/share/keyrings/nginx-archive-keyring.gpg"
 # copy our scripts
 COPY --chmod=755 src/common/ /
 
-RUN docker-php-pro-dep-install-debian "curl gnupg2 ca-certificates lsb-release debian-archive-keyring" && \
+RUN docker-php-serversideup-dep-install-debian "curl gnupg2 ca-certificates lsb-release debian-archive-keyring" && \
     \
     # Import signing key
     curl "$SIGNING_KEY_URL" | gpg --dearmor | tee "$SIGNING_KEY_OUTPUT_FILE" && \
@@ -104,14 +104,14 @@ COPY --from=nginx-repo-config /etc/apt/sources.list.d/nginx.list /etc/apt/source
 COPY --from=nginx-repo-config /etc/apt/preferences.d/99nginx /etc/apt/preferences.d/
 
 # install pecl extensions, dependencies, and clean up
-RUN docker-php-pro-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
-    docker-php-pro-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
-    docker-php-pro-pecl-install $PECL_PACKAGES && \
-    docker-php-pro-s6-init && \
+RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_BOOKWORM}"  && \
+    docker-php-serversideup-pecl-install $PECL_PACKAGES && \
+    docker-php-serversideup-s6-init && \
     \
     # install nginx
-    docker-php-pro-dep-install-debian "nginx" && \
-    docker-php-pro-dep-install-alpine "nginx" && \
+    docker-php-serversideup-dep-install-debian "nginx" && \
+    docker-php-serversideup-dep-install-alpine "nginx" && \
     \
     # clear all php provided fpm configurations
     rm -rf /usr/local/etc/php-fpm.d/*.conf && \

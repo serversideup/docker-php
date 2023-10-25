@@ -2,11 +2,11 @@
 set -oe
 
 ###################################################
-# Usage: docker-php-pro-dep-install-alpine [alpine-packages]
+# Usage: docker-php-serversideup-dep-install-alpine [alpine-packages]
 ###################################################
 # This script installs alpine packages that are passed to it
 
-script_name="docker-php-pro-dep-install-alpine"
+script_name="docker-php-serversideup-dep-install-alpine"
 
 ############
 # Sanity checks

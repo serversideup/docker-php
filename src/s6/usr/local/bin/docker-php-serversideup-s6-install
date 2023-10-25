@@ -2,7 +2,7 @@
 set -oue
 
 ###############################################
-# Usage: docker-php-pro-s6-install
+# Usage: docker-php-serversideup-s6-install
 ###############################################
 # This script is used to install S6 Overlay. It is
 # intended to be used during the build process only.

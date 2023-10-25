@@ -2,12 +2,12 @@
 set -oe
 
 ###################################################
-# Usage: docker-php-pro-dep-install-debian [debian-packages]
+# Usage: docker-php-serversideup-dep-install-debian [debian-packages]
 ###################################################
 # This script installs debian packages that are passed to it
 
 DEBIAN_FRONTEND=noninteractive
-script_name="docker-php-pro-dep-install-debian"
+script_name="docker-php-serversideup-dep-install-debian"
 
 ############
 # Sanity checks
