@@ -131,7 +131,6 @@ function merge_php_version_data {
     
 }
 
-
 ##########################
 # Main script starts here
 
