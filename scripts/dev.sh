@@ -90,7 +90,7 @@ help_menu() {
     echo "Options:"
     echo "  --variation <variation>   Set the PHP variation (e.g., apache, fpm)"
     echo "  --version <version>       Set the PHP version (e.g., 7.4, 8.0)"
-    echo "  --os <os>                 Set the base OS (e.g., debian, alpine)"
+    echo "  --os <os>                 Set the base OS (e.g., bullseye, bookworm, alpine)"
     echo "  --help                    Show this help message"
     echo
     echo "Environment Variables:"
