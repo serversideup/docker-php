@@ -128,10 +128,10 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     fi
 
 # Copy our nginx configurations
-COPY --chmod=644 src/variations/fpm-nginx/etc/ /etc/
+COPY --chmod=755 src/variations/fpm-nginx/etc/ /etc/
 
 # copy our fpm configurations
-COPY --chmod=644 src/php-fpm.d/ /
+COPY --chmod=755 src/php-fpm.d/ /
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
