@@ -11,9 +11,6 @@ on:
       php-versions-file:
         type: string
         default: 'scripts/conf/php-versions.yml'
-      default-base-os:
-        type: string
-        default: 'bookworm'
       default-image-variation:
         type: string
         default: 'cli'
