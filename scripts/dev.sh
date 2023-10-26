@@ -58,6 +58,8 @@ check_vars() {
   for variable in "$@"; do
     if [ -z "${!variable}" ]; then
       echo_color_message red "$message: $variable"
+      echo
+      help_menu
       return 1
     fi
   done
@@ -75,6 +77,25 @@ build_docker_image() {
     --file "$PROJECT_ROOT_DIR/src/variations/$PHP_BUILD_VARIATION/Dockerfile" \
     "$PROJECT_ROOT_DIR"
   echo_color_message green "✅ Docker Image Built: $DOCKER_REPOSITORY:$PHP_BUILD_VERSION-$PHP_BUILD_VARIATION-$PHP_BUILD_BASE_OS"
+}
+
+help_menu() {
+    echo "Usage: $0 --variation <variation> --version <version> --os <os>"
+    echo
+    echo "This script is used to build a Docker image for a specific PHP version"
+    echo "and variation. It is intended to be used for local development. You may"
+    echo "also change the DOCKER_REPOSITORY environment variable or pass other"
+    echo "arguments to the docker build command, like \"--no-cache\"."
+    echo
+    echo "Options:"
+    echo "  --variation <variation>   Set the PHP variation (e.g., apache, fpm)"
+    echo "  --version <version>       Set the PHP version (e.g., 7.4, 8.0)"
+    echo "  --os <os>                 Set the base OS (e.g., debian, alpine)"
+    echo "  --help                    Show this help message"
+    echo
+    echo "Environment Variables:"
+    echo "  DOCKER_REPOSITORY         The Docker repository (default: serversideup/php)"
+    echo "  Additional docker build arguments can be passed as well."
 }
 
 ##########################

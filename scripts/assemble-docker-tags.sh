@@ -63,6 +63,8 @@ check_vars() {
   for variable in "$@"; do
     if [ -z "${!variable}" ]; then
       echo_color_message red "$message: $variable"
+      echo
+      help_menu
       return 1
     fi
   done
@@ -107,6 +109,29 @@ function is_checkout_type_of_latest_stable() {
 
 function is_default_variation() {
     [[ "$PHP_BUILD_VARIATION" == "$DEFAULT_IMAGE_VARIATION" ]]
+}
+
+help_menu() {
+    echo "Usage: $0 [--variation <variation> --os <os> --patch-version <patch-version> --latest]"
+    echo
+    echo "This script dives deep into the advanced logic of assembling Docker tags for GitHub Actions."
+    echo "If \$CI is \"true\", it outputs the tags to GITHUB_ENV for use in subsequent steps."
+    echo "You can run this locally for debugging. The script has beautiful output and can help debug"
+    echo "any advanced logic issues."
+    echo
+    echo "Options:"
+    echo "  --variation <variation>   Set the PHP variation (e.g., apache, fpm)"
+    echo "  --os <os>                 Set the base OS (e.g., debian, alpine)"
+    echo "  --patch-version <patch-version> Set the PHP patch version (e.g., 7.4.10)"
+    echo "  --latest                  Use 'latest-stable' as the checkout type"
+    echo "  --help                    Show this help message"
+    echo
+    echo "Environment Variables (Defaults):"
+    echo "  CHECKOUT_TYPE             The checkout type (default: branch)"
+    echo "  DEFAULT_IMAGE_VARIATION   The default PHP image variation (default: cli)"
+    echo "  DOCKER_REPOSITORY         The Docker repository (default: serversideup/php)"
+    echo "  DOCKER_TAG_PREFIX         The Docker tag prefix (default: edge-)"
+    echo "  PHP_VERSIONS_FILE         Path to PHP versions file (default: scripts/conf/php-versions.yml)"
 }
 
 ##########################
