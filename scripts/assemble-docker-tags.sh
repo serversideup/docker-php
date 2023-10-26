@@ -124,7 +124,6 @@ help_menu() {
     echo "  --os <os>                 Set the base OS (e.g., bullseye, bookworm, alpine)"
     echo "  --patch-version <patch-version> Set the PHP patch version (e.g., 7.4.10)"
     echo "  --latest                  Use 'latest-stable' as the checkout type"
-    echo "  --help                    Show this help message"
     echo
     echo "Environment Variables (Defaults):"
     echo "  CHECKOUT_TYPE             The checkout type (default: branch)"
