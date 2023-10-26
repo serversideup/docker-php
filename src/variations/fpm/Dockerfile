@@ -16,10 +16,14 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
 # copy our scripts
 COPY --chmod=755 src/common/ /
 
-# install pecl extensions & dependencies
-RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
+# clear php configurations and install pecl extensions & dependencies
+RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
+    docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-pecl-install $PECL_PACKAGES
+
+# copy our fpm configurations
+COPY --chmod=644 src/php-fpm.d/ /
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
