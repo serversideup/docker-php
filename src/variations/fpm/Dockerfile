@@ -25,7 +25,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_MAX_EXECUTION_TIME="99" \
     PHP_MEMORY_LIMIT="256M" \
     PHP_POST_MAX_SIZE="100M" \
-    PHP_SESSION_COOKIE_SECURE=false \
+    PHP_SESSION_COOKIE_SECURE=Off \
     PHP_UPLOAD_MAX_FILE_SIZE="100M"
 
 # copy our scripts
@@ -44,3 +44,8 @@ COPY --chmod=644 src/php-fpm.d/ /
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 ENTRYPOINT ["docker-php-serversideup-entrypoint"]
+
+STOPSIGNAL SIGQUIT
+
+EXPOSE 9000
+CMD ["php-fpm"]
