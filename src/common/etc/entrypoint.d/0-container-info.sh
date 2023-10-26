@@ -1,8 +1,4 @@
 #!/bin/sh
-if [ "$LOG_LEVEL" = "debug" ]; then
-  set -x
-fi
-
 if [ $LOG_LEVEL != "off" ]; then
 echo '
 --------------------------------------------------------------------
