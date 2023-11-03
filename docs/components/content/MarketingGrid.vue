@@ -38,7 +38,7 @@
             <div class="p-4 bg-gray-900 rounded-lg flex flex-col">
                 <img src="/images/icons/nginx-square.svg" class="w-11 h-11 mb-2"/>  
                 <span class="font-inter text-lg text-slate-50 font-bold mb-2">NGINX Unit</span>
-                <span class="font-inter text-slate-300 text-base">We offer NGINX Unit support out of the box.</span>
+                <span class="font-inter text-slate-300 text-base">Ditch FPM for a modern way of running PHP. Designed for containers from the ground up.</span>
             </div>
             <div class="p-4 bg-gray-900 rounded-lg flex flex-col">
                 <img src="/images/icons/logging-square.svg" class="w-11 h-11 mb-2"/>  
