@@ -110,7 +110,8 @@ merged_json=$(jq -s '
                     })
                 )
             })
-        )
+        ),
+        php_variations: .[1].php_variations
     }
 ' <(echo "$downloaded_and_normalized_json_data") <(echo "$base_json_data"))
 

@@ -43,3 +43,12 @@ php_versions:
             default: true
         patch_versions:
           - 8.3-rc
+php_variations:
+  - name: cli
+    default: true
+  - name: fpm
+  - name: fpm-nginx
+  - name: unit
+    supported_os:
+      - bullseye
+      - bookworm

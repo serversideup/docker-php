@@ -44,8 +44,7 @@ jobs:
     - name: Assemble PHP versions into the matrix. 😎
       id: get-php-versions
       run: |
-        PHP_VARIATIONS='["cli","fpm","fpm-nginx","unit"]'
-        MATRIX_JSON=$(yq -o=json scripts/conf/php-versions.yml | jq -c --argjson variations "$PHP_VARIATIONS" '{include: [.php_versions[] | .minor_versions[] | .patch_versions[] as $patch | .base_os[] | .name as $base_os | $variations[] | {patch_version: $patch, base_os: $base_os, php_variation: .}]}')
+        MATRIX_JSON=$(yq -o=json scripts/conf/php-versions.yml | jq -c '{include: [(.php_variations[] | {name, supported_os: (.supported_os // ["alpine", "bullseye", "bookworm"])} ) as $variation | .php_versions[] | .minor_versions[] | .patch_versions[] as $patch | .base_os[] as $os | select($variation.supported_os | if length == 0 then . else . | index($os.name) end) | {patch_version: $patch, base_os: $os.name, php_variation: $variation.name}]}')
         echo "php-version-map-json=${MATRIX_JSON}" >> $GITHUB_OUTPUT
         echo "${MATRIX_JSON}" | jq '.'
   
