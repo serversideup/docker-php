@@ -59,7 +59,7 @@ function echo_color_message (){
 ##########################
 # Main script starts here
 
-echo_color_message yellow "⚡️ Getting PHP Versions..."
+echo_color_message yellow "⚡️ Getting PHP Versions from $PHP_VERSIONS_ACTIVE_JSON_FEED"
 # Fetch the JSON from the PHP website
 php_net_version_json=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
 
