@@ -135,18 +135,18 @@ jobs:
           CHECKOUT_TYPE: ${{ inputs.checkout-type }}
           DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
 
-      # - name: Build and push
-      #   uses: docker/build-push-action@v3
-      #   with:
-      #     file: src/variations/${{ matrix.php_variation }}/Dockerfile
-      #     build-args: |
-      #       BASE_OS_VERSION=${{ matrix.base_os }}
-      #       PHP_VERSION=${{ matrix.patch_version }}
-      #       PHP_VARIATION=${{ matrix.php_variation }}
-      #     platforms: |
-      #       linux/amd64
-      #       linux/arm/v7
-      #       linux/arm64/v8
-      #     pull: true
-      #     push: true
-      #     tags: ${{ env.DOCKER_TAGS }}
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          file: src/variations/${{ matrix.php_variation }}/Dockerfile
+          build-args: |
+            BASE_OS_VERSION=${{ matrix.base_os }}
+            PHP_VERSION=${{ matrix.patch_version }}
+            PHP_VARIATION=${{ matrix.php_variation }}
+          platforms: |
+            linux/amd64
+            linux/arm/v7
+            linux/arm64/v8
+          pull: true
+          push: true
+          tags: ${{ env.DOCKER_TAGS }}
