@@ -26,6 +26,7 @@ php_versions:
         patch_versions:
           - 8.1.23
           - 8.1.22
+          - 8.1.24
       - minor: "8.2"
         base_os:
           - name: alpine
@@ -33,7 +34,8 @@ php_versions:
             default: true
         patch_versions:
           - 8.2.10
-          - 8.2.8
+          - 8.2.11
+          - 8.2.9
       - minor: 8.3-rc
         base_os:
           - name: alpine
