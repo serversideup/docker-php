@@ -232,6 +232,10 @@ fi
 if is_latest_stable_patch; then
   add_docker_tag "$build_minor_version-$build_variation-$build_base_os"
 
+  if is_default_base_os; then
+    add_docker_tag "$build_minor_version-$build_variation"
+  fi
+
   if is_default_variation; then
     add_docker_tag "$build_minor_version-$build_base_os"
   fi
@@ -242,6 +246,10 @@ if is_latest_stable_patch; then
 
   if is_latest_minor_within_build_major; then
     add_docker_tag "$build_major_version-$build_variation-$build_base_os"
+
+    if is_default_base_os; then
+        add_docker_tag "$build_major_version-$build_variation"
+    fi
 
     if is_default_base_os && is_default_variation; then
       add_docker_tag "$build_major_version"
