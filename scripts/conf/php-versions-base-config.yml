@@ -49,6 +49,6 @@ php_variations:
   - name: fpm
   - name: fpm-nginx
   - name: unit
-    supported_os:
+    supported_os: # PHP doesn't include "embed SAPI" on Alpine (https://github.com/docker-library/php/pull/1355#issuecomment-1352087633)
       - bullseye
       - bookworm
