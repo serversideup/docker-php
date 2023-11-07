@@ -46,8 +46,8 @@ RUN NCPU="$(getconf _NPROCESSORS_ONLN)" && \
 FROM ${BASE_IMAGE}
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
-ARG DEPENDENCY_PACKAGES_ALPINE='gettext'
-ARG DEPENDENCY_PACKAGES_DEBIAN='gettext-base'
+ARG DEPENDENCY_PACKAGES_ALPINE='gettext postgresql-dev libzip-dev sqlite sqlite-dev'
+ARG DEPENDENCY_PACKAGES_DEBIAN='gettext-base libpq-dev libzip-dev sqlite3 libsqlite3-dev'
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
@@ -87,6 +87,11 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # install pecl extensions, dependencies, and clean up
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
+    \
+    docker-php-ext-install pdo_mysql pdo_pgsql pdo_sqlite zip && \
+    # PCNTL install
+    docker-php-ext-configure pcntl --enable-pcntl && \
+    docker-php-ext-install pcntl && \
     docker-php-serversideup-pecl-install $PECL_PACKAGES
 
 # Expose the necessary port(s)
