@@ -58,7 +58,6 @@ process_template() {
     set_debug_output "cat $output_file"
 }
 
-
 curl_put() {
     curl_option="$1"
     curl_value="$2"
