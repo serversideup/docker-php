@@ -136,7 +136,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
     rm "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE"
     echo_color_message green "✅ Data is finalized compiled into $FINAL_PHP_VERSIONS_CONFIG_FILE"
 else
-    echo_color_message yellow "⚡️ Skipping download of PHP versions from $PHP_VERSIONS_ACTIVE_JSON_FEED..."
+    echo_color_message yellow "⚡️ Skipping download of PHP versions because \"--skip-download\" was set..."
     cp "$BASE_PHP_VERSIONS_CONFIG_FILE" "$FINAL_PHP_VERSIONS_CONFIG_FILE"
 fi
 
