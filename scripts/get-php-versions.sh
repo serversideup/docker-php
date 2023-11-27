@@ -1,6 +1,6 @@
 #!/bin/bash
 ###################################################
-# Usage: get-php-versions.sh
+# Usage: get-php-versions.sh [--skip-download]
 ###################################################
 # This file takes the official latest PHP releases from php.net merges them with our
 # "base php configuration". These files get merged into a final file called "php-versions.yml"
@@ -15,6 +15,18 @@ set -oue pipefail
 # Uncomment below for step-by-step execution
 # set -x
 # trap read DEBUG
+
+##########################
+# Argument Parsing
+
+SKIP_DOWNLOAD=false
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --skip-download) SKIP_DOWNLOAD=true ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
 
 ##########################
 # Environment Settings
@@ -59,68 +71,74 @@ function echo_color_message (){
 ##########################
 # Main script starts here
 
-echo_color_message yellow "⚡️ Getting PHP Versions from $PHP_VERSIONS_ACTIVE_JSON_FEED"
-# Fetch the JSON from the PHP website
-php_net_version_json=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
+if [ "$SKIP_DOWNLOAD" = false ]; then
+    echo_color_message yellow "⚡️ Getting PHP Versions from $PHP_VERSIONS_ACTIVE_JSON_FEED"
+    # Fetch the JSON from the PHP website
+    php_net_version_json=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
 
-# Parse the fetched JSON data and transform it to a specific YAML structure using jq and yq.
-php_net_yaml_data=$(echo "$php_net_version_json" | jq -r "
-{
-    \"php_versions\": [
-    . as \$major |
-    to_entries[] |
+    # Parse the fetched JSON data and transform it to a specific YAML structure using jq and yq.
+    php_net_yaml_data=$(echo "$php_net_version_json" | jq -r "
     {
-        \"major\": .key,
-        \"minor_versions\": [
-        .value |
+        \"php_versions\": [
+        . as \$major |
         to_entries[] |
         {
-            \"minor\": .key,
-            \"patch_versions\": [ .value.version | tostring ]
+            \"major\": .key,
+            \"minor_versions\": [
+            .value |
+            to_entries[] |
+            {
+                \"minor\": .key,
+                \"patch_versions\": [ .value.version | tostring ]
+            }
+            ]
         }
         ]
-    }
-    ]
-}" | yq eval -P -)
+    }" | yq eval -P -)
 
-# Save the YAML data in our data standard to a file
-echo "$php_net_yaml_data" > "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE"
+    # Save the YAML data in our data standard to a file
+    echo "$php_net_yaml_data" > "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE"
 
-# Convert YAML to JSON
-downloaded_and_normalized_json_data=$(yq eval -o=json "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE")
-base_json_data=$(yq eval -o=json "$BASE_PHP_VERSIONS_CONFIG_FILE")
+    # Convert YAML to JSON
+    downloaded_and_normalized_json_data=$(yq eval -o=json "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE")
+    base_json_data=$(yq eval -o=json "$BASE_PHP_VERSIONS_CONFIG_FILE")
 
-echo_color_message yellow "⚡️ Combining data from $BASE_PHP_VERSIONS_CONFIG_FILE..."
+    echo_color_message yellow "⚡️ Combining data from $BASE_PHP_VERSIONS_CONFIG_FILE..."
 
-# Use 'echo' to pass the JSON data to 'jq'
-merged_json=$(jq -s '
-    {
-        php_versions: (
-            .[0].php_versions + .[1].php_versions
-            | group_by(.major)
-            | map({
-                major: .[0].major,
-                minor_versions: (
-                    map(.minor_versions[]) 
-                    | group_by(.minor)
-                    | map({
-                        minor: .[0].minor,
-                        base_os: (map(.base_os? // []) | add),
-                        patch_versions: (map(.patch_versions[]) | flatten | unique)
-                    })
-                )
-            })
-        ),
-        php_variations: .[1].php_variations
-    }
-' <(echo "$downloaded_and_normalized_json_data") <(echo "$base_json_data"))
+    # Use 'echo' to pass the JSON data to 'jq'
+    merged_json=$(jq -s '
+        {
+            php_versions: (
+                .[0].php_versions + .[1].php_versions
+                | group_by(.major)
+                | map({
+                    major: .[0].major,
+                    minor_versions: (
+                        map(.minor_versions[]) 
+                        | group_by(.minor)
+                        | map({
+                            minor: .[0].minor,
+                            base_os: (map(.base_os? // []) | add),
+                            patch_versions: (map(.patch_versions[]) | flatten | unique)
+                        })
+                    )
+                })
+            ),
+            php_variations: .[1].php_variations
+        }
+    ' <(echo "$downloaded_and_normalized_json_data") <(echo "$base_json_data"))
 
-# Convert updated JSON data back to YAML
-merged_and_finalized_yaml=$(echo "$merged_json" | yq eval -P -)
+    # Convert updated JSON data back to YAML
+    merged_and_finalized_yaml=$(echo "$merged_json" | yq eval -P -)
 
-# Save the merged YAML data back to the file
-echo "$merged_and_finalized_yaml" > "$FINAL_PHP_VERSIONS_CONFIG_FILE"
-rm "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE"
-echo_color_message green "✅ Data is finalized compiled into $FINAL_PHP_VERSIONS_CONFIG_FILE"
+    # Save the merged YAML data back to the file
+    echo "$merged_and_finalized_yaml" > "$FINAL_PHP_VERSIONS_CONFIG_FILE"
+    rm "$DOWNLOADED_PHP_VERSIONS_CONFIG_FILE"
+    echo_color_message green "✅ Data is finalized compiled into $FINAL_PHP_VERSIONS_CONFIG_FILE"
+else
+    echo_color_message yellow "⚡️ Skipping download of PHP versions from $PHP_VERSIONS_ACTIVE_JSON_FEED..."
+    cp "$BASE_PHP_VERSIONS_CONFIG_FILE" "$FINAL_PHP_VERSIONS_CONFIG_FILE"
+fi
+
 cat $FINAL_PHP_VERSIONS_CONFIG_FILE
 echo_color_message green "✅ Saved PHP versions to $FINAL_PHP_VERSIONS_CONFIG_FILE"
