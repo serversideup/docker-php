@@ -58,13 +58,13 @@ ARG DEPENDENCY_PACKAGES_ALPINE='fcgi gettext'
 ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin gettext-base'
 ARG PECL_PACKAGES
 
-ENV COMPOSER_ALLOW_SUPERUSER=1 \
+ENV APP_BASE_DIR=/var/www/html \
+    COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     LOG_LEVEL=warn \
     NGINX_SERVER_TOKENS=off \
     NGINX_USER=nginx \
-    NGINX_WEBROOT=/var/www/html/public \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
@@ -88,6 +88,9 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
     SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key
+
+# Use second ENV layer for variable substitution
+ENV NGINX_WEBROOT=${APP_BASE_DIR}/public
 
 # copy our scripts
 COPY --chmod=755 src/common/ /

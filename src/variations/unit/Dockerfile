@@ -49,7 +49,8 @@ LABEL maintainer="Jay Rogers (@jaydrogers)"
 ARG DEPENDENCY_PACKAGES_ALPINE='gettext postgresql-dev libzip-dev sqlite sqlite-dev'
 ARG DEPENDENCY_PACKAGES_DEBIAN='gettext-base libpq-dev libzip-dev sqlite3 libsqlite3-dev'
 
-ENV COMPOSER_ALLOW_SUPERUSER=1 \
+ENV APP_BASE_DIR=/var/www/html \
+    COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     LOG_LEVEL=warn \
@@ -67,8 +68,10 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     SSL_MODE=off \
     UNIT_CERTIFICATE_NAME=self-signed-web \
     UNIT_CONFIG_DIRECTORY=/etc/unit/config.d \
-    UNIT_CONFIG_FILE=/etc/unit/config.d/config.json \
-    UNIT_WEBROOT=/var/www/html/public
+    UNIT_CONFIG_FILE=/etc/unit/config.d/config.json
+
+# Use second ENV layer for variable substitutions
+ENV UNIT_WEBROOT=${APP_BASE_DIR}/public
 
 # Copy NGINX Unit binaries and modules from build stage
 COPY --from=build /usr/sbin/unitd /usr/sbin/
