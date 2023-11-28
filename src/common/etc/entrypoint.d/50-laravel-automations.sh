@@ -51,7 +51,7 @@ if [ -f $APP_BASE_DIR/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; the
         fi
 
         ############################################################################
-        # Automated storage linking
+        # artisan storage:link
         ############################################################################
         if [ ${AUTORUN_LARAVEL_STORAGE_LINK:="true"} == "true" ]; then
             if [ -d $APP_BASE_DIR/public/storage ]; then
