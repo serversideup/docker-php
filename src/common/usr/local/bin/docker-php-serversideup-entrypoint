@@ -2,7 +2,8 @@
 set -e
 
 if [ "$LOG_LEVEL" = "debug" ]; then
-  set -x
+    echo "🔥🔥🔥 DEBUG MODE has been set. Get ready for a ton of debug log output..."
+    set -x
 fi
 
 ###############################################
@@ -18,7 +19,7 @@ find /etc/entrypoint.d/ -type f -name '*.sh' | sort -n -t- -k1 | while IFS= read
         *.sh)     . "$f" ;;
         *)        echo "$0: Invalid extension. Ignoring $f" ;;
     esac
-    echo
+    echo # add a new line for readability
 done
 
 # first arg is `-f` or `--some-option`
