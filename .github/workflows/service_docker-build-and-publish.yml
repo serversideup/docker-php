@@ -30,7 +30,7 @@ jobs:
     - name: Prepare PHP versions for the matrix. 😎
       run: |
         chmod +x ./scripts/get-php-versions.sh
-        ./scripts/get-php-versions.sh --skip-download
+        ./scripts/get-php-versions.sh
     
     - name: Ensure our PHP Versions file exists.
       run: |
