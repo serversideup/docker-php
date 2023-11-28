@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
 
+if [ "$LOG_LEVEL" = "debug" ]; then
+  set -x
+fi
+
 ###############################################
 # Usage: docker-php-serversideup-pecl-install [packages]
 ###############################################

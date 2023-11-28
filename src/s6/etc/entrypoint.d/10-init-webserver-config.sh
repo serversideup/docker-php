@@ -5,11 +5,6 @@
 # This script prepares the usage of PHP-FPM-NGINX and PHP-FPM-Apache with S6 overlay. The script
 # will execute at contianer initialization and will process templates from environment variables
 # and enable the necessary websites.
-
-if [ "$LOG_LEVEL" = "debug" ]; then
-  set -x
-fi
-set -e
 script_name="init-webserver-config"
 
 ##########
@@ -105,7 +100,7 @@ validate_ssl(){
 
     echo "🔐 SSL Keypair not found. Generating self-signed SSL keypair..."
     mkdir -p /etc/ssl/private/
-    openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout "$SSL_PRIVATE_KEY_FILE" -out "$SSL_CERTIFICATE_FILE" -days 365 >/dev/null 2>&1
+    openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=*.dev.test,*.gitpod.io,*.ngrok.io,*.nip.io" -nodes -newkey rsa:2048 -keyout "$SSL_PRIVATE_KEY_FILE" -out "$SSL_CERTIFICATE_FILE" -days 365 >/dev/null 2>&1
 }
 
 ##########
@@ -113,14 +108,20 @@ validate_ssl(){
 ##########
 SERVER_TYPE=$(detect_web_server_type)
 
-if [ "$SERVER_TYPE" = "Apache" ]; then
-    echo "Apache is installed."
-elif [ "$SERVER_TYPE" = "NGINX" ]; then
-    process_template /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf
-    process_template /etc/nginx/site-opts.d/http.conf.template /etc/nginx/site-opts.d/http.conf
-    process_template /etc/nginx/site-opts.d/https.conf.template /etc/nginx/site-opts.d/https.conf
-    enable_nginx_site "$SSL_MODE"
+if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
+    if [ "$SERVER_TYPE" = "Apache" ]; then
+        echo "Apache is installed."
+    elif [ "$SERVER_TYPE" = "NGINX" ]; then
+        process_template /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf
+        process_template /etc/nginx/site-opts.d/http.conf.template /etc/nginx/site-opts.d/http.conf
+        process_template /etc/nginx/site-opts.d/https.conf.template /etc/nginx/site-opts.d/https.conf
+        enable_nginx_site "$SSL_MODE"
+    else
+        echo "🛑 ERROR ($script_name): Neither Apache nor NGINX could be detected."
+        exit 1
+    fi
 else
-    echo "🛑 ERROR ($script_name): Neither Apache nor NGINX could be detected."
-    exit 1
+    if [ "$LOG_LEVEL" = "debug" ]; then
+        echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal \"false\", so web server initialization will NOT be performed."
+    fi
 fi

@@ -19,7 +19,6 @@ find /etc/entrypoint.d/ -type f -name '*.sh' | sort -n -t- -k1 | while IFS= read
         *.sh)     . "$f" ;;
         *)        echo "$0: Invalid extension. Ignoring $f" ;;
     esac
-    echo # add a new line for readability
 done
 
 # first arg is `-f` or `--some-option`
@@ -27,4 +26,13 @@ if [ "${1#-}" != "$1" ]; then
 	set -- php "$@"
 fi
 
-exec "$@"
+# Some scripts may need to change the CMD based on the log level. If this file is set, execute the contents of that file instead of the Dockerfile CMD.
+if [ -f /tmp/docker_cmd_override ]; then
+    docker_cmd_override=$(cat /tmp/docker_cmd_override)
+    rm /tmp/docker_cmd_override
+    set -- $docker_cmd_override # Perform word splitting by not quoting the commands
+    exec "$@"
+else
+    # Execute the CMD passed in from the Dockerfile
+    exec "$@"
+fi

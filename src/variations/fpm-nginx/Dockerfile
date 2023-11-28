@@ -54,14 +54,15 @@ RUN docker-php-serversideup-dep-install-debian "curl gnupg2 ca-certificates lsb-
 FROM ${BASE_IMAGE}
 LABEL maintainer="Jay Rogers (@jaydrogers)"
 
-ARG DEPENDENCY_PACKAGES_ALPINE='fcgi gettext'
-ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin gettext-base'
+ARG DEPENDENCY_PACKAGES_ALPINE='fcgi gettext postgresql-dev libzip-dev sqlite sqlite-dev'
+ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin gettext-base libpq-dev libzip-dev sqlite3 libsqlite3-dev'
 ARG PECL_PACKAGES
 
 ENV APP_BASE_DIR=/var/www/html \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
+    DISABLE_DEFAULT_CONFIG=false \
     LOG_LEVEL=warn \
     NGINX_SERVER_TOKENS=off \
     NGINX_USER=nginx \
@@ -110,6 +111,15 @@ COPY --from=nginx-repo-config /etc/apt/preferences.d/99nginx /etc/apt/preference
 # install pecl extensions, dependencies, and clean up
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
+    \
+    # Install required required extensions for Laravel
+    docker-php-ext-install pdo_mysql pdo_pgsql pdo_sqlite zip && \
+    \
+    # PCNTL install
+    docker-php-ext-configure pcntl --enable-pcntl && \
+    docker-php-ext-install pcntl && \
+    \
+    # Install pecl extensions (if defined)
     docker-php-serversideup-pecl-install $PECL_PACKAGES && \
     docker-php-serversideup-s6-init && \
     \

@@ -15,30 +15,49 @@ ARG NGINX_UNIT_VERSION='1.31.1'
 COPY --chmod=755 src/common/ /
 
 # Download and untar the Nginx Unit source code
-RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
+RUN set -ex && \
+    docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
+    mkdir -p /usr/lib/unit/modules /usr/lib/unit/debug-modules && \
     cd /usr/src/ && \
     hg clone -u ${NGINX_UNIT_VERSION} https://hg.nginx.org/unit && \
-    cd unit
-
-# Configure and build Nginx Unit with PHP module
-WORKDIR /usr/src/unit/
-RUN NCPU="$(getconf _NPROCESSORS_ONLN)" && \
-    CONFIGURE_ARGS="--prefix=/usr \
-                    --statedir=/var/lib/unit \
-                    --control=unix:/var/run/control.unit.sock \
-                    --runstatedir=/var/run \
-                    --pid=/var/run/unit.pid \
-                    --logdir=/var/log \
-                    --log=/dev/stdout \
-                    --tmpdir=/var/tmp \
-                    --user=www-data \
-                    --group=www-data \
-                    --openssl" && \
-    ./configure $CONFIGURE_ARGS && \
-    ./configure php --config=php-config --module=php && \
-    make -j $NCPU all && \
-    make install
+    cd unit && \
+    NCPU="$(getconf _NPROCESSORS_ONLN)" && \
+    DEB_HOST_MULTIARCH="$(dpkg-architecture -q DEB_HOST_MULTIARCH)" && \
+    CC_OPT="$(DEB_BUILD_MAINT_OPTIONS="hardening=+all,-pie" DEB_CFLAGS_MAINT_APPEND="-Wp,-D_FORTIFY_SOURCE=2 -fPIC" dpkg-buildflags --get CFLAGS)" && \
+    LD_OPT="$(DEB_BUILD_MAINT_OPTIONS="hardening=+all,-pie" DEB_LDFLAGS_MAINT_APPEND="-Wl,--as-needed -pie" dpkg-buildflags --get LDFLAGS)" && \
+    CONFIGURE_ARGS_MODULES="--prefix=/usr \
+                --statedir=/var/lib/unit \
+                --control=unix:/var/run/control.unit.sock \
+                --runstatedir=/var/run \
+                --pid=/var/run/unit.pid \
+                --logdir=/var/log \
+                --log=/dev/stdout \
+                --tmpdir=/var/tmp \
+                --user=www-data \
+                --group=www-data \
+                --openssl \
+                --libdir=/usr/lib/$DEB_HOST_MULTIARCH" && \
+    CONFIGURE_ARGS="$CONFIGURE_ARGS_MODULES --njs" && \
+    make -j $NCPU -C pkg/contrib .njs && \
+    export PKG_CONFIG_PATH=$(pwd)/pkg/contrib/njs/build && \
+    ./configure $CONFIGURE_ARGS --cc-opt="$CC_OPT" --ld-opt="$LD_OPT" --modulesdir=/usr/lib/unit/debug-modules --debug && \
+    make -j $NCPU unitd && \
+    install -pm755 build/sbin/unitd /usr/sbin/unitd-debug && \
+    make clean && \
+    ./configure $CONFIGURE_ARGS --cc-opt="$CC_OPT" --ld-opt="$LD_OPT" --modulesdir=/usr/lib/unit/modules && \
+    make -j $NCPU unitd && \
+    install -pm755 build/sbin/unitd /usr/sbin/unitd && \
+    make clean && \
+    /bin/true && \
+    ./configure $CONFIGURE_ARGS_MODULES --cc-opt="$CC_OPT" --modulesdir=/usr/lib/unit/debug-modules --debug && \
+    ./configure php && \
+    make -j $NCPU php-install && \
+    make clean && \
+    ./configure $CONFIGURE_ARGS_MODULES --cc-opt="$CC_OPT" --modulesdir=/usr/lib/unit/modules && \
+    ./configure php && \
+    make -j $NCPU php-install && \
+    mkdir -p /var/lib/unit/
 
 ##########
 # Main
@@ -53,6 +72,7 @@ ENV APP_BASE_DIR=/var/www/html \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
+    DISABLE_DEFAULT_CONFIG=false \
     LOG_LEVEL=warn \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
@@ -75,6 +95,7 @@ ENV UNIT_WEBROOT=${APP_BASE_DIR}/public
 
 # Copy NGINX Unit binaries and modules from build stage
 COPY --from=build /usr/sbin/unitd /usr/sbin/
+COPY --from=build /usr/sbin/unitd-debug /usr/sbin/
 COPY --from=build /usr/lib/unit/ /usr/lib/unit/
 
 # Copy NGINX Unit state directory from build stage
@@ -91,16 +112,20 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     \
+    # Install required required extensions for Laravel
     docker-php-ext-install pdo_mysql pdo_pgsql pdo_sqlite zip && \
+    \
     # PCNTL install
     docker-php-ext-configure pcntl --enable-pcntl && \
     docker-php-ext-install pcntl && \
+    \
+    # Install pecl extensions (if defined)
     docker-php-serversideup-pecl-install $PECL_PACKAGES
 
-# Expose the necessary port(s)
 EXPOSE 80 443
 
 ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 
-# Set the command to run Nginx Unit
+STOPSIGNAL SIGTERM
+
 CMD ["unitd", "--no-daemon"]

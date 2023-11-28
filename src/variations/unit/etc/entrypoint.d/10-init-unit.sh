@@ -32,7 +32,7 @@ process_template() {
     output_file=$2
 
     if [ -f "$output_file" ]; then
-        echo "ℹ️ NOTICE ($script_name): $output_file already exists, so we'll use the existing file."
+        echo "$script_name (ℹ️ NOTICE): $output_file already exists, so we'll use the existing file."
         return 0
     fi
 
@@ -72,11 +72,17 @@ curl_put() {
     return_body=$(echo "$curl_return" | head -n -1)
 
     if [ "$return_status" -ne "200" ]; then
-        echo "$script_name: Error: HTTP response status code is '$return_status'"
-        echo "$return_body"
-        return 1
+        if echo "$return_body" | grep "Certificate already exists."; then
+            echo "ℹ️ NOTICE: Certificate already exists. Ignoring this error..."
+            echo "$return_body"
+            return 0 # Ignore errors of certicate already existing
+        else
+            echo "🛑 ERROR: HTTP response status code is '$return_status'"
+            echo "$return_body"
+            return 1 # Return error for all other errors
+        fi
     else
-        echo "$script_name: OK: HTTP response status code is '$return_status'"
+        echo "✅ OK: HTTP response status code is '$return_status'"
         echo "$return_body"
     fi
     return 0
@@ -165,11 +171,24 @@ validate_ssl(){
 # Main
 ##########
 DOCKER_CMD=$1
-if [ "$DOCKER_CMD" = "unitd" ] || [ "$1" = "unitd-debug" ]; then
-    ssl_mode=$(echo "$SSL_MODE" | tr '[:upper:]' '[:lower:]')
-    process_template "$UNIT_CONFIG_DIRECTORY/ssl-$ssl_mode.json.template" $UNIT_CONFIG_DIRECTORY/config.json
-    if [ "$ssl_mode" != "off" ]; then
-        validate_ssl
+if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
+
+    # Configure Unit only if the command is "unitd" or "unitd-debug"
+    if [ "$DOCKER_CMD" = "unitd" ] || [ "$DOCKER_CMD" = "unitd-debug" ]; then
+        ssl_mode=$(echo "$SSL_MODE" | tr '[:upper:]' '[:lower:]')
+        process_template "$UNIT_CONFIG_DIRECTORY/ssl-$ssl_mode.json.template" "$UNIT_CONFIG_DIRECTORY/config.json"
+        if [ "$ssl_mode" != "off" ]; then
+            validate_ssl
+        fi
+        configure_unit
+    else
+        if [ "$LOG_LEVEL" = "debug" ]; then
+            echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal \"false\", so no initialization will be performed."
+        fi
     fi
-    configure_unit
+
+    # If debug is set, write replace "unitd" with "unitd-debug" and save this file in the docker_cmd_override file for execution by the entrypoint script
+    if [ "$LOG_LEVEL" = "debug" ]; then
+        echo "$@" | sed 's/unitd/unitd-debug/' > /tmp/docker_cmd_override
+    fi
 fi

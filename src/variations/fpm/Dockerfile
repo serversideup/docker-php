@@ -12,6 +12,7 @@ ENV APP_BASE_DIR=/var/www/html \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
+    DISABLE_DEFAULT_CONFIG=false \
     LOG_LEVEL=warn \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
@@ -37,6 +38,15 @@ COPY --chmod=755 src/common/ /
 RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
     docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
+    \
+    # Install required required extensions for Laravel
+    docker-php-ext-install pdo_mysql pdo_pgsql pdo_sqlite zip && \
+    \
+    # PCNTL install
+    docker-php-ext-configure pcntl --enable-pcntl && \
+    docker-php-ext-install pcntl && \
+    \
+    # Install pecl extensions (if defined)
     docker-php-serversideup-pecl-install $PECL_PACKAGES
 
 # copy our fpm configurations
