@@ -45,7 +45,7 @@ if [ -f $APP_BASE_DIR/artisan ] && [ ${AUTORUN_ENABLED:="true"} == "true" ]; the
         ############################################################################
         # artisan migrate
         ############################################################################
-        if [ ${AUTORUN_LARAVEL_MIGRATION:="false"} == "true" ]; then
+        if [ ${AUTORUN_LARAVEL_MIGRATION:="true"} == "true" ]; then
             echo "🚀 Running migrations..."
             php $APP_BASE_DIR/artisan migrate --force --isolated
         fi
