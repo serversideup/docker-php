@@ -36,6 +36,13 @@ php_versions:
           - 8.2.10
           - 8.2.11
           - 8.2.9
+      - minor: "8.3"
+        base_os:
+          - name: alpine
+          - name: bookworm
+            default: true
+        patch_versions:
+          - 8.3.0
       - minor: 8.3-rc
         base_os:
           - name: alpine
