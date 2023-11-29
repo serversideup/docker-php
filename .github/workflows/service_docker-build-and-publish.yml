@@ -5,9 +5,6 @@ on:
         required: true
         type: string
         default: 'edge-'
-      checkout-type:
-        required: true
-        type: string
       php-versions-file:
         type: string
         default: 'scripts/conf/php-versions.yml'
@@ -61,41 +58,9 @@ jobs:
       matrix: ${{fromJson(needs.setup-matrix.outputs.php-version-map-json)}}
 
     steps:
-      ##
-      # Checkout branch (for push deployments)
-      ##
-      - name: Get branch name
-        if: inputs.checkout-type == 'branch'
-        id: branch-name
-        uses: tj-actions/branch-names@v6
-
-      - uses: actions/checkout@v3
-        if: inputs.checkout-type  == 'branch'
-        with:
-          ref: ${{ steps.branch-name.outputs.current_branch }}
-      
-      ##
-      # Checkout latest stable release (for production releases)
-      ##
-      - name: Get latest stable release
-        if: inputs.checkout-type  == 'latest-stable'
-        id: latest-stable-version
-        run: |
-          echo "LATEST_STABLE_VERSION=$(curl --silent --header "Accept: application/vnd.github.v3.sha" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')" >> $GITHUB_OUTPUT
-
-      - name: Confirm release tag
-        if: inputs.checkout-type  == 'latest-stable'
-        run: |
-          echo "Latest Stable Release Tag: ${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}"
-        
-      - name: Checkout latest stable tag
-        if: inputs.checkout-type  == 'latest-stable'
+      - name: Check out code.
         uses: actions/checkout@v3
-        with:
-          ref: ${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}
-      ##
-      # Download artifacts
-      ##
+  
       - name: Download PHP Versions file
         uses: actions/download-artifact@v3
         with:

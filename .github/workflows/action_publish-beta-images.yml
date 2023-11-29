@@ -17,5 +17,4 @@ jobs:
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
       tag-prefix: "beta-"
-      checkout-type: branch
     secrets: inherit
