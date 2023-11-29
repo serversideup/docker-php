@@ -3,7 +3,7 @@ ARG PHP_VERSION='8.3'
 ARG PHP_VARIATION='fpm'
 
 ##########
-# FPM image
+# FPM: Main Image
 ##########
 FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
 
