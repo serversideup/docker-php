@@ -134,6 +134,18 @@ jobs:
           CHECKOUT_TYPE: ${{ inputs.checkout-type }}
           DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
 
+      - name: Set REPOSITORY_BUILD_VERSION
+        id: set_version
+        run: |
+          if [ "${{ github.ref_type }}" == "tag" ]; then
+            echo "🚀 Setting REPOSITORY_BUILD_VERSION to Tag"
+            echo "REPOSITORY_BUILD_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+          else
+            echo "👨‍🔬 Setting REPOSITORY_BUILD_VERSION to Branch and SHA"
+            SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+            echo "REPOSITORY_BUILD_VERSION=${{ github.ref_name }}-${SHORT_SHA}" >> $GITHUB_ENV
+          fi
+
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
@@ -142,6 +154,7 @@ jobs:
             BASE_OS_VERSION=${{ matrix.base_os }}
             PHP_VERSION=${{ matrix.patch_version }}
             PHP_VARIATION=${{ matrix.php_variation }}
+            REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
           platforms: |
             linux/amd64
             linux/arm/v7

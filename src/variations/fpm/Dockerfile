@@ -4,9 +4,18 @@ ARG PHP_VARIATION='fpm'
 ARG DEPENDENCY_PACKAGES_ALPINE
 ARG DEPENDENCY_PACKAGES_DEBIAN
 ARG PECL_PACKAGES
+ARG REPOSITORY_BUILD_VERSION='dev'
 
 FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
-LABEL maintainer="Jay Rogers (@jaydrogers)"
+LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
+    org.opencontainers.image.description="Production-ready Docker images for PHP. Optimized for Laravel, WordPress, and more!" \
+    org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
+    org.opencontainers.image.source="https://github.com/serversideup/docker-php" \
+    org.opencontainers.image.documentation="https://serversideup.net/open-source/docker-php/docs/" \
+    org.opencontainers.image.vendor="ServerSideUp" \
+    org.opencontainers.image.authors="Jay Rogers (@jaydrogers)" \
+    org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
+    org.opencontainers.image.licenses="GPL-3.0-or-later"
 
 ENV APP_BASE_DIR=/var/www/html \
     COMPOSER_ALLOW_SUPERUSER=1 \
