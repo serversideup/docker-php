@@ -17,11 +17,11 @@ set -oe pipefail
 # Environment Settings
 
 # Required variables to set
-CHECKOUT_TYPE="${CHECKOUT_TYPE:-"branch"}"
 DEFAULT_IMAGE_VARIATION="${DEFAULT_IMAGE_VARIATION:-"cli"}"
-DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php"}"
-DOCKER_TAG_PREFIX="${DOCKER_TAG_PREFIX:-"edge-"}"
 PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"scripts/conf/php-versions.yml"}"
+
+DOCKER_REGISTRY_IMAGE_NAMES=("docker.io/serversideup/php" "ghcr.io/serversideup/php")
+DOCKER_TAG_PREFIX="${DOCKER_TAG_PREFIX:-"edge-"}"
 
 ##########################
 # Functions
@@ -73,18 +73,21 @@ check_vars() {
 
 add_docker_tag() {
   docker_tag_suffix=$1
-  tag_name="$DOCKER_REPOSITORY:$DOCKER_TAG_PREFIX$docker_tag_suffix"
 
-  if [[ -z "$DOCKER_TAGS" ]]; then
-    # Do not prefix with comma
-    DOCKER_TAGS+="$tag_name"
-  else
-    # Add a comma to separate the tags
-    DOCKER_TAGS+=",$tag_name"
-  fi
+  for image_name in "${DOCKER_REGISTRY_IMAGE_NAMES[@]}"; do
+    tag_name="$image_name:$DOCKER_TAG_PREFIX$docker_tag_suffix"
 
-  # Trim commas for a better output
-  echo_color_message blue "🐳 Set tag: ${tag_name//,}  "
+    if [[ -z "$DOCKER_TAGS" ]]; then
+      # Do not prefix with comma
+      DOCKER_TAGS+="$tag_name"
+    else
+      # Add a comma to separate the tags
+      DOCKER_TAGS+=",$tag_name"
+    fi
+
+    # Trim commas for a better output
+    echo_color_message blue "🐳 Set tag: ${tag_name//,}  "
+  done
 }
 
 function is_latest_stable_patch() {
@@ -103,8 +106,8 @@ function is_default_base_os() {
     [[ "$build_base_os" == "$default_base_os_within_build_minor" ]]
 }
 
-function is_checkout_type_of_latest_stable() {
-    [[ "$CHECKOUT_TYPE" == "latest-stable" ]]
+function is_stable() {
+    [[ -z "$DOCKER_TAG_PREFIX" ]]
 }
 
 function is_default_variation() {
@@ -115,22 +118,21 @@ help_menu() {
     echo "Usage: $0 [--variation <variation> --os <os> --patch-version <patch-version> --latest]"
     echo
     echo "This script dives deep into the advanced logic of assembling Docker tags for GitHub Actions."
-    echo "If \$CI is \"true\", it outputs the tags to GITHUB_ENV for use in subsequent steps."
+    echo "If \$CI is 'true', it outputs the tags to GITHUB_ENV for use in subsequent steps."
     echo "You can run this locally for debugging. The script has beautiful output and can help debug"
     echo "any advanced logic issues."
     echo
     echo "Options:"
-    echo "  --variation <variation>   Set the PHP variation (e.g., apache, fpm)"
-    echo "  --os <os>                 Set the base OS (e.g., bullseye, bookworm, alpine)"
+    echo "  --variation <variation>         Set the PHP variation (e.g., apache, fpm)"
+    echo "  --os <os>                       Set the base OS (e.g., bullseye, bookworm, alpine)"
     echo "  --patch-version <patch-version> Set the PHP patch version (e.g., 7.4.10)"
-    echo "  --latest                  Use 'latest-stable' as the checkout type"
+    echo "  --latest                        Set DOCKER_TAG_PREFIX to an empty string (making this a stable release)"
     echo
     echo "Environment Variables (Defaults):"
-    echo "  CHECKOUT_TYPE             The checkout type (default: branch)"
-    echo "  DEFAULT_IMAGE_VARIATION   The default PHP image variation (default: cli)"
-    echo "  DOCKER_REPOSITORY         The Docker repository (default: serversideup/php)"
-    echo "  DOCKER_TAG_PREFIX         The Docker tag prefix (default: edge-)"
-    echo "  PHP_VERSIONS_FILE         Path to PHP versions file (default: scripts/conf/php-versions.yml)"
+    echo "  DEFAULT_IMAGE_VARIATION      The default PHP image variation (default: cli)"
+    echo "  DOCKER_REGISTRY_IMAGE_NAMES  Names of images to tag (default: 'docker.io/serversideup/php' 'ghcr.io/serversideup/php')"
+    echo "  DOCKER_TAG_PREFIX            The Docker tag prefix (default: edge-)"
+    echo "  PHP_VERSIONS_FILE            Path to PHP versions file (default: scripts/conf/php-versions.yml)"
 }
 
 ##########################
@@ -153,7 +155,6 @@ while [[ $# -gt 0 ]]; do
         ;;
         --latest)
         DOCKER_TAG_PREFIX=""
-        CHECKOUT_TYPE="latest-stable"
         shift 1
         ;;
         *)
@@ -170,9 +171,7 @@ check_vars \
   PHP_BUILD_VARIATION \
   PHP_BUILD_VERSION \
   PHP_BUILD_BASE_OS \
-  DOCKER_REPOSITORY \
-  PHP_VERSIONS_FILE \
-  CHECKOUT_TYPE
+  PHP_VERSIONS_FILE
 
 if [[ ! -f $PHP_VERSIONS_FILE ]]; then
   echo_color_message red "🚨 PHP Versions file not found at $PHP_VERSIONS_FILE"
@@ -258,7 +257,7 @@ if is_latest_stable_patch; then
     if is_latest_major && is_default_variation; then
       add_docker_tag "$build_base_os"
       
-      if is_default_base_os && is_checkout_type_of_latest_stable && is_default_variation; then
+      if is_default_base_os && is_stable && is_default_variation; then
         add_docker_tag "latest"
       fi
     fi

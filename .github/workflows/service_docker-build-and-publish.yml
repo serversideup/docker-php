@@ -11,9 +11,6 @@ on:
       default-image-variation:
         type: string
         default: 'cli'
-      docker-repo-name:
-        type: string
-        default: 'serversideup/php'
 
 jobs:
   setup-matrix:
@@ -79,6 +76,13 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -90,13 +94,11 @@ jobs:
           chmod +x ./scripts/assemble-docker-tags.sh
           ./scripts/assemble-docker-tags.sh
         env:
-          DOCKER_REPOSITORY: "${{ inputs.docker-repo-name }}"
           PHP_VERSIONS_FILE: "${{ inputs.php-versions-file }}"
           DEFAULT_IMAGE_VARIATION: ${{ inputs.default-image-variation }}
           PHP_BUILD_VERSION: ${{ matrix.patch_version }}
           PHP_BUILD_VARIATION: ${{ matrix.php_variation }}
           PHP_BUILD_BASE_OS: ${{ matrix.base_os }}
-          CHECKOUT_TYPE: ${{ inputs.checkout-type }}
           DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
 
       - name: Set REPOSITORY_BUILD_VERSION
