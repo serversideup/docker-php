@@ -60,7 +60,7 @@ RUN set -ex && \
     mkdir -p /var/lib/unit/
 
 ##########
-# Main
+# Unit: Main Image
 ##########
 FROM ${BASE_IMAGE}
 

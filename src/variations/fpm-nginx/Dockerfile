@@ -49,7 +49,7 @@ RUN docker-php-serversideup-dep-install-debian "curl gnupg2 ca-certificates lsb-
     printf "Package: *\nPin: origin nginx.org\nPin-Priority: 900\n" > /etc/apt/preferences.d/99nginx
 
 ##########
-# Main
+# FPM-NGINX: Main Image
 ##########
 FROM ${BASE_IMAGE}
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi gettext postgresql-dev libzip-dev sqlite sqlite-dev'

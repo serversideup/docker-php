@@ -1,12 +1,17 @@
 ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.3'
 ARG PHP_VARIATION='cli'
+
+##########
+# CLI Image
+##########
+FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
+
 ARG DEPENDENCY_PACKAGES_ALPINE='postgresql-dev libzip-dev sqlite sqlite-dev'
 ARG DEPENDENCY_PACKAGES_DEBIAN='libpq-dev libzip-dev sqlite3 libsqlite3-dev'
 ARG PECL_PACKAGES
 ARG REPOSITORY_BUILD_VERSION='dev'
 
-FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
     org.opencontainers.image.description="Production-ready Docker images for PHP. Optimized for Laravel, WordPress, and more!" \
     org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
