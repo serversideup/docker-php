@@ -141,9 +141,9 @@ jobs:
             echo "🚀 Setting REPOSITORY_BUILD_VERSION to Tag"
             echo "REPOSITORY_BUILD_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
           else
-            echo "👨‍🔬 Setting REPOSITORY_BUILD_VERSION to Branch and SHA"
+            echo "👨‍🔬 Setting REPOSITORY_BUILD_VERSION to GIT Short SHA and GitHub Run ID"
             SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-            echo "REPOSITORY_BUILD_VERSION=${{ github.ref_name }}-${SHORT_SHA}" >> $GITHUB_ENV
+            echo "REPOSITORY_BUILD_VERSION=git-${SHORT_SHA}-${{ github.run_id }}" >> $GITHUB_ENV
           fi
 
       - name: Build and push
