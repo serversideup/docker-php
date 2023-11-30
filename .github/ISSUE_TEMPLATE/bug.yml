@@ -12,7 +12,7 @@ body:
       required: true
   - type: textarea
     attributes:
-      label: Docker Labels of your image
+      label: Docker Labels of the affected images
       description: "Run `docker inspect --format='{{json .Config.Labels}}' <<image>>` and post the output here."
   - type: textarea
     attributes:
