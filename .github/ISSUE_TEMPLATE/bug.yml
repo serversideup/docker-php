@@ -12,6 +12,10 @@ body:
       required: true
   - type: textarea
     attributes:
+      label: Docker Labels of the affected images
+      description: "Run `docker inspect --format='{{json .Config.Labels}}' <<image>>` and post the output here."
+  - type: textarea
+    attributes:
       label: Current Behavior
       description: A concise description of what you're experiencing.
     validations:
