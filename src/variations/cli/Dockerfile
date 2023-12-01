@@ -7,9 +7,9 @@ ARG PHP_VARIATION='cli'
 ##########
 FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
 
-ARG DEPENDENCY_PACKAGES_ALPINE='postgresql-dev libzip-dev sqlite sqlite-dev'
-ARG DEPENDENCY_PACKAGES_DEBIAN='libpq-dev libzip-dev sqlite3 libsqlite3-dev'
-ARG PECL_PACKAGES
+ARG DEPENDENCY_PACKAGES_ALPINE=''
+ARG DEPENDENCY_PACKAGES_DEBIAN=''
+ARG DEPENDENCY_PHP_EXTENSIONS='pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
@@ -45,16 +45,10 @@ COPY --chmod=755 src/common/ /
 # install pecl extensions & dependencies
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
+    docker-php-serversideup-install-php-ext-installer && \
     \
-    # Install required required extensions for Laravel
-    docker-php-ext-install pdo_mysql pdo_pgsql pdo_sqlite zip && \
-    \
-    # PCNTL install
-    docker-php-ext-configure pcntl --enable-pcntl && \
-    docker-php-ext-install pcntl && \
-    \
-    # Install pecl extensions (if defined)
-    docker-php-serversideup-pecl-install $PECL_PACKAGES
+    # Install default PHP extensions
+    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
