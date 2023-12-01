@@ -33,7 +33,7 @@ useHead({
     bodyAttrs: {
         class: 'antialiased'
     },
-    title: 'PHP Docker Images - Server Side Up'
+    title: 'PHP Docker Images (serversideup/php) - Server Side Up'
 })
 
 const route = useRoute();
