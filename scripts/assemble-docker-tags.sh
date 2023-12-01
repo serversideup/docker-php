@@ -250,6 +250,10 @@ if is_latest_stable_patch; then
         add_docker_tag "$build_major_version-$build_variation"
     fi
 
+    if is_default_variation; then
+      add_docker_tag "$build_major_version-$build_base_os"
+    fi
+
     if is_default_base_os && is_default_variation; then
       add_docker_tag "$build_major_version"
     fi
