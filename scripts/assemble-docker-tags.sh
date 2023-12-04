@@ -72,10 +72,25 @@ check_vars() {
 }
 
 add_docker_tag() {
+# Function: add_docker_tag
+# Description: Appends Docker tags to the DOCKER_TAGS variable and prints each tag.
+# This function iterates over a list of Docker image names and appends a tag to each name.
+# The tag can either include a prefix (from DOCKER_TAG_PREFIX) or not, based on the second argument.
+#
+# Parameters:
+#   docker_tag_suffix - The suffix to be appended to the Docker image name as part of the tag.
+#   prefix_setting - Controls whether to prepend DOCKER_TAG_PREFIX to the tag. 
+#                    Use "--skip-prefix" to avoid adding the prefix.
   docker_tag_suffix=$1
+  prefix_setting=$2
 
   for image_name in "${DOCKER_REGISTRY_IMAGE_NAMES[@]}"; do
-    tag_name="$image_name:$DOCKER_TAG_PREFIX$docker_tag_suffix"
+    if [[ $prefix_setting == "--skip-prefix" ]]; then
+      tag_name="$image_name:$docker_tag_suffix"
+    else
+      tag_name="$image_name:$DOCKER_TAG_PREFIX$docker_tag_suffix"
+    fi
+    
 
     if [[ -z "$DOCKER_TAGS" ]]; then
       # Do not prefix with comma
@@ -90,8 +105,12 @@ add_docker_tag() {
   done
 }
 
-function is_latest_stable_patch() {
+function is_latest_stable_patch_within_build_minor() {
     [[ "$build_patch_version" == "$latest_patch_within_build_minor" && "$build_patch_version" != *"rc"* ]]
+}
+
+function is_latest_global_patch() {
+    [[ "$build_patch_version" == $latest_patch_global && "$build_patch_version" != *"rc"* ]]
 }
 
 function is_latest_minor_within_build_major() {
@@ -106,7 +125,7 @@ function is_default_base_os() {
     [[ "$build_base_os" == "$default_base_os_within_build_minor" ]]
 }
 
-function is_stable() {
+function ci_release_is_production_launch() {
     [[ -z "$DOCKER_TAG_PREFIX" ]]
 }
 
@@ -126,12 +145,11 @@ help_menu() {
     echo "  --variation <variation>         Set the PHP variation (e.g., apache, fpm)"
     echo "  --os <os>                       Set the base OS (e.g., bullseye, bookworm, alpine)"
     echo "  --patch-version <patch-version> Set the PHP patch version (e.g., 7.4.10)"
-    echo "  --latest                        Set DOCKER_TAG_PREFIX to an empty string (making this a stable release)"
+    echo "  --release                       Set DOCKER_TAG_PREFIX for testing locally"
     echo
     echo "Environment Variables (Defaults):"
     echo "  DEFAULT_IMAGE_VARIATION      The default PHP image variation (default: cli)"
     echo "  DOCKER_REGISTRY_IMAGE_NAMES  Names of images to tag (default: 'docker.io/serversideup/php' 'ghcr.io/serversideup/php')"
-    echo "  DOCKER_TAG_PREFIX            The Docker tag prefix (default: edge-)"
     echo "  PHP_VERSIONS_FILE            Path to PHP versions file (default: scripts/conf/php-versions.yml)"
 }
 
@@ -153,9 +171,16 @@ while [[ $# -gt 0 ]]; do
         PHP_BUILD_VERSION="$2"
         shift 2
         ;;
-        --latest)
-        DOCKER_TAG_PREFIX=""
-        shift 1
+        --release)
+        if [[ -z "$2" ]]; then
+          echo_color_message red "🛑 ERROR: --release is missing an value."
+        fi
+        if [[ "$2" == "latest" ]]; then
+          DOCKER_TAG_PREFIX=""
+        else
+          DOCKER_TAG_PREFIX="$2-"
+        fi
+        shift 2
         ;;
         *)
         echo "🛑 ERROR: Unknown argument passed: $1"
@@ -196,6 +221,7 @@ latest_global_stable_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r '[.php_versio
 latest_global_stable_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg latest_global_stable_major "$latest_global_stable_major" '.php_versions[] | select(.major == $latest_global_stable_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $latest_global_stable_major + "." + tostring')
 latest_minor_within_build_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
 latest_patch_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
+latest_patch_global=$(yq -o=json $PHP_VERSIONS_FILE | jq -r '[.php_versions[] | .minor_versions[] | select(.minor | test("-rc") | not) | .patch_versions[] | select(test("-rc") | not) | split(".") | map(tonumber) ] | max | join(".")')
 default_base_os_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .base_os[] | select(.default == true) | .name')
 
 check_vars \
@@ -219,6 +245,7 @@ echo "Latest Global Minor Version: $latest_global_stable_minor"
 echo "Latest Minor Version within Build Major: $latest_minor_within_build_major"
 echo "Latest Patch Version within Build Minor: $latest_patch_within_build_minor"
 echo "Default Base OS within Build Minor: $default_base_os_within_build_minor"
+echo "Latest Global Patch Version: $latest_patch_global"
 
 # Set default tag
 DOCKER_TAGS=""
@@ -228,7 +255,7 @@ if is_default_base_os; then
   add_docker_tag "$build_patch_version-$build_variation"
 fi
 
-if is_latest_stable_patch; then
+if is_latest_stable_patch_within_build_minor; then
   add_docker_tag "$build_minor_version-$build_variation-$build_base_os"
 
   if is_default_base_os; then
@@ -257,12 +284,25 @@ if is_latest_stable_patch; then
     if is_default_base_os && is_default_variation; then
       add_docker_tag "$build_major_version"
     fi
+  fi
 
-    if is_latest_major && is_default_variation; then
+  if is_latest_global_patch; then
+    add_docker_tag "$build_variation-$build_base_os"
+
+    if is_default_variation; then
       add_docker_tag "$build_base_os"
-      
-      if is_default_base_os && is_stable && is_default_variation; then
+    fi
+
+    if is_default_base_os; then
+      add_docker_tag "$build_variation"
+    fi
+
+    if is_default_base_os && is_default_variation; then
+      if ci_release_is_production_launch; then
         add_docker_tag "latest"
+      else
+        trimmed_docker_tag_prefix="${DOCKER_TAG_PREFIX%-}"
+        add_docker_tag "$trimmed_docker_tag_prefix" --skip-prefix
       fi
     fi
   fi
