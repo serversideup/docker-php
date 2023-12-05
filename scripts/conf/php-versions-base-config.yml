@@ -16,26 +16,23 @@ php_versions:
           - name: bullseye
             default: true
         patch_versions:
-          - 8.0.29
-          - 8.0.28
+          - 8.0.30
       - minor: "8.1"
         base_os:
           - name: alpine
           - name: bookworm
             default: true
         patch_versions:
-          - 8.1.23
-          - 8.1.22
           - 8.1.24
+          - 8.1.25
       - minor: "8.2"
         base_os:
           - name: alpine
           - name: bookworm
             default: true
         patch_versions:
-          - 8.2.10
           - 8.2.11
-          - 8.2.9
+          - 8.2.12
       - minor: "8.3"
         base_os:
           - name: alpine
@@ -43,13 +40,6 @@ php_versions:
             default: true
         patch_versions:
           - 8.3.0
-      - minor: 8.3-rc
-        base_os:
-          - name: alpine
-          - name: bookworm
-            default: true
-        patch_versions:
-          - 8.3-rc
 php_variations:
   - name: cli
     default: true
