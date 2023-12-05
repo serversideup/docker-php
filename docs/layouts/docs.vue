@@ -60,14 +60,10 @@ useSeoMeta({
     ogUrl: domain+basePath+route.path,
     ogType: 'website',
     ogSiteName: 'Server Side Up - Docker PHP',
-    ogImage: domain+basePath+'/images/social-image.jpg',
-    ogImageWidth: 1200,
-    ogImageHeight: 627,
-    ogImageType: 'image/png',
     ogTitle: page.value?.head.title,
+    ogDescription: page.value.description,
     twitterCard: 'summary_large_image',
     twitterDescription: page.value?.description,
-    twitterImage: domain+basePath+'/images/social-image.jpg',
     twitterSite: '@serversideup',
     twitterTitle: page.value?.head.title
 })
