@@ -16,6 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: './docs/.nvmrc'
+
       - name: Set env file
         run: |
           if [[ -z "$BASE_64_SECRET" ]]; then
@@ -28,8 +32,6 @@ jobs:
           BASE_64_SECRET: ${{ secrets.ENV_FILE_BASE64 }}
 
       - run: | 
-              nvm install
-              nvm use
               yarn install --frozen-lockfile
               yarn build
               npx nuxi generate
