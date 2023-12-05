@@ -33,7 +33,12 @@ useHead({
     bodyAttrs: {
         class: 'antialiased'
     },
-    title: 'PHP Docker Images (serversideup/php) - Server Side Up'
+    title: 'PHP Docker Images (serversideup/php) - Server Side Up',
+    script: [
+        {
+            src: 'https://f.convertkit.com/ckjs/ck.5.js'
+        }
+    ]
 })
 
 const route = useRoute();
