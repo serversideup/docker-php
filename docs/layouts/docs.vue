@@ -40,6 +40,12 @@
 </template>
 
 <script setup>
+
+
+const route = useRoute();
+const { basePath, domain } = useRuntimeConfig().public;
+const { page } = useContent();
+
 useHead({
     htmlAttrs: {
         lang: 'en'
@@ -47,26 +53,24 @@ useHead({
     bodyAttrs: {
         class: 'antialiased font-inter bg-black'
     }
-})
-
-const route = useRoute();
-const { basePath, domain } = useRuntimeConfig().public;
-const { page } = useContent();
+});
 
 useSeoMeta({
     ogLocale: 'en_US',
     ogUrl: domain+basePath+route.path,
     ogType: 'website',
     ogSiteName: 'Server Side Up - Docker PHP',
-    ogImage: domain+basePath+'/images/social-image.jpg',
-    ogImageWidth: 1200,
-    ogImageHeight: 627,
-    ogImageType: 'image/png',
-    ogTitle: () => page.value?.head.title,
+    ogTitle: page.value?.head.title,
+    ogDescription: page.value.description,
     twitterCard: 'summary_large_image',
-    twitterDescription: () => page.value?.description,
-    twitterImage: domain+basePath+'/images/social-image.jpg',
+    twitterDescription: page.value?.description,
     twitterSite: '@serversideup',
-    twitterTitle: () => page.value?.head.title
+    twitterTitle: page.value?.head.title
 })
+
+defineOgImage({
+    component: 'DocsImage',
+    title: page.value.title,
+    description: page.value.description
+});
 </script>

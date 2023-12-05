@@ -33,7 +33,12 @@ useHead({
     bodyAttrs: {
         class: 'antialiased'
     },
-    title: 'PHP Docker Images (serversideup/php) - Server Side Up'
+    title: 'PHP Docker Images (serversideup/php) - Server Side Up',
+    script: [
+        {
+            src: 'https://f.convertkit.com/ckjs/ck.5.js'
+        }
+    ]
 })
 
 const route = useRoute();
@@ -44,12 +49,12 @@ useSeoMeta({
     ogUrl: domain+basePath+route.path,
     ogType: 'website',
     ogSiteName: 'Server Side Up - Docker PHP',
+    ogTitle: 'Server Side Up - Docker PHP',
+    ogDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
     ogImage: domain+basePath+'/images/social-image.jpg',
     ogImageWidth: 1200,
-    ogImageHeight: 627,
-    ogImageType: 'image/png',
-    ogDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
-    ogTitle: 'Server Side Up - Docker PHP',
+    ogImageHeight: 675,
+    ogImageType: 'image/jpg',
     twitterCard: 'summary_large_image',
     twitterDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
     twitterImage: domain+basePath+'/images/social-image.jpg',
