@@ -3,6 +3,7 @@ import tailwindTypography from '@tailwindcss/typography'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
     modules: [
+        'nuxt-og-image',
         '@nuxtjs/algolia',
         '@nuxtjs/color-mode',
         '@nuxt/content',
@@ -54,6 +55,10 @@ export default defineNuxtConfig({
         }
     },
 
+    ogImage: {
+        componentDirs: ['~/components/Global/OgImage'],
+    },
+
     plausible: {
         apiHost: 'https://a.521dimensions.com'
     },
@@ -63,6 +68,10 @@ export default defineNuxtConfig({
             basePath: process.env.NUXT_APP_BASE_URL,
             domain: process.env.TOP_LEVEL_DOMAIN
         }
+    },
+
+    site: {
+        url: process.env.TOP_LEVEL_DOMAIN+process.env.NUXT_APP_BASE_URL
     },
 
     tailwindcss: {

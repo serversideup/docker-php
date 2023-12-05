@@ -17,6 +17,9 @@
     "@vueuse/core": "^10.6.1",
     "@vueuse/nuxt": "^10.6.1",
     "nuxt": "^3.8.1",
+    "nuxt-og-image": "^2.2.4",
+    "nuxt-site-config": "^1.6.6",
+    "nuxt-site-config-kit": "^1.6.6",
     "sitemap": "^7.1.1",
     "surge": "^0.23.1"
   },
