@@ -33,7 +33,6 @@ export default defineNuxtConfig({
         },
 
         highlight: {
-            // OR
             theme: {
               // Default theme (same as single string)
               default: 'github-dark',
@@ -41,8 +40,14 @@ export default defineNuxtConfig({
               dark: 'github-dark',
               // Theme used if `html.sepia`
               sepia: 'monokai'
-            }
-        }
+            },
+
+            preload: [
+                'php'
+            ]
+        },
+
+        
     },
 
     colorMode: {
