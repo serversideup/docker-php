@@ -71,7 +71,7 @@ export default defineNuxtConfig({
     },
 
     site: {
-        url: process.env.TOP_LEVEL_DOMAIN+process.env.NUXT_APP_BASE_URL
+        url: process.env.BASE_PATH,
     },
 
     tailwindcss: {
