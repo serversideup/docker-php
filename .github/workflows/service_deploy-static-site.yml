@@ -28,6 +28,8 @@ jobs:
           BASE_64_SECRET: ${{ secrets.ENV_FILE_BASE64 }}
 
       - run: | 
+              nvm install
+              nvm use
               yarn install --frozen-lockfile
               yarn build
               npx nuxi generate
