@@ -65,7 +65,7 @@ export default defineNuxtConfig({
 
     runtimeConfig: {
         public: {
-            basePath: process.env.NUXT_APP_BASE_URL,
+            basePath: process.env.NUXT_APP_BASE_URL || '/',
             domain: process.env.TOP_LEVEL_DOMAIN
         }
     },
