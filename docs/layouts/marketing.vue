@@ -54,8 +54,8 @@ useSeoMeta({
 
 defineOgImage({
     component: 'DocsImage',
-    title: page.value.title,
-    description: page.value.description
+    title: 'Server Side Up - Docker PHP',
+    description: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.'
 });
 
 </script>
