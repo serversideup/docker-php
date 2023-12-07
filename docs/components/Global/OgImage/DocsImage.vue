@@ -17,8 +17,8 @@ const props = defineProps({
 </script>
 
 <template>
-    <div class="w-full h-full border-blue-700 border-solid border-[12px] relative rounded-[20px] bg-blue-700">
-        <div class="w-full h-full bg-black relative rounded-[12px]">
+    <div class="w-full h-full border-blue-700 border-solid border-[14px] relative rounded-[20px] bg-blue-700">
+        <div class="w-full h-full bg-black relative rounded-[18px]">
             <div style="position: absolute; left: 0px; top: 0px; bottom: 0px; width: 852px; padding-left: 24px; padding-right: 48px;">
                 <div style="display: flex; flex-direction: column; justify-content: center; height: 606px;">
                     <span class="text-white font-sans text-8xl font-bold" v-text="title"></span>
