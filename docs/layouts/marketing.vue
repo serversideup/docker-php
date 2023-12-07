@@ -51,13 +51,13 @@ useSeoMeta({
     ogSiteName: 'Server Side Up - Docker PHP',
     ogTitle: 'Server Side Up - Docker PHP',
     ogDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
-    ogImage: domain+basePath+'/images/social-image.jpg',
+    ogImage: domain+basePath+'/images/social-image.png',
     ogImageWidth: 1200,
     ogImageHeight: 675,
-    ogImageType: 'image/jpg',
+    ogImageType: 'image/png',
     twitterCard: 'summary_large_image',
     twitterDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
-    twitterImage: domain+basePath+'/images/social-image.jpg',
+    twitterImage: domain+basePath+'/images/social-image.png',
     twitterSite: '@serversideup',
     twitterTitle: 'Server Side Up - Docker PHP'
 })
