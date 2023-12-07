@@ -53,7 +53,7 @@ useSeoMeta({
     ogDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
     ogImage: domain+basePath+'/images/social-image.png',
     ogImageWidth: 1200,
-    ogImageHeight: 675,
+    ogImageHeight: 630,
     ogImageType: 'image/png',
     twitterCard: 'summary_large_image',
     twitterDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
