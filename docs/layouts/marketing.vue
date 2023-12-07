@@ -51,13 +51,13 @@ useSeoMeta({
     ogSiteName: 'Server Side Up - Docker PHP',
     ogTitle: 'Server Side Up - Docker PHP',
     ogDescription: 'Supercharge your PHP experience, in seconds. Built upon the official PHP images, our production-ready serversideup/php images take your Docker PHP experience to the next level. Enjoy variable-first configurations, nginx-unit variation, native CloudFlare support, and more.',
-    ogImage: domain+basePath+'/images/social-image.png',
+    ogImage: domain+basePath+'/images/social-image.jpg',
     ogImageWidth: 1200,
     ogImageHeight: 630,
-    ogImageType: 'image/png',
+    ogImageType: 'image/jpg',
     twitterCard: 'summary_large_image',
     twitterDescription: 'Supercharge your PHP experience, in seconds. Built upon the official PHP images, our production-ready serversideup/php images take your Docker PHP experience to the next level. Enjoy variable-first configurations, nginx-unit variation, native CloudFlare support, and more.',
-    twitterImage: domain+basePath+'/images/social-image.png',
+    twitterImage: domain+basePath+'/images/social-image.jpg',
     twitterSite: '@serversideup',
     twitterTitle: 'Server Side Up - Docker PHP'
 })
