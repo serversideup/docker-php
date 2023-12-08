@@ -1,7 +1,7 @@
 ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.3'
 ARG PHP_VARIATION='unit'
-ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
+ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
 
 ##########
 # Unit Build
