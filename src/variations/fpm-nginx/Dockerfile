@@ -150,4 +150,6 @@ COPY --chmod=755 src/php-fpm.d/ /
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+EXPOSE 80 443
+
 ENTRYPOINT ["/init"]
