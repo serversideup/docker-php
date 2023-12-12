@@ -53,7 +53,7 @@ RUN docker-php-serversideup-dep-install-debian "curl gnupg2 ca-certificates lsb-
 ##########
 FROM ${BASE_IMAGE}
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi nginx gettext'
-ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin nginx gettext-base'
+ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin nginx gettext-base zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
