@@ -70,4 +70,7 @@ ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 STOPSIGNAL SIGQUIT
 
 EXPOSE 9000
+
+WORKDIR ${APP_BASE_DIR}
+
 CMD ["php-fpm"]

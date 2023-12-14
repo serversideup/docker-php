@@ -135,4 +135,6 @@ ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 
 STOPSIGNAL SIGTERM
 
+WORKDIR ${APP_BASE_DIR}
+
 CMD ["unitd", "--no-daemon"]

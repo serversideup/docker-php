@@ -153,4 +153,6 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 EXPOSE 80 443
 
+WORKDIR ${APP_BASE_DIR}
+
 ENTRYPOINT ["/init"]
