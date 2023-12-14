@@ -23,7 +23,7 @@ jobs:
       - name: Set env file
         run: |
           if [[ -z "$BASE_64_SECRET" ]]; then
-            echo '🚨🚨🚨 ENV File not set 🚨🚨🚨'  1>&2
+            echo '🚨🚨🚨🚨 ENV File not set 🚨🚨🚨🚨'  1>&2
             exit 1
           fi
           echo $BASE_64_SECRET | base64 -d > .env
