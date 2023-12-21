@@ -126,6 +126,10 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
     \
+    # Make composer cache directory
+    mkdir -p "${COMPOSER_HOME}" && \
+    chown -R www-data:www-data "${COMPOSER_HOME}" && \
+    \
     # Install default PHP extensions
     install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
 
