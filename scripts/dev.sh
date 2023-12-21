@@ -22,6 +22,7 @@ PROJECT_ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 PHP_BUILD_VERSION=""
 PHP_BUILD_VARIATION=""
 PHP_BUILD_BASE_OS=""
+PHP_BUILD_PREFIX=""
 DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php"}"
 DOCKER_ADDITIONAL_BUILD_ARGS=()
 
@@ -67,16 +68,17 @@ check_vars() {
 }
 
 build_docker_image() {
-  echo_color_message yellow "🐳 Building Docker Image: $DOCKER_REPOSITORY:$PHP_BUILD_VERSION-$PHP_BUILD_VARIATION-$PHP_BUILD_BASE_OS"
+  build_tag="${DOCKER_REPOSITORY}:${PHP_BUILD_PREFIX}${PHP_BUILD_VERSION}-${PHP_BUILD_VARIATION}-${PHP_BUILD_BASE_OS}"
+  echo_color_message yellow "🐳 Building Docker Image: $build_tag"
   docker build \
     ${DOCKER_ADDITIONAL_BUILD_ARGS[@]} \
     --build-arg PHP_VARIATION="$PHP_BUILD_VARIATION" \
     --build-arg PHP_VERSION="$PHP_BUILD_VERSION" \
     --build-arg BASE_OS_VERSION="$PHP_BUILD_BASE_OS" \
-    --tag "$DOCKER_REPOSITORY:$PHP_BUILD_VERSION-$PHP_BUILD_VARIATION-$PHP_BUILD_BASE_OS" \
+    --tag "$build_tag" \
     --file "$PROJECT_ROOT_DIR/src/variations/$PHP_BUILD_VARIATION/Dockerfile" \
     "$PROJECT_ROOT_DIR"
-  echo_color_message green "✅ Docker Image Built: $DOCKER_REPOSITORY:$PHP_BUILD_VERSION-$PHP_BUILD_VARIATION-$PHP_BUILD_BASE_OS"
+  echo_color_message green "✅ Docker Image Built: $build_tag"
 }
 
 help_menu() {
@@ -91,6 +93,7 @@ help_menu() {
     echo "  --variation <variation>   Set the PHP variation (e.g., apache, fpm)"
     echo "  --version <version>       Set the PHP version (e.g., 7.4, 8.0)"
     echo "  --os <os>                 Set the base OS (e.g., bullseye, bookworm, alpine)"
+    echo "  --prefix <prefix>         Set the prefix for the Docker image (e.g., beta)"
     echo
     echo "Environment Variables:"
     echo "  DOCKER_REPOSITORY         The Docker repository (default: serversideup/php)"
@@ -112,6 +115,10 @@ while [[ $# -gt 0 ]]; do
         ;;
         --version)
         PHP_BUILD_VERSION="$2"
+        shift 2
+        ;;
+        --prefix)
+        PHP_BUILD_PREFIX="$2-"
         shift 2
         ;;
         --*)
