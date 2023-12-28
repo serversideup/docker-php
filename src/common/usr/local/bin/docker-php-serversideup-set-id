@@ -1,0 +1,58 @@
+#!/bin/sh
+set -e
+
+###################################################
+# Usage: docker-php-serversideup-set-id [username] [uid] [gid]
+###################################################
+# This script is intended to be called on build for sysadmins who want to
+# change the UID and GID of a specific user. This is useful for when you
+# want to match the UID and GID of the host machine to the container.
+# Specifically, this can be helpful to call during a build target in development
+# so developers don't need to worry about permissions issues.
+script_name="docker-php-serversideup-set-id"
+
+# Sanity checks
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $script_name [username] [uid] [gid]"
+    exit 1
+fi
+
+username="$1"
+uid="$2"
+gid="$3"
+
+# Check if the user exists
+if ! id "$username" > /dev/null 2>&1; then
+    echo "$script_name: User \"$username\" does not exist."
+    exit 1
+fi
+
+current_uid=$(id -u "$username" 2>/dev/null)
+current_gid=$(id -g "$username" 2>/dev/null)
+
+# Exit if the UID and GID are already set
+if [ "$current_uid" -eq "$uid" ] && [ "$current_gid" -eq "$gid" ]; then
+    echo "$script_name: User $username already has UID $uid and GID $gid."
+    exit 0
+fi
+
+# Check if another group has the GID already
+if getent group "$gid" > /dev/null; then
+    moved_group_id="99$gid"
+    existing_group_name=$(getent group "$gid" | cut -d: -f1)
+    echo "$script_name: ⚡️ Moving GID of $existing_group_name to $moved_group_id"
+    groupmod -g "$moved_group_id" "$existing_group_name"
+fi
+
+# Check if another user has the UID already
+if getent passwd "$uid" > /dev/null; then
+    moved_user_id="99$uid"
+    echo "$script_name: ⚡️ Moving UID of $username to $moved_user_id"
+    usermod -u "$moved_user_id" "$username"
+fi
+
+# Change the UID and GID
+groupmod -g "$gid" "$username"
+usermod -u "$uid" "$username"
+
+echo "$script_name: ✅ Set $username UID to $uid and GID to $gid."
