@@ -64,7 +64,7 @@ RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
     install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
 
 # copy our fpm configurations
-COPY --chmod=644 src/php-fpm.d/ /
+COPY src/php-fpm.d/ /
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
