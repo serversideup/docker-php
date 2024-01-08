@@ -14,34 +14,44 @@ for file in /etc/entrypoint.d/*.sh; do
   
   # Get the base name of the file
   base=$(basename "$file" .sh)
-  
-  # Create the service directory for that file
-  mkdir -p "${S6_HOME}/s6-rc.d/${base}"
-  
-  # Set service type to "oneshot"
-  echo "oneshot" > "${S6_HOME}/s6-rc.d/${base}/type"
 
-  # Set the "up" script
-  echo "${S6_HOME}/scripts/${base}" > "${S6_HOME}/s6-rc.d/${base}/up"
+  # Proceed only if the script does not exist
+  if [ ! -e "${S6_HOME}/scripts/${base}" ]; then
+    # Create the service directory for that file
+    mkdir -p "${S6_HOME}/s6-rc.d/${base}"
+    
+    # Set service type to "oneshot"
+    echo "oneshot" > "${S6_HOME}/s6-rc.d/${base}/type"
 
-  # Place empty file in contents.d
-  touch "${S6_HOME}/s6-rc.d/user/contents.d/${base}"
+    # Set the "up" script
+    echo "${S6_HOME}/scripts/${base}" > "${S6_HOME}/s6-rc.d/${base}/up"
 
-  # Ensure the ${S6_HOME}/scripts/ directory exists
-  mkdir -p "${S6_HOME}/scripts"
+    # Place empty file in contents.d
+    touch "${S6_HOME}/s6-rc.d/user/contents.d/${base}"
 
-  # Link the script in the script directory
-  ln -s "${file}" "${S6_HOME}/scripts/${base}"
+    # Ensure the ${S6_HOME}/scripts/ directory exists
+    mkdir -p "${S6_HOME}/scripts"
 
-  # Esnsure the script has the correct file header for S6
-  sed -i '1s%^#!/bin/sh$%#!/command/with-contenv sh%' "${file}"
-  
-  if [ -n "$previous_base" ]; then
-      # Set the dependency from the previous script
+    # Link the script in the script directory
+    ln -s "${file}" "${S6_HOME}/scripts/${base}"
+
+    # Ensure the script has the correct file header for S6
+    sed -i '1s%^#!/bin/sh$%#!/command/with-contenv sh%' "${file}"
+
+    # Find the script that should be the dependency based on alphabetical order
+    previous_base=$(find "${S6_HOME}/s6-rc.d/" -maxdepth 1 -type d -name '[0-9]*' | \
+                    sort | \
+                    grep -B1 "${base}" | \
+                    head -n 1 | \
+                    xargs basename)
+    
+    # Check if the previous script is not the current script and set as dependency
+    if [ "$previous_base" != "$base" ] && [ -n "$previous_base" ]; then
       echo "$previous_base" >> "${S6_HOME}/s6-rc.d/${base}/dependencies"
-  fi
+    fi
 
-  # Set the previous file for the next loop
-  previous_base="$base"
+    # Set the previous file for the next loop
+    previous_base="$base"
+  fi
 
 done
