@@ -15,7 +15,27 @@
                     <div v-show="showMenu"
                         ref="menuRef"
                         class="absolute shadow-sm z-50 bg-white rounded-b-lg p-4 w-64 top-[28px] flex flex-col content-left text-left">
-                            <span class="font-inter font-bold text-black text-[14px]">Books</span>
+                            <span class="font-inter font-bold text-black text-[14px]">Products</span>
+                            <NuxtLink
+                                @click="showMenu = false"
+                                :to="'https://bugflow.io'"
+                                class="flex items-center text-[12px] font-medium font-inter py-2 group">
+                                    <div class="w-3 h-3 flex items-center justify-center mr-2">
+                                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="7.5" cy="7.5" r="7" fill="url(#paint0_linear_1009_9)"/>
+                                            <path d="M8.05985 2.83228C8.13966 2.72752 8.24596 2.6789 8.35198 2.67421C8.58523 2.66388 8.81683 2.8662 8.76196 3.15153L8.04363 6.69515C7.99575 6.95056 8.1714 7.17404 8.4268 7.17404H10.3582C10.7094 7.17404 10.8851 7.57336 10.6616 7.82876L6.84642 12.1066C6.55909 12.4259 6.06443 12.1546 6.16021 11.7556L6.81462 9.10579C6.87847 8.85038 6.68686 8.61069 6.43145 8.61069H4.54803C4.22877 8.61069 4.03722 8.22758 4.22877 7.97218L8.05985 2.83228Z" fill="white"/>
+                                            <defs>
+                                            <linearGradient id="paint0_linear_1009_9" x1="0.5" y1="14.5" x2="13.94" y2="1.06" gradientUnits="userSpaceOnUse">
+                                            <stop stop-color="#1E40AF"/>
+                                            <stop offset="1" stop-color="#00CD81"/>
+                                        </linearGradient>
+                                        </defs>
+                                        </svg>
+                                    </div>
+                                    <span class="group-hover:underline">Bugflow</span>
+                            </NuxtLink>
+
+                            <span class="font-inter font-bold text-black text-[14px] mt-2">Books</span>
                             <NuxtLink
                                 @click="showMenu = false"
                                 :to="'https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-nuxt3/'"
