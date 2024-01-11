@@ -30,8 +30,9 @@ test_db_connection() {
     "
 }
 
-# Set default value for AUTORUN_ENABLED
+# Set default values for Laravel automations
 : "${AUTORUN_ENABLED:=false}"
+: "${AUTORUN_LARAVEL_MIGRATION_TIMEOUT:=30}"
 
 if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
     # Check to see if an Artisan file exists and assume it means Laravel is configured.
@@ -42,20 +43,21 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
         ############################################################################
         if [ "${AUTORUN_LARAVEL_MIGRATION:=true}" = "true" ]; then
             count=0
-            while [ $count -lt 30 ]; do
+            timeout=$AUTORUN_LARAVEL_MIGRATION_TIMEOUT
+            while [ $count -lt "$timeout" ]; do
                 test_db_connection > /dev/null 2>&1
                 status=$?
                 if [ $status -eq 0 ]; then
                     echo "✅ Database connection successful."
                     break
                 else
-                    echo "Waiting on database connection, retrying... $((30 - count)) seconds left"
+                    echo "Waiting on database connection, retrying... $((timeout - count)) seconds left"
                     count=$((count + 1))
                     sleep 1
                 fi
             done
 
-            if [ $count -eq 30 ]; then
+            if [ $count -eq "$timeout" ]; then
                 echo "Database connection failed after multiple attempts."
                 exit 1
             fi
