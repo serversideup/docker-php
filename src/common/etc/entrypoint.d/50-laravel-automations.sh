@@ -4,24 +4,19 @@ script_name="laravel-automations"
 test_db_connection() {
     php -r "
         require '$APP_BASE_DIR/vendor/autoload.php';
-        use DB;
-
+        use Illuminate\Support\Facades\DB;
 
         \$app = require_once '$APP_BASE_DIR/bootstrap/app.php';
         \$kernel = \$app->make(Illuminate\Contracts\Console\Kernel::class);
         \$kernel->bootstrap();
 
         try {
-            \$pdo = DB::connection()->getPdo();
-            \$dbName = DB::connection()->getDatabaseName();
-            \$query = \$pdo->prepare('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?');
-            \$query->execute([\$dbName]);
-            \$result = \$query->fetch();
-            if (\$result) {
-                exit(0); // Database exists, exit with status 0 (success)
+            DB::connection()->getPdo(); // Attempt to get PDO instance
+            if (DB::connection()->getDatabaseName()) {
+                exit(0); // Database exists and can be connected to, exit with status 0 (success)
             } else {
-                echo 'Database ' . \$dbName . ' does not exist.';
-                exit(1); // Database does not exist, exit with status 1 (failure)
+                echo 'Database name not found.';
+                exit(1); // Database name not found, exit with status 1 (failure)
             }
         } catch (Exception \$e) {
             echo 'Database connection error: ' . \$e->getMessage();
@@ -29,6 +24,7 @@ test_db_connection() {
         }
     "
 }
+
 
 # Set default values for Laravel automations
 : "${AUTORUN_ENABLED:=false}"
