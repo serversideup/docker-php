@@ -19,7 +19,7 @@ jobs:
       php-version-map-json: ${{ steps.get-php-versions.outputs.php-version-map-json }}
     steps:
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Prepare PHP versions for the matrix. 😎
       run: |
@@ -56,7 +56,7 @@ jobs:
 
     steps:
       - name: Check out code.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
   
       - name: Download PHP Versions file
         uses: actions/download-artifact@v3
