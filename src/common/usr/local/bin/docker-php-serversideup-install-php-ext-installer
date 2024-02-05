@@ -1,0 +1,27 @@
+#!/bin/sh
+set -oe
+
+###################################################
+# Usage: docker-php-serversideup-install-php-ext-installer [version]
+###################################################
+# This script installs the "install-php-extensions" script from 
+# https://github.com/mlocati/docker-php-extension-installer
+script_name="docker-php-serversideup-install-php-ext-installer"
+
+############
+# Environment variables
+############
+PHP_EXT_INSTALLER_VERSION="2.1.76"
+
+############
+# Main
+############
+if [ -n "$1" ]; then
+    PHP_EXT_INSTALLER_VERSION="$1"
+fi
+
+curl -sSLf -o /usr/local/bin/install-php-extensions \
+    "https://github.com/mlocati/docker-php-extension-installer/releases/download/$PHP_EXT_INSTALLER_VERSION/install-php-extensions"
+chmod +x /usr/local/bin/install-php-extensions
+
+echo "$script_name: ⚡️ Installed $PHP_EXT_INSTALLER_VERSION of \"install-php-extensions\""

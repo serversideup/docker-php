@@ -1,0 +1,57 @@
+#!/bin/sh
+set -e
+
+###############################################
+# Usage: docker-php-serversideup-s6-init
+###############################################
+# This script is used to take scripts from "/etc/entrypoint.d" and move them
+# to the S6 Overlay structure.
+
+S6_HOME="/etc/s6-overlay"
+
+for file in /etc/entrypoint.d/*.sh; do
+  [ -e "$file" ] || continue # Skip if no files match
+  
+  # Get the base name of the file
+  base=$(basename "$file" .sh)
+
+  # Proceed only if the script does not exist
+  if [ ! -e "${S6_HOME}/scripts/${base}" ]; then
+    # Create the service directory for that file
+    mkdir -p "${S6_HOME}/s6-rc.d/${base}"
+    
+    # Set service type to "oneshot"
+    echo "oneshot" > "${S6_HOME}/s6-rc.d/${base}/type"
+
+    # Set the "up" script
+    echo "${S6_HOME}/scripts/${base}" > "${S6_HOME}/s6-rc.d/${base}/up"
+
+    # Place empty file in contents.d
+    touch "${S6_HOME}/s6-rc.d/user/contents.d/${base}"
+
+    # Ensure the ${S6_HOME}/scripts/ directory exists
+    mkdir -p "${S6_HOME}/scripts"
+
+    # Link the script in the script directory
+    ln -s "${file}" "${S6_HOME}/scripts/${base}"
+
+    # Ensure the script has the correct file header for S6
+    sed -i '1s%^#!/bin/sh$%#!/command/with-contenv sh%' "${file}"
+
+    # Find the script that should be the dependency based on alphabetical order
+    previous_base=$(find "${S6_HOME}/s6-rc.d/" -maxdepth 1 -type d -name '[0-9]*' | \
+                    sort | \
+                    grep -B1 "${base}" | \
+                    head -n 1 | \
+                    xargs basename)
+    
+    # Check if the previous script is not the current script and set as dependency
+    if [ "$previous_base" != "$base" ] && [ -n "$previous_base" ]; then
+      echo "$previous_base" >> "${S6_HOME}/s6-rc.d/${base}/dependencies"
+    fi
+
+    # Set the previous file for the next loop
+    previous_base="$base"
+  fi
+
+done

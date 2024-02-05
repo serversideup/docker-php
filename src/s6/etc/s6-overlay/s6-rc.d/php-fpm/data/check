@@ -1,0 +1,2 @@
+#!/command/with-contenv sh
+php-fpm-healthcheck

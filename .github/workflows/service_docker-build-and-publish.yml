@@ -1,65 +1,72 @@
 on:
   workflow_call:
     inputs:
-      upstream-channel-prefix:
-        required: true
-        type: string
-        default: ''
       tag-prefix:
         required: true
         type: string
-        default: 'beta-'
-      php-variation:
-        required: true
+        default: 'edge-'
+      php-versions-file:
         type: string
-      checkout-type:
-        required: true
+        default: 'scripts/conf/php-versions.yml'
+      default-image-variation:
         type: string
+        default: 'cli'
 
 jobs:
+  setup-matrix:
+    runs-on: ubuntu-22.04
+    outputs:
+      php-version-map-json: ${{ steps.get-php-versions.outputs.php-version-map-json }}
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+    
+    - name: Prepare PHP versions for the matrix. 😎
+      run: |
+        chmod +x ./scripts/get-php-versions.sh
+        ./scripts/get-php-versions.sh
+    
+    - name: Ensure our PHP Versions file exists.
+      run: |
+        if [ ! -f "${{ inputs.php-versions-file }}" ]; then
+          echo "PHP Versions file does not exist. Exiting."
+          exit 1
+        else
+          cat ${{ inputs.php-versions-file }}
+        fi
+
+    - name: Assemble PHP versions into the matrix. 😎
+      id: get-php-versions
+      run: |
+        MATRIX_JSON=$(yq -o=json scripts/conf/php-versions.yml | jq -c '{include: [(.php_variations[] | {name, supported_os: (.supported_os // ["alpine", "bullseye", "bookworm"])} ) as $variation | .php_versions[] | .minor_versions[] | .patch_versions[] as $patch | .base_os[] as $os | select($variation.supported_os | if length == 0 then . else . | index($os.name) end) | {patch_version: $patch, base_os: $os.name, php_variation: $variation.name}]}')
+        echo "php-version-map-json=${MATRIX_JSON}" >> $GITHUB_OUTPUT
+        echo "${MATRIX_JSON}" | jq '.'
+  
+    - name: Upload the php-versions.yml file
+      uses: actions/upload-artifact@v3
+      with:
+        name: php-versions.yml
+        path: ${{ inputs.php-versions-file }}
+
   docker-publish:
+    needs: setup-matrix
     runs-on: ubuntu-22.04
     strategy:
-      matrix:
-        php-version: 
-          - "7.4"
-          - "8.0"
-          - "8.1"
-          - "8.2"
+      matrix: ${{fromJson(needs.setup-matrix.outputs.php-version-map-json)}}
+
     steps:
-      ##
-      # Checkout branch (for push deployments)
-      ##
-      - name: Get branch name
-        if: inputs.checkout-type == 'branch'
-        id: branch-name
-        uses: tj-actions/branch-names@v6
-
-      - uses: actions/checkout@v3
-        if: inputs.checkout-type  == 'branch'
+      - name: Check out code.
+        uses: actions/checkout@v4
+  
+      - name: Download PHP Versions file
+        uses: actions/download-artifact@v3
         with:
-          ref: ${{ steps.branch-name.outputs.current_branch }}
+          name: php-versions.yml
+          path: ./artifacts
       
-      ##
-      # Checkout latest stable release (for production releases)
-      ##
-      - name: Get latest stable release
-        if: inputs.checkout-type  == 'latest-stable'
-        id: latest-stable-version
-        run: |
-          echo "LATEST_STABLE_VERSION=$(curl --silent --header "Accept: application/vnd.github.v3.sha" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')" >> $GITHUB_OUTPUT
-
-      - name: Confirm release tag
-        if: inputs.checkout-type  == 'latest-stable'
-        run: |
-          echo "Latest Stable Release Tag: ${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}"
-        
-      - name: Checkout latest stable tag
-        if: inputs.checkout-type  == 'latest-stable'
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}
-
+      - name: Move PHP Versions file
+        run: mv ./artifacts/php-versions.yml ${{ inputs.php-versions-file }}
+      
       ##
       # Docker build & publish
       ##
@@ -69,27 +76,52 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      
-      - name: "👨‍🔬 Set docker tags: Non-Release "
-        if: inputs.checkout-type == 'branch'
-        run: echo "DOCKER_TAGS=serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}" >> $GITHUB_ENV
+        uses: docker/setup-buildx-action@v3
 
-      - name: "🚀 Set docker tags: Release"
-        if: inputs.checkout-type == 'latest-stable'
-        run: echo "DOCKER_TAGS=serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}, serversideup/php:${{ inputs.tag-prefix}}${{ matrix.php-version }}-${{ inputs.php-variation }}-${{ steps.latest-stable-version.outputs.LATEST_STABLE_VERSION }}" >> $GITHUB_ENV
+      - name: "📦 Assemble the Docker Tags"
+        run: |
+          chmod +x ./scripts/assemble-docker-tags.sh
+          ./scripts/assemble-docker-tags.sh
+        env:
+          PHP_VERSIONS_FILE: "${{ inputs.php-versions-file }}"
+          DEFAULT_IMAGE_VARIATION: ${{ inputs.default-image-variation }}
+          PHP_BUILD_VERSION: ${{ matrix.patch_version }}
+          PHP_BUILD_VARIATION: ${{ matrix.php_variation }}
+          PHP_BUILD_BASE_OS: ${{ matrix.base_os }}
+          DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
+
+      - name: Set REPOSITORY_BUILD_VERSION
+        id: set_version
+        run: |
+          if [ "${{ github.ref_type }}" == "tag" ]; then
+            echo "🚀 Setting REPOSITORY_BUILD_VERSION to Tag"
+            echo "REPOSITORY_BUILD_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+          else
+            echo "👨‍🔬 Setting REPOSITORY_BUILD_VERSION to GIT Short SHA and GitHub Run ID"
+            SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+            echo "REPOSITORY_BUILD_VERSION=git-${SHORT_SHA}-${{ github.run_id }}" >> $GITHUB_ENV
+          fi
 
       - name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
+          file: src/variations/${{ matrix.php_variation }}/Dockerfile
           build-args: |
-            UPSTREAM_CHANNEL=${{ inputs.upstream-channel-prefix }}
-            PHP_VERSION=${{ matrix.php-version }}
-          context: src/${{ inputs.php-variation }}/.
+            BASE_OS_VERSION=${{ matrix.base_os }}
+            PHP_VERSION=${{ matrix.patch_version }}
+            PHP_VARIATION=${{ matrix.php_variation }}
+            REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
           platforms: |
             linux/amd64
             linux/arm/v7

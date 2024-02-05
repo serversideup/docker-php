@@ -1,0 +1,52 @@
+php_versions:
+  - major: "7"
+    minor_versions:
+      - minor: "7.4"
+        base_os:
+          - name: alpine
+          - name: bullseye
+            default: true
+        patch_versions:
+          - 7.4.33
+  - major: "8"
+    minor_versions:
+      - minor: "8.0"
+        base_os:
+          - name: alpine
+          - name: bullseye
+            default: true
+        patch_versions:
+          - 8.0.30
+      - minor: "8.1"
+        base_os:
+          - name: alpine
+          - name: bookworm
+            default: true
+        patch_versions:
+          - 8.1.26
+          - 8.1.27
+      - minor: "8.2"
+        base_os:
+          - name: alpine
+          - name: bookworm
+            default: true
+        patch_versions:
+          - 8.2.14
+          - 8.2.15
+      - minor: "8.3"
+        base_os:
+          - name: alpine
+          - name: bookworm
+            default: true
+        patch_versions:
+          - 8.3.1
+          - 8.3.2
+php_variations:
+  - name: cli
+    default: true
+  - name: fpm
+  - name: fpm-nginx
+  - name: unit
+    supported_os: # PHP doesn't include "embed SAPI" on Alpine (https://github.com/docker-library/php/pull/1355#issuecomment-1352087633)
+      - bullseye
+      - bookworm

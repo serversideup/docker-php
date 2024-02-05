@@ -3,10 +3,10 @@ import tailwindTypography from '@tailwindcss/typography'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
     modules: [
+        'nuxt-og-image',
         '@nuxtjs/algolia',
         '@nuxtjs/color-mode',
         '@nuxt/content',
-        '@nuxt/image-edge',
         '@nuxtjs/plausible',
         '@nuxtjs/tailwindcss',
         '@vueuse/nuxt'
@@ -33,7 +33,6 @@ export default defineNuxtConfig({
         },
 
         highlight: {
-            // OR
             theme: {
               // Default theme (same as single string)
               default: 'github-dark',
@@ -41,8 +40,15 @@ export default defineNuxtConfig({
               dark: 'github-dark',
               // Theme used if `html.sepia`
               sepia: 'monokai'
-            }
-        }
+            },
+
+            preload: [
+                'dockerfile',
+                'php'
+            ]
+        },
+
+        
     },
 
     colorMode: {
@@ -55,15 +61,23 @@ export default defineNuxtConfig({
         }
     },
 
+    ogImage: {
+        componentDirs: ['~/components/Global/OgImage'],
+    },
+
     plausible: {
         apiHost: 'https://a.521dimensions.com'
     },
 
     runtimeConfig: {
         public: {
-            basePath: process.env.NUXT_APP_BASE_URL,
+            basePath: process.env.NUXT_APP_BASE_URL || '/',
             domain: process.env.TOP_LEVEL_DOMAIN
         }
+    },
+
+    site: {
+        url: process.env.BASE_PATH,
     },
 
     tailwindcss: {

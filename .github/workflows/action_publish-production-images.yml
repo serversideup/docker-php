@@ -1,0 +1,16 @@
+name: Docker Publish (Production Images)
+
+on:
+  workflow_dispatch:
+  release:
+    types: [released]
+  # Commenting out until 3.x is launched
+  # schedule:
+  #   - cron: '0 8 * * 2'
+
+jobs:
+  build-production-images:
+    uses: ./.github/workflows/service_docker-build-and-publish.yml
+    with:
+      tag-prefix: ''
+    secrets: inherit

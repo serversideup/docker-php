@@ -6,13 +6,12 @@
 	<a href="https://github.com/serversideup/docker-php/blob/main/LICENSE" target="_blank"><img src="https://badgen.net/github/license/serversideup/docker-php" alt="License"></a>
 	<a href="https://github.com/sponsors/serversideup"><img src="https://badgen.net/badge/icon/Support%20Us?label=GitHub%20Sponsors&color=orange" alt="Support us"></a>
   <br />
-  <a href="https://hub.docker.com/r/serversideup/php/"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/serversideup/php"></a>
-  <a href="https://community.serversideup.net"><img alt="Discourse users" src="https://img.shields.io/discourse/users?color=blue&server=https%3A%2F%2Fcommunity.serversideup.net"></a>
+  <a href="https://hub.docker.com/r/serversideup/php/"><img alt="Docker Hub Pulls" src="https://img.shields.io/docker/pulls/serversideup/php"></a>
   <a href="https://serversideup.net/discord"><img alt="Discord" src="https://img.shields.io/discord/910287105714954251?color=blueviolet"></a>
 </p>
 
 ## Introduction
-`PHP Docker Images` is an optimized set of Docker Images for running PHP applications in production. Everything is designed around improving the developer experience with PHP and Docker. Gone are the days of configuring each environment differently, and gone are the days of trying to figure out why your code works in one environment and not the other.
+`serversideup/php` is an optimized set of Docker Images for running PHP applications in production. Everything is designed around improving the developer experience with PHP and Docker. Gone are the days of configuring each environment differently, and gone are the days of trying to figure out why your code works in one environment and not the other.
 
 These images are highly optimized to run modern PHP applications, no matter where you want your application to run.
 
@@ -25,10 +24,10 @@ Experience the ***true difference*** of using these images vs the other options 
  Features
 </summary> <br />
 
-|<picture><img width="100%" alt="Production-Ready" src="https://serversideup.net/wp-content/uploads/2023/08/production-ready.png"></picture>|<picture><img width="100%" alt="Native Health Checks" src="https://serversideup.net/wp-content/uploads/2023/08/native-health-checks.png"></picture>|<picture><img width="100%" alt="High Performance" src="https://serversideup.net/wp-content/uploads/2023/08/high-performance.png"></picture>|
+|<picture><img width="100%" alt="Production-Ready" src="https://serversideup.net/wp-content/uploads/2023/08/production-ready.png"></picture>|<picture><img width="100%" alt="Native Health Checks" src="https://serversideup.net/wp-content/uploads/2023/08/native-health-checks.png"></picture>|<picture><img width="100%" alt="High Performance" src="https://serversideup.net/wp-content/uploads/2023/11/high-performance.png"></picture>|
 |:---:|:---:|:---:|
-|<picture><img width="100%" alt="Customizable and Flexible" src="https://serversideup.net/wp-content/uploads/2023/08/customizable-flexible.png"></picture>|<picture><img width="100%" alt="Built on Ubuntu 22.04" src="https://serversideup.net/wp-content/uploads/2023/08/built-on-ubuntu.png"></picture>|<picture><img width="100%" alt="Built with Ondrej PHP" src="https://serversideup.net/wp-content/uploads/2023/08/built-with-ondrej.png"></picture>|
-|<picture><img width="100%" alt="NGINX + PHP-FPM" src="https://serversideup.net/wp-content/uploads/2023/08/nginx-php.png"></picture>|<picture><img width="100%" alt="Unified Logging" src="https://serversideup.net/wp-content/uploads/2023/08/unified-logging.png"></picture>|<picture><img width="100%" alt="Built with S6 Overlay" src="https://serversideup.net/wp-content/uploads/2023/08/built-with-s6.png"></picture>|
+|<picture><img width="100%" alt="Customizable and Flexible" src="https://serversideup.net/wp-content/uploads/2023/08/customizable-flexible.png"></picture>|<picture><img width="100%" alt="Native CloudFlare Support" src="https://serversideup.net/wp-content/uploads/2023/11/cloudflare.png"></picture>|<picture><img width="100%" alt="Base on Official PHP" src="https://serversideup.net/wp-content/uploads/2023/11/official-php.png"></picture>|
+|<picture><img width="100%" alt="NGINX Unit" src="https://serversideup.net/wp-content/uploads/2023/11/nginx-unit.png"></picture>|<picture><img width="100%" alt="Unified Logging" src="https://serversideup.net/wp-content/uploads/2023/11/unified-logging.png"></picture>|<picture><img width="100%" alt="FPM + S6 Overlay" src="https://serversideup.net/wp-content/uploads/2023/11/fpm-s6.png"></picture>|
 
 </details>
 
@@ -86,6 +85,14 @@ All of our software is free an open to the world. None of this can be brought to
 #### Individual Supporters
 <!-- supporters --><a href="https://github.com/alexjustesen"><img src="https://github.com/alexjustesen.png" width="40px" alt="alexjustesen" /></a>&nbsp;&nbsp;<a href="https://github.com/GeekDougle"><img src="https://github.com/GeekDougle.png" width="40px" alt="GeekDougle" /></a>&nbsp;&nbsp;<!-- supporters -->
 
+#### Special thanks
+We'd like to specifically thank a few folks for taking the time for being a sound board that deeply influenced the direction of this project.
+
+Please check out all of their work:
+- [Chris Fidao](https://twitter.com/fideloper)
+- [Joel Clermont](https://twitter.com/joelclermont)
+- [Patricio](https://twitter.com/PatricioOnCode)
+
 ## About Us
 We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers) - a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
 
@@ -112,6 +119,7 @@ If you appreciate this project, be sure to check out our other projects.
 
 ### 📚 Books
 - **[The Ultimate Guide to Building APIs & SPAs](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-nuxt3/)**: Build web & mobile apps from the same codebase.
+- **[Building Multi-Platform Browser Extensions](https://serversideup.net/building-multi-platform-browser-extensions/)**: Ship extensions to all browsers from the same codebase.
 
 ### 🛠️ Software-as-a-Service
 - **[Bugflow](https://bugflow.io/)**: Get visual bug reports directly in GitHub, GitLab, and more.

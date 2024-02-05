@@ -1,0 +1,38 @@
+#!/bin/sh
+set -e
+
+if [ "$LOG_LEVEL" = "debug" ]; then
+    echo "🔥🔥🔥 DEBUG MODE has been set. Get ready for a ton of debug log output..."
+    set -x
+fi
+
+###############################################
+# Usage: docker-php-serversideup-entrypoint
+###############################################
+# This script is used to execute scripts from "/etc/entrypoint.d" and then
+# execute the CMD passed in from the Dockerfile.
+
+# Execute scripts from /etc/entrypoint.d/ in numeric order
+find /etc/entrypoint.d/ -type f -name '*.sh' | sort -n -t- -k1 | while IFS= read -r f; do
+    [ -e "$f" ] || continue  # skip if not exists
+    case "$f" in
+        *.sh)     . "$f" ;;
+        *)        echo "$0: Invalid extension. Ignoring $f" ;;
+    esac
+done
+
+# first arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+	set -- php "$@"
+fi
+
+# Some scripts may need to change the CMD based on the log level. If this file is set, execute the contents of that file instead of the Dockerfile CMD.
+if [ -f /tmp/docker_cmd_override ]; then
+    docker_cmd_override=$(cat /tmp/docker_cmd_override)
+    rm /tmp/docker_cmd_override
+    set -- $docker_cmd_override # Perform word splitting by not quoting the commands
+    exec "$@"
+else
+    # Execute the CMD passed in from the Dockerfile
+    exec "$@"
+fi
