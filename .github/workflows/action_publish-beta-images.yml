@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - release/v3.0
+      - main
     paths:
       - src/**
       - .github/workflows/**
