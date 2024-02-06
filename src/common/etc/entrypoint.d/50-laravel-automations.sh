@@ -106,7 +106,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
         fi
     fi
 else
-    if [ "$LOG_LEVEL" = "debug" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal 'false', so automations will NOT be performed."
     fi
 fi

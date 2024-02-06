@@ -19,7 +19,7 @@ UNIT_SOCKET_LOCATION=${UNIT_SOCKET_LOCATION:-"/var/run/control.unit.sock"}
 # Functions
 ##########
 set_debug_output() {
-    if [ "$LOG_LEVEL" = "debug" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "👉 $script_name: Output of $*:" >&2
         echo
         eval "$@" || { echo "Command $* failed" >&2; return 1; }
@@ -182,13 +182,13 @@ if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
         fi
         configure_unit
     else
-        if [ "$LOG_LEVEL" = "debug" ]; then
+        if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
             echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal \"false\", so no initialization will be performed."
         fi
     fi
 
     # If debug is set, write replace "unitd" with "unitd-debug" and save this file in the docker_cmd_override file for execution by the entrypoint script
-    if [ "$LOG_LEVEL" = "debug" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "$@" | sed 's/unitd/unitd-debug/' > /tmp/docker_cmd_override
     fi
 fi

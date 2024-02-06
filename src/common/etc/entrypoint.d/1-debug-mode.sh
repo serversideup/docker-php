@@ -18,13 +18,13 @@ if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
         fi
     }
 
-    if [ "$LOG_LEVEL" = "debug" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         set_php_ini display_errors On
         set_php_ini display_startup_errors On
         set_php_ini error_reporting "32767"
     fi
 else
-    if [ "$LOG_LEVEL" = "debug" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal \"false\", so debug mode will NOT be automatically set."
     fi
 fi

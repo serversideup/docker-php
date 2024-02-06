@@ -49,7 +49,7 @@ process_template() {
     echo "($script_name): Processing $template_file → $output_file..."
     envsubst "$subst_vars" < "$template_file" > "$output_file"
 
-    if [ "$LOG_LEVEL" = "debug" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "$script_name: Contents of $output_file:"
         cat $output_file
         echo
@@ -121,7 +121,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
         exit 1
     fi
 else
-    if [ "$LOG_LEVEL" = "debug" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal \"false\", so web server initialization will NOT be performed."
     fi
 fi
