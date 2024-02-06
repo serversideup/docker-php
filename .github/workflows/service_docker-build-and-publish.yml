@@ -129,3 +129,4 @@ jobs:
           pull: true
           push: true
           tags: ${{ env.DOCKER_TAGS }}
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description="Super charge your PHP experience. Based off the offical PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Lavel and WordPress."
