@@ -129,4 +129,4 @@ jobs:
           pull: true
           push: true
           tags: ${{ env.DOCKER_TAGS }}
-          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description="Supercharge your PHP experience. Based off the offical PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Lavel and WordPress."
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Supercharge your PHP experience with Docker images that are based off the official PHP images but are optmizied to be run in production environemtns for Laravel and WordPress out of the box
