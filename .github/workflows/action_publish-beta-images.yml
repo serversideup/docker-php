@@ -2,13 +2,8 @@ name: Docker Publish (Beta Images)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - src/**
-      - .github/workflows/**
-      - scripts/**
+  release:
+    types: [prereleased]
   schedule:
     - cron: '0 8 * * 1'
 
