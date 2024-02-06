@@ -45,6 +45,10 @@ php_variations:
   - name: cli
     default: true
   - name: fpm
+  - name: fpm-apache
+    supported_os: # Open a discussion on serversideup/php if you want to see Alpine support for fpm-apache (https://github.com/serversideup/docker-php/discussions/66)
+      - bullseye
+      - bookworm
   - name: fpm-nginx
   - name: unit
     supported_os: # PHP doesn't include "embed SAPI" on Alpine (https://github.com/docker-library/php/pull/1355#issuecomment-1352087633)

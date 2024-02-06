@@ -1,0 +1,10 @@
+#!/command/with-contenv sh
+response=$(curl --location --insecure --silent http://localhost/ping)
+
+if [ "$response" = "pong" ]; then
+	exit 0
+else
+	echo "❌ There seems to be a failure in checking the web server + PHP-FPM. Here's the response:"
+	echo $response
+	exit 1
+fi
