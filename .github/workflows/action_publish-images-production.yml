@@ -14,4 +14,5 @@ jobs:
     with:
       registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
       tag-prefix: ''
+      release-type: "latest"
     secrets: inherit

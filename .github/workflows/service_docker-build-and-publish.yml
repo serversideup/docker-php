@@ -4,15 +4,23 @@ on:
       tag-prefix:
         required: true
         type: string
+        description: 'The prefix to use for the Docker image tags.'
       php-versions-file:
         type: string
         default: 'scripts/conf/php-versions.yml'
+        description: 'The path to the PHP versions file.'
       default-image-variation:
         type: string
         default: 'cli'
-      registry-repositories: # Separete multiple repositories with a comma (example: 'docker.io/serversideup/php,ghcr.io/serversideup/php')
+        description: 'The default PHP variation to use for the Docker image.'
+      registry-repositories:
         type: string
         required: true
+        description: 'The Docker registry repositories to push the images to. Separate multiple repositories with a comma (example: docker.io/serversideup/php,ghcr.io/serversideup/php)'
+      release-type:
+        type: string
+        default: 'testing'
+        description: 'The type of release to create. Options: testing, latest'
 
 jobs:
   setup-matrix:
@@ -103,6 +111,7 @@ jobs:
           PHP_BUILD_BASE_OS: ${{ matrix.base_os }}
           DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
           DOCKER_REGISTRY_REPOSITORIES: ${{ inputs.registry-repositories }}
+          RELEASE_TYPE: ${{ inputs.release-type }}
 
       - name: Set REPOSITORY_BUILD_VERSION
         id: set_version

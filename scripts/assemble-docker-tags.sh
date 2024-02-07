@@ -22,7 +22,8 @@ PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"scripts/conf/php-versions.yml"}"
 
 # Convert comma-separated DOCKER_REGISTRY_REPOSITORIES string to an array
 IFS=',' read -ra DOCKER_REGISTRY_REPOSITORIES <<< "${DOCKER_REGISTRY_REPOSITORIES:-"docker.io/serversideup/php,ghcr.io/serversideup/php"}"
-DOCKER_TAG_PREFIX="${DOCKER_TAG_PREFIX:-"edge-"}"
+DOCKER_TAG_PREFIX="${DOCKER_TAG_PREFIX:-""}"
+RELEASE_TYPE="${RELEASE_TYPE:-"testing"}"
 
 ##########################
 # Functions
@@ -127,7 +128,7 @@ function is_default_base_os() {
 }
 
 function ci_release_is_production_launch() {
-    [[ -z "$DOCKER_TAG_PREFIX" ]]
+    [[ -z "$DOCKER_TAG_PREFIX" && "$RELEASE_TYPE" == "latest" ]]
 }
 
 function is_default_variation() {
@@ -146,7 +147,7 @@ help_menu() {
     echo "  --variation <variation>         Set the PHP variation (e.g., apache, fpm)"
     echo "  --os <os>                       Set the base OS (e.g., bullseye, bookworm, alpine)"
     echo "  --patch-version <patch-version> Set the PHP patch version (e.g., 7.4.10)"
-    echo "  --release                       Set DOCKER_TAG_PREFIX for testing locally"
+    echo "  --stable-release                Flag the tags for a stable release"
     echo
     echo "Environment Variables (Defaults):"
     echo "  DEFAULT_IMAGE_VARIATION      The default PHP image variation (default: cli)"
@@ -172,16 +173,9 @@ while [[ $# -gt 0 ]]; do
         PHP_BUILD_VERSION="$2"
         shift 2
         ;;
-        --release)
-        if [[ -z "$2" ]]; then
-          echo_color_message red "🛑 ERROR: --release is missing an value."
-        fi
-        if [[ "$2" == "latest" ]]; then
-          DOCKER_TAG_PREFIX=""
-        else
-          DOCKER_TAG_PREFIX="$2-"
-        fi
-        shift 2
+        --stable-release)
+        RELEASE_TYPE="stable"
+        shift
         ;;
         *)
         echo "🛑 ERROR: Unknown argument passed: $1"
@@ -301,7 +295,7 @@ if is_latest_stable_patch_within_build_minor; then
     if is_default_base_os && is_default_variation; then
       if ci_release_is_production_launch; then
         add_docker_tag "latest"
-      else
+      elif [[ -n "$DOCKER_TAG_PREFIX" ]]; then
         trimmed_docker_tag_prefix="${DOCKER_TAG_PREFIX%-}"
         add_docker_tag "$trimmed_docker_tag_prefix" --skip-prefix
       fi
