@@ -25,20 +25,12 @@ if [ "$NAME" != "Alpine Linux" ] || [ $# -eq 0 ]; then
 fi
 
 ############
-# Functions
-############
-convert_comma_delimited_to_space_separated() {
-    echo $1 | tr ',' ' '
-}
-
-############
 # Main
 ############
-DEP_PACKAGES=$(convert_comma_delimited_to_space_separated "$@")
+DEP_PACKAGES="$@"
 echo "🤖 Installing: $DEP_PACKAGES"
 apk update 
 apk add --no-cache $DEP_PACKAGES
-
 
 echo "🧼 Cleaning up installation of: $DEP_PACKAGES"
 rm -rf /var/cache/apk/*
