@@ -2,19 +2,15 @@ name: Docker Publish (Beta Images)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - src/**
-      - .github/workflows/**
-      - scripts/**
+  release:
+    types: [prereleased]
   schedule:
-    - cron: '0 8 * * 1'
+    - cron: '25 8 * * 1'
 
 jobs:
   build-beta-images:
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
+      registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
       tag-prefix: "beta-"
     secrets: inherit

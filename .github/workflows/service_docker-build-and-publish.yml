@@ -11,6 +11,9 @@ on:
       default-image-variation:
         type: string
         default: 'cli'
+      registry-repositories: # Separete multiple repositories with a comma (example: 'docker.io/serversideup/php,ghcr.io/serversideup/php')
+        type: string
+        required: true
 
 jobs:
   setup-matrix:
@@ -100,6 +103,7 @@ jobs:
           PHP_BUILD_VARIATION: ${{ matrix.php_variation }}
           PHP_BUILD_BASE_OS: ${{ matrix.base_os }}
           DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
+          DOCKER_REGISTRY_REPOSITORIES: ${{ inputs.registry-repositories }}
 
       - name: Set REPOSITORY_BUILD_VERSION
         id: set_version
@@ -122,6 +126,7 @@ jobs:
             PHP_VERSION=${{ matrix.patch_version }}
             PHP_VARIATION=${{ matrix.php_variation }}
             REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
+
           platforms: |
             linux/amd64
             linux/arm/v7
@@ -129,4 +134,4 @@ jobs:
           pull: true
           push: true
           tags: ${{ env.DOCKER_TAGS }}
-          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Supercharge your PHP experience with Docker images that are based off the official PHP images but are optmizied to be run in production environemtns for Laravel and WordPress out of the box
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Supercharge your PHP experience with Docker images that are based off the official PHP images but are optimized to be run in production environments for Laravel and WordPress and more
