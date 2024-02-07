@@ -11,11 +11,19 @@ on:
       - scripts/**
   schedule:
     - cron: '25 8 * * 1'
+  push:
+    branches:
+      - main
+    paths:
+      - src/**
+      - .github/workflows/action_publish-images-**
+      - .github/workflows/service_docker-**
+      - scripts/**
 
 jobs:
   build-dev-images:
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
       registry-repositories: "docker.io/serversideup/php-dev"
-      tag-prefix: "${{ github.event.pull_request.number }}-"
+      tag-prefix: ${{ github.event_name == 'pull_request' && format('{0}-', github.event.pull_request.number) || '' }}
     secrets: inherit
