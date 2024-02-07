@@ -17,5 +17,5 @@ jobs:
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
       registry-repositories: "docker.io/serversideup/php-dev"
-      tag-prefix: "{{ github.event.pull_request.number }}-"
+      tag-prefix: "${{ github.event.pull_request.number }}-"
     secrets: inherit
