@@ -20,7 +20,8 @@ set -oe pipefail
 DEFAULT_IMAGE_VARIATION="${DEFAULT_IMAGE_VARIATION:-"cli"}"
 PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"scripts/conf/php-versions.yml"}"
 
-DOCKER_REGISTRY_IMAGE_NAMES=("docker.io/serversideup/php" "ghcr.io/serversideup/php")
+# Convert comma-separated DOCKER_REGISTRY_REPOSITORIES string to an array
+IFS=',' read -ra DOCKER_REGISTRY_REPOSITORIES <<< "${DOCKER_REGISTRY_REPOSITORIES:-"docker.io/serversideup/php,ghcr.io/serversideup/php"}"
 DOCKER_TAG_PREFIX="${DOCKER_TAG_PREFIX:-"edge-"}"
 
 ##########################
@@ -84,7 +85,7 @@ add_docker_tag() {
   docker_tag_suffix=$1
   prefix_setting=$2
 
-  for image_name in "${DOCKER_REGISTRY_IMAGE_NAMES[@]}"; do
+  for image_name in "${DOCKER_REGISTRY_REPOSITORIES[@]}"; do
     if [[ $prefix_setting == "--skip-prefix" ]]; then
       tag_name="$image_name:$docker_tag_suffix"
     else
@@ -149,7 +150,7 @@ help_menu() {
     echo
     echo "Environment Variables (Defaults):"
     echo "  DEFAULT_IMAGE_VARIATION      The default PHP image variation (default: cli)"
-    echo "  DOCKER_REGISTRY_IMAGE_NAMES  Names of images to tag (default: 'docker.io/serversideup/php' 'ghcr.io/serversideup/php')"
+    echo "  DOCKER_REGISTRY_REPOSITORIES  Names of images to tag (default: 'docker.io/serversideup/php' 'ghcr.io/serversideup/php')"
     echo "  PHP_VERSIONS_FILE            Path to PHP versions file (default: scripts/conf/php-versions.yml)"
 }
 
