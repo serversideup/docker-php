@@ -4,7 +4,6 @@ on:
       tag-prefix:
         required: true
         type: string
-        default: 'edge-'
       php-versions-file:
         type: string
         default: 'scripts/conf/php-versions.yml'
