@@ -4,13 +4,23 @@ on:
       tag-prefix:
         required: true
         type: string
-        default: 'edge-'
+        description: 'The prefix to use for the Docker image tags.'
       php-versions-file:
         type: string
         default: 'scripts/conf/php-versions.yml'
+        description: 'The path to the PHP versions file.'
       default-image-variation:
         type: string
         default: 'cli'
+        description: 'The default PHP variation to use for the Docker image.'
+      registry-repositories:
+        type: string
+        required: true
+        description: 'The Docker registry repositories to push the images to. Separate multiple repositories with a comma (example: docker.io/serversideup/php,ghcr.io/serversideup/php)'
+      release-type:
+        type: string
+        default: 'testing'
+        description: 'The type of release to create. Options: testing, latest'
 
 jobs:
   setup-matrix:
@@ -19,7 +29,7 @@ jobs:
       php-version-map-json: ${{ steps.get-php-versions.outputs.php-version-map-json }}
     steps:
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Prepare PHP versions for the matrix. 😎
       run: |
@@ -43,7 +53,7 @@ jobs:
         echo "${MATRIX_JSON}" | jq '.'
   
     - name: Upload the php-versions.yml file
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: php-versions.yml
         path: ${{ inputs.php-versions-file }}
@@ -56,10 +66,10 @@ jobs:
 
     steps:
       - name: Check out code.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
   
       - name: Download PHP Versions file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: php-versions.yml
           path: ./artifacts
@@ -71,23 +81,23 @@ jobs:
       # Docker build & publish
       ##
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: "📦 Assemble the Docker Tags"
         run: |
@@ -100,6 +110,8 @@ jobs:
           PHP_BUILD_VARIATION: ${{ matrix.php_variation }}
           PHP_BUILD_BASE_OS: ${{ matrix.base_os }}
           DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
+          DOCKER_REGISTRY_REPOSITORIES: ${{ inputs.registry-repositories }}
+          RELEASE_TYPE: ${{ inputs.release-type }}
 
       - name: Set REPOSITORY_BUILD_VERSION
         id: set_version
@@ -114,7 +126,7 @@ jobs:
           fi
 
       - name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           file: src/variations/${{ matrix.php_variation }}/Dockerfile
           build-args: |
@@ -122,6 +134,7 @@ jobs:
             PHP_VERSION=${{ matrix.patch_version }}
             PHP_VARIATION=${{ matrix.php_variation }}
             REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
+
           platforms: |
             linux/amd64
             linux/arm/v7
@@ -129,3 +142,4 @@ jobs:
           pull: true
           push: true
           tags: ${{ env.DOCKER_TAGS }}
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Supercharge your PHP experience with Docker images that are based off the official PHP images but are optimized to be run in production environments for Laravel and WordPress and more

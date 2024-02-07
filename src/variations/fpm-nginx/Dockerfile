@@ -52,13 +52,13 @@ RUN docker-php-serversideup-dep-install-debian "curl gnupg2 ca-certificates lsb-
 # FPM-NGINX: Main Image
 ##########
 FROM ${BASE_IMAGE}
-ARG DEPENDENCY_PACKAGES_ALPINE='fcgi nginx gettext'
-ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin nginx gettext-base'
+ARG DEPENDENCY_PACKAGES_ALPINE='fcgi nginx gettext shadow'
+ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin nginx gettext-base zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
-    org.opencontainers.image.description="Production-ready Docker images for PHP. Optimized for Laravel, WordPress, and more!" \
+    org.opencontainers.image.description="Supercharge your PHP experience. Based off the offical PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
     org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
     org.opencontainers.image.source="https://github.com/serversideup/docker-php" \
     org.opencontainers.image.documentation="https://serversideup.net/open-source/docker-php/docs/" \
@@ -72,7 +72,7 @@ ENV APP_BASE_DIR=/var/www/html \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
-    LOG_LEVEL=warn \
+    LOG_OUTPUT_LEVEL=warn \
     NGINX_SERVER_TOKENS=off \
     NGINX_USER=nginx \
     PHP_DATE_TIMEZONE="UTC" \
@@ -87,7 +87,9 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_FPM_PM_START_SERVERS="2" \
     PHP_FPM_POOL_NAME="www" \
     PHP_MAX_EXECUTION_TIME="99" \
+    PHP_MAX_INPUT_TIME="-1" \
     PHP_MEMORY_LIMIT="256M" \
+    PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
@@ -123,6 +125,10 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     docker-php-serversideup-install-php-ext-installer && \
     docker-php-serversideup-s6-init && \
     \
+    # Make composer cache directory
+    mkdir -p "${COMPOSER_HOME}" && \
+    chown -R www-data:www-data "${COMPOSER_HOME}" && \
+    \
     # Install default PHP extensions
     install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" && \
     \
@@ -148,5 +154,9 @@ COPY --chmod=755 src/php-fpm.d/ /
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+EXPOSE 80 443
+
+WORKDIR ${APP_BASE_DIR}
 
 ENTRYPOINT ["/init"]

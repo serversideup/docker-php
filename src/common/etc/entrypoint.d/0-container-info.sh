@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ "$LOG_LEVEL" != "off" ] && [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
+if [ "$LOG_OUTPUT_LEVEL" != "off" ] && [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
 echo '
 --------------------------------------------------------------------
  ____                             ____  _     _        _   _
@@ -25,7 +25,7 @@ Docker uid:    $(id -u "$(whoami)")
 Docker gid:    $(id -g "$(whoami)")
 "
 else
-    if [ "$LOG_LEVEL" = "debug" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal \"false\", so debug mode will NOT be automatically set."
     fi
 fi

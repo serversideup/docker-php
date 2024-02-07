@@ -1,13 +1,13 @@
 ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.3'
 ARG PHP_VARIATION='unit'
-ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
+ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
 
 ##########
 # Unit Build
 ##########
 FROM ${BASE_IMAGE} as build
-ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar mercurial openssl-dev pcre2-dev'
+ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar mercurial openssl-dev pcre2-dev shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='ca-certificates mercurial build-essential libssl-dev libpcre2-dev curl pkg-config'
 ARG NGINX_UNIT_VERSION='1.31.1'
 
@@ -65,12 +65,12 @@ RUN set -ex && \
 FROM ${BASE_IMAGE}
 
 ARG DEPENDENCY_PACKAGES_ALPINE='gettext'
-ARG DEPENDENCY_PACKAGES_DEBIAN='gettext-base'
+ARG DEPENDENCY_PACKAGES_DEBIAN='gettext-base zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
-    org.opencontainers.image.description="Production-ready Docker images for PHP. Optimized for Laravel, WordPress, and more!" \
+    org.opencontainers.image.description="Supercharge your PHP experience. Based off the offical PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
     org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
     org.opencontainers.image.source="https://github.com/serversideup/docker-php" \
     org.opencontainers.image.documentation="https://serversideup.net/open-source/docker-php/docs/" \
@@ -84,14 +84,16 @@ ENV APP_BASE_DIR=/var/www/html \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
-    LOG_LEVEL=warn \
+    LOG_OUTPUT_LEVEL=warn \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
     PHP_ERROR_LOG="/dev/stderr" \
     PHP_ERROR_REPORTING="22527" \
     PHP_MAX_EXECUTION_TIME="99" \
+    PHP_MAX_INPUT_TIME="-1" \
     PHP_MEMORY_LIMIT="256M" \
+    PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
@@ -124,6 +126,10 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
     \
+    # Make composer cache directory
+    mkdir -p "${COMPOSER_HOME}" && \
+    chown -R www-data:www-data "${COMPOSER_HOME}" && \
+    \
     # Install default PHP extensions
     install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
 
@@ -132,5 +138,7 @@ EXPOSE 80 443
 ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 
 STOPSIGNAL SIGTERM
+
+WORKDIR ${APP_BASE_DIR}
 
 CMD ["unitd", "--no-daemon"]

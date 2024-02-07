@@ -43,6 +43,7 @@ export default defineNuxtConfig({
             },
 
             preload: [
+                'dockerfile',
                 'php'
             ]
         },

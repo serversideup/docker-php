@@ -49,11 +49,51 @@ process_template() {
     echo "($script_name): Processing $template_file → $output_file..."
     envsubst "$subst_vars" < "$template_file" > "$output_file"
 
-    if [ "$LOG_LEVEL" = "debug" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "$script_name: Contents of $output_file:"
         cat $output_file
         echo
     fi
+}
+
+enable_apache_conf() {
+    APACHE_CONF_AVAILABLE_DIR="/etc/apache2/conf-available"
+    APACHE_CONF_ENABLED_DIR="/etc/apache2/conf-enabled"
+
+    # Check if at least one configuration name was provided
+    if [ $# -eq 0 ]; then
+        echo "Usage: enable_apache_conf <conf-name>..."
+        return 1
+    fi
+
+    for conf_name in "$@"; do
+        SOURCE_FILE="${APACHE_CONF_AVAILABLE_DIR}/${conf_name}.conf"
+        TARGET_FILE="${APACHE_CONF_ENABLED_DIR}/${conf_name}.conf"
+
+        if [ ! -f "$SOURCE_FILE" ]; then
+            echo "🛑 ERROR ($script_name): Configuration file '$SOURCE_FILE' does not exist"
+            return 1
+        fi
+
+        # Create a symbolic link
+        ln -s "$SOURCE_FILE" "$TARGET_FILE" && echo "ℹ️ NOTICE ($script_name): Enabled configuration - ${conf_name}..."
+    done
+}
+
+enable_apache_site (){
+    ssl_mode=$1
+    apache2_enabled_site_path="/etc/apache2/sites-enabled"
+
+    # Transform to lowercase
+    ssl_mode=$(echo "$ssl_mode" | tr '[:upper:]' '[:lower:]')
+
+    if [ "$ssl_mode" != "off" ]; then
+        validate_ssl
+    fi
+
+    # Enable the site
+    echo "ℹ️ NOTICE ($script_name): Enabling Apache site with SSL \"$ssl_mode\"..."
+    ln -s "/etc/apache2/sites-available/ssl-$ssl_mode.conf" "$apache2_enabled_site_path/ssl-$ssl_mode.conf"
 }
 
 enable_nginx_site (){
@@ -71,7 +111,7 @@ enable_nginx_site (){
     if [ -f "$default_nginx_site_config" ]; then
         echo "ℹ️ NOTICE ($script_name): $default_nginx_site_config already exists, so we'll use the provided configuration."
     else
-        echo "🔐 Enabling NGINX site with SSL \"$ssl_mode\"..."
+        echo "ℹ️ NOTICE ($script_name): Enabling NGINX site with SSL \"$ssl_mode\"..."
         # Create the base directory if it doesn't exist
         base_dir=$(dirname "$default_nginx_site_config")
         mkdir -p "$base_dir"
@@ -110,7 +150,8 @@ SERVER_TYPE=$(detect_web_server_type)
 
 if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
     if [ "$SERVER_TYPE" = "Apache" ]; then
-        echo "Apache is installed."
+        enable_apache_conf remoteip security serversideup
+        enable_apache_site "$SSL_MODE"
     elif [ "$SERVER_TYPE" = "NGINX" ]; then
         process_template /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf
         process_template /etc/nginx/site-opts.d/http.conf.template /etc/nginx/site-opts.d/http.conf
@@ -121,7 +162,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
         exit 1
     fi
 else
-    if [ "$LOG_LEVEL" = "debug" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal \"false\", so web server initialization will NOT be performed."
     fi
 fi
