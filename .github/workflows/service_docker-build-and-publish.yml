@@ -135,7 +135,7 @@ jobs:
             PHP_VERSION=${{ matrix.patch_version }}
             PHP_VARIATION=${{ matrix.php_variation }}
             REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
-
+            BUILDKIT_PROGRESS=plain
           platforms: |
             linux/amd64
             linux/arm/v7
