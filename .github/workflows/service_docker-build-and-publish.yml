@@ -26,7 +26,7 @@ jobs:
   setup-matrix:
     runs-on: ubuntu-22.04
     outputs:
-      php-version-map-json: ${{ steps.get-php-versions.outputs.php-version-map-json }}
+      php-version-map-json: ${{ steps.generate-matrix.outputs.php-version-map-json }}
     steps:
     - name: Check out code
       uses: actions/checkout@v4
@@ -46,9 +46,10 @@ jobs:
         fi
 
     - name: Assemble PHP versions into the matrix. 😎
-      id: get-php-versions
+      id: generate-matrix
       run: |
-        MATRIX_JSON=$(yq -o=json scripts/conf/php-versions.yml | jq -c '{include: [(.php_variations[] | {name, supported_os: (.supported_os // ["alpine", "bullseye", "bookworm"])} ) as $variation | .php_versions[] | .minor_versions[] | .patch_versions[] as $patch | .base_os[] as $os | select($variation.supported_os | if length == 0 then . else . | index($os.name) end) | {patch_version: $patch, base_os: $os.name, php_variation: $variation.name}]}')
+        chmod +x ./scripts/generate_matrix.sh
+        MATRIX_JSON=$(./scripts/generate_matrix.sh)
         echo "php-version-map-json=${MATRIX_JSON}" >> $GITHUB_OUTPUT
         echo "${MATRIX_JSON}" | jq '.'
   
