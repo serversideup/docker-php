@@ -48,8 +48,8 @@ jobs:
     - name: Assemble PHP versions into the matrix. 😎
       id: generate-matrix
       run: |
-        chmod +x ./scripts/generate_matrix.sh
-        MATRIX_JSON=$(./scripts/generate_matrix.sh)
+        chmod +x ./scripts/generate-matrix.sh
+        MATRIX_JSON=$(./scripts/generate-matrix.sh)
         echo "php-version-map-json=${MATRIX_JSON}" >> $GITHUB_OUTPUT
         echo "${MATRIX_JSON}" | jq '.'
   
