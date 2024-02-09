@@ -1,54 +1,17 @@
 ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.3'
-ARG PHP_VARIATION='frankenphp'
-ARG GO_VERSION='1.21'
-ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
-
-##########
-# FrankenPHP: Common Image
-##########
-FROM ${BASE_IMAGE} as common
-
-# copy our scripts
-COPY --chmod=755 src/common/ /
-
-##########
-# Set GoLang Base Image
-##########
-FROM golang:${GO_VERSION}-${BASE_OS_VERSION} as golang-base
-
-##########
-# FrankenPHP: Build
-##########
-FROM common as build
 ARG FRANKEN_PHP_VERSION='1.1.0'
-
-COPY --from=golang-base /usr/local/go /usr/local/go
-
-ENV PATH /usr/local/go/bin:$PATH
-
-RUN docker-php-serversideup-dep-install-debian \
-        libargon2-dev \
-        libbrotli-dev \
-        libcurl4-openssl-dev \
-        libonig-dev \
-        libreadline-dev \
-        libsodium-dev \
-        libsqlite3-dev \
-        libssl-dev \
-        libxml2-dev \
-        zlib1g-dev \
-        && \
-    curl -L https://github.com/dunglas/frankenphp/archive/refs/tags/v${FRANKEN_PHP_VERSION}.tar.gz | tar -xz -C /tmp/ && \
-    cd /tmp/frankenphp-${FRANKEN_PHP_VERSION}/caddy/frankenphp && \
-    CGO_CFLAGS=$(php-config --includes) CGO_LDFLAGS="$(php-config --ldflags) $(php-config --libs)" go build -o /usr/local/bin/frankenphp
+ARG PHP_VARIATION='frankenphp'
+ARG BASE_IMAGE="dunglas/frankenphp:${FRANKEN_PHP_VERSION}-php${PHP_VERSION}-${BASE_OS_VERSION}"
 
 ##########
-# FrankenPHP: Main Image
+# CLI: Main Image
 ##########
-FROM common
+FROM ${BASE_IMAGE}
 
-COPY --from=build /usr/local/bin/frankenphp /usr/local/bin/frankenphp
+ARG DEPENDENCY_PACKAGES_ALPINE='shadow'
+ARG DEPENDENCY_PACKAGES_DEBIAN='zip'
+ARG DEPENDENCY_PHP_EXTENSIONS='pcntl pdo_mysql pdo_pgsql redis zip'
 
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
     org.opencontainers.image.description="Supercharge your PHP experience. Based off the offical PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
@@ -60,7 +23,7 @@ LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
     org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
-ENV APP_BASE_DIR=/var/www/html \
+ENV APP_BASE_DIR=/app \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
@@ -79,6 +42,9 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M"
 
+# copy our scripts
+COPY --chmod=755 src/common/ /
+
 # install pecl extensions & dependencies
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
@@ -96,4 +62,4 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR ${APP_BASE_DIR}
 
-ENTRYPOINT ["docker-php-serversideup-entrypoint"]
+# ENTRYPOINT ["docker-php-serversideup-entrypoint"]
