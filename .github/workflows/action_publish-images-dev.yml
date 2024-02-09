@@ -1,4 +1,4 @@
-name: Docker Publish (Beta Images)
+name: Docker Publish (Dev Images)
 
 on:
   workflow_dispatch:

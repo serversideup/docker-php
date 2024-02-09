@@ -50,6 +50,13 @@ php_variations:
       - bullseye
       - bookworm
   - name: fpm-nginx
+  - name: frankenphp
+    supported_os:
+      - bookworm
+    excluded_minor_versions:
+      - "7.4"
+      - "8.0"
+      - "8.1"
   - name: unit
     supported_os: # PHP doesn't include "embed SAPI" on Alpine (https://github.com/docker-library/php/pull/1355#issuecomment-1352087633)
       - bullseye
