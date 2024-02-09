@@ -62,4 +62,6 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR ${APP_BASE_DIR}
 
-# ENTRYPOINT ["docker-php-serversideup-entrypoint"]
+ENTRYPOINT ["docker-php-serversideup-entrypoint"]
+
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
