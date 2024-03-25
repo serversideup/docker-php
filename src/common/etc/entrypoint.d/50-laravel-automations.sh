@@ -29,7 +29,6 @@ test_db_connection() {
 # Set default values for Laravel automations
 : "${AUTORUN_ENABLED:=false}"
 : "${AUTORUN_LARAVEL_MIGRATION_TIMEOUT:=30}"
-: "${AUTORUN_LARAVEL_MIGRATION_ISOLATION:true}"
 
 if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
     # Check to see if an Artisan file exists and assume it means Laravel is configured.
