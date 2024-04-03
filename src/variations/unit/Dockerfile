@@ -66,7 +66,7 @@ FROM ${BASE_IMAGE}
 
 ARG DEPENDENCY_PACKAGES_ALPINE='gettext'
 ARG DEPENDENCY_PACKAGES_DEBIAN='gettext-base zip'
-ARG DEPENDENCY_PHP_EXTENSIONS='pcntl pdo_mysql pdo_pgsql redis zip'
+ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
