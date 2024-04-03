@@ -23,7 +23,7 @@ RUN docker-php-serversideup-s6-install
 FROM ${BASE_IMAGE}
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi apache2 shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin apache2 zip'
-ARG DEPENDENCY_PHP_EXTENSIONS='mysqli pcntl pdo_mysql pdo_pgsql redis zip'
+ARG DEPENDENCY_PHP_EXTENSIONS='mysqli opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
@@ -65,6 +65,11 @@ ENV APACHE_START_SERVERS="2" \
     PHP_MAX_EXECUTION_TIME="99" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MEMORY_LIMIT="256M" \
+    PHP_OPCACHE_ENABLE="0" \
+    PHP_OPCACHE_INTERNED_STRINGS_BUFFER="8" \
+    PHP_OPCACHE_MAX_ACCELERATED_FILES="10000" \
+    PHP_OPCACHE_MEMORY_CONSUMPTION="128" \
+    PHP_OPCACHE_REVALIDATE_FREQ="2" \
     PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=false \
