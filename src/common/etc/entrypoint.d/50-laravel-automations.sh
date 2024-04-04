@@ -59,7 +59,8 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
             fi
 
             echo "🚀 Running migrations..."
-            php "$APP_BASE_DIR/artisan" migrate --force --isolated
+            isolated=$([ "${AUTORUN_LARAVEL_MIGRATION_ISOLATION:=true}" = "true" ] && echo "--isolated" || echo "")
+            php "$APP_BASE_DIR/artisan" migrate --force $isolated
         fi
 
         ############################################################################
