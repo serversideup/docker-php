@@ -10,6 +10,13 @@ test_db_connection() {
         \$kernel = \$app->make(Illuminate\Contracts\Console\Kernel::class);
         \$kernel->bootstrap();
 
+        \$driver = DB::getDriverName();
+
+            if( \$driver === 'sqlite' ){
+                echo 'SQLite detected';
+                exit(0); // Assume SQLite is always ready
+            }
+
         try {
             DB::connection()->getPdo(); // Attempt to get PDO instance
             if (DB::connection()->getDatabaseName()) {
@@ -59,7 +66,11 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
             fi
 
             echo "🚀 Running migrations..."
-            php "$APP_BASE_DIR/artisan" migrate --force --isolated
+            if [ "${AUTORUN_LARAVEL_MIGRATION_ISOLATION:=false}" = "true" ]; then
+                php "$APP_BASE_DIR/artisan" migrate --force --isolated
+            else
+                php "$APP_BASE_DIR/artisan" migrate --force
+            fi
         fi
 
         ############################################################################
