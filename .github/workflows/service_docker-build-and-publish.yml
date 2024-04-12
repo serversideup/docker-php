@@ -129,6 +129,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           file: src/variations/${{ matrix.php_variation }}/Dockerfile
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             BASE_OS_VERSION=${{ matrix.base_os }}
             PHP_VERSION=${{ matrix.patch_version }}
