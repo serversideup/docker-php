@@ -23,24 +23,21 @@ php_versions:
           - name: bookworm
             default: true
         patch_versions:
-          - 8.1.26
-          - 8.1.27
+          - 8.1.28
       - minor: "8.2"
         base_os:
           - name: alpine
           - name: bookworm
             default: true
         patch_versions:
-          - 8.2.14
-          - 8.2.15
+          - 8.2.18
       - minor: "8.3"
         base_os:
           - name: alpine
           - name: bookworm
             default: true
         patch_versions:
-          - 8.3.1
-          - 8.3.2
+          - 8.3.6
 php_variations:
   - name: cli
     default: true
