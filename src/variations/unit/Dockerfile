@@ -28,14 +28,12 @@ RUN set -ex && \
     LD_OPT="$(DEB_BUILD_MAINT_OPTIONS="hardening=+all,-pie" DEB_LDFLAGS_MAINT_APPEND="-Wl,--as-needed -pie" dpkg-buildflags --get LDFLAGS)" && \
     CONFIGURE_ARGS_MODULES="--prefix=/usr \
                 --statedir=/var/lib/unit \
-                --control=unix:/var/run/control.unit.sock \
+                --control=unix:/var/run/unit/control.unit.sock \
                 --runstatedir=/var/run \
-                --pid=/var/run/unit.pid \
+                --pid=/var/run/unit/unit.pid \
                 --logdir=/var/log \
                 --log=/dev/stdout \
                 --tmpdir=/var/tmp \
-                --user=www-data \
-                --group=www-data \
                 --openssl \
                 --libdir=/usr/lib/$DEB_HOST_MULTIARCH" && \
     CONFIGURE_ARGS="$CONFIGURE_ARGS_MODULES --njs" && \
@@ -135,6 +133,9 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
+    # Create run directory for unit
+    mkdir -p /var/run/unit && \
+    \
     # Install default PHP extensions
     install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
 
@@ -145,5 +146,11 @@ ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 STOPSIGNAL SIGTERM
 
 WORKDIR ${APP_BASE_DIR}
+
+RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service unit
+
+USER www-data
+
+EXPOSE 8080 8443
 
 CMD ["unitd", "--no-daemon"]

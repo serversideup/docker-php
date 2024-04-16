@@ -75,6 +75,9 @@ case "$OS" in
             nginx)
                 DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/cache/nginx/"
                 ;;
+            unit)
+                DIRS="/var/log/unit /var/run/unit /etc/unit /etc/ssl/private/ /var/lib/unit/"
+                ;;
             *)
                 echo "$script_name: Unsupported service: $SERVICE"
                 exit 1

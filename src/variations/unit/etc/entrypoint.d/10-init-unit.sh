@@ -13,7 +13,7 @@ WAITLOOPS=5
 SLEEPSEC=1
 UNIT_CONFIG_DIRECTORY=${UNIT_CONFIG_DIRECTORY:-"/etc/unit/config.d"}
 UNIT_CONFIG_FILE=${UNIT_CONFIG_FILE:-"$UNIT_CONFIG_DIRECTORY/config.json"}
-UNIT_SOCKET_LOCATION=${UNIT_SOCKET_LOCATION:-"/var/run/control.unit.sock"}
+UNIT_SOCKET_LOCATION=${UNIT_SOCKET_LOCATION:-"/var/run/unit/control.unit.sock"}
 
 ##########
 # Functions
@@ -133,7 +133,7 @@ configure_unit() {
     curl_put "-d" '"/dev/stdout"' "config/access_log"
 
     echo "$script_name: Stopping Unit daemon after initial configuration..."
-    kill -TERM "$(/bin/cat /var/run/unit.pid)"
+    kill -TERM "$(/bin/cat /var/run/unit/unit.pid)"
 
     for i in $(/usr/bin/seq $WAITLOOPS); do
         if [ -S "$UNIT_SOCKET_LOCATION" ]; then
@@ -144,7 +144,7 @@ configure_unit() {
         fi
     done
     if [ -S "$UNIT_SOCKET_LOCATION" ]; then
-        kill -KILL "$(/bin/cat /var/run/unit.pid)"
+        kill -KILL "$(/bin/cat /var/run/unit/unit.pid)"
         rm -f "$UNIT_SOCKET_LOCATION"
     fi
 
