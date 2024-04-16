@@ -66,4 +66,6 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR ${APP_BASE_DIR}
 
+USER www-data
+
 ENTRYPOINT ["docker-php-serversideup-entrypoint"]
