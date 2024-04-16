@@ -6,16 +6,8 @@ server {
 
 	server_name _;
 
-	location /ping {
-			if ($host = "localhost") {
-					return 301 https://$host:8443$request_uri;
-			}
-	}
-
-	location / {
-			# Default redirect for all other cases
-			return 301 https://$host$request_uri;
-	}
+	# Redirect all HTTP traffic to HTTPS
+	return 301 https://$host$request_uri;
 }
 
 # HTTPS configuration
