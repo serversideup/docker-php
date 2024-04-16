@@ -139,7 +139,7 @@ validate_ssl(){
     fi
 
     echo "🔐 SSL Keypair not found. Generating self-signed SSL keypair..."    
-    openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=*.dev.test,*.gitpod.io,*.ngrok.io,*.nip.io" -nodes -newkey rsa:2048 -keyout "$SSL_PRIVATE_KEY_FILE" -out "$SSL_CERTIFICATE_FILE" -days 365 >/dev/null 2>&1
+    openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=*.dev.test,*.gitpod.io,*.ngrok.io,*.nip.io" -addext "basicConstraints=CA:FALSE" -nodes -newkey rsa:2048 -keyout "$SSL_PRIVATE_KEY_FILE" -out "$SSL_CERTIFICATE_FILE" -days 365 >/dev/null 2>&1
 }
 
 ##########
