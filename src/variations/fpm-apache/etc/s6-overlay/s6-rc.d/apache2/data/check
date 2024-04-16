@@ -1,5 +1,15 @@
 #!/command/with-contenv sh
-response=$(curl --location --insecure --silent --show-error http://localhost:8080/ping)
+if [ "$SSL_MODE" = "off" ]; then
+	curl_options="--location --silent --show-error"
+	http_port=8080
+	http_scheme=http
+else
+	curl_options="--location --insecure --silent --show-error"
+	http_port=8443
+	http_scheme=https
+fi
+
+response=$(curl $curl_options $http_scheme://localhost:$http_port/ping)
 
 if [ "$response" = "pong" ]; then
 	exit 0
