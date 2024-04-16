@@ -159,7 +159,11 @@ COPY --chmod=755 src/php-fpm.d/ /
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-EXPOSE 80 443
+RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service nginx
+
+USER www-data
+
+EXPOSE 8080 8443
 
 WORKDIR ${APP_BASE_DIR}
 
