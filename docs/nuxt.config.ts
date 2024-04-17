@@ -14,6 +14,12 @@ export default defineNuxtConfig({
     content: {
         documentDriven: true,
 
+        experimental: {
+            search: {
+                indexed: true
+            }
+        },
+
         markdown: {
             tags: {
                 h2: 'AppHeading2',
@@ -37,8 +43,6 @@ export default defineNuxtConfig({
                 'php'
             ]
         },
-
-        
     },
 
     colorMode: {
@@ -47,7 +51,10 @@ export default defineNuxtConfig({
 
     nitro: {
         prerender: {
-            routes: ['/sitemap.xml']
+            routes: [
+                '/sitemap.xml',
+                '/api/search.json'
+            ]
         }
     },
 
