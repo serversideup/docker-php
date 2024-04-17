@@ -4,22 +4,12 @@ import tailwindTypography from '@tailwindcss/typography'
 export default defineNuxtConfig({
     modules: [
         'nuxt-og-image',
-        '@nuxtjs/algolia',
         '@nuxtjs/color-mode',
         '@nuxt/content',
         '@nuxtjs/plausible',
         '@nuxtjs/tailwindcss',
         '@vueuse/nuxt'
     ],
-
-    algolia: {
-        apiKey: process.env.ALGOLIA_SEARCH_API_KEY,
-        applicationId: process.env.ALGOLIA_APPLICATION_ID,
-
-        docSearch: {
-            indexName: process.env.ALGOLIA_INDEX
-        }
-    },
 
     content: {
         documentDriven: true,
