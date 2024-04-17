@@ -12,8 +12,9 @@ fi
 response=$(curl $curl_options $http_scheme://localhost:$http_port/ping)
 
 if [ "$response" = "pong" ]; then
+	echo "✅ NGINX + PHP-FPM is running correctly."
 	exit 0
 else
-	echo "❌ There seems to be a failure in checking the web server + PHP-FPM."
+	echo "❌ There seems to be a failure in checking the NGINX + PHP-FPM. Trying again..."
 	exit 1
 fi
