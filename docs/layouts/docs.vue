@@ -36,6 +36,7 @@
             </div>
         </div>
 
+        <Search/>
     </div>
 </template>
 
