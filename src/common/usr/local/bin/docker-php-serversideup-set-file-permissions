@@ -70,13 +70,13 @@ case "$OS" in
     debian)
         case "$SERVICE" in
             apache)
-                DIRS="/etc/apache2 /etc/ssl/private /var/log/apache2"
+                DIRS="/etc/apache2 /etc/ssl/private /var/log/apache2 /var/www/html/"
                 ;;
             nginx)
-                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/cache/nginx/"
+                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/cache/nginx/ /var/www/html/"
                 ;;
             unit)
-                DIRS="/var/log/unit /var/run/unit /etc/unit /etc/ssl/private/ /var/lib/unit/"
+                DIRS="/var/log/unit /var/run/unit /etc/unit /etc/ssl/private/ /var/lib/unit/ /var/www/html/"
                 ;;
             *)
                 echo "$script_name: Unsupported service: $SERVICE"
@@ -87,10 +87,10 @@ case "$OS" in
     alpine)
         case "$SERVICE" in
             apache)
-                DIRS="/etc/apache2 /etc/ssl/private"
+                DIRS="/etc/apache2 /etc/ssl/private /var/www/html/"
                 ;;
             nginx)
-                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/lib/nginx"
+                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/lib/nginx /var/www/html/"
                 ;;
             *)
                 echo "$script_name: Unsupported SERVICE: $SERVICE"
