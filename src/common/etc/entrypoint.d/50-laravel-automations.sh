@@ -47,6 +47,11 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
         if [ "${AUTORUN_LARAVEL_MIGRATION:=true}" = "true" ]; then
             count=0
             timeout=$AUTORUN_LARAVEL_MIGRATION_TIMEOUT
+
+            # Ensure the configuration cache is cleared before running migrations
+            echo "🚀 Clearing Laravel cache before attempting migrations..."
+            php "$APP_BASE_DIR/artisan" config:clear
+
             while [ $count -lt "$timeout" ]; do
                 test_db_connection > /dev/null 2>&1
                 status=$?
