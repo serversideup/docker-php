@@ -33,8 +33,7 @@ jobs:
 
       - run: | 
               yarn install --frozen-lockfile
-              yarn build
-              npx nuxi generate
+              yarn generate
         working-directory: ./docs
 
       - name: Publish to Cloudflare Pages
