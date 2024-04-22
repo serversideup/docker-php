@@ -100,6 +100,7 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
+    SHOW_WELCOME_MESSAGE=true \
     SSL_CERT_BUNDLE_FILE=/etc/ssl/certs/private/bundle.pem \
     SSL_MODE=off \
     UNIT_CERTIFICATE_NAME=self-signed-web \
