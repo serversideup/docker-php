@@ -78,7 +78,6 @@ ENV APACHE_START_SERVERS="2" \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
     S6_KEEP_ENV=1 \
     S6_VERBOSITY=1 \
-    SHOW_WELCOME_MESSAGE=true \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
     SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key

@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ "$SHOW_WELCOME_MESSAGE" = "true" ] && [ "$LOG_OUTPUT_LEVEL" != "off" ] && [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
+if [ "$LOG_OUTPUT_LEVEL" != "off" ] && [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
 echo '
 --------------------------------------------------------------------
  ____                             ____  _     _        _   _
