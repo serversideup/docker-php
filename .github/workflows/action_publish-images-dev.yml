@@ -9,16 +9,16 @@ on:
       - .github/workflows/action_publish-images-**
       - .github/workflows/service_docker-**
       - scripts/**
-  schedule:
-    - cron: '25 8 * * 1'
-  push:
-    branches:
-      - main
-    paths:
-      - src/**
-      - .github/workflows/action_publish-images-**
-      - .github/workflows/service_docker-**
-      - scripts/**
+  # schedule:
+  #   - cron: '25 8 * * 1'
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - src/**
+  #     - .github/workflows/action_publish-images-**
+  #     - .github/workflows/service_docker-**
+  #     - scripts/**
 
 jobs:
   build-dev-images:
