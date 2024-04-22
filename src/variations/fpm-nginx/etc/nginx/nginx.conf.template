@@ -1,4 +1,3 @@
-user  $NGINX_USER;
 worker_processes  auto;
 
 error_log  /dev/stderr $LOG_OUTPUT_LEVEL;

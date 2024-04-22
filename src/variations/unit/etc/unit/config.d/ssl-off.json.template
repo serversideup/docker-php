@@ -1,6 +1,6 @@
 {
     "listeners": {
-        "*:80": {
+        "*:8080": {
             "pass": "routes",
             "forwarded": {
                 "client_ip": "CF-Connecting-IP",

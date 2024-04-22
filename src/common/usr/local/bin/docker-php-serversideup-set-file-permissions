@@ -1,0 +1,108 @@
+#!/bin/sh
+set -e
+
+###################################################
+# Usage: docker-php-serversideup-set-file-permissions --owner USER:GROUP --service SERVICE
+###################################################
+# This script is intended to be called on build for sysadmins who want to
+# change the UID and GID of a specific user. This is useful for when you
+# want to match the UID and GID of the host machine to the container.
+# Specifically, this can be helpful to call during a build target in development
+# so developers don't need to worry about permissions issues.
+script_name="docker-php-serversideup-set-file-permissions"
+
+# Usage function
+usage() {
+    echo "Usage: $0 --owner USER:GROUP --service SERVICE"
+    exit 1
+}
+
+# Check for minimum number of arguments
+if [ "$#" -ne 4 ]; then
+    usage
+fi
+
+# Parse arguments
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --owner)
+            OWNER="$2"
+            shift 2
+            ;;
+        --service)
+            SERVICE="$2"
+            shift 2
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+# Ensure OWNER and SERVICE are set
+if [ -z "$OWNER" ] || [ -z "$SERVICE" ]; then
+    usage
+fi
+
+# Detect the operating system using /etc/os-release
+if [ -f "/etc/os-release" ]; then
+    . /etc/os-release
+    OS="$ID"
+else
+    echo "$script_name: Cannot determine the operating system."
+    exit 1
+fi
+
+# Function to change ownership of directories
+change_ownership() {
+    for dir in "$@"; do
+        if [ -d "$dir" ]; then
+            chown -R "$OWNER" "$dir"
+            echo "$script_name: Ownership of $dir changed to $OWNER."
+        else
+            echo "$script_name: Directory not found: $dir"
+        fi
+    done
+}
+
+# Determine directories based on OS and SERVICE
+case "$OS" in
+    debian)
+        case "$SERVICE" in
+            apache)
+                DIRS="/etc/apache2 /etc/ssl/private /var/log/apache2 /var/www/html/"
+                ;;
+            nginx)
+                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/cache/nginx/ /var/www/html/"
+                ;;
+            unit)
+                DIRS="/var/log/unit /var/run/unit /etc/unit /etc/ssl/private/ /var/lib/unit/ /var/www/html/"
+                ;;
+            *)
+                echo "$script_name: Unsupported service: $SERVICE"
+                exit 1
+                ;;
+        esac
+        ;;
+    alpine)
+        case "$SERVICE" in
+            apache)
+                DIRS="/etc/apache2 /etc/ssl/private /var/www/html/"
+                ;;
+            nginx)
+                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/lib/nginx /var/www/html/"
+                ;;
+            *)
+                echo "$script_name: Unsupported SERVICE: $SERVICE"
+                exit 1
+                ;;
+        esac
+        ;;
+    *)
+        echo "$script_name: Unsupported operating system: $OS"
+        exit 1
+        ;;
+esac
+
+# Change ownership of the directories
+change_ownership $DIRS

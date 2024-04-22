@@ -89,7 +89,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
             to_entries[] |
             {
                 \"minor\": .key,
-                \"patch_versions\": [ .value.version | tostring ]
+                \"patch_versions\": (if .value.version | type == \"null\" then [] elif .value.version | type == \"array\" then .value.version else [.value.version] end)
             }
             ]
         }
@@ -114,17 +114,17 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
                 | map({
                     major: .[0].major,
                     minor_versions: (
-                        map(.minor_versions[]) 
+                        map(.minor_versions[] | select(. != null))
                         | group_by(.minor)
                         | map({
                             minor: .[0].minor,
-                            base_os: (map(.base_os? // []) | add),
-                            patch_versions: (map(.patch_versions[]) | flatten | unique)
+                            base_os: (map(.base_os // []) | add),
+                            patch_versions: (map(.patch_versions // []) | flatten | unique | select(. != null))
                         })
                     )
                 })
             ),
-            php_variations: .[1].php_variations
+            php_variations: (. | map(.php_variations // []) | add)
         }
     ' <(echo "$downloaded_and_normalized_json_data") <(echo "$base_json_data"))
 

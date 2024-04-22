@@ -23,24 +23,21 @@ php_versions:
           - name: bookworm
             default: true
         patch_versions:
-          - 8.1.26
-          - 8.1.27
+          # - 8.1.28 # Pull latest from Official PHP source
       - minor: "8.2"
         base_os:
           - name: alpine
           - name: bookworm
             default: true
         patch_versions:
-          - 8.2.14
-          - 8.2.15
+        #   - 8.2.18 # Pull latest from Official PHP source
       - minor: "8.3"
         base_os:
           - name: alpine
           - name: bookworm
             default: true
         patch_versions:
-          - 8.3.1
-          - 8.3.2
+        #   - 8.3.6 # Pull latest from Official PHP source
 php_variations:
   - name: cli
     default: true
@@ -51,6 +48,6 @@ php_variations:
       - bookworm
   - name: fpm-nginx
   - name: unit
-    supported_os: # PHP doesn't include "embed SAPI" on Alpine (https://github.com/docker-library/php/pull/1355#issuecomment-1352087633)
+    supported_os: # Alpine with Unit is not supported yet. Submit a PR if you can help (https://github.com/serversideup/docker-php/issues/233)
       - bullseye
       - bookworm

@@ -74,7 +74,6 @@ ENV APP_BASE_DIR=/var/www/html \
     DISABLE_DEFAULT_CONFIG=false \
     LOG_OUTPUT_LEVEL=warn \
     NGINX_SERVER_TOKENS=off \
-    NGINX_USER=nginx \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
@@ -160,7 +159,11 @@ COPY --chmod=755 src/php-fpm.d/ /
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-EXPOSE 80 443
+RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service nginx
+
+USER www-data
+
+EXPOSE 8080 8443
 
 WORKDIR ${APP_BASE_DIR}
 

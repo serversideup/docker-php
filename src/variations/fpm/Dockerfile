@@ -82,4 +82,6 @@ EXPOSE 9000
 
 WORKDIR ${APP_BASE_DIR}
 
+USER www-data
+
 CMD ["php-fpm"]
