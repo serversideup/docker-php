@@ -44,7 +44,8 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=false \
-    PHP_UPLOAD_MAX_FILE_SIZE="100M"
+    PHP_UPLOAD_MAX_FILE_SIZE="100M" \
+    SHOW_WELCOME_MESSAGE=true
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
