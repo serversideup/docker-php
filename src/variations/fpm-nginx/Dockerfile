@@ -74,6 +74,7 @@ ENV APP_BASE_DIR=/var/www/html \
     DISABLE_DEFAULT_CONFIG=false \
     LOG_OUTPUT_LEVEL=warn \
     NGINX_SERVER_TOKENS=off \
+    NGINX_WEBROOT=/var/www/html/public \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
@@ -104,9 +105,6 @@ ENV APP_BASE_DIR=/var/www/html \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
     SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key
-
-# Use second ENV layer for variable substitution
-ENV NGINX_WEBROOT=${APP_BASE_DIR}/public
 
 # copy our scripts
 COPY --chmod=755 src/common/ /

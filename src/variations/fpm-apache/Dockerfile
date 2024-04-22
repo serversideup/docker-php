@@ -36,7 +36,8 @@ LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
     org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
-ENV APACHE_START_SERVERS="2" \
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
+    APACHE_START_SERVERS="2" \
     APACHE_MIN_SPARE_THREADS="10" \
     APACHE_MAX_SPARE_THREADS="75" \
     APACHE_THREAD_LIMIT="64" \
@@ -81,9 +82,6 @@ ENV APACHE_START_SERVERS="2" \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
     SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key
-
-# Use second ENV layer for variable substitution
-ENV APACHE_DOCUMENT_ROOT=${APP_BASE_DIR}/public
 
 # copy our scripts
 COPY --chmod=755 src/common/ /

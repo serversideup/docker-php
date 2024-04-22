@@ -104,10 +104,8 @@ ENV APP_BASE_DIR=/var/www/html \
     SSL_MODE=off \
     UNIT_CERTIFICATE_NAME=self-signed-web \
     UNIT_CONFIG_DIRECTORY=/etc/unit/config.d \
-    UNIT_CONFIG_FILE=/etc/unit/config.d/config.json
-
-# Use second ENV layer for variable substitutions
-ENV UNIT_WEBROOT=${APP_BASE_DIR}/public
+    UNIT_CONFIG_FILE=/etc/unit/config.d/config.json \
+    UNIT_WEBROOT=/var/www/html/public
 
 # Copy NGINX Unit binaries and modules from build stage
 COPY --from=build /usr/sbin/unitd /usr/sbin/
