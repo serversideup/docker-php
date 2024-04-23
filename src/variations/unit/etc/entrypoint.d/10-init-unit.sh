@@ -161,6 +161,13 @@ validate_ssl(){
         return 0
     fi
 
+    custom_ssl=$(/usr/bin/find "/etc/ssl/private" -type f -name "$UNIT_CERTIFICATE_NAME.crt")
+    if [ -n "$custom_ssl" ]; then
+        echo "ℹ️ NOTICE ($script_name): Custom SSL Certificate found in /etc/sss/private, so we'll use that."
+        cat "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.key" "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.crt" > "$UNIT_CONFIG_DIRECTORY/$UNIT_CERTIFICATE_NAME.pem"
+        return 0
+    fi
+
     echo "$script_name: 🔐 SSL Certbundle not found. Generating self-signed SSL bundle..."
     mkdir -p /etc/ssl/private/
     openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=default.test" -nodes -newkey rsa:2048 -keyout "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.key" -out "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.crt" -days 365 >/dev/null 2>&1
