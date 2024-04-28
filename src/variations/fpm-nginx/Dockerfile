@@ -135,6 +135,10 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
+    # Ensure /var/cache/nginx/ exists
+    mkdir -p /var/cache/nginx/ && \
+    chown -R www-data:www-data /var/cache/nginx/ && \
+    \
     # Install default PHP extensions
     install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" && \
     \
