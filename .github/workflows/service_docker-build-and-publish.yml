@@ -113,6 +113,7 @@ jobs:
           DOCKER_REGISTRY_REPOSITORIES: ${{ inputs.registry-repositories }}
           RELEASE_TYPE: ${{ inputs.release-type }}
           GITHUB_RELEASE_TAG: ${{ github.ref }}
+          GITHUB_REF_TYPE: ${{ github.ref_type }}
 
       - name: Set REPOSITORY_BUILD_VERSION
         id: set_version

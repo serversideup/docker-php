@@ -105,7 +105,7 @@ add_docker_tag() {
     # Trim commas for a better output
     echo_color_message blue "🐳 Set tag: ${tag_name//,}  "
 
-    if [[ -n "$GITHUB_RELEASE_TAG" ]]; then
+    if [[ -n "$GITHUB_RELEASE_TAG" && "$GITHUB_REF_TYPE" == "tag" ]]; then
       DOCKER_TAGS+=",$tag_name-$GITHUB_RELEASE_TAG"
       echo_color_message blue "🐳 Set tag: ${tag_name//,}-$GITHUB_RELEASE_TAG"
     fi
@@ -181,6 +181,7 @@ while [[ $# -gt 0 ]]; do
         shift 2
         ;;
         --github-release-tag)
+        GITHUB_REF_TYPE="tag"
         GITHUB_RELEASE_TAG="$2"
         shift 2
         ;;
