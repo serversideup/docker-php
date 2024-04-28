@@ -78,6 +78,8 @@ COPY src/php-fpm.d/ /
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service fpm
+
 ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 
 STOPSIGNAL SIGQUIT

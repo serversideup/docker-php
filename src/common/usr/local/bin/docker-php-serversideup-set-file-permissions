@@ -53,14 +53,14 @@ else
     exit 1
 fi
 
-# Function to change ownership of directories
 change_ownership() {
-    for dir in "$@"; do
-        if [ -d "$dir" ]; then
-            chown -R "$OWNER" "$dir"
-            echo "$script_name: Ownership of $dir changed to $OWNER."
+    for path in "$@"; do
+        if [ -e "$path" ]; then
+            chown -R "$OWNER" "$path"
+            echo "$script_name: Ownership of $path changed to $OWNER."
         else
-            echo "$script_name: Directory not found: $dir"
+            echo "$script_name: Directory not found: $path"
+            exit 1
         fi
     done
 }
@@ -69,11 +69,17 @@ change_ownership() {
 case "$OS" in
     debian)
         case "$SERVICE" in
+            cli)
+                DIRS="/var/www/ $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
+                ;;
+            fpm)
+                DIRS="/var/www/ /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
+                ;;
             apache)
-                DIRS="/etc/apache2 /etc/ssl/private /var/log/apache2 /var/www/"
+                DIRS="/etc/apache2 /etc/ssl/private /var/log/apache2 /var/www/ /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             nginx)
-                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/cache/nginx/ /var/www/"
+                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/cache/nginx/ /var/www/ /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             unit)
                 DIRS="/var/log/unit /var/run/unit /etc/unit /etc/ssl/private/ /var/lib/unit/ /var/www/"
@@ -86,11 +92,17 @@ case "$OS" in
         ;;
     alpine)
         case "$SERVICE" in
+            cli)
+                DIRS="/var/www/ $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
+                ;;
+            fpm)
+                DIRS="/var/www/ /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
+                ;;
             apache)
-                DIRS="/etc/apache2 /etc/ssl/private /var/www/"
+                DIRS="/etc/apache2 /etc/ssl/private /var/www/ /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             nginx)
-                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/lib/nginx /var/www/"
+                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/lib/nginx /var/www/ /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             *)
                 echo "$script_name: Unsupported SERVICE: $SERVICE"

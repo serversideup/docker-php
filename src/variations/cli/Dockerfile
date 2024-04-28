@@ -68,6 +68,8 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service cli
+
 WORKDIR ${APP_BASE_DIR}
 
 USER www-data
