@@ -136,7 +136,7 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
     # Create run directory for unit
-    mkdir -p /var/run/unit && \
+    mkdir -p /var/run/unit /var/log/unit && \
     \
     # Install default PHP extensions
     install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
