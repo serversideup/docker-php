@@ -23,9 +23,10 @@ jobs:
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
       # Set to our development repository
-      registry-repositories: "docker.io/serversideup/php-dev"
+      registry-repositories: "ghcr.io/${{ github.repository }}"
       # Set to the pull request number for PRs, or no prefix for main branch
-      tag-prefix: ${{ github.event_name == 'pull_request' && format('{0}-', github.event.pull_request.number) || '' }}
+      tag-prefix: ${{ github.event_name == 'pull_request' && format('dev-{0}-', github.event.pull_request.number) || 'dev' }}
       # Set release type to "latest" for our development if on main, otherwise default to testing
       release-type: ${{ github.ref == 'refs/heads/main' && 'latest' || 'testing' }}
+      authenticate_with_dockerhub: false
     secrets: inherit
