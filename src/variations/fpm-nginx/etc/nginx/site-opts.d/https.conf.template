@@ -18,7 +18,7 @@ charset utf-8;
 # Set max upload to 2048M
 client_max_body_size 2048M;
 
-# Healthchecks: Set /ping to be the healhcheck URL
+# Healthchecks: Set /ping to be the healthcheck URL
 location /ping {
     access_log off;
     
