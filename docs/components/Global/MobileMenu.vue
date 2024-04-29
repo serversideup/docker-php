@@ -46,7 +46,7 @@
                         </svg>
                     </div>
                     
-                    Github
+                    GitHub
             </NuxtLink>  
 
             <NuxtLink :to="'https://github.com/sponsors/serversideup'" class="flex items-center justify-center w-[115px] py-2 font-bold font-inter text-white rounded-lg border border-solid border-slate-700 bg-slate-800 mb-6 hover:bg-slate-700 text-sm">

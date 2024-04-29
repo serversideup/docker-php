@@ -75,7 +75,7 @@ curl_put() {
         if echo "$return_body" | grep "Certificate already exists."; then
             echo "ℹ️ NOTICE: Certificate already exists. Ignoring this error..."
             echo "$return_body"
-            return 0 # Ignore errors of certicate already existing
+            return 0 # Ignore errors of certificate already existing
         else
             echo "🛑 ERROR: HTTP response status code is '$return_status'"
             echo "$return_body"
