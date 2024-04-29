@@ -6159,7 +6159,7 @@ nuxt-site-config@^1.5.5, nuxt-site-config@^1.6.6:
     site-config-stack "1.6.7"
     ufo "^1.3.2"
 
-nuxt@^3.10.1:
+nuxt@^3.11.2:
   version "3.11.2"
   resolved "https://registry.yarnpkg.com/nuxt/-/nuxt-3.11.2.tgz#38e14b96ff5669b1fbae7fc99e8d79042dce658d"
   integrity sha512-Be1d4oyFo60pdF+diBolYDcfNemoMYM3R8PDjhnGrs/w3xJoDH1YMUVWHXXY8WhSmYZI7dyBehx/6kTfGFliVA==
