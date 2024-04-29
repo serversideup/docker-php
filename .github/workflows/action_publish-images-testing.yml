@@ -2,13 +2,13 @@ name: Docker Publish (Dev Images)
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - src/**
-      - .github/workflows/action_publish-images-**
-      - .github/workflows/service_docker-**
-      - scripts/**
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
+  #   paths:
+  #     - src/**
+  #     - .github/workflows/action_publish-images-**
+  #     - .github/workflows/service_docker-**
+  #     - scripts/**
   push:
     branches:
       - main
