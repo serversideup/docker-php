@@ -52,7 +52,7 @@
                         </svg>
 
                         <span class="font-bold text-white text-2xl leading-[48px] my-1 font-inter">
-                            Github
+                            GitHub
                         </span>
 
                         <p class="text-slate-300 text-base font-inter">

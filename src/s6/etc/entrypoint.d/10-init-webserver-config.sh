@@ -3,7 +3,7 @@
 # Usage: 10-init-web-server-config.sh
 ###################################################
 # This script prepares the usage of PHP-FPM-NGINX and PHP-FPM-Apache with S6 overlay. The script
-# will execute at contianer initialization and will process templates from environment variables
+# will execute at container initialization and will process templates from environment variables
 # and enable the necessary websites.
 script_name="init-webserver-config"
 
