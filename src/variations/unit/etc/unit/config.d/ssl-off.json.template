@@ -51,7 +51,11 @@
             "type": "php",
             "root": "${UNIT_WEBROOT}/",
             "script": "index.php",
-            "processes": {}
+            "processes": {
+                "max": ${UNIT_PROCCESSES_MAX},
+                "spare": ${UNIT_PROCCESSES_SPARE},
+                "idle_timeout": ${UNIT_PROCCESSES_IDLE_TIMEOUT}
+            }
         }
     }
 }
