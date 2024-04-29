@@ -95,7 +95,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.triggering_actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
