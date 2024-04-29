@@ -146,8 +146,8 @@ jobs:
 
           platforms: |
             linux/amd64
-            linux/arm/v7
-            linux/arm64/v8
+            # linux/arm/v7
+            # linux/arm64/v8
           pull: true
           push: true
           tags: ${{ env.DOCKER_TAGS }}
