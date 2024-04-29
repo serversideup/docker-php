@@ -14,5 +14,4 @@ jobs:
       registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
       tag-prefix: "beta-"
       release-type: "testing"
-      authenticate_with_dockerhub: true
     secrets: inherit
