@@ -68,7 +68,7 @@ ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
-    org.opencontainers.image.description="Supercharge your PHP experience. Based off the offical PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
+    org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
     org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
     org.opencontainers.image.source="https://github.com/serversideup/docker-php" \
     org.opencontainers.image.documentation="https://serversideup.net/open-source/docker-php/docs/" \
@@ -105,9 +105,9 @@ ENV APP_BASE_DIR=/var/www/html \
     UNIT_CERTIFICATE_NAME=self-signed-web \
     UNIT_CONFIG_DIRECTORY=/etc/unit/config.d \
     UNIT_CONFIG_FILE=/etc/unit/config.d/config.json \
-    UNIT_PROCCESSES_IDLE_TIMEOUT=30 \
-    UNIT_PROCCESSES_MAX=20 \
-    UNIT_PROCCESSES_SPARE=2 \
+    UNIT_PROCESSES_IDLE_TIMEOUT=30 \
+    UNIT_PROCESSES_MAX=20 \
+    UNIT_PROCESSES_SPARE=2 \
     UNIT_WEBROOT=/var/www/html/public
 
 # Copy NGINX Unit binaries and modules from build stage
