@@ -1,6 +1,5 @@
 #!/bin/sh
 if [ "$LOG_OUTPUT_LEVEL" != "off" ] && [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
-echo "This is a test change"
 echo '
 --------------------------------------------------------------------
  ____                             ____  _     _        _   _
