@@ -2,7 +2,7 @@ on:
   workflow_call:
     inputs:
       authenticate_with_dockerhub:
-        default: true
+        default: false
         type: boolean
         description: 'Whether to authenticate with DockerHub.'
       tag-prefix:

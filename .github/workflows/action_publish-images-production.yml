@@ -15,4 +15,5 @@ jobs:
       registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
       tag-prefix: ''
       release-type: "latest"
+      authenticate_with_dockerhub: true
     secrets: inherit
