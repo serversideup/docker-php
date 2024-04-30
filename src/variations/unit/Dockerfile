@@ -9,7 +9,7 @@ ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
 FROM ${BASE_IMAGE} as build
 ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar mercurial openssl-dev pcre2-dev shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='ca-certificates mercurial build-essential libssl-dev libpcre2-dev curl pkg-config'
-ARG NGINX_UNIT_VERSION='1.31.1'
+ARG NGINX_UNIT_VERSION='1.32.1'
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
