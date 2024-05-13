@@ -12,19 +12,16 @@ switch( redirectPath ){
         navigateTo( redirectPath+'/these-images-vs-others', { replace: true } );
     break;
     case '/docs/guide':
-        navigateTo( redirectPath+'/choosing-the-right-image', { replace: true } );
+        navigateTo( redirectPath+'/migrating-from-official-php-images', { replace: true } );
     break;
     case '/docs/reference':
         navigateTo( redirectPath+'/environment-variable-specification', { replace: true } );
     break;
     case '/docs/laravel':
-        navigateTo( redirectPath+'/laravel-autorun-script', { replace: true } );
+        navigateTo( redirectPath+'/laravel-automations', { replace: true } );
     break;
-    case '/docs/wordpress':
-        navigateTo( redirectPath+'/wordpress-optimizations', { replace: true } );
-    break;
-    case '/docs/reference':
-        navigateTo( redirectPath+'/environment-variable-specification', { replace: true } );
+    case '/docs/customizing-the-image':
+        navigateTo( redirectPath+'/changing-common-php-settings', { replace: true } );
     break;
 }
 </script>

@@ -20,7 +20,7 @@ else
 fi
 
 if [ "$NAME" != "Alpine Linux" ] || [ $# -eq 0 ]; then
-    echo "ℹ️ INFO ($script_name): No arugments were passed or the OS is not Alpine Linux. Continuing..."
+    echo "ℹ️ INFO ($script_name): No arguments were passed or the OS is not Alpine Linux. Continuing..."
     exit 0
 fi
 

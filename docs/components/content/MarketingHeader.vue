@@ -7,8 +7,6 @@
             </NuxtLink>
 
             <div class="flex items-center">
-                <AlgoliaDocSearch class="mr-4"/>
-
                 <div class="flex items-center lg:hidden">
                     <button @click="toggleMobileNav()" class="flex items-center justify-center w-6 h-6 cursor-pointer">
                         <div id="nav-icon" class="w-[18px] h-3 relative" :class="{
@@ -25,6 +23,19 @@
                 </div>
                 <nav class="items-center hidden lg:flex">
                     <div class="flex items-center gap-4 lg:gap-4 xl:gap-8 mr-8">
+                        <button 
+                            type="button"
+                            @click="promptSearch()"
+                            class="flex items-center font-inter font-bold text-slate-300 text-sm rounded py-[6px] px-2 hover:bg-gray-900 xl:text-lg">
+                                <div class="flex items-center justify-center w-5 h-5 mr-2">
+                                    <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M19.3324 19.2572L13.3325 13.2572M15.3324 8.2572C15.3324 12.1232 12.1984 15.2572 8.3324 15.2572C4.4664 15.2572 1.3324 12.1232 1.3324 8.2572C1.3324 4.39121 4.4664 1.2572 8.3324 1.2572C12.1984 1.2572 15.3324 4.39121 15.3324 8.2572Z" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+
+                                </div>
+                                
+                                Search
+                        </button>  
                         <NuxtLink 
                             :href="'/docs'"
                             class="flex items-center font-inter font-bold text-slate-300 text-sm rounded py-[6px] px-2 hover:text-slate-400 xl:text-lg">
@@ -60,7 +71,7 @@
                                     </svg>
                                 </div>
                                 
-                                Github
+                                GitHub
                         </NuxtLink>  
 
                         <NuxtLink target="_blank" :to="'https://github.com/sponsors/serversideup'" class="flex items-center px-[14px] py-2 font-bold font-inter text-white rounded-lg border border-solid border-slate-700 bg-slate-800 hover:bg-slate-700 text-sm">
@@ -105,4 +116,15 @@ watch(showMobileMenu, ( newValue ) => {
 });
 
 const { navigation } = useContent();
+
+const docsEventBus = useEventBus('docker-docs-event-bus');
+const promptSearch = () => {
+    docsEventBus.emit('prompt-search');
+}
+
+docsEventBus.on(( event ) => {
+    if( event === 'hide-mobile-menu' ){
+        showMobileMenu.value = false;
+    }
+});
 </script>

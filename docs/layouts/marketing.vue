@@ -22,6 +22,8 @@
         <div class="w-full flex flex-col">
             <slot></slot>
         </div>
+
+        <Search/>
     </div>
 </template>
 

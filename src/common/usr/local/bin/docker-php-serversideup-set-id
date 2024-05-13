@@ -2,24 +2,33 @@
 set -e
 
 ###################################################
-# Usage: docker-php-serversideup-set-id [username] [uid] [gid]
+# Usage: docker-php-serversideup-set-id [username] [uid]:[gid]
 ###################################################
 # This script is intended to be called on build for sysadmins who want to
-# change the UID and GID of a specific user. This is useful for when you
+# change the UID and GID of a specific user in a format [uid]:[gid]. This is useful for when you
 # want to match the UID and GID of the host machine to the container.
 # Specifically, this can be helpful to call during a build target in development
 # so developers don't need to worry about permissions issues.
 script_name="docker-php-serversideup-set-id"
 
 # Sanity checks
-if [ "$#" -ne 3 ]; then
-    echo "Usage: $script_name [username] [uid] [gid]"
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $script_name [username] [uid]:[gid]"
     exit 1
 fi
 
 username="$1"
-uid="$2"
-gid="$3"
+uid_gid="$2"
+
+# Split UID and GID
+uid=$(echo "$uid_gid" | cut -d':' -f1)
+gid=$(echo "$uid_gid" | cut -d':' -f2)
+
+# Verify that uid and gid are numeric
+if ! echo "$uid" | grep -qE '^[0-9]+$' || ! echo "$gid" | grep -qE '^[0-9]+$'; then
+    echo "$script_name: UID and GID must be numeric."
+    exit 1
+fi
 
 # Check if the user exists
 if ! id "$username" > /dev/null 2>&1; then

@@ -4,7 +4,6 @@ import tailwindTypography from '@tailwindcss/typography'
 export default defineNuxtConfig({
     modules: [
         'nuxt-og-image',
-        '@nuxtjs/algolia',
         '@nuxtjs/color-mode',
         '@nuxt/content',
         '@nuxtjs/plausible',
@@ -12,17 +11,14 @@ export default defineNuxtConfig({
         '@vueuse/nuxt'
     ],
 
-    algolia: {
-        apiKey: process.env.ALGOLIA_SEARCH_API_KEY,
-        applicationId: process.env.ALGOLIA_APPLICATION_ID,
-
-        docSearch: {
-            indexName: process.env.ALGOLIA_INDEX
-        }
-    },
-
     content: {
         documentDriven: true,
+
+        experimental: {
+            search: {
+                indexed: true
+            }
+        },
 
         markdown: {
             tags: {
@@ -44,11 +40,10 @@ export default defineNuxtConfig({
 
             preload: [
                 'dockerfile',
+                'ini',
                 'php'
             ]
         },
-
-        
     },
 
     colorMode: {
@@ -57,7 +52,10 @@ export default defineNuxtConfig({
 
     nitro: {
         prerender: {
-            routes: ['/sitemap.xml']
+            routes: [
+                '/sitemap.xml',
+                '/api/search.json'
+            ]
         }
     },
 

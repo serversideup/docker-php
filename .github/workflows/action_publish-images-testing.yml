@@ -9,8 +9,6 @@ on:
       - .github/workflows/action_publish-images-**
       - .github/workflows/service_docker-**
       - scripts/**
-  schedule:
-    - cron: '25 8 * * 1'
   push:
     branches:
       - main
@@ -30,4 +28,5 @@ jobs:
       tag-prefix: ${{ github.event_name == 'pull_request' && format('{0}-', github.event.pull_request.number) || '' }}
       # Set release type to "latest" for our development if on main, otherwise default to testing
       release-type: ${{ github.ref == 'refs/heads/main' && 'latest' || 'testing' }}
+      authenticate_with_ghcr: false
     secrets: inherit

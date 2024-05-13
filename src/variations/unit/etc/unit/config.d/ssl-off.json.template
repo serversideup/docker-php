@@ -1,6 +1,6 @@
 {
     "listeners": {
-        "*:80": {
+        "*:8080": {
             "pass": "routes",
             "forwarded": {
                 "client_ip": "CF-Connecting-IP",
@@ -51,7 +51,11 @@
             "type": "php",
             "root": "${UNIT_WEBROOT}/",
             "script": "index.php",
-            "processes": {}
+            "processes": {
+                "max": ${UNIT_PROCESSES_MAX},
+                "spare": ${UNIT_PROCESSES_SPARE},
+                "idle_timeout": ${UNIT_PROCESSES_IDLE_TIMEOUT}
+            }
         }
     }
 }

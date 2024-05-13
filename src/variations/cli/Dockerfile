@@ -13,7 +13,7 @@ ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
-    org.opencontainers.image.description="Supercharge your PHP experience. Based off the offical PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
+    org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
     org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
     org.opencontainers.image.source="https://github.com/serversideup/docker-php" \
     org.opencontainers.image.documentation="https://serversideup.net/open-source/docker-php/docs/" \
@@ -44,7 +44,8 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=false \
-    PHP_UPLOAD_MAX_FILE_SIZE="100M"
+    PHP_UPLOAD_MAX_FILE_SIZE="100M" \
+    SHOW_WELCOME_MESSAGE=true
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -53,6 +54,10 @@ COPY --chmod=755 src/common/ /
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
+    \
+    # Ensure /var/www/ has the correct permissions
+    chown -R www-data:www-data /var/www && \
+    chmod -R 755 /var/www && \
     \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
@@ -64,6 +69,10 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service cli
+
 WORKDIR ${APP_BASE_DIR}
+
+USER www-data
 
 ENTRYPOINT ["docker-php-serversideup-entrypoint"]

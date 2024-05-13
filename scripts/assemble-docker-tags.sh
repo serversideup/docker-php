@@ -1,6 +1,6 @@
 #!/bin/bash
 ###################################################
-# Usage: assemble-docker-tags.sh [--variation <variation> --os <os> --patch-version <patch-version> --latest]
+# Usage: assemble-docker-tags.sh --variation <variation> --os <os> --patch-version <patch-version> [--stable-release --github-release-tag <tag>]
 ###################################################
 # This scripts dives deep into the advanced logic of assembling Docker tags for GitHub Actions.
 # If $CI is "true", it outputs the tags to GITHUB_ENV for use in subsequent steps.
@@ -104,6 +104,12 @@ add_docker_tag() {
 
     # Trim commas for a better output
     echo_color_message blue "🐳 Set tag: ${tag_name//,}  "
+
+    if [[ -n "$GITHUB_RELEASE_TAG" && "$GITHUB_REF_TYPE" == "tag" ]]; then
+      DOCKER_TAGS+=",$tag_name-$GITHUB_RELEASE_TAG"
+      echo_color_message blue "🐳 Set tag: ${tag_name//,}-$GITHUB_RELEASE_TAG"
+    fi
+
   done
 }
 
@@ -136,7 +142,7 @@ function is_default_variation() {
 }
 
 help_menu() {
-    echo "Usage: $0 [--variation <variation> --os <os> --patch-version <patch-version> --latest]"
+    echo "Usage: $0 --variation <variation> --os <os> --patch-version <patch-version> [--stable-release --github-release-tag <tag>]"
     echo
     echo "This script dives deep into the advanced logic of assembling Docker tags for GitHub Actions."
     echo "If \$CI is 'true', it outputs the tags to GITHUB_ENV for use in subsequent steps."
@@ -147,6 +153,7 @@ help_menu() {
     echo "  --variation <variation>         Set the PHP variation (e.g., apache, fpm)"
     echo "  --os <os>                       Set the base OS (e.g., bullseye, bookworm, alpine)"
     echo "  --patch-version <patch-version> Set the PHP patch version (e.g., 7.4.10)"
+    echo "  --github-release-tag <tag>      Set the GitHub release tag"
     echo "  --stable-release                Flag the tags for a stable release"
     echo
     echo "Environment Variables (Defaults):"
@@ -171,6 +178,11 @@ while [[ $# -gt 0 ]]; do
         ;;
         --patch-version)
         PHP_BUILD_VERSION="$2"
+        shift 2
+        ;;
+        --github-release-tag)
+        GITHUB_REF_TYPE="tag"
+        GITHUB_RELEASE_TAG="$2"
         shift 2
         ;;
         --stable-release)
@@ -212,12 +224,12 @@ build_major_version="${build_patch_version%%.*}"
 build_minor_version="${build_patch_version%.*}"
 
 # Fetch version data from the PHP Versions file
-latest_global_stable_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r '[.php_versions[] | select(.major | test("-rc") | not) | .major | tonumber] | max | tostring')
-latest_global_stable_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg latest_global_stable_major "$latest_global_stable_major" '.php_versions[] | select(.major == $latest_global_stable_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $latest_global_stable_major + "." + tostring')
-latest_minor_within_build_major=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
-latest_patch_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
-latest_patch_global=$(yq -o=json $PHP_VERSIONS_FILE | jq -r '[.php_versions[] | .minor_versions[] | select(.minor | test("-rc") | not) | .patch_versions[] | select(test("-rc") | not) | split(".") | map(tonumber) ] | max | join(".")')
-default_base_os_within_build_minor=$(yq -o=json $PHP_VERSIONS_FILE | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .base_os[] | select(.default == true) | .name')
+latest_global_stable_major=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r '[.php_versions[] | select(.major | test("-rc") | not) | .major | tonumber] | max | tostring')
+latest_global_stable_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg latest_global_stable_major "$latest_global_stable_major" '.php_versions[] | select(.major == $latest_global_stable_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $latest_global_stable_major + "." + tostring')
+latest_minor_within_build_major=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
+latest_patch_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
+latest_patch_global=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r '[.php_versions[] | .minor_versions[] | select(.minor | test("-rc") | not) | .patch_versions[] | select(test("-rc") | not) | split(".") | map(tonumber) ] | max | join(".")')
+default_base_os_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .base_os[] | select(.default == true) | .name')
 
 check_vars \
   "🚨 Missing critical build variable. Check the script logic and logs" \

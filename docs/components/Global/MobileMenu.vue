@@ -1,7 +1,8 @@
 <template>
     <transition name="slide-in-top">
         <div id="mobile-menu" v-show="show" class="px-6 pt-7 right-0 bottom-0 bg-black w-full fixed flex flex-col z-50 top-[112px] overflow-y-scroll">
-            <!-- <button type="button" 
+            <button type="button" 
+                @click="promptSearch"
                 class="flex items-center font-inter font-bold text-slate-300 text-xl mb-6">
                     <div class="flex items-center justify-center w-5 h-5 mr-2">
                         <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full max-h-full">
@@ -10,7 +11,7 @@
                     </div>
                     
                     Search
-            </button> -->
+            </button>
 
             <NuxtLink 
                 :href="'/docs'"
@@ -45,7 +46,7 @@
                         </svg>
                     </div>
                     
-                    Github
+                    GitHub
             </NuxtLink>  
 
             <NuxtLink :to="'https://github.com/sponsors/serversideup'" class="flex items-center justify-center w-[115px] py-2 font-bold font-inter text-white rounded-lg border border-solid border-slate-700 bg-slate-800 mb-6 hover:bg-slate-700 text-sm">
@@ -119,5 +120,11 @@ const route = useRoute();
 const resetOverflow = () => {
     document.documentElement.classList.remove('overflow-y-hidden');
     document.body.classList.remove('overflow-y-hidden');
+}
+
+const docsEventBus = useEventBus('docker-docs-event-bus');
+const promptSearch = () => {
+    docsEventBus.emit('prompt-search');
+    docsEventBus.emit('hide-mobile-menu');
 }
 </script>

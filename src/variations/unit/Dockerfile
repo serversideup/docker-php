@@ -9,7 +9,7 @@ ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
 FROM ${BASE_IMAGE} as build
 ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar mercurial openssl-dev pcre2-dev shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='ca-certificates mercurial build-essential libssl-dev libpcre2-dev curl pkg-config'
-ARG NGINX_UNIT_VERSION='1.31.1'
+ARG NGINX_UNIT_VERSION='1.32.1-1'
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -28,14 +28,12 @@ RUN set -ex && \
     LD_OPT="$(DEB_BUILD_MAINT_OPTIONS="hardening=+all,-pie" DEB_LDFLAGS_MAINT_APPEND="-Wl,--as-needed -pie" dpkg-buildflags --get LDFLAGS)" && \
     CONFIGURE_ARGS_MODULES="--prefix=/usr \
                 --statedir=/var/lib/unit \
-                --control=unix:/var/run/control.unit.sock \
+                --control=unix:/var/run/unit/control.unit.sock \
                 --runstatedir=/var/run \
-                --pid=/var/run/unit.pid \
+                --pid=/var/run/unit/unit.pid \
                 --logdir=/var/log \
                 --log=/dev/stdout \
                 --tmpdir=/var/tmp \
-                --user=www-data \
-                --group=www-data \
                 --openssl \
                 --libdir=/usr/lib/$DEB_HOST_MULTIARCH" && \
     CONFIGURE_ARGS="$CONFIGURE_ARGS_MODULES --njs" && \
@@ -70,7 +68,7 @@ ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
-    org.opencontainers.image.description="Supercharge your PHP experience. Based off the offical PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
+    org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
     org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
     org.opencontainers.image.source="https://github.com/serversideup/docker-php" \
     org.opencontainers.image.documentation="https://serversideup.net/open-source/docker-php/docs/" \
@@ -102,14 +100,16 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
+    SHOW_WELCOME_MESSAGE=true \
     SSL_CERT_BUNDLE_FILE=/etc/ssl/certs/private/bundle.pem \
     SSL_MODE=off \
     UNIT_CERTIFICATE_NAME=self-signed-web \
     UNIT_CONFIG_DIRECTORY=/etc/unit/config.d \
-    UNIT_CONFIG_FILE=/etc/unit/config.d/config.json
-
-# Use second ENV layer for variable substitutions
-ENV UNIT_WEBROOT=${APP_BASE_DIR}/public
+    UNIT_CONFIG_FILE=/etc/unit/config.d/config.json \
+    UNIT_PROCESSES_IDLE_TIMEOUT=30 \
+    UNIT_PROCESSES_MAX=20 \
+    UNIT_PROCESSES_SPARE=2 \
+    UNIT_WEBROOT=/var/www/html/public
 
 # Copy NGINX Unit binaries and modules from build stage
 COPY --from=build /usr/sbin/unitd /usr/sbin/
@@ -131,19 +131,33 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
     \
+    # Ensure default web root exists
+    mkdir -p /var/www/html/public && \
+    \
+    # Ensure /var/www/ has the correct permissions
+    chown -R www-data:www-data /var/www && \
+    chmod -R 755 /var/www && \
+    \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
+    # Create run directory for unit
+    mkdir -p /var/run/unit /var/log/unit && \
+    \
     # Install default PHP extensions
     install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
-
-EXPOSE 80 443
 
 ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 
 STOPSIGNAL SIGTERM
 
 WORKDIR ${APP_BASE_DIR}
+
+RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service unit
+
+USER www-data
+
+EXPOSE 8080 8443
 
 CMD ["unitd", "--no-daemon"]

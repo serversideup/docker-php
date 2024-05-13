@@ -3,7 +3,7 @@
 # Usage: 10-init-web-server-config.sh
 ###################################################
 # This script prepares the usage of PHP-FPM-NGINX and PHP-FPM-Apache with S6 overlay. The script
-# will execute at contianer initialization and will process templates from environment variables
+# will execute at container initialization and will process templates from environment variables
 # and enable the necessary websites.
 script_name="init-webserver-config"
 
@@ -138,8 +138,7 @@ validate_ssl(){
         return 0
     fi
 
-    echo "🔐 SSL Keypair not found. Generating self-signed SSL keypair..."
-    mkdir -p /etc/ssl/private/
+    echo "🔐 SSL Keypair not found. Generating self-signed SSL keypair..."    
     openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=*.dev.test,*.gitpod.io,*.ngrok.io,*.nip.io" -nodes -newkey rsa:2048 -keyout "$SSL_PRIVATE_KEY_FILE" -out "$SSL_CERTIFICATE_FILE" -days 365 >/dev/null 2>&1
 }
 
