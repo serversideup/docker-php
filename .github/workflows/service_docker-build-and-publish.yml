@@ -52,9 +52,8 @@ jobs:
     - name: Assemble PHP versions into the matrix. 😎
       id: get-php-versions
       run: |
-        MATRIX_JSON=$(yq -o=json scripts/conf/php-versions.yml | jq -c '{include: [(.php_variations[] | {name, supported_os: (.supported_os // ["alpine", "bullseye", "bookworm"])} ) as $variation | .php_versions[] | .minor_versions[] | .patch_versions[] as $patch | .base_os[] as $os | select($variation.supported_os | if length == 0 then . else . | index($os.name) end) | {patch_version: $patch, base_os: $os.name, php_variation: $variation.name}]} | {include: (.include | sort_by(.patch_version | split(".") | map(tonumber) | . as $nums | ($nums[0]*10000 + $nums[1]*100 + $nums[2])) | reverse)}')
-        echo "php-version-map-json=${MATRIX_JSON}" >> $GITHUB_OUTPUT
-        echo "${MATRIX_JSON}" | jq '.'
+        chmod +x ./scripts/generate-matrix.sh
+        MATRIX_JSON=$(./scripts/generate-matrix.sh)
   
     - name: Upload the php-versions.yml file
       uses: actions/upload-artifact@v4
