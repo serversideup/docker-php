@@ -11,7 +11,7 @@ FROM ${BASE_IMAGE}
 
 ARG DEPENDENCY_PACKAGES_ALPINE='shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='zip'
-ARG DEPENDENCY_PHP_EXTENSIONS='pcntl pdo_mysql pdo_pgsql redis zip'
+ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
     org.opencontainers.image.description="Supercharge your PHP experience. Based off the offical PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
