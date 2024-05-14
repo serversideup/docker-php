@@ -175,3 +175,6 @@ EXPOSE 8080 8443
 WORKDIR ${APP_BASE_DIR}
 
 ENTRYPOINT ["/init"]
+
+HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
+    CMD curl --fail --location --insecure --silent --show-error http://localhost:8080/ping || exit 1
