@@ -7,13 +7,9 @@ body:
   - type: textarea
     attributes:
       label: Affected Docker Images
-      description: "Which Docker images are you having issues with? (for example: `serversideup/php:8.1-cli`, `serversideup/php:8.1-fpm`, etc)"
+      description: "Which Docker images are you having issues with? (for example: `serversideup/php:8.1-cli`, `serversideup/php:8.1-fpm`, etc). You can also run Run `docker inspect --format='{{json .Config.Labels}}' <<image>>` and post the output here."
     validations:
       required: true
-  - type: textarea
-    attributes:
-      label: Docker Labels of the affected images
-      description: "Run `docker inspect --format='{{json .Config.Labels}}' <<image>>` and post the output here."
   - type: textarea
     attributes:
       label: Current Behavior
@@ -35,21 +31,6 @@ body:
         2. With this config...
         3. Run '...'
         4. See error...
-    validations:
-      required: true
-  - type: input
-    attributes:
-      label: Host Operating System
-      description: |
-        What operating system is your host running to run the container?
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: Docker Version
-      description: |
-        Run `docker version` and paste your output
-      render: markdown
     validations:
       required: true
   - type: textarea
