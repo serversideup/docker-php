@@ -51,6 +51,7 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
+    HEALTHCHECK_PATH="/ping" \
     LOG_OUTPUT_LEVEL=warn \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
@@ -148,3 +149,6 @@ EXPOSE 8080 8443
 WORKDIR ${APP_BASE_DIR}
 
 ENTRYPOINT ["/init"]
+
+HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
+    CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]

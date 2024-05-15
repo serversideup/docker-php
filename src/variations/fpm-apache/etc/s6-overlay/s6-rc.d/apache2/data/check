@@ -1,11 +1,17 @@
 #!/command/with-contenv sh
-response=$(curl --fail --location --insecure --silent --show-error http://localhost:8080/ping)
+curl_options="--fail --location --insecure --silent --show-error --output /dev/null"
+healthcheck_url="http://localhost:8080${HEALTHCHECK_PATH}"
 
-# Check the response
-if [ "$response" = "pong" ]; then
-    echo "✅ NGINX + PHP-FPM is running correctly."
+is_online() {
+    curl $curl_options "$healthcheck_url"
+}
+
+if is_online; then
+    echo "✅ Apache + PHP-FPM is running correctly."
     exit 0
 else
-    echo "❌ There seems to be a failure in checking the NGINX + PHP-FPM. Trying again..."
+    echo "❌ There seems to be a failure in checking the Apache + PHP-FPM."
+    status_code=$(curl $curl_options -w "%{http_code}" "$healthcheck_url")
+    echo "HTTP Status Code: $status_code"
     exit 1
 fi
