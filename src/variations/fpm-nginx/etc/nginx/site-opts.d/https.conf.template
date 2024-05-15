@@ -18,16 +18,16 @@ charset utf-8;
 # Set max upload to 2048M
 client_max_body_size 2048M;
 
-# Healthchecks: Set /ping to be the healthcheck URL
-location /ping {
+# Healthchecks: Set /healthcheck to be the healthcheck URL
+location /healthcheck {
     access_log off;
     
     # set max 5 seconds for healthcheck
     fastcgi_read_timeout 5s;
 
     include        fastcgi_params;
-    fastcgi_param  SCRIPT_NAME     /ping;
-    fastcgi_param  SCRIPT_FILENAME /ping;
+    fastcgi_param  SCRIPT_NAME     /healthcheck;
+    fastcgi_param  SCRIPT_FILENAME /healthcheck;
     fastcgi_pass   127.0.0.1:9000;
 }
 
