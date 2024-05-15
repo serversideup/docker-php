@@ -73,6 +73,7 @@ ENV APP_BASE_DIR=/var/www/html \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
     LOG_OUTPUT_LEVEL=warn \
+    HEALTHCHECK_PATH="/ping" \
     NGINX_SERVER_TOKENS=off \
     NGINX_WEBROOT=/var/www/html/public \
     PHP_DATE_TIMEZONE="UTC" \
@@ -177,4 +178,4 @@ WORKDIR ${APP_BASE_DIR}
 ENTRYPOINT ["/init"]
 
 HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
-    CMD curl --fail --location --insecure --silent --show-error http://localhost:8080/ping || exit 1
+    CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]
