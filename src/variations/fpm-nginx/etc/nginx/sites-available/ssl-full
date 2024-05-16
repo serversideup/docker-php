@@ -1,17 +1,35 @@
 # HTTP Redirect configuration
 #
 server {
-	listen 8080 default_server;
-	listen [::]:8080 default_server;
+    listen 8080 default_server;
+    listen [::]:8080 default_server;
 
-	server_name _;
+    server_name _;
 
-	# Redirect all HTTP traffic to HTTPS
-	return 301 https://$host$request_uri;
+    location / {
+        set $redirect_to_local_https 0;
+
+        # Check for IPv4 and IPv6 localhost addresses
+        if ($remote_addr ~ ^127\.0\.0\.1$) {
+            access_log off;
+            set $redirect_to_local_https 1;
+        }
+        if ($remote_addr ~ ^::1$) {
+            access_log off;
+            set $redirect_to_local_https 1;
+        }
+
+        if ($redirect_to_local_https) {
+						access_log off;
+            return 301 https://localhost:8443$request_uri;
+        }
+        
+        return 301 https://$host$request_uri;
+    }
 }
 
 # HTTPS configuration
 #
 server {
-	include /etc/nginx/site-opts.d/https.conf;
+    include /etc/nginx/site-opts.d/https.conf;
 }

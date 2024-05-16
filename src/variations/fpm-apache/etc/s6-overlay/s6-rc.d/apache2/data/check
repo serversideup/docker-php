@@ -1,20 +1,17 @@
 #!/command/with-contenv sh
-if [ "$SSL_MODE" = "off" ]; then
-	curl_options="--location --silent --show-error"
-	http_port=8080
-	http_scheme=http
-else
-	curl_options="--location --insecure --silent --show-error"
-	http_port=8443
-	http_scheme=https
-fi
+curl_options="--fail --location --insecure --silent --show-error --output /dev/null"
+healthcheck_url="http://localhost:8080${HEALTHCHECK_PATH}"
 
-response=$(curl $curl_options $http_scheme://localhost:$http_port/ping)
+is_online() {
+    curl $curl_options "$healthcheck_url"
+}
 
-if [ "$response" = "pong" ]; then
-	echo "✅ Apache + PHP-FPM is running correctly."
-	exit 0
+if is_online; then
+    echo "✅ Apache + PHP-FPM is running correctly."
+    exit 0
 else
-	echo "❌ There seems to be a failure in checking Apache + PHP-FPM. Trying again..."
-	exit 1
+    echo "❌ There seems to be a failure in checking the Apache + PHP-FPM."
+    status_code=$(curl $curl_options -w "%{http_code}" "$healthcheck_url")
+    echo "HTTP Status Code: $status_code"
+    exit 1
 fi
