@@ -72,6 +72,14 @@
     "routes": [
         {
             "match": {
+                "uri": "/healthcheck"
+            },
+            "action": {
+                "return": 200
+            }
+        },
+        {
+            "match": {
                 "uri": "!/index.php"
             },
             "action": {
@@ -82,7 +90,6 @@
             }
         }
     ],
-
     "applications": {
         "php": {
             "type": "php",
@@ -94,5 +101,9 @@
                 "idle_timeout": ${UNIT_PROCESSES_IDLE_TIMEOUT}
             }
         }
+    },
+    "access_log": {
+        "path": "stdout",
+        "if": "`${uri != '/healthcheck' ? false : true}`"
     }
 }

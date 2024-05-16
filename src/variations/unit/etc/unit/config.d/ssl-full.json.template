@@ -34,10 +34,7 @@
         "*:8443": {
             "pass": "routes/app",
             "tls": {
-                "certificate": "${UNIT_CERTIFICATE_NAME}",
-                "conf_commands": {
-                    "minprotocol": "TLSv1.2"
-                }
+                "certificate": "${UNIT_CERTIFICATE_NAME}"
             },
             "forwarded": {
                 "client_ip": "CF-Connecting-IP",
@@ -70,20 +67,17 @@
         }
     },
     "routes": {
-        "app": [
+        "http-redirect": [
             {
                 "match": {
-                "uri": "!/index.php"
+                    "source": ["127.0.0.1", "::1"],
+                    "scheme": "http"
                 },
                 "action": {
-                    "share": "${UNIT_WEBROOT}$uri",
-                    "fallback": {
-                        "pass": "applications/php"
-                    }
+                    "return": 301,
+                    "location": "https://localhost:8443$uri"
                 }
-            }
-        ],
-        "http-redirect": [
+            },
             {
                 "match": {
                     "scheme": "http"
@@ -93,8 +87,29 @@
                     "location": "https://$host$uri"
                 }
             }
-        ]
-    },   
+        ],
+        "app": [
+            {
+                "match": {
+                    "uri": "/healthcheck"
+                },
+                "action": {
+                    "return": 200
+                }
+            },
+            {
+                "match": {
+                    "uri": "!/index.php"
+                },
+                "action": {
+                    "share": "${UNIT_WEBROOT}$uri",
+                    "fallback": {
+                        "pass": "applications/php"
+                    }
+                }
+            }
+        ],
+    },
     "applications": {
         "php": {
             "type": "php",
@@ -106,5 +121,9 @@
                 "idle_timeout": ${UNIT_PROCESSES_IDLE_TIMEOUT}
             }
         }
+    },
+    "access_log": {
+        "path": "stdout",
+        "if": "`${uri != '/healthcheck' ? false : true}`"
     }
 }
