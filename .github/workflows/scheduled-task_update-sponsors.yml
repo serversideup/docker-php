@@ -5,10 +5,21 @@ on:
     - cron: 30 15 * * 0-6
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
+
+      - name: Generate Sponsors 💖
+        uses: JamesIves/github-sponsors-readme-action@v1
+        with:
+          organization: true
+          minimum: 501
+          maximum: 5000
+          token: ${{ secrets.SPONSORS_README_ACTION_PERSONAL_ACCESS_TOKEN }}
+          marker: 'bronze'
+          template: '* [{{{ name }}}]({{{ url }}}) - {{{ login }}}'
+          file: 'README.md'
 
       - name: Generate Sponsors 💖
         uses: JamesIves/github-sponsors-readme-action@v1
