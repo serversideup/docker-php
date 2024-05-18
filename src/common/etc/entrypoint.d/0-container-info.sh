@@ -28,7 +28,7 @@ https://serversideup.net/sponsor
 ℹ️ Container Information
 -------------------------------------'
 echo "
-OS:            $(cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)
+OS:            $(source /etc/os-release; echo "${PRETTY_NAME}")
 Docker user:   $(whoami)
 Docker uid:    $(id -u "$(whoami)")
 Docker gid:    $(id -g "$(whoami)")
