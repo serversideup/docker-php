@@ -30,8 +30,8 @@ https://serversideup.net/sponsor
 echo "
 OS:            $(cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)
 Docker user:   $(whoami)
-Docker uid:    $(id -u "$(whoami)")
-Docker gid:    $(id -g "$(whoami)")
+Docker uid:    $(id --user")
+Docker gid:    $(id --group")
 OPcache:       $PHP_OPCACHE_MESSAGE
 "
 
