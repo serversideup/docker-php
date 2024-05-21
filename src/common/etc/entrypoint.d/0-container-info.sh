@@ -30,8 +30,8 @@ https://serversideup.net/sponsor
 echo "
 OS:            $(source /etc/os-release; echo "${PRETTY_NAME}")
 Docker user:   $(whoami)
-Docker uid:    $(id -u "$(whoami)")
-Docker gid:    $(id -g "$(whoami)")
+Docker uid:    $(id -u")
+Docker gid:    $(id -g")
 OPcache:       $PHP_OPCACHE_MESSAGE
 "
 
