@@ -14,7 +14,7 @@ jobs:
         uses: JamesIves/github-sponsors-readme-action@v1
         with:
           organization: true
-          minimum: 501
+          minimum: 5000
           maximum: 5000
           fallback: 'No bronze sponsors yet. [Become a sponsor →](https://github.com/sponsors/serversideup)'
           token: ${{ secrets.SPONSORS_README_ACTION_PERSONAL_ACCESS_TOKEN }}
