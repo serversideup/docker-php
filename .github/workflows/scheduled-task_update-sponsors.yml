@@ -19,7 +19,7 @@ jobs:
           fallback: 'No bronze sponsors yet. [Become a sponsor →](https://github.com/sponsors/serversideup)'
           token: ${{ secrets.SPONSORS_README_ACTION_PERSONAL_ACCESS_TOKEN }}
           marker: 'bronze'
-          template: '* [{{{ name }}}]({{{ url }}}) - {{{ login }}}'
+          template: '<a href="https://github.com/{{{ login }}}"><img src="https://github.com/{{{ login }}}.png" width="40px" alt="{{{ login }}}" /></a>&nbsp;&nbsp;'
           file: 'README.md'
 
       - name: Generate Sponsors 💖
