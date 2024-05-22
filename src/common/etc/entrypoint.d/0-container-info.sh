@@ -1,5 +1,12 @@
 #!/bin/sh
-if [ "$SHOW_WELCOME_MESSAGE" = "true" ] && [ "$LOG_OUTPUT_LEVEL" != "off" ] && [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
+if [ "$SHOW_WELCOME_MESSAGE" = "false" ] || [ "$LOG_OUTPUT_LEVEL" = "off" ] || [ "$DISABLE_DEFAULT_CONFIG" = "true" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
+        echo "👉 $0: DISABLE_DEFAULT_CONFIG does not equal \"false\", so debug mode will NOT be automatically set."
+    fi
+    # Skip the rest of the script
+    exit 0
+fi
+
 echo '
 --------------------------------------------------------------------
  ____                             ____  _     _        _   _
@@ -28,19 +35,13 @@ https://serversideup.net/sponsor
 ℹ️ Container Information
 -------------------------------------'
 echo "
-OS:            $(source /etc/os-release; echo "${PRETTY_NAME}")
+OS:            $(. /etc/os-release; echo "${PRETTY_NAME}")
 Docker user:   $(whoami)
-Docker uid:    $(id -u")
-Docker gid:    $(id -g")
+Docker uid:    $(id -u)
+Docker gid:    $(id -g)
 OPcache:       $PHP_OPCACHE_MESSAGE
 "
 
 if [ "$PHP_OPCACHE_STATUS" = "0" ]; then
     echo "👉 [NOTICE]: Improve PHP performance by setting PHP_OPCACHE_ENABLE=1 (recommended for production)."
-fi
-
-else
-    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
-        echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal \"false\", so debug mode will NOT be automatically set."
-    fi
 fi
