@@ -171,6 +171,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service nginx
 
+RUN chown -R www-data:www-data /run && \
+    chmod -R 755 /run
+
 USER www-data
 
 EXPOSE 8080 8443
