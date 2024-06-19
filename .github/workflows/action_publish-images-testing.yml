@@ -20,13 +20,29 @@ on:
 
 jobs:
   build-dev-images:
-    uses: ./.github/workflows/service_docker-build-and-publish.yml
-    with:
-      # Set to our development repository
-      registry-repositories: "docker.io/serversideup/php-dev"
-      # Set to the pull request number for PRs, or no prefix for main branch
-      tag-prefix: ${{ github.event_name == 'pull_request' && format('{0}-', github.event.pull_request.number) || '' }}
-      # Set release type to "latest" for our development if on main, otherwise default to testing
-      release-type: ${{ github.ref == 'refs/heads/main' && 'latest' || 'testing' }}
-      authenticate_with_ghcr: false
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set tag prefix
+        id: set_tag_prefix
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
+            echo "TAG_PREFIX=${{ github.event.pull_request.number }}-" >> $GITHUB_ENV
+          else
+            echo "TAG_PREFIX=" >> $GITHUB_ENV
+          fi
+      - name: Set release type
+        id: set_release_type
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "RELEASE_TYPE=latest" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TYPE=testing" >> $GITHUB_ENV
+          fi
+      - name: Build and Publish Docker Images
+        uses: ./.github/workflows/service_docker-build-and-publish.yml
+        with:
+          registry-repositories: "docker.io/serversideup/php-dev"
+          tag-prefix: ${{ env.TAG_PREFIX }}
+          release-type: ${{ env.RELEASE_TYPE }}
+          authenticate_with_ghcr: false
+        secrets: inherit
