@@ -44,6 +44,9 @@ set_fpm_log_level (){
     fpm_log_level=$1
     sed -i "/\[global\]/a log_level = $fpm_log_level" /usr/local/etc/php-fpm.conf
     echo "ℹ️ NOTICE ($script_name): FPM - log_level has been set to \"$fpm_log_level\""
+
+    echo "access.log = /proc/self/fd/2" >> /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
+    echo "ℹ️ NOTICE ($script_name): FPM - access.log has been set to \"STDERR\""
 }
 
 #######################################
