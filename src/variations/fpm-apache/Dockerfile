@@ -142,6 +142,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service apache
 
+# Fix S6 Overlay issues with Big Cloud PaaS (https://github.com/serversideup/docker-php/pull/376#issuecomment-2179262427)
 RUN chown -R www-data:www-data /run
 
 USER www-data
