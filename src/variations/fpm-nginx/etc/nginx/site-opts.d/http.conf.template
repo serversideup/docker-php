@@ -37,8 +37,8 @@ location ~ \.php$ {
     fastcgi_index  index.php;
     fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
     include        fastcgi_params;
-    fastcgi_buffers 8 8k; 
-    fastcgi_buffer_size 8k;
+    fastcgi_buffers $NGINX_FASTCGI_BUFFERS; 
+    fastcgi_buffer_size $NGINX_FASTCGI_BUFFER_SIZE;
 }
 
 # additional config
