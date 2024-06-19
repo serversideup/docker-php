@@ -1,0 +1,24 @@
+name: Docker Publish (PR Images)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - src/**
+      - .github/workflows/action_publish-images-**
+      - .github/workflows/service_docker-**
+      - scripts/**
+
+jobs:
+  build-dev-images:
+    uses: ./.github/workflows/service_docker-build-and-publish.yml
+    with:
+      # Set to our development repository
+      registry-repositories: "docker.io/serversideup/php-dev"
+      # Set to the pull request number for PRs, or no prefix for main branch
+      tag-prefix: "${{ github.event.pull_request.number }}-"
+      # Set release type to "latest" for our development if on main, otherwise default to testing
+      release-type: testing
+      authenticate_with_ghcr: false
+    secrets: inherit
