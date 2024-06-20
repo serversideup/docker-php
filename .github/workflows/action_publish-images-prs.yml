@@ -1,21 +1,28 @@
-name: Docker Publish (PR Images)
+#################################
+# IMPORTANT NOTE:
+# We are commenting PRs out until we have a better way to allow
+# forks to securely upload to a Docker Registry without exposing
+# our own credentials.
+#################################
 
-on:
-  workflow_dispatch:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
-    paths:
-      - src/**
-      - .github/workflows/action_publish-images-**
-      - .github/workflows/service_docker-**
-      - scripts/**
+# name: Docker Publish (PR Images)
 
-jobs:
-  build-dev-images:
-    uses: ./.github/workflows/service_docker-build-and-publish.yml
-    with:
-      registry-repositories: "docker.io/serversideup/php-dev" # Set to our development repository
-      tag-prefix: "${{ github.event.pull_request.number }}"
-      release-type: testing
-      authenticate_with_ghcr: false
-    secrets: inherit
+# on:
+#   workflow_dispatch:
+#   pull_request:
+#     types: [opened, synchronize, reopened]
+#     paths:
+#       - src/**
+#       - .github/workflows/action_publish-images-**
+#       - .github/workflows/service_docker-**
+#       - scripts/**
+
+# jobs:
+#   build-dev-images:
+#     uses: ./.github/workflows/service_docker-build-and-publish.yml
+#     with:
+#       registry-repositories: "docker.io/serversideup/php-dev" # Set to our development repository
+#       tag-prefix: "${{ github.event.pull_request.number }}"
+#       release-type: testing
+#       authenticate_with_ghcr: false
+#     secrets: inherit
