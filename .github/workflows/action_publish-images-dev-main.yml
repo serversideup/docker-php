@@ -15,10 +15,8 @@ jobs:
   build-dev-images:
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
-      # Set to our development repository
-      registry-repositories: "docker.io/serversideup/php-dev"
+      registry-repositories: "docker.io/serversideup/php-dev" # Set to our development repository
       tag-prefix: ''
-      # Set release type to "latest" for our development if on main, otherwise default to testing
       release-type: latest
       authenticate_with_ghcr: false
     secrets: inherit
