@@ -16,7 +16,7 @@ echo '
 |____/ \___|_|    \_/ \___|_|    |____/|_|\__,_|\___|  \___/| .__/
                                                             |_|
 
-Brought to you by serversideup.net
+Test #5
 --------------------------------------------------------------------'
 
 PHP_OPCACHE_STATUS=$(php -r 'echo ini_get("opcache.enable");')
