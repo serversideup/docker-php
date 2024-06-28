@@ -62,6 +62,8 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" && \
     # Ensure $APP_BASE_DIR has the correct permissions
     chown -R www-data:www-data ${APP_BASE_DIR} && \
+    # Give write access to /data/caddy and /config/caddy
+    chown -R www-data:www-data /data/caddy && chown -R www-data:www-data /config/caddy && \
     chmod -R 755 ${APP_BASE_DIR}
 
 # install composer from Composer's official Docker image
