@@ -6,7 +6,7 @@ ARG BASE_IMAGE="php:${PHP_VERSION}-fpm-${BASE_OS_VERSION}"
 ##########
 # S6 Build
 ##########
-FROM ${BASE_IMAGE} as s6-build
+FROM ${BASE_IMAGE} AS s6-build
 
 ARG S6_DIR='/opt/s6/'
 ARG S6_SRC_URL="https://github.com/just-containers/s6-overlay/releases/download"
@@ -20,7 +20,7 @@ RUN docker-php-serversideup-s6-install
 ####################
 # NGINX Signing Key
 ####################
-FROM php:${PHP_VERSION}-fpm as nginx-repo-config
+FROM php:${PHP_VERSION}-fpm AS nginx-repo-config
 
 ARG SIGNING_KEY_URL="https://nginx.org/keys/nginx_signing.key"
 ARG SIGNING_FINGERPRINT="573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62"
