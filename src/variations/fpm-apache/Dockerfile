@@ -6,7 +6,7 @@ ARG BASE_IMAGE="php:${PHP_VERSION}-fpm-${BASE_OS_VERSION}"
 ##########
 # S6 Build
 ##########
-FROM ${BASE_IMAGE} as s6-build
+FROM ${BASE_IMAGE} AS s6-build
 
 ARG S6_DIR='/opt/s6/'
 ARG S6_SRC_URL="https://github.com/just-containers/s6-overlay/releases/download"
