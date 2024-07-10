@@ -123,7 +123,7 @@
         }
     },
     "access_log": {
-        "path": "stdout",
-        "if": "`${uri != '/healthcheck' ? false : true}`"
+        "if": "`${uri == '/healthcheck' ? false : true}`",
+        "path": "/dev/stdout"
     }
 }
