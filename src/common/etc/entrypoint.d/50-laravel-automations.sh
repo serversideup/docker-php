@@ -73,7 +73,7 @@ touch_sqlite_database() {
 
 # Set default values for Laravel automations
 : "${AUTORUN_ENABLED:=false}"
-: "${AUTORUN_LARAVEL_TOUCH_SQLITE:=false}"
+: "${AUTORUN_LARAVEL_TOUCH_SQLITE:=true}"
 : "${AUTORUN_LARAVEL_MIGRATION_TIMEOUT:=30}"
 
 if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
