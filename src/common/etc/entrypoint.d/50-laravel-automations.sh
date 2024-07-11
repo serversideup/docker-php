@@ -64,7 +64,6 @@ touch_sqlite_database() {
 
             echo \"✅ SQLite database \$fullpath created.\";
         }
-}
     "
 }
 
