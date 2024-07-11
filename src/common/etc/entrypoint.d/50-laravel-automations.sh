@@ -44,7 +44,7 @@ touch_sqlite_database() {
 
         \$connections = in_array(['true', '1', 'default'], strtolower('$AUTORUN_LARAVEL_TOUCH_SQLITE'))
             ? [\$config->get('database.default')];
-            : array_map('rtrim', explode('$AUTORUN_LARAVEL_TOUCH_SQLITE', ','));
+            : array_map('trim', explode('$AUTORUN_LARAVEL_TOUCH_SQLITE', ','));
 
         foreach (\$connections as \$name) {
             if (\$config->get(\"database.connections.\$name.driver\") !== 'sqlite') {
