@@ -37,11 +37,14 @@ touch_sqlite_database() {
       require '$APP_BASE_DIR/vendor/autoload.php';
 
         \$app = require_once '$APP_BASE_DIR/bootstrap/app.php';
-        \$kernel = \$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
-
-        \$connections = array_map('rtrim', explode('$AUTORUN_LARAVEL_TOUCH_SQLITE', ','));
+        \$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+        
         \$config = \$app->make('config');
         \$files = \$app->make('files');
+
+        \$connections = in_array(['true', '1', 'default'], strtolower('$AUTORUN_LARAVEL_TOUCH_SQLITE'))
+            ? [\$config->get('database.default')];
+            : array_map('rtrim', explode('$AUTORUN_LARAVEL_TOUCH_SQLITE', ','));
 
         foreach (\$connections as \$name) {
             if (\$config->get(\"database.connections.\$name.driver\") !== 'sqlite') {
