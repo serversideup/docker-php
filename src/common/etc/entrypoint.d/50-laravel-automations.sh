@@ -50,7 +50,7 @@ touch_sqlite_database() {
             if (\$config->get(\"database.connections.\$name.driver\") !== 'sqlite') {
                 echo \"Database [\$name] is not SQLite, skipping.\";
 
-                continue;
+                exit(1); // Database is not SQLite, exit with a status 1 (failure)
             }
 
             \$fullpath = \$config->get(\"database.connections.\$name.database\");
