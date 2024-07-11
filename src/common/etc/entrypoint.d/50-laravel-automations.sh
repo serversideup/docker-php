@@ -45,15 +45,15 @@ touch_sqlite_database() {
 
         foreach (\$connections as \$name) {
             if (\$config->get(\"database.connections.\$name.driver\") !== 'sqlite') {
-                echo "Database \$name is not SQLite, skipping.";
+                echo \"Database [\$name] is not SQLite, skipping.\";
 
                 continue;
             }
 
-            \$fullpath = \$config->get("database.connections.\$name.database");
+            \$fullpath = \$config->get(\"database.connections.\$name.database\");
             
             if (\$files->exists(\$fullpath)) {
-                echo \"SQLite database \$fullpath already exists.\";
+                echo \"SQLite database [\$fullpath] already exists.\";
                 
                 continue;
             }
@@ -62,7 +62,7 @@ touch_sqlite_database() {
                 ->ensureDirectoryExists(pathinfo(\$fullpath, PATHINFO_DIRNAME))
                 ->put(\$fullpath, '');
 
-            echo \"✅ SQLite database \$fullpath created.\";
+            echo \"✅ SQLite database [\$fullpath] created.\";
         }
     "
 }
