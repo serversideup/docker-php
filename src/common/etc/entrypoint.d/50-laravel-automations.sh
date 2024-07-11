@@ -32,6 +32,42 @@ test_db_connection() {
     "
 }
 
+touch_sqlite_database() {
+    php -r "
+      require '$APP_BASE_DIR/vendor/autoload.php';
+
+        \$app = require_once '$APP_BASE_DIR/bootstrap/app.php';
+        \$kernel = \$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+        \$connections = array_map('rtrim', explode('$AUTORUN_LARAVEL_TOUCH_SQLITE', ','));
+        \$config = \$app->make('config');
+        \$files = \$app->make('files');
+
+        foreach (\$connections as \$name) {
+            if (\$config->get(\"database.connections.\$name.driver\") !== 'sqlite') {
+                echo "Database \$name is not SQLite, skipping.";
+
+                continue;
+            }
+
+            \$fullpath = \$config->get("database.connections.\$name.database");
+            
+            if (\$files->exists(\$fullpath)) {
+                echo \"SQLite database \$fullpath already exists.\";
+                
+                continue;
+            }
+
+            tap(\$app->make('files'))
+                ->ensureDirectoryExists(pathinfo(\$fullpath, PATHINFO_DIRNAME))
+                ->put(\$fullpath, '');
+
+            echo \"✅ SQLite database \$fullpath created.\";
+        }
+}
+    "
+}
+
 
 # Set default values for Laravel automations
 : "${AUTORUN_ENABLED:=false}"
@@ -41,6 +77,13 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
     # Check to see if an Artisan file exists and assume it means Laravel is configured.
     if [ -f "$APP_BASE_DIR/artisan" ] && [ "$AUTORUN_ENABLED" = "true" ]; then
         echo "Checking for Laravel automations..."
+        ############################################################################
+        # touch sqlite databases
+        ############################################################################
+        if [ ${AUTORUN_LARAVEL_TOUCH_SQLITE:+1} ]; then
+            touch_sqlite_database() > /dev/null 2>&1
+        fi;
+
         ############################################################################
         # artisan migrate
         ############################################################################
