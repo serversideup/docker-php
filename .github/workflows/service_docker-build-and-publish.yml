@@ -64,7 +64,7 @@ jobs:
 
   docker-publish:
     needs: setup-matrix
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     strategy:
       matrix: ${{fromJson(needs.setup-matrix.outputs.php-version-map-json)}}
 
