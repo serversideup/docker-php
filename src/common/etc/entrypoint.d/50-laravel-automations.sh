@@ -41,6 +41,21 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
     # Check to see if an Artisan file exists and assume it means Laravel is configured.
     if [ -f "$APP_BASE_DIR/artisan" ] && [ "$AUTORUN_ENABLED" = "true" ]; then
         echo "Checking for Laravel automations..."
+        
+        ############################################################################
+        # recreate storage
+        ############################################################################
+        if [ "${AUTORUN_LARAVEL_STORAGE:=true}" = "true" ]; then
+
+        storage_paths='storage storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/testings storage/framework/views storage/logs'
+
+        for path in ${storage_paths}; do
+            if [ ! -d "$path" ]; then
+                mkdir -p "$path"
+                echo "✅ Rereated [$path] directory."
+            fi
+        done
+        
         ############################################################################
         # artisan migrate
         ############################################################################
