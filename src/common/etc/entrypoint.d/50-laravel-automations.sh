@@ -45,14 +45,14 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
         ############################################################################
         # recreate storage
         ############################################################################
-        if [ "${AUTORUN_LARAVEL_STORAGE:=true}" = "true" ]; then
+        if [ "${AUTORUN_LARAVEL_STORAGE_RECREATE:=true}" = "true" ]; then
 
-        storage_paths='storage storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/testings storage/framework/views storage/logs'
+        storage_paths='storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/testings storage/framework/views storage/logs'
 
         for path in ${storage_paths}; do
             if [ ! -d "$path" ]; then
                 mkdir -p "$path"
-                echo "✅ Rereated [$path] directory."
+                echo "✅ Recreated [$path] directory."
             fi
         done
         
