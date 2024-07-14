@@ -34,38 +34,37 @@ test_db_connection() {
 
 touch_sqlite_database() {
     php -r "
-      require '$APP_BASE_DIR/vendor/autoload.php';
+        require '$APP_BASE_DIR/vendor/autoload.php';
 
         \$app = require_once '$APP_BASE_DIR/bootstrap/app.php';
         \$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
         
         \$config = \$app->make('config');
         \$files = \$app->make('files');
-
-        \$connections = in_array([strtolower('$AUTORUN_LARAVEL_TOUCH_SQLITE'), 'true', '1', 'default'])
+        
+        \$connections = in_array(strtolower('$AUTORUN_LARAVEL_TOUCH_SQLITE'), ['true', '1', 'default'])
             ? [\$config->get('database.default')]
             : array_map('trim', explode('$AUTORUN_LARAVEL_TOUCH_SQLITE', ','));
-
+        
         foreach (\$connections as \$name) {
             if (\$config->get(\"database.connections.\$name.driver\") !== 'sqlite') {
-                echo \"Database [\$name] is not SQLite, skipping.\";
-
+                echo \"Database [\$name] is not SQLite.\";
                 exit(1); // Database is not SQLite, exit with a status 1 (failure)
             }
-
-            \$fullpath = \$config->get(\"database.connections.\$name.database\");
             
-            if (\$files->exists(\$fullpath)) {
-                echo \"SQLite database [\$fullpath] already exists.\";
-                
+            \$fullPath = \$config->get(\"database.connections.\$name.database\");
+        
+            if (\$files->exists(\$fullPath)) {
+                echo \"SQLite database [\$fullPath] already exists.\";
+        
                 continue;
             }
-
-            tap(\$app->make('files'))
-                ->ensureDirectoryExists(pathinfo(\$fullpath, PATHINFO_DIRNAME))
-                ->put(\$fullpath, '');
-
-            echo \"✅ SQLite database [\$fullpath] created.\";
+            
+            \$files->ensureDirectoryExists(pathinfo(\$fullPath, PATHINFO_DIRNAME));
+            
+            touch(\$fullPath);
+            
+            echo \"✅ SQLite database [\$fullPath] created.\";
         }
     "
 }
