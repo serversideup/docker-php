@@ -42,7 +42,7 @@ touch_sqlite_database() {
         \$config = \$app->make('config');
         \$files = \$app->make('files');
 
-        \$connections = in_array(['true', '1', 'default'], strtolower('$AUTORUN_LARAVEL_TOUCH_SQLITE'))
+        \$connections = in_array([strtolower('$AUTORUN_LARAVEL_TOUCH_SQLITE'), 'true', '1', 'default'])
             ? [\$config->get('database.default')]
             : array_map('trim', explode('$AUTORUN_LARAVEL_TOUCH_SQLITE', ','));
 
