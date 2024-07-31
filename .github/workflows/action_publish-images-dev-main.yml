@@ -1,0 +1,22 @@
+name: Docker Publish (Dev "Main" Images)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - src/**
+      - .github/workflows/action_publish-images-**
+      - .github/workflows/service_docker-**
+      - scripts/**
+
+jobs:
+  build-dev-images:
+    uses: ./.github/workflows/service_docker-build-and-publish.yml
+    with:
+      registry-repositories: "docker.io/serversideup/php-dev" # Set to our development repository
+      tag-prefix: ''
+      release-type: latest
+      authenticate_with_ghcr: false
+    secrets: inherit

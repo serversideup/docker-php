@@ -9,7 +9,7 @@ set -oue
 # Be sure to set the S6_SRC_URL, S6_SRC_DEP, and S6_DIR
 # environment variables before running this script.
 
-S6_VERSION=v3.1.6.2
+S6_VERSION=v3.2.0.0
 mkdir -p $S6_DIR
 export SYS_ARCH=$(uname -m)
 case "$SYS_ARCH" in
@@ -33,6 +33,6 @@ untar ${S6_SRC_URL}/${S6_VERSION}/s6-overlay-noarch.tar.xz
 untar ${S6_SRC_URL}/${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.xz
 
 # Ensure "php-fpm-healthcheck" is installed
-echo "⬇️ Downloading php-fpm-healthcheck"
-curl -o /usr/local/bin/php-fpm-healthcheck https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/master/php-fpm-healthcheck
+echo "⬇️ Downloading php-fpm-healthcheck..."
+curl -o /usr/local/bin/php-fpm-healthcheck https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.5.0/php-fpm-healthcheck
 chmod +x /usr/local/bin/php-fpm-healthcheck

@@ -6,7 +6,7 @@ ARG BASE_IMAGE="php:${PHP_VERSION}-fpm-${BASE_OS_VERSION}"
 ##########
 # S6 Build
 ##########
-FROM ${BASE_IMAGE} as s6-build
+FROM ${BASE_IMAGE} AS s6-build
 
 ARG S6_DIR='/opt/s6/'
 ARG S6_SRC_URL="https://github.com/just-containers/s6-overlay/releases/download"
@@ -51,6 +51,7 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
+    HEALTHCHECK_PATH="/healthcheck" \
     LOG_OUTPUT_LEVEL=warn \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
@@ -141,10 +142,18 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN docker-php-serversideup-set-file-permissions --owner www-data:www-data --service apache
 
+# Fix S6 Overlay issues with Big Cloud PaaS (https://github.com/serversideup/docker-php/pull/376#issuecomment-2179262427)
+RUN chown -R www-data:www-data /run
+
 USER www-data
 
 EXPOSE 8080 8443
 
+STOPSIGNAL SIGTERM
+
 WORKDIR ${APP_BASE_DIR}
 
 ENTRYPOINT ["/init"]
+
+HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
+    CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]

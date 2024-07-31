@@ -1,3 +1,5 @@
+name: Build and Publish
+
 on:
   workflow_call:
     inputs:
@@ -132,7 +134,7 @@ jobs:
           fi
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           file: src/variations/${{ matrix.php_variation }}/Dockerfile
           cache-from: type=gha

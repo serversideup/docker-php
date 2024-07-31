@@ -75,8 +75,12 @@ enable_apache_conf() {
             return 1
         fi
 
-        # Create a symbolic link
-        ln -s "$SOURCE_FILE" "$TARGET_FILE" && echo "ℹ️ NOTICE ($script_name): Enabled configuration - ${conf_name}..."
+        # Create a symbolic link if it already doesn't exist
+        if [ ! -e "$TARGET_FILE" ]; then
+          ln -s "$SOURCE_FILE" "$TARGET_FILE" && echo "ℹ️ NOTICE ($script_name): Enabled configuration '${conf_name}'..."
+        else
+          echo "ℹ️ NOTICE ($script_name): '${conf_name}' configuration already enabled, skipping..."
+        fi
     done
 }
 
@@ -92,8 +96,12 @@ enable_apache_site (){
     fi
 
     # Enable the site
-    echo "ℹ️ NOTICE ($script_name): Enabling Apache site with SSL \"$ssl_mode\"..."
-    ln -s "/etc/apache2/sites-available/ssl-$ssl_mode.conf" "$apache2_enabled_site_path/ssl-$ssl_mode.conf"
+    if [ ! -e "$apache2_enabled_site_path/ssl-$ssl_mode.conf" ]; then
+        echo "ℹ️ NOTICE ($script_name): Enabling Apache site with SSL '$ssl_mode'..."
+        ln -s "/etc/apache2/sites-available/ssl-$ssl_mode.conf" "$apache2_enabled_site_path/ssl-$ssl_mode.conf"
+    else
+          echo "ℹ️ NOTICE ($script_name): Apache site with the SSL '$ssl_mode' already enabled, Skipping..."
+    fi
 }
 
 enable_nginx_site (){

@@ -14,6 +14,7 @@
             </button>
 
             <NuxtLink 
+                @click.native="resetOverflow()"
                 :href="'/docs'"
                 class="flex items-center font-inter font-bold text-slate-300 text-xl mb-6">
                     <div class="flex items-center justify-center w-5 h-5 mr-2">
@@ -26,6 +27,7 @@
             </NuxtLink>  
                     
             <NuxtLink 
+                @click.native="resetOverflow()"
                 :href="'https://serversideup.net/discord'"
                 class="flex items-center font-inter font-bold text-slate-300 text-xl mb-6">
                     <div class="flex items-center justify-center w-5 h-5 mr-2">
@@ -38,6 +40,7 @@
             </NuxtLink>  
 
             <NuxtLink 
+                @click.native="resetOverflow()"
                 :href="'https://github.com/serversideup'"
                 class="flex items-center font-inter font-bold text-slate-300 text-lg mb-6">
                     <div class="flex items-center justify-center w-5 h-5 mr-2">
@@ -49,12 +52,12 @@
                     GitHub
             </NuxtLink>  
 
-            <NuxtLink :to="'https://github.com/sponsors/serversideup'" class="flex items-center justify-center w-[115px] py-2 font-bold font-inter text-white rounded-lg border border-solid border-slate-700 bg-slate-800 mb-6 hover:bg-slate-700 text-sm">
+            <NuxtLink @click.native="resetOverflow()" :to="'https://github.com/sponsors/serversideup'" class="flex items-center justify-center w-[115px] py-2 font-bold font-inter text-white rounded-lg border border-solid border-slate-700 bg-slate-800 mb-6 hover:bg-slate-700 text-sm">
                 Sponsor
                 <img class="ml-[10px]" src="/images/icons/heart.svg"/>
             </NuxtLink>
 
-            <NuxtLink :to="'/docs'" class="flex items-center justify-center w-[136px] py-2 font-bold font-inter text-white rounded-lg bg-blue-600 text-sm mb-12 hover:bg-blue-500">
+            <NuxtLink @click.native="resetOverflow()" :to="'/docs'" class="flex items-center justify-center w-[136px] py-2 font-bold font-inter text-white rounded-lg bg-blue-600 text-sm mb-12 hover:bg-blue-500">
                 Get Started &rarr;
             </NuxtLink>
 

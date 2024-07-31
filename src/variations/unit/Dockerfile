@@ -6,7 +6,7 @@ ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
 ##########
 # Unit Build
 ##########
-FROM ${BASE_IMAGE} as build
+FROM ${BASE_IMAGE} AS build
 ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar mercurial openssl-dev pcre2-dev shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='ca-certificates mercurial build-essential libssl-dev libpcre2-dev curl pkg-config'
 ARG NGINX_UNIT_VERSION='1.32.1-1'
@@ -82,6 +82,7 @@ ENV APP_BASE_DIR=/var/www/html \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
+    HEALTHCHECK_PATH="/healthcheck" \
     LOG_OUTPUT_LEVEL=warn \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
@@ -161,3 +162,6 @@ USER www-data
 EXPOSE 8080 8443
 
 CMD ["unitd", "--no-daemon"]
+
+HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
+    CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]
