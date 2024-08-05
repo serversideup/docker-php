@@ -76,7 +76,18 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
                 php "$APP_BASE_DIR/artisan" migrate --force
             fi
         fi
-
+        ############################################################################
+        # artisan db:seed
+        ############################################################################
+        if [ ! "${AUTORUN_LARAVEL_SEED:=false}" = "false" ]; then
+            echo "🚀 Running seeders..."
+            # Run the default seeder if "true", otherwise use value as custom seeder 
+            if [ "${AUTORUN_LARAVEL_SEED}" = "true" ]; then
+                php ${APP_BASE_DIR}/artisan db:seed
+            else
+                php ${APP_BASE_DIR}/artisan db:seed --seeder=${AUTORUN_LARAVEL_SEED}
+            fi
+        fi
         ############################################################################
         # artisan storage:link
         ############################################################################
