@@ -98,7 +98,6 @@ COPY --from=s6-build /usr/local/bin/php-fpm-healthcheck /usr/local/bin/php-fpm-h
 # install pecl extensions, dependencies, and clean up
 RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
-    docker-php-serversideup-s6-init && \
     \
     # Ensure /var/www/ has the correct permissions
     chown -R www-data:www-data /var/www && \
@@ -149,11 +148,13 @@ USER www-data
 
 EXPOSE 8080 8443
 
+ENTRYPOINT ["docker-php-serversideup-entrypoint"]
+
 STOPSIGNAL SIGTERM
 
 WORKDIR ${APP_BASE_DIR}
 
-ENTRYPOINT ["/init"]
+CMD ["/init"]
 
 HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
     CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]
