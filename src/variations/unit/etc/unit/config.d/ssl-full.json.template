@@ -110,6 +110,11 @@
             }
         ],
     },
+    "settings": {
+        "http": {
+            "max_body_size": ${UNIT_MAX_BODY_SIZE}
+        }
+    },
     "applications": {
         "php": {
             "type": "php",

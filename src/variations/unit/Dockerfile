@@ -110,7 +110,8 @@ ENV APP_BASE_DIR=/var/www/html \
     UNIT_PROCESSES_IDLE_TIMEOUT=30 \
     UNIT_PROCESSES_MAX=20 \
     UNIT_PROCESSES_SPARE=2 \
-    UNIT_WEBROOT=/var/www/html/public
+    UNIT_WEBROOT=/var/www/html/public \
+    UNIT_MAX_BODY_SIZE=104857600
 
 # Copy NGINX Unit binaries and modules from build stage
 COPY --from=build /usr/sbin/unitd /usr/sbin/
