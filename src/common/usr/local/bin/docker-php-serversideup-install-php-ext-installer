@@ -11,7 +11,7 @@ script_name="docker-php-serversideup-install-php-ext-installer"
 ############
 # Environment variables
 ############
-PHP_EXT_INSTALLER_VERSION="2.2.19"
+PHP_EXT_INSTALLER_VERSION="2.5.0"
 
 ############
 # Main
