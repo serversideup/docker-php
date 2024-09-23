@@ -83,6 +83,6 @@ case "$LOG_OUTPUT_LEVEL" in
     ;;
     *)
     echo "👉 $script_name: LOG_OUTPUT_LEVEL is not set to a valid value. Please set it to one of the following: debug, info, notice, warn, error, crit, alert, emerg."
-    exit 1
+    return 1
     ;;
 esac
