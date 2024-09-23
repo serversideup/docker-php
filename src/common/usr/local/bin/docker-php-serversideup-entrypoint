@@ -16,7 +16,7 @@ fi
 find /etc/entrypoint.d/ -type f -name '*.sh' | sort -n -t- -k1 | while IFS= read -r f; do
     [ -e "$f" ] || continue  # skip if not exists
     case "$f" in
-        *.sh)     . "$f" ;;
+        *.sh)     ( . "$f" ) ;;
         *)        echo "$0: Invalid extension. Ignoring $f" ;;
     esac
 done
