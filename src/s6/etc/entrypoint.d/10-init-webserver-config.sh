@@ -7,6 +7,12 @@
 # and enable the necessary websites.
 script_name="init-webserver-config"
 
+# Check if S6 is initialized
+if [ "$S6_INITIALIZED" != "true" ]; then
+    echo "ℹ️  [NOTICE]: S6 is not initialized. Skipping web server configuration and running custom command."
+    exit 0
+fi
+
 ##########
 # Functions
 ##########
