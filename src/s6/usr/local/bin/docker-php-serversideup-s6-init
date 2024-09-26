@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+###############################################
+# Usage: docker-php-serversideup-s6-init
+###############################################
+# This script is used to take scripts from "/etc/entrypoint.d" and move them
+# to the S6 Overlay structure.
+
+echo "⚠️ CAUTION: This script is deprecated and will be removed in a future release. Please remove any references to this script from your Dockerfile."
+echo "For the latest information on how to add your own start up scripts, please refer to the documentation:"
+echo "https://serversideup.net/open-source/docker-php/docs/customizing-the-image/adding-your-own-start-up-scripts"
