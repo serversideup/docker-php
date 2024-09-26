@@ -130,7 +130,6 @@ COPY --from=nginx-repo-config /etc/apt/preferences.d/99nginx /etc/apt/preference
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
-    docker-php-serversideup-s6-init && \
     \
     # Ensure /var/www/ has the correct permissions
     chown -R www-data:www-data /var/www && \
@@ -179,12 +178,14 @@ USER www-data
 
 EXPOSE 8080 8443
 
+ENTRYPOINT ["docker-php-serversideup-entrypoint"]
+
 # Set stop signal to SIGQUIT for a graceful shutdown instead of S6's preferred SIGTERM (https://github.com/just-containers/s6-overlay/issues/586)
 STOPSIGNAL SIGQUIT
 
 WORKDIR ${APP_BASE_DIR}
 
-ENTRYPOINT ["/init"]
+CMD ["/init"]
 
 HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
     CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]
