@@ -179,8 +179,8 @@ USER www-data
 
 EXPOSE 8080 8443
 
-# Set stop signal for S6 Overlay
-STOPSIGNAL SIGTERM
+# Set stop signal to SIGQUIT for a graceful shutdown instead of S6's preferred SIGTERM (https://github.com/just-containers/s6-overlay/issues/586)
+STOPSIGNAL SIGQUIT
 
 WORKDIR ${APP_BASE_DIR}
 
