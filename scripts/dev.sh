@@ -73,7 +73,6 @@ build_docker_image() {
   echo_color_message yellow "🐳 Building Docker Image: $build_tag"
   docker build \
     ${DOCKER_ADDITIONAL_BUILD_ARGS[@]} \
-    --build-arg PHP_VARIATION="$PHP_BUILD_VARIATION" \
     --build-arg PHP_VERSION="$PHP_BUILD_VERSION" \
     --build-arg BASE_OS_VERSION="$PHP_BUILD_BASE_OS" \
     --tag "$build_tag" \
