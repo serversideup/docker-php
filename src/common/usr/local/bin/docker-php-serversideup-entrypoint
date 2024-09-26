@@ -1,10 +1,36 @@
 #!/bin/sh
 set -e
 
+# Initialize variables
+SERVERSIDEUP_DEFAULT_COMMAND="false"
+S6_INITIALIZED="false"
+
+# Enable debug mode if LOG_OUTPUT_LEVEL is set to "debug"
 if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
     echo "🔥🔥🔥 DEBUG MODE has been set. Get ready for a ton of debug log output..."
     set -x
 fi
+
+# Check if the default command is being used
+case "$1" in
+    "/init" | "php-fpm")
+        SERVERSIDEUP_DEFAULT_COMMAND="true"
+        ;;
+    "unitd")
+        if [ "$2" = "--no-daemon" ]; then
+            SERVERSIDEUP_DEFAULT_COMMAND="true"
+        fi
+        ;;
+esac
+
+# Check if S6 overlay is initialized
+if [ -d "/etc/s6-overlay" ] && [ "$SERVERSIDEUP_DEFAULT_COMMAND" = "true" ]; then
+    S6_INITIALIZED="true"
+fi
+
+# Export variables
+export SERVERSIDEUP_DEFAULT_COMMAND
+export S6_INITIALIZED
 
 ###############################################
 # Usage: docker-php-serversideup-entrypoint
