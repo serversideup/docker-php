@@ -17,7 +17,7 @@
 
         <MarketingHeader/>
 
-        <div class="lg:flex lg:w-screen lg:h-[calc(100vh-126px)]">
+        <div class="lg:flex lg:w-screen lg:h-[calc(100vh-167px)]">
             <div style="scrollbar-width: none" class="contents lg:overflow-y-scroll lg:pointer-events-none lg:z-40 lg:flex lg:top-[126px]">
                 <div class="contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:px-6 lg:pt-4 lg:pb-8 lg:border-white/10 xl:w-80">
                     <DocsNavigation

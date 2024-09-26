@@ -64,6 +64,7 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     PHP_FPM_PM_MIN_SPARE_SERVERS="1" \
     PHP_FPM_PM_START_SERVERS="2" \
     PHP_FPM_POOL_NAME="www" \
+    PHP_FPM_PROCESS_CONTROL_TIMEOUT="10s" \
     PHP_MAX_EXECUTION_TIME="99" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MEMORY_LIMIT="256M" \
@@ -150,7 +151,8 @@ EXPOSE 8080 8443
 
 ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 
-STOPSIGNAL SIGTERM
+# Set stop signal to SIGQUIT for a graceful shutdown instead of S6's preferred SIGTERM (https://github.com/just-containers/s6-overlay/issues/586)
+STOPSIGNAL SIGQUIT
 
 WORKDIR ${APP_BASE_DIR}
 
