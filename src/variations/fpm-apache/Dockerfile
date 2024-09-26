@@ -1,5 +1,6 @@
 ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.3'
+ARG PHP_VARIATION='fpm-apache'
 ARG BASE_IMAGE="php:${PHP_VERSION}-fpm-${BASE_OS_VERSION}"
 
 ##########
@@ -25,7 +26,7 @@ ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin apache2 zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='mysqli opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
-LABEL org.opencontainers.image.title="serversideup/php (fpm-apache)" \
+LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
     org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
     org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
     org.opencontainers.image.source="https://github.com/serversideup/docker-php" \

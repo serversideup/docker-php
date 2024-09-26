@@ -114,6 +114,7 @@ jobs:
           PHP_VERSIONS_FILE: "${{ inputs.php-versions-file }}"
           DEFAULT_IMAGE_VARIATION: ${{ inputs.default-image-variation }}
           PHP_BUILD_VERSION: ${{ matrix.patch_version }}
+          PHP_BUILD_VARIATION: ${{ matrix.php_variation }}
           PHP_BUILD_BASE_OS: ${{ matrix.base_os }}
           DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
           DOCKER_REGISTRY_REPOSITORIES: ${{ inputs.registry-repositories }}
@@ -142,6 +143,7 @@ jobs:
           build-args: |
             BASE_OS_VERSION=${{ matrix.base_os }}
             PHP_VERSION=${{ matrix.patch_version }}
+            PHP_VARIATION=${{ matrix.php_variation }}
             REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
 
           platforms: |
