@@ -41,6 +41,8 @@ jobs:
       run: |
         chmod +x ./scripts/get-php-versions.sh
         ./scripts/get-php-versions.sh
+      env:
+        SKIP_DOWNLOAD: true
     
     - name: Ensure our PHP Versions file exists.
       run: |

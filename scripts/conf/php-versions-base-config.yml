@@ -24,6 +24,7 @@ php_versions:
             default: true
         patch_versions:
           # - 8.1.28 # Pull latest from Official PHP source
+          - 8.1.29
       - minor: "8.2"
         base_os:
           - name: alpine
@@ -31,6 +32,7 @@ php_versions:
             default: true
         patch_versions:
         #   - 8.2.18 # Pull latest from Official PHP source
+          - 8.2.23
       - minor: "8.3"
         base_os:
           - name: alpine
@@ -38,6 +40,7 @@ php_versions:
             default: true
         patch_versions:
         #   - 8.3.6 # Pull latest from Official PHP source
+          - 8.3.11
 php_variations:
   - name: cli
     default: true
