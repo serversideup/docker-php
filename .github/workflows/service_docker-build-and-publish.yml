@@ -70,7 +70,7 @@ jobs:
     needs: setup-matrix
     runs-on:
       - runs-on
-      - runner=2cpu-linux-x64
+      - runner=4cpu-linux-x64
       - run-id=${{ github.run_id }}
     strategy:
       matrix: ${{fromJson(needs.setup-matrix.outputs.php-version-map-json)}}
