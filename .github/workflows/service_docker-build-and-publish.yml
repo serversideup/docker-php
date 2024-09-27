@@ -41,6 +41,8 @@ jobs:
       run: |
         chmod +x ./scripts/get-php-versions.sh
         ./scripts/get-php-versions.sh
+      env:
+        SKIP_DOWNLOAD: false
     
     - name: Ensure our PHP Versions file exists.
       run: |
@@ -66,7 +68,10 @@ jobs:
 
   docker-publish:
     needs: setup-matrix
-    runs-on: ubuntu-22.04
+    runs-on:
+      - runs-on
+      - runner=4cpu-linux-x64
+      - run-id=${{ github.run_id }}
     strategy:
       matrix: ${{fromJson(needs.setup-matrix.outputs.php-version-map-json)}}
 
