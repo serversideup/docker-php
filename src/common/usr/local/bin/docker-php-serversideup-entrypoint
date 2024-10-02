@@ -40,11 +40,17 @@ export S6_INITIALIZED
 
 # Execute scripts from /etc/entrypoint.d/ in numeric order
 find /etc/entrypoint.d/ -type f -name '*.sh' | sort -n -t- -k1 | while IFS= read -r f; do
-    [ -e "$f" ] || continue  # skip if not exists
-    case "$f" in
-        *.sh)     . "$f" ;;
-        *)        echo "$0: Invalid extension. Ignoring $f" ;;
-    esac
+    if [ -e "$f" ]; then
+        if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
+            echo "Executing $f"
+        fi
+        if ! . "$f"; then
+            echo "Error executing $f" >&2
+            exit 1
+        fi
+    else
+        echo "Warning: $f not found" >&2
+    fi
 done
 
 # first arg is `-f` or `--some-option`
