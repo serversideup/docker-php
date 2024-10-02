@@ -4,7 +4,7 @@ if [ "$SHOW_WELCOME_MESSAGE" = "false" ] || [ "$LOG_OUTPUT_LEVEL" = "off" ] || [
         echo "👉 $0: Container info was display was skipped."
     fi
     # Skip the rest of the script
-    exit 0
+    return 0
 fi
 
 echo '
