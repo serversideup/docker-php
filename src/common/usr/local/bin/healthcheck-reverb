@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Use pgrep to check if the process is running
+if pgrep -f "reverb:start" > /dev/null
+then
+    exit 0
+else
+    echo "❌ Healthcheck failed: Reverb process cannot be found."
+    exit 1
+fi
