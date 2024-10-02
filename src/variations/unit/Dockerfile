@@ -7,9 +7,9 @@ ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
 # Unit Build
 ##########
 FROM ${BASE_IMAGE} AS build
-ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar mercurial openssl-dev pcre2-dev shadow'
-ARG DEPENDENCY_PACKAGES_DEBIAN='ca-certificates mercurial build-essential libssl-dev libpcre2-dev curl pkg-config'
-ARG NGINX_UNIT_VERSION='1.32.1-1'
+ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar git openssl-dev pcre2-dev shadow'
+ARG DEPENDENCY_PACKAGES_DEBIAN='ca-certificates git build-essential libssl-dev libpcre2-dev curl pkg-config'
+ARG NGINX_UNIT_VERSION='1.33.0-1'
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -20,7 +20,7 @@ RUN set -ex && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     mkdir -p /usr/lib/unit/modules /usr/lib/unit/debug-modules && \
     cd /usr/src/ && \
-    hg clone -u ${NGINX_UNIT_VERSION} https://hg.nginx.org/unit && \
+    git clone --depth 1 -b ${NGINX_UNIT_VERSION} https://github.com/nginx/unit && \
     cd unit && \
     NCPU="$(getconf _NPROCESSORS_ONLN)" && \
     DEB_HOST_MULTIARCH="$(dpkg-architecture -q DEB_HOST_MULTIARCH)" && \
