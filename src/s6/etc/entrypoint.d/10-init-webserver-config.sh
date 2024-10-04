@@ -7,6 +7,12 @@
 # and enable the necessary websites.
 script_name="init-webserver-config"
 
+# Check if S6 is initialized
+if [ "$S6_INITIALIZED" != "true" ]; then
+    echo "ℹ️  [NOTICE]: S6 is not initialized. Skipping web server configuration and running custom command."
+    exit 0
+fi
+
 ##########
 # Functions
 ##########
@@ -35,7 +41,7 @@ process_template() {
     fi
 
     # Get all environment variables starting with 'NGINX_', 'SSL_', `LOG_`, and 'APACHE_'
-    subst_vars=$(env | grep -E '^(NGINX_|SSL_|LOG_|APACHE_)' | cut -d= -f1 | awk '{printf "${%s},",$1}' | sed 's/,$//')
+    subst_vars=$(env | grep -E '^(PHP_|NGINX_|SSL_|LOG_|APACHE_)' | cut -d= -f1 | awk '{printf "${%s},",$1}' | sed 's/,$//')
 
     # Validate that all required variables are set
     for var_name in $(echo "$subst_vars" | tr ',' ' '); do

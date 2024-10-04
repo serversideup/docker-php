@@ -79,11 +79,14 @@ All of our software is free an open to the world. None of this can be brought to
 
 <p align="center"><a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-box.png" alt="Sponsors"></a></p>
 
+### Black Level Sponsors
+<a href="https://sevalla.com"><img src="https://serversideup.net/wp-content/uploads/2024/10/sponsor-image.png" alt="Sevalla" width="546px"></a>
+
 #### Bronze Sponsors
-<!-- bronze -->No bronze sponsors yet. [Become a sponsor →](https://github.com/sponsors/serversideup)<!-- bronze -->
+<!-- bronze -->No bronze sponsors yet. <a href="https://github.com/sponsors/serversideup">Become a sponsor →</a><!-- bronze -->
 
 #### Individual Supporters
-<!-- supporters --><a href="https://github.com/alexjustesen"><img src="https://github.com/alexjustesen.png" width="40px" alt="alexjustesen" /></a>&nbsp;&nbsp;<a href="https://github.com/GeekDougle"><img src="https://github.com/GeekDougle.png" width="40px" alt="GeekDougle" /></a>&nbsp;&nbsp;<!-- supporters -->
+<!-- supporters --><a href="https://github.com/GeekDougle"><img src="https://github.com/GeekDougle.png" width="40px" alt="GeekDougle" /></a>&nbsp;&nbsp;<a href="https://github.com/JQuilty"><img src="https://github.com/JQuilty.png" width="40px" alt="JQuilty" /></a>&nbsp;&nbsp;<a href="https://github.com/pferreirafabricio"><img src="https://github.com/pferreirafabricio.png" width="40px" alt="pferreirafabricio" /></a>&nbsp;&nbsp;<!-- supporters -->
 
 #### Special thanks
 We'd like to specifically thank a few folks for taking the time for being a sound board that deeply influenced the direction of this project.

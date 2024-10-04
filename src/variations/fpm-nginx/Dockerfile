@@ -1,12 +1,11 @@
 ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.3'
-ARG PHP_VARIATION='fpm-nginx'
 ARG BASE_IMAGE="php:${PHP_VERSION}-fpm-${BASE_OS_VERSION}"
 
 ##########
 # S6 Build
 ##########
-FROM ${BASE_IMAGE} as s6-build
+FROM ${BASE_IMAGE} AS s6-build
 
 ARG S6_DIR='/opt/s6/'
 ARG S6_SRC_URL="https://github.com/just-containers/s6-overlay/releases/download"
@@ -20,7 +19,7 @@ RUN docker-php-serversideup-s6-install
 ####################
 # NGINX Signing Key
 ####################
-FROM php:${PHP_VERSION}-fpm as nginx-repo-config
+FROM php:${PHP_VERSION}-fpm AS nginx-repo-config
 
 ARG SIGNING_KEY_URL="https://nginx.org/keys/nginx_signing.key"
 ARG SIGNING_FINGERPRINT="573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62"
@@ -57,7 +56,7 @@ ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin nginx gettext-base zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
-LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
+LABEL org.opencontainers.image.title="serversideup/php (fpm-nginx)" \
     org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
     org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
     org.opencontainers.image.source="https://github.com/serversideup/docker-php" \
@@ -89,6 +88,7 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_FPM_PM_MIN_SPARE_SERVERS="1" \
     PHP_FPM_PM_START_SERVERS="2" \
     PHP_FPM_POOL_NAME="www" \
+    PHP_FPM_PROCESS_CONTROL_TIMEOUT="10s" \
     PHP_MAX_EXECUTION_TIME="99" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MEMORY_LIMIT="256M" \
@@ -129,7 +129,6 @@ COPY --from=nginx-repo-config /etc/apt/preferences.d/99nginx /etc/apt/preference
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
-    docker-php-serversideup-s6-init && \
     \
     # Ensure /var/www/ has the correct permissions
     chown -R www-data:www-data /var/www && \
@@ -178,9 +177,14 @@ USER www-data
 
 EXPOSE 8080 8443
 
+ENTRYPOINT ["docker-php-serversideup-entrypoint"]
+
+# Set stop signal to SIGQUIT for a graceful shutdown instead of S6's preferred SIGTERM (https://github.com/just-containers/s6-overlay/issues/586)
+STOPSIGNAL SIGQUIT
+
 WORKDIR ${APP_BASE_DIR}
 
-ENTRYPOINT ["/init"]
+CMD ["/init"]
 
 HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
     CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]

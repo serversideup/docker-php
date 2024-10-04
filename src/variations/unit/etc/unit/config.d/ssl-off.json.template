@@ -53,7 +53,11 @@
             }
         }
     ],
-
+    "settings": {
+        "http": {
+            "max_body_size": ${UNIT_MAX_BODY_SIZE}
+        }
+    },
     "applications": {
         "php": {
             "type": "php",
@@ -67,7 +71,7 @@
         }
     },
     "access_log": {
-        "path": "stdout",
-        "if": "`${uri != '/healthcheck' ? false : true}`"
+        "if": "`${uri == '/healthcheck' ? false : true}`",
+        "path": "/dev/stdout"
     }
 }
