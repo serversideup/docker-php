@@ -71,9 +71,17 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
 
             echo "🚀 Running migrations..."
             if [ "${AUTORUN_LARAVEL_MIGRATION_ISOLATION:=false}" = "true" ]; then
-                php "$APP_BASE_DIR/artisan" migrate --force --isolated
+                if [ -n "$AUTORUN_LARAVEL_MIGRATION_CONNECTION" ]; then
+                    php "$APP_BASE_DIR/artisan" migrate --force --isolated --database="$AUTORUN_LARAVEL_MIGRATION_CONNECTION"
+                else
+                    php "$APP_BASE_DIR/artisan" migrate --force --isolated
+                fi
             else
-                php "$APP_BASE_DIR/artisan" migrate --force
+                if [ -n "$AUTORUN_LARAVEL_MIGRATION_CONNECTION" ]; then
+                    php "$APP_BASE_DIR/artisan" migrate --force --database="$AUTORUN_LARAVEL_MIGRATION_CONNECTION"
+                else
+                    php "$APP_BASE_DIR/artisan" migrate --force
+                fi
             fi
         fi
 
