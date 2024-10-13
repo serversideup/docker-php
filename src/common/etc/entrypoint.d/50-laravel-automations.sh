@@ -66,7 +66,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
 
             if [ $count -eq "$timeout" ]; then
                 echo "Database connection failed after multiple attempts."
-                exit 1
+                return 1
             fi
 
             echo "🚀 Running migrations..."

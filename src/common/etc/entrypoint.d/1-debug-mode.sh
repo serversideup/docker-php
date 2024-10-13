@@ -5,7 +5,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = true ]; then
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal \"false\", so debug mode will NOT be automatically set."
     fi
-    exit 0 # Exit if DISABLE_DEFAULT_CONFIG is true
+    return 0 # Exit if DISABLE_DEFAULT_CONFIG is true
 fi
 
 #######################################
@@ -84,6 +84,6 @@ case "$LOG_OUTPUT_LEVEL" in
     ;;
     *)
     echo "👉 $script_name: LOG_OUTPUT_LEVEL is not set to a valid value. Please set it to one of the following: debug, info, notice, warn, error, crit, alert, emerg."
-    exit 1
+    return 1
     ;;
 esac
