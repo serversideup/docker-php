@@ -38,5 +38,5 @@ jobs:
         with:
           destination_container_repo: serversideup/php
           provider: dockerhub
-          short_description: 'A simple and lightweight mkpasswd image based on Alpine. Great for generating password hashes.'
+          short_description: 'Production-ready PHP Docker images optimized for Laravel and WordPress.'
           readme_file: 'README.md'

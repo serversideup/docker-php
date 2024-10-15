@@ -10,7 +10,7 @@ script_name="init-webserver-config"
 # Check if S6 is initialized
 if [ "$S6_INITIALIZED" != "true" ]; then
     echo "ℹ️  [NOTICE]: S6 is not initialized. Skipping web server configuration and running custom command."
-    exit 0
+    return 0
 fi
 
 ##########
@@ -172,7 +172,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
         enable_nginx_site "$SSL_MODE"
     else
         echo "🛑 ERROR ($script_name): Neither Apache nor NGINX could be detected."
-        exit 1
+        return 1
     fi
 else
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
