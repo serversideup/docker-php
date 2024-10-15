@@ -20,3 +20,23 @@ jobs:
       release-type: latest
       authenticate_with_ghcr: false
     secrets: inherit
+
+  update_container_readme:
+    runs-on: ubuntu-24.04
+    name: Push README to Docker Hub
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: push README to Dockerhub
+        uses: christian-korneck/update-container-description-action@v1
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_HUB_README_USERNAME }}
+          DOCKER_PASS: ${{ secrets.DOCKER_HUB_README_PASSWORD }}
+        with:
+          destination_container_repo: serversideup/php
+          provider: dockerhub
+          short_description: 'A simple and lightweight mkpasswd image based on Alpine. Great for generating password hashes.'
+          readme_file: 'README.md'
