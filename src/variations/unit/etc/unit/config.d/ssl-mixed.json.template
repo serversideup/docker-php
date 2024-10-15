@@ -128,7 +128,7 @@
                 "max": ${UNIT_PROCESSES_MAX},
                 "spare": ${UNIT_PROCESSES_SPARE},
                 "idle_timeout": ${UNIT_PROCESSES_IDLE_TIMEOUT}
-            }
+            },
             "targets": {
                 "direct": {
                     "root": "${UNIT_WEBROOT}/"
