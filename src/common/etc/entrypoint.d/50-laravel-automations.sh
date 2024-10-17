@@ -32,15 +32,60 @@ test_db_connection() {
     "
 }
 
+touch_sqlite_database() {
+    php -r "
+        require '$APP_BASE_DIR/vendor/autoload.php';
+
+        \$app = require_once '$APP_BASE_DIR/bootstrap/app.php';
+        \$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+        
+        \$config = \$app->make('config');
+        \$files = \$app->make('files');
+        
+        \$connections = in_array(strtolower('$AUTORUN_LARAVEL_TOUCH_SQLITE'), ['true', '1', 'default'])
+            ? [\$config->get('database.default')]
+            : array_map('trim', explode('$AUTORUN_LARAVEL_TOUCH_SQLITE', ','));
+        
+        foreach (\$connections as \$name) {
+            if (\$config->get(\"database.connections.\$name.driver\") !== 'sqlite') {
+                echo \"Database [\$name] is not SQLite.\";
+                exit(1); // Database is not SQLite, exit with a status 1 (failure)
+            }
+            
+            \$fullPath = \$config->get(\"database.connections.\$name.database\");
+        
+            if (\$files->exists(\$fullPath)) {
+                echo \"SQLite database [\$fullPath] already exists.\";
+        
+                continue;
+            }
+            
+            \$files->ensureDirectoryExists(pathinfo(\$fullPath, PATHINFO_DIRNAME));
+            
+            touch(\$fullPath);
+            
+            echo \"✅ SQLite database [\$fullPath] created.\";
+        }
+    "
+}
+
 
 # Set default values for Laravel automations
 : "${AUTORUN_ENABLED:=false}"
+: "${AUTORUN_LARAVEL_TOUCH_SQLITE:=false}"
 : "${AUTORUN_LARAVEL_MIGRATION_TIMEOUT:=30}"
 
 if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
     # Check to see if an Artisan file exists and assume it means Laravel is configured.
     if [ -f "$APP_BASE_DIR/artisan" ] && [ "$AUTORUN_ENABLED" = "true" ]; then
         echo "Checking for Laravel automations..."
+        ############################################################################
+        # touch sqlite databases
+        ############################################################################
+        if [ "${AUTORUN_LARAVEL_TOUCH_SQLITE:=true}" = "true" ]; then
+            touch_sqlite_database() > /dev/null 2>&1
+        fi;
+
         ############################################################################
         # artisan migrate
         ############################################################################
