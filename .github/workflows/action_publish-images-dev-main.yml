@@ -2,14 +2,6 @@ name: Docker Publish (Dev "Main" Images)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - src/**
-      - .github/workflows/action_publish-images-**
-      - .github/workflows/service_docker-**
-      - scripts/**
 
 jobs:
   build-dev-images:
@@ -20,23 +12,3 @@ jobs:
       release-type: latest
       authenticate_with_ghcr: false
     secrets: inherit
-
-  update_container_readme:
-    runs-on: ubuntu-24.04
-    name: Push README to Docker Hub
-    steps:
-      - name: git checkout
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: push README to Dockerhub
-        uses: christian-korneck/update-container-description-action@v1
-        env:
-          DOCKER_USER: ${{ secrets.DOCKER_HUB_README_USERNAME }}
-          DOCKER_PASS: ${{ secrets.DOCKER_HUB_README_PASSWORD }}
-        with:
-          destination_container_repo: serversideup/php
-          provider: dockerhub
-          short_description: 'Production-ready PHP Docker images optimized for Laravel and WordPress.'
-          readme_file: 'README.md'
