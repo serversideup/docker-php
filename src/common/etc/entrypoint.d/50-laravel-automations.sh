@@ -75,6 +75,11 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
             else
                 php "$APP_BASE_DIR/artisan" migrate --force
             fi
+
+            if [ $? -ne 0 ]; then
+                echo "Migration failed"
+                return 1
+            fi
         fi
 
         ############################################################################
