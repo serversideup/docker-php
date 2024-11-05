@@ -1,3 +1,5 @@
+name: Build and Publish
+
 on:
   workflow_call:
     inputs:
@@ -39,6 +41,8 @@ jobs:
       run: |
         chmod +x ./scripts/get-php-versions.sh
         ./scripts/get-php-versions.sh
+      env:
+        SKIP_DOWNLOAD: false
     
     - name: Ensure our PHP Versions file exists.
       run: |
@@ -64,7 +68,10 @@ jobs:
 
   docker-publish:
     needs: setup-matrix
-    runs-on: ubuntu-22.04
+    runs-on:
+      - runs-on
+      - runner=4cpu-linux-x64
+      - run-id=${{ github.run_id }}
     strategy:
       matrix: ${{fromJson(needs.setup-matrix.outputs.php-version-map-json)}}
 
@@ -136,8 +143,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           file: src/variations/${{ matrix.php_variation }}/Dockerfile
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=s3,blobs_prefix=cache/${{ github.repository }}/,manifests_prefix=cache/${{ github.repository }}/,region=${{ env.RUNS_ON_AWS_REGION }},bucket=${{ env.RUNS_ON_S3_BUCKET_CACHE }}
+          cache-to: type=s3,blobs_prefix=cache/${{ github.repository }}/,manifests_prefix=cache/${{ github.repository }}/,region=${{ env.RUNS_ON_AWS_REGION }},bucket=${{ env.RUNS_ON_S3_BUCKET_CACHE }},mode=max
           build-args: |
             BASE_OS_VERSION=${{ matrix.base_os }}
             PHP_VERSION=${{ matrix.patch_version }}
