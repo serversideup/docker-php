@@ -27,6 +27,10 @@ on:
         type: string
         default: 'testing'
         description: 'The type of release to create. Options: testing, latest'
+      push-to-registry:
+        type: boolean
+        default: true
+        description: 'Whether to push the images to the registry.'
 
 jobs:
   setup-matrix:
@@ -162,6 +166,6 @@ jobs:
             linux/arm/v7
             linux/arm64/v8
           pull: true
-          push: true
+          push: ${{ inputs.push-to-registry }}
           tags: ${{ env.DOCKER_TAGS }}
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Supercharge your PHP experience with Docker images that are based off the official PHP images but are optimized to be run in production environments for Laravel and WordPress and more
