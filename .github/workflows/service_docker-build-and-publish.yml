@@ -99,13 +99,14 @@ jobs:
       ##
       - name: Login to DockerHub
         uses: docker/login-action@v3
+        if: ${{ inputs.push-to-registry }}
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
-        if: ${{ inputs.authenticate_with_ghcr }}
+        if: ${{ inputs.push-to-registry && inputs.authenticate_with_ghcr }}
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -145,7 +146,7 @@ jobs:
             echo "REPOSITORY_BUILD_VERSION=git-${SHORT_SHA}-${{ github.run_id }}" >> $GITHUB_ENV
           fi
 
-      - name: Build and push
+      - name: Build images
         uses: docker/build-push-action@v6
         with:
           file: src/variations/${{ matrix.php_variation }}/Dockerfile
@@ -154,13 +155,11 @@ jobs:
           ## Run-on cache
           # cache-from: type=s3,blobs_prefix=cache/${{ github.repository }}/,manifests_prefix=cache/${{ github.repository }}/,region=${{ env.RUNS_ON_AWS_REGION }},bucket=${{ env.RUNS_ON_S3_BUCKET_CACHE }}
           # cache-to: type=s3,blobs_prefix=cache/${{ github.repository }}/,manifests_prefix=cache/${{ github.repository }}/,region=${{ env.RUNS_ON_AWS_REGION }},bucket=${{ env.RUNS_ON_S3_BUCKET_CACHE }},mode=max
-
           build-args: |
             BASE_OS_VERSION=${{ matrix.base_os }}
             PHP_VERSION=${{ matrix.patch_version }}
             PHP_VARIATION=${{ matrix.php_variation }}
             REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
-
           platforms: |
             linux/amd64
             linux/arm64/v8
