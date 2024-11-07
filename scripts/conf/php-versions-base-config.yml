@@ -3,6 +3,7 @@ php_versions:
     minor_versions:
       - minor: "7.4"
         base_os:
+          - name: alpine
           - name: bullseye
             default: true
         patch_versions:
@@ -11,6 +12,7 @@ php_versions:
     minor_versions:
       - minor: "8.0"
         base_os:
+          - name: alpine
           - name: bullseye
             default: true
         patch_versions:
