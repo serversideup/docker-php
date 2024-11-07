@@ -226,8 +226,8 @@ build_minor_version="${build_patch_version%.*}"
 latest_global_stable_major=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r '[.php_versions[] | select(.major | test("-rc") | not) | .major | tonumber] | max | tostring')
 latest_global_stable_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg latest_global_stable_major "$latest_global_stable_major" '.php_versions[] | select(.major == $latest_global_stable_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $latest_global_stable_major + "." + tostring')
 latest_minor_within_build_major=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
-latest_patch_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
-latest_patch_global=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r '[.php_versions[] | .minor_versions[] | select(.minor | test("-rc") | not) | .patch_versions[] | select(test("-rc") | not) | split(".") | map(tonumber) ] | max | join(".")')
+latest_patch_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .patch_versions[0]')
+latest_patch_global=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r '[.php_versions[] | .minor_versions[] | select(.minor | test("-rc") | not) | .patch_versions[] | select(test("-rc") | not)] | max_by(split(".") | map(tonumber))')
 default_base_os_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .base_os[] | select(.default == true) | .name')
 
 check_vars \
