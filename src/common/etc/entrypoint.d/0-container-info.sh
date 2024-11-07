@@ -40,6 +40,8 @@ Docker user:   $(whoami)
 Docker uid:    $(id -u)
 Docker gid:    $(id -g)
 OPcache:       $PHP_OPCACHE_MESSAGE
+PHP Version:   $(php -r 'echo phpversion();')
+Image Version: $(cat /etc/serversideup-php-version)
 "
 
 if [ "$PHP_OPCACHE_STATUS" = "0" ]; then
