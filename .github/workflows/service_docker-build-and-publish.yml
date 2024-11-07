@@ -30,7 +30,7 @@ on:
 
 jobs:
   setup-matrix:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       php-version-map-json: ${{ steps.get-php-versions.outputs.php-version-map-json }}
     steps:
@@ -68,10 +68,12 @@ jobs:
 
   docker-publish:
     needs: setup-matrix
-    runs-on:
-      - runs-on
-      - runner=4cpu-linux-x64
-      - run-id=${{ github.run_id }}
+    runs-on: ubuntu-24.04
+    ## Use AWS runners
+    # runs-on:
+    #   - runs-on
+    #   - runner=4cpu-linux-x64
+    #   - run-id=${{ github.run_id }}
     strategy:
       matrix: ${{fromJson(needs.setup-matrix.outputs.php-version-map-json)}}
 
