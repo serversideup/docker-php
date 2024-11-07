@@ -67,6 +67,9 @@ RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
     chown -R www-data:www-data /var/www && \
     chmod -R 755 /var/www && \
     \
+    # Set the image version
+    echo "${REPOSITORY_BUILD_VERSION}" > /etc/serversideup-php-version && \
+    \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
