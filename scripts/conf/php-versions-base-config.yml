@@ -44,7 +44,7 @@ php_versions:
           - name: bookworm
             default: true
         patch_versions:
-        #   - 8.4.0 # Pull latest from Official PHP source
+        - "8.4-rc"
 php_variations:
   - name: cli
     default: true
