@@ -1,5 +1,5 @@
 ARG BASE_OS_VERSION='bookworm'
-ARG PHP_VERSION='8.3'
+ARG PHP_VERSION='8.4'
 ARG PHP_VARIATION='unit'
 ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
 
@@ -7,9 +7,9 @@ ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
 # Unit Build
 ##########
 FROM ${BASE_IMAGE} AS build
-ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar mercurial openssl-dev pcre2-dev shadow'
-ARG DEPENDENCY_PACKAGES_DEBIAN='ca-certificates mercurial build-essential libssl-dev libpcre2-dev curl pkg-config'
-ARG NGINX_UNIT_VERSION='1.32.1-1'
+ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar git openssl-dev pcre2-dev shadow'
+ARG DEPENDENCY_PACKAGES_DEBIAN='ca-certificates git build-essential libssl-dev libpcre2-dev curl pkg-config'
+ARG NGINX_UNIT_VERSION='1.33.0-1'
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -20,7 +20,7 @@ RUN set -ex && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     mkdir -p /usr/lib/unit/modules /usr/lib/unit/debug-modules && \
     cd /usr/src/ && \
-    hg clone -u ${NGINX_UNIT_VERSION} https://hg.nginx.org/unit && \
+    git clone --depth 1 -b ${NGINX_UNIT_VERSION} https://github.com/nginx/unit && \
     cd unit && \
     NCPU="$(getconf _NPROCESSORS_ONLN)" && \
     DEB_HOST_MULTIARCH="$(dpkg-architecture -q DEB_HOST_MULTIARCH)" && \
@@ -63,11 +63,11 @@ RUN set -ex && \
 FROM ${BASE_IMAGE}
 
 ARG DEPENDENCY_PACKAGES_ALPINE='gettext'
-ARG DEPENDENCY_PACKAGES_DEBIAN='gettext-base zip'
+ARG DEPENDENCY_PACKAGES_DEBIAN='gettext-base procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
-LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
+LABEL org.opencontainers.image.title="serversideup/php (unit)" \
     org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
     org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
     org.opencontainers.image.source="https://github.com/serversideup/docker-php" \
@@ -110,7 +110,8 @@ ENV APP_BASE_DIR=/var/www/html \
     UNIT_PROCESSES_IDLE_TIMEOUT=30 \
     UNIT_PROCESSES_MAX=20 \
     UNIT_PROCESSES_SPARE=2 \
-    UNIT_WEBROOT=/var/www/html/public
+    UNIT_WEBROOT=/var/www/html/public \
+    UNIT_MAX_BODY_SIZE=104857600
 
 # Copy NGINX Unit binaries and modules from build stage
 COPY --from=build /usr/sbin/unitd /usr/sbin/
@@ -138,6 +139,9 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     # Ensure /var/www/ has the correct permissions
     chown -R www-data:www-data /var/www && \
     chmod -R 755 /var/www && \
+    \
+    # Set the image version
+    echo "${REPOSITORY_BUILD_VERSION}" > /etc/serversideup-php-version && \
     \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \

@@ -19,7 +19,7 @@ set -oue pipefail
 ##########################
 # Argument Parsing
 
-SKIP_DOWNLOAD=false
+SKIP_DOWNLOAD="${SKIP_DOWNLOAD:-false}"
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --skip-download) SKIP_DOWNLOAD=true ;;

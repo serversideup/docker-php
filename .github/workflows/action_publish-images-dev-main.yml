@@ -2,14 +2,6 @@ name: Docker Publish (Dev "Main" Images)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - src/**
-      - .github/workflows/action_publish-images-**
-      - .github/workflows/service_docker-**
-      - scripts/**
 
 jobs:
   build-dev-images:

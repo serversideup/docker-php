@@ -25,6 +25,8 @@ PHP_BUILD_BASE_OS=""
 PHP_BUILD_PREFIX=""
 DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php"}"
 DOCKER_ADDITIONAL_BUILD_ARGS=()
+CUSTOM_REGISTRY=""
+PLATFORM=""
 
 # UI Colors
 function ui_set_yellow {
@@ -67,11 +69,34 @@ check_vars() {
   return 0
 }
 
+detect_platform() {
+    local arch=$(uname -m)
+    case $arch in
+        x86_64)
+            echo "linux/amd64"
+            ;;
+        arm64|aarch64)
+            echo "linux/arm64/v8"
+            ;;
+        *)
+            echo "Unsupported architecture: $arch" >&2
+            exit 1
+            ;;
+    esac
+}
+
 build_docker_image() {
   build_tag="${DOCKER_REPOSITORY}:${PHP_BUILD_PREFIX}${PHP_BUILD_VERSION}-${PHP_BUILD_VARIATION}-${PHP_BUILD_BASE_OS}"
   echo_color_message yellow "🐳 Building Docker Image: $build_tag"
-  docker build \
-    ${DOCKER_ADDITIONAL_BUILD_ARGS[@]} \
+
+  # Set default platform if not specified
+  if [ -z "$PLATFORM" ]; then
+      PLATFORM=$(detect_platform)
+  fi
+  
+  docker buildx build \
+    "${DOCKER_ADDITIONAL_BUILD_ARGS[@]}" \
+    --platform "$PLATFORM" \
     --build-arg PHP_VARIATION="$PHP_BUILD_VARIATION" \
     --build-arg PHP_VERSION="$PHP_BUILD_VERSION" \
     --build-arg BASE_OS_VERSION="$PHP_BUILD_BASE_OS" \
@@ -79,25 +104,36 @@ build_docker_image() {
     --file "$PROJECT_ROOT_DIR/src/variations/$PHP_BUILD_VARIATION/Dockerfile" \
     "$PROJECT_ROOT_DIR"
   echo_color_message green "✅ Docker Image Built: $build_tag"
+
+  if [ -n "$CUSTOM_REGISTRY" ]; then
+    registry_tag="${CUSTOM_REGISTRY}/${build_tag}"
+    echo_color_message yellow "🏷️  Tagging image for custom registry: $registry_tag"
+    docker tag "$build_tag" "$registry_tag"
+    echo_color_message yellow "🚀 Pushing image to custom registry: $registry_tag"
+    docker push "$registry_tag"
+    echo_color_message green "✅ Image pushed to custom registry: $registry_tag"
+  fi
 }
 
 help_menu() {
-    echo "Usage: $0 --variation <variation> --version <version> --os <os>"
+    echo "Usage: $0 --variation <variation> --version <version> --os <os> [additional options]"
     echo
     echo "This script is used to build a Docker image for a specific PHP version"
     echo "and variation. It is intended to be used for local development. You may"
     echo "also change the DOCKER_REPOSITORY environment variable or pass other"
-    echo "arguments to the docker build command, like \"--no-cache\"."
+    echo "arguments to the docker build command."
     echo
     echo "Options:"
     echo "  --variation <variation>   Set the PHP variation (e.g., apache, fpm)"
     echo "  --version <version>       Set the PHP version (e.g., 7.4, 8.0)"
     echo "  --os <os>                 Set the base OS (e.g., bullseye, bookworm, alpine)"
     echo "  --prefix <prefix>         Set the prefix for the Docker image (e.g., beta)"
+    echo "  --registry <registry>     Set a custom registry (e.g., localhost:5000)"
+    echo "  --platform <platform>     Set the platform (default: detected from system architecture)"
+    echo "  --*                       Any additional options will be passed to the docker buildx command"
     echo
     echo "Environment Variables:"
     echo "  DOCKER_REPOSITORY         The Docker repository (default: serversideup/php)"
-    echo "  Additional docker build arguments can be passed as well."
 }
 
 ##########################
@@ -119,6 +155,14 @@ while [[ $# -gt 0 ]]; do
         ;;
         --prefix)
         PHP_BUILD_PREFIX="$2-"
+        shift 2
+        ;;
+        --registry)
+        CUSTOM_REGISTRY="$2"
+        shift 2
+        ;;
+        --platform)
+        PLATFORM="$2"
         shift 2
         ;;
         --*)

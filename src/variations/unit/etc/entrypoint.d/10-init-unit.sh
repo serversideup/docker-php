@@ -129,9 +129,6 @@ configure_unit() {
         echo "$script_name: Ignoring $f";
     done
 
-    echo "$script_name: Setting access log to STDOUT..."
-    curl_put "-d" '"/dev/stdout"' "config/access_log"
-
     echo "$script_name: Stopping Unit daemon after initial configuration..."
     kill -TERM "$(/bin/cat /var/run/unit/unit.pid)"
 
