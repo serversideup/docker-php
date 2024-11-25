@@ -10,7 +10,6 @@ ARG BASE_IMAGE="dunglas/frankenphp:${FRANKEN_PHP_VERSION}-php${PHP_VERSION}-${BA
 FROM ${BASE_IMAGE}
 
 ARG DEPENDENCY_PACKAGES_ALPINE='shadow'
-ARG DEPENDENCY_PACKAGES_DEBIAN='zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 
 LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
@@ -46,6 +45,7 @@ ENV APP_BASE_DIR=/app \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
+    SERVER_NAME=:8080 \
     SHOW_WELCOME_MESSAGE=true
 
 # copy our scripts
@@ -53,20 +53,27 @@ COPY --chmod=755 src/common/ /
 
 # install pecl extensions & dependencies
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
-    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
-    docker-php-serversideup-install-php-ext-installer && \
     \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
     # Install default PHP extensions
-    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
+    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" && \
+    # Ensure $APP_BASE_DIR has the correct permissions
+    chown -R www-data:www-data ${APP_BASE_DIR} && \
+    # Give write access to /data/caddy and /config/caddy
+    chown -R www-data:www-data /data/caddy && chown -R www-data:www-data /config/caddy && \
+    chmod -R 755 ${APP_BASE_DIR}
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR ${APP_BASE_DIR}
+
+USER www-data
+
+EXPOSE 8080
 
 ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 
