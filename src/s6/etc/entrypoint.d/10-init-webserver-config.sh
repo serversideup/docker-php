@@ -7,6 +7,12 @@
 # and enable the necessary websites.
 script_name="init-webserver-config"
 
+# Check if S6 is initialized
+if [ "$S6_INITIALIZED" != "true" ]; then
+    echo "ℹ️  [NOTICE]: Running custom command instead of web server configuration: '$*'"
+    return 0
+fi
+
 ##########
 # Functions
 ##########
@@ -35,7 +41,7 @@ process_template() {
     fi
 
     # Get all environment variables starting with 'NGINX_', 'SSL_', `LOG_`, and 'APACHE_'
-    subst_vars=$(env | grep -E '^(NGINX_|SSL_|LOG_|APACHE_)' | cut -d= -f1 | awk '{printf "${%s},",$1}' | sed 's/,$//')
+    subst_vars=$(env | grep -E '^(PHP_|NGINX_|SSL_|LOG_|APACHE_)' | cut -d= -f1 | awk '{printf "${%s},",$1}' | sed 's/,$//')
 
     # Validate that all required variables are set
     for var_name in $(echo "$subst_vars" | tr ',' ' '); do
@@ -166,7 +172,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
         enable_nginx_site "$SSL_MODE"
     else
         echo "🛑 ERROR ($script_name): Neither Apache nor NGINX could be detected."
-        exit 1
+        return 1
     fi
 else
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then

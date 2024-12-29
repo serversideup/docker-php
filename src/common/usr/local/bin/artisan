@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Set default value for APP_BASE_DIR if not already set
+APP_BASE_DIR=${APP_BASE_DIR:-/var/www/html}
+
+# Check if the artisan file exists
+if [ ! -f "$APP_BASE_DIR/artisan" ]; then
+    echo "Error: Artisan file not found in $APP_BASE_DIR"
+    echo "Please ensure APP_BASE_DIR is set correctly, Laravel is installed and the artisan file is in the expected location."
+    exit 1
+fi
+
+# Run the PHP artisan command with all provided arguments
+php "$APP_BASE_DIR/artisan" "$@"

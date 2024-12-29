@@ -1,11 +1,11 @@
 #!/bin/sh
-script_name="debug-mode"
+script_name="log-output-level"
 
 if [ "$DISABLE_DEFAULT_CONFIG" = true ]; then
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal \"false\", so debug mode will NOT be automatically set."
     fi
-    exit 0 # Exit if DISABLE_DEFAULT_CONFIG is true
+    return 0 # Exit if DISABLE_DEFAULT_CONFIG is true
 fi
 
 #######################################
@@ -42,11 +42,19 @@ set_fpm_log_level (){
     fi
 
     fpm_log_level=$1
-    sed -i "/\[global\]/a log_level = $fpm_log_level" /usr/local/etc/php-fpm.conf
+    
+    # Create a temporary file then move it, instead of requiring permissions to write to /usr/local/etc/
+    tmp_file=$(mktemp /tmp/php-fpm.conf.XXXXXX)
+    sed "/\[global\]/a log_level = $fpm_log_level" /usr/local/etc/php-fpm.conf > "$tmp_file"
+    cat "$tmp_file" > /usr/local/etc/php-fpm.conf
+    rm "$tmp_file"
     echo "ℹ️ NOTICE ($script_name): FPM - log_level has been set to \"$fpm_log_level\""
 
-    echo "access.log = /proc/self/fd/2" >> /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
-    echo "ℹ️ NOTICE ($script_name): FPM - access.log has been set to \"STDERR\""
+    if [ "$fpm_log_level" = "debug" ]; then 
+        echo "access.log = /proc/self/fd/2" >> /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
+        echo "access.format = \"fpm: %R - %u %t \"%m %r%Q%q\" %s duration=%{milliseconds}dms memory=%Mk cpu=%C%% pid=%p script=%f\"" >> /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
+        echo "ℹ️ NOTICE ($script_name): FPM - access.log has been set to \"STDERR\""
+    fi
 }
 
 #######################################
@@ -82,7 +90,7 @@ case "$LOG_OUTPUT_LEVEL" in
     set_fpm_log_level alert
     ;;
     *)
-    echo "👉 $script_name: LOG_OUTPUT_LEVEL is not set to a valid value. Please set it to one of the following: debug, info, notice, warn, error, crit, alert, emerg."
-    exit 1
+    echo "❌ ERROR ($script_name): LOG_OUTPUT_LEVEL is not set to a valid value. Please set it to one of the following: debug, info, notice, warn, error, crit, alert, emerg."
+    return 1
     ;;
 esac

@@ -1,5 +1,5 @@
 ARG BASE_OS_VERSION='bookworm'
-ARG PHP_VERSION='8.3'
+ARG PHP_VERSION='8.4'
 ARG PHP_VARIATION='fpm-apache'
 ARG BASE_IMAGE="php:${PHP_VERSION}-fpm-${BASE_OS_VERSION}"
 
@@ -22,11 +22,11 @@ RUN docker-php-serversideup-s6-install
 ##########
 FROM ${BASE_IMAGE}
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi apache2 shadow'
-ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin apache2 zip'
+ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin apache2 procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='mysqli opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
-LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
+LABEL org.opencontainers.image.title="serversideup/php (fpm-apache)" \
     org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
     org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
     org.opencontainers.image.source="https://github.com/serversideup/docker-php" \
@@ -64,6 +64,7 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     PHP_FPM_PM_MIN_SPARE_SERVERS="1" \
     PHP_FPM_PM_START_SERVERS="2" \
     PHP_FPM_POOL_NAME="www" \
+    PHP_FPM_PROCESS_CONTROL_TIMEOUT="10s" \
     PHP_MAX_EXECUTION_TIME="99" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MEMORY_LIMIT="256M" \
@@ -98,11 +99,13 @@ COPY --from=s6-build /usr/local/bin/php-fpm-healthcheck /usr/local/bin/php-fpm-h
 # install pecl extensions, dependencies, and clean up
 RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
-    docker-php-serversideup-s6-init && \
     \
     # Ensure /var/www/ has the correct permissions
     chown -R www-data:www-data /var/www && \
     chmod -R 755 /var/www && \
+    \
+    # Set the image version
+    echo "${REPOSITORY_BUILD_VERSION}" > /etc/serversideup-php-version && \
     \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
@@ -149,9 +152,14 @@ USER www-data
 
 EXPOSE 8080 8443
 
+ENTRYPOINT ["docker-php-serversideup-entrypoint"]
+
+# Set stop signal to SIGQUIT for a graceful shutdown instead of S6's preferred SIGTERM (https://github.com/just-containers/s6-overlay/issues/586)
+STOPSIGNAL SIGQUIT
+
 WORKDIR ${APP_BASE_DIR}
 
-ENTRYPOINT ["/init"]
+CMD ["/init"]
 
 HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
     CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]

@@ -9,7 +9,7 @@ set -oue
 # Be sure to set the S6_SRC_URL, S6_SRC_DEP, and S6_DIR
 # environment variables before running this script.
 
-S6_VERSION=v3.2.0.0
+S6_VERSION=v3.2.0.2
 mkdir -p $S6_DIR
 export SYS_ARCH=$(uname -m)
 case "$SYS_ARCH" in

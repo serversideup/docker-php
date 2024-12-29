@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Use pgrep to check if the process is running
+if pgrep -f "schedule:work" > /dev/null
+then
+    exit 0
+else
+    echo "❌ Healthcheck failed: Scheduler process cannot be found."
+    exit 1
+fi
