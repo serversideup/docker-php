@@ -2,6 +2,11 @@ name: Docker Publish (PR Images)
 
 on:
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to build (leave empty for manual branch build)'
+        required: false
+        type: string
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
@@ -12,11 +17,16 @@ on:
 
 jobs:
   build-dev-images:
-    if: ${{ github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork }}
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
-      registry-repositories: "docker.io/serversideup/php-dev" # Set to our development repository
-      tag-prefix: "${{ github.event.pull_request.number }}"
+      registry-repositories: "docker.io/serversideup/php-dev"
+      # Use PR number from input if provided, otherwise use the PR event number
+      tag-prefix: ${{ inputs.pr_number || github.event.pull_request.number }}
       release-type: testing
       authenticate_with_ghcr: false
+      push-to-registry: >-
+        ${{ 
+          github.event_name == 'workflow_dispatch' ||
+          (github.event_name == 'pull_request' && github.event.pull_request.head.repo.owner.type == 'Organization')
+        }}
     secrets: inherit

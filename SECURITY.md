@@ -5,11 +5,15 @@ The following versions of PHP are being actively updated:
 
 | PHP Version | Supported          |
 | ------- | ------------------ |
-| 8.2  | :white_check_mark: |
-| 8.1  | :white_check_mark: |
-| 8.0  | :white_check_mark: |
-| 7.4  | :white_check_mark:            |
-| 7.3  | :x: |
+| 8.4  | :white_check_mark: Active support |
+| 8.3  | :white_check_mark: Active support |
+| 8.2  | :white_check_mark: Active support |
+| 8.1  | :warning: Security updates only |
+| 8.0  | :heavy_exclamation_mark: End of life, update ASAP |
+| 7.4  | :heavy_exclamation_mark: End of life, update ASAP |
+| 7.3  | :x: Not supported |
+
+View the official [PHP supported versions policy](https://www.php.net/supported-versions.php) for more information.
 
 ## Reporting a Vulnerability
 

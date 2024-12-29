@@ -19,12 +19,10 @@ jobs:
           ref: main
 
       - name: push README to Dockerhub
-        uses: christian-korneck/update-container-description-action@v1
-        env:
-          DOCKER_USER: ${{ secrets.DOCKER_HUB_README_USERNAME }}
-          DOCKER_PASS: ${{ secrets.DOCKER_HUB_README_PASSWORD }}
+        uses: peter-evans/dockerhub-description@v4
         with:
-          destination_container_repo: serversideup/php
-          provider: dockerhub
-          short_description: 'Production-ready PHP Docker images optimized for Laravel and WordPress.'
-          readme_file: 'README.md'
+          username: ${{ secrets.DOCKER_HUB_README_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_README_PASSWORD }}
+          repository: serversideup/php
+          short-description: 'Production-ready PHP Docker images optimized for Laravel and WordPress.'
+          readme-filepath: 'README.md'

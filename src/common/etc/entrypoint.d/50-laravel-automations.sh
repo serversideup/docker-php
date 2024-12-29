@@ -51,6 +51,9 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
             echo "🚀 Clearing Laravel cache before attempting migrations..."
             php "$APP_BASE_DIR/artisan" config:clear
 
+            # Do not exit on error for this loop
+            set +e
+            echo "⚡️ Attempting database connection..."
             while [ $count -lt "$timeout" ]; do
                 test_db_connection > /dev/null 2>&1
                 status=$?
@@ -63,6 +66,9 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
                     sleep 1
                 fi
             done
+
+            # Re-enable exit on error
+            set -e
 
             if [ $count -eq "$timeout" ]; then
                 echo "Database connection failed after multiple attempts."
