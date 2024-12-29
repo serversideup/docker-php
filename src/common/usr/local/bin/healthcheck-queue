@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Use pgrep to check if the process is running
+if pgrep -f "queue:work" > /dev/null
+then
+    exit 0
+else
+    echo "❌ Healthcheck failed: Queue worker process cannot be found."
+    exit 1
+fi

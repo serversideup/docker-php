@@ -80,25 +80,64 @@
         },
         {
             "match": {
+                "uri": [
+                    "!/.well-known/*",
+                    "/.*",
+                    "/.*/",
+                    "/.*/*",
+                    "/*/.*",
+                    "/*/.*/",
+                    "/*/.*/*"
+                ]
+            },
+            "action": {
+                "return": 404
+            }
+        },
+        {
+            "match": {
+                "uri": [
+                    "/*.php",
+                    "/*/*.php"
+                ]
+            },
+            "action": {
+                "pass": "applications/php/direct"
+            }
+        },
+        {
+            "match": {
                 "uri": "!/index.php"
             },
             "action": {
                 "share": "${UNIT_WEBROOT}$uri",
                 "fallback": {
-                    "pass": "applications/php"
+                    "pass": "applications/php/index"
                 }
             }
         }
     ],
+    "settings": {
+        "http": {
+            "max_body_size": ${UNIT_MAX_BODY_SIZE}
+        }
+    },
     "applications": {
         "php": {
             "type": "php",
-            "root": "${UNIT_WEBROOT}/",
-            "script": "index.php",
             "processes": {
                 "max": ${UNIT_PROCESSES_MAX},
                 "spare": ${UNIT_PROCESSES_SPARE},
                 "idle_timeout": ${UNIT_PROCESSES_IDLE_TIMEOUT}
+            },
+            "targets": {
+                "direct": {
+                    "root": "${UNIT_WEBROOT}/"
+                },
+                "index": {
+                    "root": "${UNIT_WEBROOT}/",
+                    "script": "index.php"
+                }
             }
         }
     },

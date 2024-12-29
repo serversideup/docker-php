@@ -76,10 +76,10 @@ case "$OS" in
                 DIRS="/var/www/ /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             apache)
-                DIRS="/etc/apache2 /etc/ssl/private /var/log/apache2 /var/www/ /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
+                DIRS="/run /etc/apache2 /etc/ssl/private /var/log/apache2 /var/www/ /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             nginx)
-                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/cache/nginx/ /var/www/ /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
+                DIRS="/run /etc/nginx/ /var/log/nginx /etc/ssl/private /var/cache/nginx/ /var/www/ /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             unit)
                 DIRS="/var/log/unit /var/run/unit /etc/unit /etc/ssl/private/ /var/lib/unit/ /var/www/ $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"

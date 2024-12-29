@@ -1,5 +1,5 @@
 ARG BASE_OS_VERSION='bookworm'
-ARG PHP_VERSION='8.3'
+ARG PHP_VERSION='8.4'
 ARG PHP_VARIATION='fpm'
 
 ##########
@@ -8,11 +8,11 @@ ARG PHP_VARIATION='fpm'
 FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
 
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi shadow'
-ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin zip'
+ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
-LABEL org.opencontainers.image.title="serversideup/php (${PHP_VARIATION})" \
+LABEL org.opencontainers.image.title="serversideup/php (fpm)" \
     org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
     org.opencontainers.image.url="https://serversideup.net/open-source/docker-php/" \
     org.opencontainers.image.source="https://github.com/serversideup/docker-php" \
@@ -39,6 +39,7 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_FPM_PM_MIN_SPARE_SERVERS="1" \
     PHP_FPM_PM_START_SERVERS="2" \
     PHP_FPM_POOL_NAME="www" \
+    PHP_FPM_PROCESS_CONTROL_TIMEOUT="10s" \
     PHP_MAX_EXECUTION_TIME="99" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MEMORY_LIMIT="256M" \
@@ -65,6 +66,9 @@ RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
     # Ensure /var/www/ has the correct permissions
     chown -R www-data:www-data /var/www && \
     chmod -R 755 /var/www && \
+    \
+    # Set the image version
+    echo "${REPOSITORY_BUILD_VERSION}" > /etc/serversideup-php-version && \
     \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
