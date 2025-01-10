@@ -83,7 +83,7 @@ All of our software is free an open to the world. None of this can be brought to
 <a href="https://sevalla.com"><img src="https://serversideup.net/wp-content/uploads/2024/10/sponsor-image.png" alt="Sevalla" width="546px"></a>
 
 #### Bronze Sponsors
-<!-- bronze --><a href="https://github.com/quantumwebco"><img src="https://github.com/quantumwebco.png" width="40px" alt="quantumwebco" /></a>&nbsp;&nbsp;<!-- bronze -->
+<!-- bronze --><a href="https://github.com/quantumwebco"><img src="https://github.com/quantumwebco.png" width="40px" alt="quantumwebco" /></a>&nbsp;&nbsp;<a href="https://github.com/simonhamp"><img src="https://github.com/simonhamp.png" width="40px" alt="simonhamp" /></a>&nbsp;&nbsp;<!-- bronze -->
 
 #### Individual Supporters
 <!-- supporters --><a href="https://github.com/GeekDougle"><img src="https://github.com/GeekDougle.png" width="40px" alt="GeekDougle" /></a>&nbsp;&nbsp;<a href="https://github.com/JQuilty"><img src="https://github.com/JQuilty.png" width="40px" alt="JQuilty" /></a>&nbsp;&nbsp;<a href="https://github.com/MaltMethodDev"><img src="https://github.com/MaltMethodDev.png" width="40px" alt="MaltMethodDev" /></a>&nbsp;&nbsp;<!-- supporters -->
