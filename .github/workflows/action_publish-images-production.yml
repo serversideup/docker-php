@@ -4,9 +4,8 @@ on:
   workflow_dispatch:
   release:
     types: [released]
-  # Commenting out until 3.x is launched
-  # schedule:
-  #   - cron: '0 8 * * 2'
+  schedule:
+    - cron: '0 8 * * 2'
 
 jobs:
   build-production-images:
