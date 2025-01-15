@@ -32,6 +32,39 @@ test_db_connection() {
     "
 }
 
+cache_laravel() {
+    ############################################################################
+    # artisan config:cache
+    ############################################################################
+    if [ "${AUTORUN_LARAVEL_CONFIG_CACHE:=true}" = "true" ]; then
+        echo "🚀 Caching Laravel config..."
+        php "$APP_BASE_DIR/artisan" config:cache
+    fi
+
+    ############################################################################
+    # artisan route:cache
+    ############################################################################
+    if [ "${AUTORUN_LARAVEL_ROUTE_CACHE:=true}" = "true" ]; then
+        echo "🚀 Caching Laravel routes..."
+        php "$APP_BASE_DIR/artisan" route:cache
+    fi
+
+    ############################################################################
+    # artisan view:cache
+    ############################################################################
+    if [ "${AUTORUN_LARAVEL_VIEW_CACHE:=true}" = "true" ]; then
+        echo "🚀 Caching Laravel views..."
+        php "$APP_BASE_DIR/artisan" view:cache
+    fi
+
+    ############################################################################
+    # artisan event:cache
+    ############################################################################
+    if [ "${AUTORUN_LARAVEL_EVENT_CACHE:=true}" = "true" ]; then
+        echo "🚀 Caching Laravel events..."
+        php "$APP_BASE_DIR/artisan" event:cache
+    fi
+}
 
 # Set default values for Laravel automations
 : "${AUTORUN_ENABLED:=false}"
@@ -94,37 +127,17 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
                 php "$APP_BASE_DIR/artisan" storage:link
             fi
         fi
+        
         ############################################################################
-        # artisan config:cache
+        # artisan optimize
         ############################################################################
-        if [ "${AUTORUN_LARAVEL_CONFIG_CACHE:=true}" = "true" ]; then
-            echo "🚀 Caching Laravel config..."
-            php "$APP_BASE_DIR/artisan" config:cache
+        if [ "${AUTRORUN_LARAVEL_OPTIMIZE:=false}" = "true" ]; then
+            echo "🚀 Optimizing Laravel..."
+            php "$APP_BASE_DIR/artisan" optimize
+        else
+            cache_laravel
         fi
-
-        ############################################################################
-        # artisan route:cache
-        ############################################################################
-        if [ "${AUTORUN_LARAVEL_ROUTE_CACHE:=true}" = "true" ]; then
-            echo "🚀 Caching Laravel routes..."
-            php "$APP_BASE_DIR/artisan" route:cache
-        fi
-
-        ############################################################################
-        # artisan view:cache
-        ############################################################################
-        if [ "${AUTORUN_LARAVEL_VIEW_CACHE:=true}" = "true" ]; then
-            echo "🚀 Caching Laravel views..."
-            php "$APP_BASE_DIR/artisan" view:cache
-        fi
-
-        ############################################################################
-        # artisan event:cache
-        ############################################################################
-        if [ "${AUTORUN_LARAVEL_EVENT_CACHE:=true}" = "true" ]; then
-            echo "🚀 Caching Laravel events..."
-            php "$APP_BASE_DIR/artisan" event:cache
-        fi
+        
     fi
 else
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
