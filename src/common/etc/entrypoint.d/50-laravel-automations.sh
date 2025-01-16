@@ -32,43 +32,78 @@ test_db_connection() {
     "
 }
 
-cache_laravel() {
-    ############################################################################
-    # artisan config:cache
-    ############################################################################
-    if [ "${AUTORUN_LARAVEL_CONFIG_CACHE:=true}" = "true" ]; then
+# Set default values for Laravel automations
+: "${AUTORUN_ENABLED:=false}"
+: "${AUTORUN_LARAVEL_STORAGE_LINK:=true}"
+
+# Set default values for optimizations
+: "${AUTRORUN_LARAVEL_OPTIMIZE:=false}"
+: "${AUTORUN_LARAVEL_CONFIG_CACHE:=true}"
+: "${AUTORUN_LARAVEL_ROUTE_CACHE:=true}"
+: "${AUTORUN_LARAVEL_VIEW_CACHE:=true}"
+: "${AUTORUN_LARAVEL_EVENT_CACHE:=true}"
+
+# Set default values for Migrations
+: "${AUTORUN_LARAVEL_MIGRATION:=true}"
+: "${AUTORUN_LARAVEL_MIGRATION_ISOLATION:=false}"
+: "${AUTORUN_LARAVEL_MIGRATION_TIMEOUT:=30}"
+
+artisan_optimize() {
+    echo "🚀 Optimizing Laravel..."
+    
+    # Get list of optimizations to skip
+    except = "--except="
+
+    if [ "$AUTORUN_LARAVEL_CONFIG_CACHE" = "false" ]; then
+        except += "config,"
+    fi
+
+    if [ "$AUTORUN_LARAVEL_ROUTE_CACHE" = "false" ]; then
+        except += "routes,"
+    fi
+
+    if [ "$AUTORUN_LARAVEL_VIEW_CACHE" = "false" ]; then
+        except += "views,"
+    fi
+
+    if [ "$AUTORUN_LARAVEL_EVENT_CACHE" = "false" ]; then
+        except += "events,"
+    fi
+
+    # Attempt to run optimizations with exceptions, otherwise just run optimize
+    if ! [ php "$APP_BASE_DIR/artisan" optimize "$except" ]; then
+        echo "Granular optimization required Laravel v11.38 or above, running all optimizations..."
+        php "$APP_BASE_DIR/artisan" optimize
+    fi
+}
+
+artisan_cache() {
+    # config:cache
+    if [ "$AUTORUN_LARAVEL_CONFIG_CACHE" = "true" ]; then
         echo "🚀 Caching Laravel config..."
         php "$APP_BASE_DIR/artisan" config:cache
     fi
 
-    ############################################################################
-    # artisan route:cache
-    ############################################################################
-    if [ "${AUTORUN_LARAVEL_ROUTE_CACHE:=true}" = "true" ]; then
+    # route:cache
+    if [ "$AUTORUN_LARAVEL_ROUTE_CACHE" = "true" ]; then
         echo "🚀 Caching Laravel routes..."
         php "$APP_BASE_DIR/artisan" route:cache
     fi
 
-    ############################################################################
-    # artisan view:cache
-    ############################################################################
-    if [ "${AUTORUN_LARAVEL_VIEW_CACHE:=true}" = "true" ]; then
+    # view:cache
+    if [ "$AUTORUN_LARAVEL_VIEW_CACHE" = "true" ]; then
         echo "🚀 Caching Laravel views..."
         php "$APP_BASE_DIR/artisan" view:cache
     fi
 
-    ############################################################################
-    # artisan event:cache
-    ############################################################################
-    if [ "${AUTORUN_LARAVEL_EVENT_CACHE:=true}" = "true" ]; then
+    # event:cache
+    if [ "$AUTORUN_LARAVEL_EVENT_CACHE" = "true" ]; then
         echo "🚀 Caching Laravel events..."
         php "$APP_BASE_DIR/artisan" event:cache
     fi
 }
 
-# Set default values for Laravel automations
-: "${AUTORUN_ENABLED:=false}"
-: "${AUTORUN_LARAVEL_MIGRATION_TIMEOUT:=30}"
+
 
 if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
     # Check to see if an Artisan file exists and assume it means Laravel is configured.
@@ -77,7 +112,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
         ############################################################################
         # artisan migrate
         ############################################################################
-        if [ "${AUTORUN_LARAVEL_MIGRATION:=true}" = "true" ]; then
+        if [ "$AUTORUN_LARAVEL_MIGRATION" = "true" ]; then
             count=0
             timeout=$AUTORUN_LARAVEL_MIGRATION_TIMEOUT
 
@@ -109,7 +144,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
             fi
 
             echo "🚀 Running migrations..."
-            if [ "${AUTORUN_LARAVEL_MIGRATION_ISOLATION:=false}" = "true" ]; then
+            if [ "$AUTORUN_LARAVEL_MIGRATION_ISOLATION" = "true" ]; then
                 php "$APP_BASE_DIR/artisan" migrate --force --isolated
             else
                 php "$APP_BASE_DIR/artisan" migrate --force
@@ -119,7 +154,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
         ############################################################################
         # artisan storage:link
         ############################################################################
-        if [ "${AUTORUN_LARAVEL_STORAGE_LINK:=true}" = "true" ]; then
+        if [ "$AUTORUN_LARAVEL_STORAGE_LINK" = "true" ]; then
             if [ -d "$APP_BASE_DIR/public/storage" ]; then
                 echo "✅ Storage already linked..."
             else
@@ -129,13 +164,12 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
         fi
         
         ############################################################################
-        # artisan optimize
+        # artisan:optimize
         ############################################################################
-        if [ "${AUTRORUN_LARAVEL_OPTIMIZE:=false}" = "true" ]; then
-            echo "🚀 Optimizing Laravel..."
-            php "$APP_BASE_DIR/artisan" optimize
+        if [ "$AUTRORUN_LARAVEL_OPTIMIZE" = "true" ]; then
+            artisan_optimize
         else
-            cache_laravel
+            artisan_cache
         fi
         
     fi
