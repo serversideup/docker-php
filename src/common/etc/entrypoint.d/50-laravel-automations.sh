@@ -107,7 +107,7 @@ artisan_storage_link() {
 }
 
 ############################################################################
-# artisan:optimize
+# artisan optimize
 ############################################################################
 artisan_optimize() {
     if [ "$AUTRORUN_LARAVEL_OPTIMIZE" = "true" ]; then
@@ -118,7 +118,6 @@ artisan_optimize() {
     
         if [ "$AUTORUN_LARAVEL_CONFIG_CACHE" = "false" ]; then
             except="${except:+${except},}config"
-            except+="config,"
         fi
     
         if [ "$AUTORUN_LARAVEL_ROUTE_CACHE" = "false" ]; then
