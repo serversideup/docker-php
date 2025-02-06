@@ -110,7 +110,7 @@ artisan_storage_link() {
 # artisan optimize
 ############################################################################
 artisan_optimize() {
-    if [ "$AUTRORUN_LARAVEL_OPTIMIZE" = "true" ]; then
+    if [ "$AUTORUN_LARAVEL_OPTIMIZE" = "true" ]; then
         echo "🚀 Optimizing Laravel..."
 
         # Get list of optimizations to skip
