@@ -6,7 +6,7 @@ script_name="laravel-automations"
 : "${AUTORUN_LARAVEL_STORAGE_LINK:=true}"
 
 # Set default values for optimizations
-: "${AUTRORUN_LARAVEL_OPTIMIZE:=false}"
+: "${AUTORUN_LARAVEL_OPTIMIZE:=false}"
 : "${AUTORUN_LARAVEL_CONFIG_CACHE:=true}"
 : "${AUTORUN_LARAVEL_ROUTE_CACHE:=true}"
 : "${AUTORUN_LARAVEL_VIEW_CACHE:=true}"
