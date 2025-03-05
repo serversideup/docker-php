@@ -39,7 +39,7 @@ export S6_INITIALIZED
 # execute the CMD passed in from the Dockerfile.
 
 # Execute scripts from /etc/entrypoint.d/ in numeric order
-find /etc/entrypoint.d/ -type f -name '*.sh' | sort -n -t- -k1 | while IFS= read -r f; do
+find /etc/entrypoint.d/ -type f -name '*.sh' | sort -V | while IFS= read -r f; do
     if [ -e "$f" ]; then
         if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
             echo "Executing $f"
