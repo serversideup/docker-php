@@ -37,7 +37,14 @@ php_versions:
           - name: bookworm
             default: true
         patch_versions:
-        #   - 8.3.6 # Pull latest from Official PHP source
+          # - 8.3.6 # Pull latest from Official PHP source
+      - minor: "8.4"
+        base_os:
+          - name: alpine
+          - name: bookworm
+            default: true
+        patch_versions:
+        #   - 8.4.1 # Pull latest from Official PHP source
 php_variations:
   - name: cli
     default: true

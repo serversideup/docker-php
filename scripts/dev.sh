@@ -26,6 +26,7 @@ PHP_BUILD_PREFIX=""
 DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php"}"
 DOCKER_ADDITIONAL_BUILD_ARGS=()
 CUSTOM_REGISTRY=""
+PLATFORM=""
 
 # UI Colors
 function ui_set_yellow {
@@ -68,11 +69,34 @@ check_vars() {
   return 0
 }
 
+detect_platform() {
+    local arch=$(uname -m)
+    case $arch in
+        x86_64)
+            echo "linux/amd64"
+            ;;
+        arm64|aarch64)
+            echo "linux/arm64/v8"
+            ;;
+        *)
+            echo "Unsupported architecture: $arch" >&2
+            exit 1
+            ;;
+    esac
+}
+
 build_docker_image() {
   build_tag="${DOCKER_REPOSITORY}:${PHP_BUILD_PREFIX}${PHP_BUILD_VERSION}-${PHP_BUILD_VARIATION}-${PHP_BUILD_BASE_OS}"
   echo_color_message yellow "🐳 Building Docker Image: $build_tag"
-  docker build \
-    ${DOCKER_ADDITIONAL_BUILD_ARGS[@]} \
+
+  # Set default platform if not specified
+  if [ -z "$PLATFORM" ]; then
+      PLATFORM=$(detect_platform)
+  fi
+  
+  docker buildx build \
+    "${DOCKER_ADDITIONAL_BUILD_ARGS[@]}" \
+    --platform "$PLATFORM" \
     --build-arg PHP_VARIATION="$PHP_BUILD_VARIATION" \
     --build-arg PHP_VERSION="$PHP_BUILD_VERSION" \
     --build-arg BASE_OS_VERSION="$PHP_BUILD_BASE_OS" \
@@ -105,6 +129,7 @@ help_menu() {
     echo "  --os <os>                 Set the base OS (e.g., bullseye, bookworm, alpine)"
     echo "  --prefix <prefix>         Set the prefix for the Docker image (e.g., beta)"
     echo "  --registry <registry>     Set a custom registry (e.g., localhost:5000)"
+    echo "  --platform <platform>     Set the platform (default: detected from system architecture)"
     echo "  --*                       Any additional options will be passed to the docker buildx command"
     echo
     echo "Environment Variables:"
@@ -134,6 +159,10 @@ while [[ $# -gt 0 ]]; do
         ;;
         --registry)
         CUSTOM_REGISTRY="$2"
+        shift 2
+        ;;
+        --platform)
+        PLATFORM="$2"
         shift 2
         ;;
         --*)
