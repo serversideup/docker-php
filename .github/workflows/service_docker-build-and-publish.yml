@@ -145,11 +145,18 @@ jobs:
       - name: Set REPOSITORY_BUILD_VERSION
         id: set_version
         run: |
-          if [ "${{ github.ref_type }}" == "tag" ]; then
-            echo "🚀 Setting REPOSITORY_BUILD_VERSION to Tag"
-            echo "REPOSITORY_BUILD_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+          if [[ "${{ github.ref_type }}" == "tag" || "${{ inputs.ref }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Building from a tag (release or scheduled task)
+            echo "🚀 Setting REPOSITORY_BUILD_VERSION to Tag + Run ID"
+            if [[ "${{ github.ref_type }}" == "tag" ]]; then
+              VERSION="${{ github.ref_name }}"
+            else
+              VERSION="${{ inputs.ref }}"
+            fi
+            echo "REPOSITORY_BUILD_VERSION=${VERSION}-${{ github.run_id }}" >> $GITHUB_ENV
           else
-            echo "👨‍🔬 Setting REPOSITORY_BUILD_VERSION to GIT Short SHA and GitHub Run ID"
+            # Regular git build (PR, branch push, etc)
+            echo "👨‍🔬 Setting REPOSITORY_BUILD_VERSION to Git SHA + Run ID"
             SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
             echo "REPOSITORY_BUILD_VERSION=git-${SHORT_SHA}-${{ github.run_id }}" >> $GITHUB_ENV
           fi
