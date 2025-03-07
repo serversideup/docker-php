@@ -9,8 +9,10 @@ script_name="init-webserver-config"
 
 # Check if S6 is initialized
 if [ "$S6_INITIALIZED" != "true" ]; then
-    echo "ℹ️  [NOTICE]: Running custom command instead of web server configuration: '$*'"
-    return 0
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
+        echo "👉 $script_name: S6 is not initialized, so web server configuration will NOT be performed."
+    fi
+    exit 0
 fi
 
 ##########
