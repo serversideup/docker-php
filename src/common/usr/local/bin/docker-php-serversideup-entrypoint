@@ -32,6 +32,9 @@ fi
 export SERVERSIDEUP_DEFAULT_COMMAND
 export S6_INITIALIZED
 
+# Export the CMD for use in initialization scripts
+export DOCKER_CMD="$*"
+
 ###############################################
 # Usage: docker-php-serversideup-entrypoint
 ###############################################
