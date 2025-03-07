@@ -5,7 +5,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = true ]; then
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "👉 $script_name: DISABLE_DEFAULT_CONFIG does not equal \"false\", so debug mode will NOT be automatically set."
     fi
-    return 0 # Exit if DISABLE_DEFAULT_CONFIG is true
+    exit 0 # Exit if DISABLE_DEFAULT_CONFIG is true
 fi
 
 #######################################
