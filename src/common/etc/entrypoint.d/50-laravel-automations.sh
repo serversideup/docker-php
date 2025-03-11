@@ -24,6 +24,9 @@ script_name="laravel-automations"
 : "${AUTORUN_LARAVEL_MIGRATION_ISOLATION:=false}"
 : "${AUTORUN_LARAVEL_MIGRATION_TIMEOUT:=30}"
 
+# Set default values for seeders
+: "${AUTORUN_LARAVEL_SEED:=false}"
+
 # Set default values for Laravel version
 INSTALLED_LARAVEL_VERSION=""
 
@@ -136,7 +139,7 @@ artisan_optimize() {
         [ "$AUTORUN_LARAVEL_VIEW_CACHE" = "false" ] && except="${except:+${except},}views"
         [ "$AUTORUN_LARAVEL_EVENT_CACHE" = "false" ] && except="${except:+${except},}events"
         
-        echo "🛠️ Running optimizations: \"php artisan optimize ${except:+--except=${except}}\"..."
+        echo "🚀 Running optimizations: \"php artisan optimize ${except:+--except=${except}}\"..."
         if ! php "$APP_BASE_DIR/artisan" optimize ${except:+--except=${except}}; then
             echo "$script_name: ❌ Laravel optimize failed"
             return 1
@@ -175,15 +178,15 @@ artisan_optimize() {
 }
 
 artisan_seed(){
-        if [ ! "${AUTORUN_LARAVEL_SEED:=false}" = "false" ]; then
-            echo "🚀 Running seeders..."
-            # Run the default seeder if "true", otherwise use value as custom seeder 
-            if [ "${AUTORUN_LARAVEL_SEED}" = "true" ]; then
-                php ${APP_BASE_DIR}/artisan db:seed
-            else
-                php ${APP_BASE_DIR}/artisan db:seed --seeder=${AUTORUN_LARAVEL_SEED}
-            fi
-        fi
+    # Run the default seeder if "true", otherwise use value as custom seeder 
+    if [ "${AUTORUN_LARAVEL_SEED}" = "true" ]; then
+        echo "🚀 Running default seeder: \"php artisan db:seed\""
+        php "${APP_BASE_DIR}/artisan" db:seed --force
+    else
+        echo "🚀 Running custom seeder: \"php artisan db:seed --seeder=${AUTORUN_LARAVEL_SEED}\""
+        echo "ℹ️ Your application must have a seeder class named \"${AUTORUN_LARAVEL_SEED}\" or this command will fail."
+        php "${APP_BASE_DIR}/artisan" db:seed --seeder="${AUTORUN_LARAVEL_SEED}"
+    fi
 }
 
 get_laravel_version() {
@@ -324,6 +327,10 @@ if laravel_is_installed; then
     
     if [ "$AUTORUN_LARAVEL_MIGRATION" = "true" ]; then
         artisan_migrate
+    fi
+
+    if [ "$AUTORUN_LARAVEL_SEED" != "false" ]; then
+        artisan_seed
     fi
 
     if [ "$AUTORUN_LARAVEL_OPTIMIZE" = "true" ] || \
