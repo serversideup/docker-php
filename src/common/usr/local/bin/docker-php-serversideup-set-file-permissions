@@ -150,6 +150,7 @@ case "$OS" in
             apache)
                 DIRS="
                     /composer
+                    /run
                     /var/www
                     /etc/apache2
                     /etc/ssl/private
@@ -160,6 +161,7 @@ case "$OS" in
             nginx)
                 DIRS="
                     /composer
+                    /run
                     /var/www
                     /etc/nginx
                     /var/log/nginx
