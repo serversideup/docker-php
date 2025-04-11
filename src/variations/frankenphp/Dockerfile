@@ -29,6 +29,7 @@ ENV APP_BASE_DIR=/app \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
     LOG_OUTPUT_LEVEL=warn \
+    HEALTHCHECK_PATH="/healthcheck" \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
@@ -46,7 +47,9 @@ ENV APP_BASE_DIR=/app \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
-    SHOW_WELCOME_MESSAGE=true
+    SHOW_WELCOME_MESSAGE=true \
+    FRANKENPHP_WEBROOT=/var/www/html/public 
+
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -55,7 +58,12 @@ COPY --chmod=755 src/common/ /
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
+    # Ensure default web root exists
+    mkdir -p /var/www/html/public && \
     \
+    # Ensure /var/www/ has the correct permissions
+    chown -R www-data:www-data /var/www && \
+    chmod -R 755 /var/www && \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \

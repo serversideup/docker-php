@@ -26,7 +26,7 @@
 	#       }
 	#}
 
-	root * {$FRANKEN_PHP_WEBROOT:/var/www/html/public/}
+	root * {$FRANKENPHP_WEBROOT}
 	encode zstd br gzip
 
 	route {$HEALTHCHECK_PATH} {
