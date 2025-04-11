@@ -1,6 +1,6 @@
 ARG BASE_OS_VERSION='bookworm'
-ARG PHP_VERSION='8.3'
-ARG FRANKEN_PHP_VERSION='1.2.2'
+ARG PHP_VERSION='8.4'
+ARG FRANKEN_PHP_VERSION='1.5.0'
 ARG PHP_VARIATION='frankenphp'
 ARG BASE_IMAGE="dunglas/frankenphp:${FRANKEN_PHP_VERSION}-php${PHP_VERSION}-${BASE_OS_VERSION}"
 
@@ -29,6 +29,7 @@ ENV APP_BASE_DIR=/app \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
     LOG_OUTPUT_LEVEL=warn \
+    HEALTHCHECK_PATH="/healthcheck" \
     PHP_DATE_TIMEZONE="UTC" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
@@ -46,16 +47,18 @@ ENV APP_BASE_DIR=/app \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
-    SHOW_WELCOME_MESSAGE=true
+    SHOW_WELCOME_MESSAGE=true \
+    FRANKENPHP_WEBROOT=public/
+
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
+COPY --chmod=755 src/variations/frankenphp/etc/ /etc/
 
 # install pecl extensions & dependencies
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
-    \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
@@ -71,3 +74,7 @@ WORKDIR ${APP_BASE_DIR}
 ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 
 CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+
+HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
+    CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]
+
