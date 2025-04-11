@@ -10,7 +10,7 @@
 {$CADDY_EXTRA_CONFIG} 
 
 :8080 {
-        
+	
 	log {
 		output stdout
 	}
