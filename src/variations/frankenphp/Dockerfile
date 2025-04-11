@@ -48,22 +48,17 @@ ENV APP_BASE_DIR=/app \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     SHOW_WELCOME_MESSAGE=true \
-    FRANKENPHP_WEBROOT=/var/www/html/public 
+    FRANKENPHP_WEBROOT=public/
 
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
+COPY --chmod=755 src/variations/frankenphp/etc/ /etc/
 
 # install pecl extensions & dependencies
 RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
     docker-php-serversideup-install-php-ext-installer && \
-    # Ensure default web root exists
-    mkdir -p /var/www/html/public && \
-    \
-    # Ensure /var/www/ has the correct permissions
-    chown -R www-data:www-data /var/www && \
-    chmod -R 755 /var/www && \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
@@ -79,3 +74,7 @@ WORKDIR ${APP_BASE_DIR}
 ENTRYPOINT ["docker-php-serversideup-entrypoint"]
 
 CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+
+HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
+    CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]
+
