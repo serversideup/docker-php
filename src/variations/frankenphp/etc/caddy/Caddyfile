@@ -1,6 +1,19 @@
 {
 	{$CADDY_GLOBAL_OPTIONS}
 
+	http_port 8080
+	https_port 8443
+
+	# todo: don't automatically redirect
+	auto_https disable_redirects
+
+	# todo: just testing
+	local_certs
+
+	log {
+		format console
+	}
+
 	frankenphp {
 		#worker /path/to/your/worker.php
 		{$FRANKENPHP_CONFIG}
@@ -9,8 +22,7 @@
 
 {$CADDY_EXTRA_CONFIG} 
 
-:8080 {
-	
+(common) {
 	log {
 		output stdout
 	}
@@ -26,8 +38,9 @@
 	#       }
 	#}
 
-	root * {$FRANKENPHP_WEBROOT}
 	encode zstd br gzip
+
+	root * {$FRANKENPHP_WEBROOT}
 
 	route {$HEALTHCHECK_PATH} {
 		respond "OK" 200
@@ -53,4 +66,13 @@
 	{$CADDY_SERVER_EXTRA_DIRECTIVES}
 
 	php_server
+}
+
+:8080 {
+	import common
+}
+
+:8443 {
+	tls internal
+	import common
 }
