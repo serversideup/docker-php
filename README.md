@@ -93,7 +93,7 @@ We'd like to specifically thank a few folks for taking the time for being a soun
 
 Please check out all of their work:
 - [Chris Fidao](https://twitter.com/fideloper)
-- [Joel Clermont](https://twitter.com/joelclermont)
+- [Joel Clermont](https://x.com/jclermont)
 - [Patricio](https://twitter.com/PatricioOnCode)
 
 ## About Us
