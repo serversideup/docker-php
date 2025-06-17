@@ -83,5 +83,11 @@ export default defineNuxtConfig({
             plugins: [tailwindTypography]
         },
         cssPath: '~/assets/css/tailwind.css',
-    }
+    },
+
+    routeRules: {
+        "/docs": {
+            redirect: "/docs/prologue/introduction",
+        },
+    },
 })
