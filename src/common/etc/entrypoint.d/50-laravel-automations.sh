@@ -23,6 +23,7 @@ script_name="laravel-automations"
 : "${AUTORUN_LARAVEL_MIGRATION:=true}"
 : "${AUTORUN_LARAVEL_MIGRATION_ISOLATION:=false}"
 : "${AUTORUN_LARAVEL_MIGRATION_TIMEOUT:=30}"
+: "${AUTORUN_LARAVEL_MIGRATION_SKIP_DB_CHECK:=false}"
 
 # Set default values for seeders
 : "${AUTORUN_LARAVEL_SEED:=false}"
@@ -274,6 +275,10 @@ laravel_version_is_at_least() {
 }
 
 test_db_connection() {
+    if [ "$AUTORUN_LARAVEL_MIGRATION_SKIP_DB_CHECK" = "true" ]; then
+        return 0
+    fi
+
     php -r "
         require '$APP_BASE_DIR/vendor/autoload.php';
         use Illuminate\Support\Facades\DB;
