@@ -90,7 +90,7 @@ enable_apache_conf() {
     done
 }
 
-enable_apache_site (){
+enable_apache_site() {
     ssl_mode=$1
     apache2_enabled_site_path="/etc/apache2/sites-enabled"
 
@@ -110,7 +110,7 @@ enable_apache_site (){
     fi
 }
 
-enable_nginx_site (){
+enable_nginx_site() {
     ssl_mode=$1
     default_nginx_site_config="/etc/nginx/conf.d/default.conf"
 
@@ -133,9 +133,22 @@ enable_nginx_site (){
     fi
 }
 
-validate_ssl(){
-    if [ -z "$SSL_CERTIFICATE_FILE" ] || [ -z "$SSL_PRIVATE_KEY_FILE" ]; then
-        echo "🛑 ERROR ($script_name): SSL_CERTIFICATE_FILE or SSL_PRIVATE_KEY_FILE is not set."
+validate_ssl() {
+    missing_vars=""
+
+    for var in SSL_CERTIFICATE_FILE SSL_PRIVATE_KEY_FILE SSL_SUBJECT_COUNTRY SSL_SUBJECT_STATE SSL_SUBJECT_LOCALITY SSL_SUBJECT_ORG SSL_SUBJECT_CN SSL_KEY_ALGO SSL_DAYS; do
+        eval val=\$$var
+        if [ -z "$val" ]; then
+            if [ -z "$missing_vars" ]; then
+                missing_vars="$var"
+            else
+                missing_vars="$missing_vars $var"
+            fi
+        fi
+    done
+
+    if [ -n "$missing_vars" ]; then
+        echo "🛑 ERROR ($script_name): The following required SSL variables are not set: $missing_vars"
         return 1
     fi
 
@@ -152,8 +165,16 @@ validate_ssl(){
         return 0
     fi
 
-    echo "🔐 SSL Keypair not found. Generating self-signed SSL keypair..."    
-    openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=*.dev.test,*.gitpod.io,*.ngrok.io,*.nip.io" -nodes -newkey rsa:2048 -keyout "$SSL_PRIVATE_KEY_FILE" -out "$SSL_CERTIFICATE_FILE" -days 365 >/dev/null 2>&1
+    echo "🔐 SSL Keypair not found. Generating self-signed SSL keypair..."
+    SSL_SUBJECT="/C=$SSL_SUBJECT_COUNTRY/ST=$SSL_SUBJECT_STATE/L=$SSL_SUBJECT_LOCALITY/O=$SSL_SUBJECT_ORG/CN=$SSL_SUBJECT_CN"
+    
+    openssl req -x509 \
+        -subj "$SSL_SUBJECT" \
+        -nodes \
+        -newkey "$SSL_KEY_ALGO" \
+        -keyout "$SSL_PRIVATE_KEY_FILE" \
+        -out "$SSL_CERTIFICATE_FILE" \
+        -days "$SSL_DAYS" >/dev/null 2>&1
 }
 
 ##########

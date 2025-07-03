@@ -84,7 +84,14 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     SHOW_WELCOME_MESSAGE=true \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
-    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key
+    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key \
+    SSL_SUBJECT_COUNTRY="US" \
+    SSL_SUBJECT_STATE="Wisconsin" \
+    SSL_SUBJECT_LOCALITY="Milwaukee" \
+    SSL_SUBJECT_ORG="IT" \
+    SSL_SUBJECT_CN="*.dev.test,*.gitpod.io,*.ngrok.io,*.nip.io" \
+    SSL_KEY_ALGO="rsa:2048" \
+    SSL_DAYS="365"
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
