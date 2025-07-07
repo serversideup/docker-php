@@ -1,7 +1,7 @@
 <template>
     <nav>
         <ul role="list">
-            <li class="relative my-6">
+            <li class="relative my-6" v-if="navigation[0]._path != '/docs'">
                 <h2 class="text-xs font-semibold text-white">
                     {{ navigation[0].title }}
                 </h2>
