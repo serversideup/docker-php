@@ -97,7 +97,7 @@ get_previous_patch_version() {
 # Add a new function for GitHub Actions annotations (around line 193)
 function github_actions_annotation() {
     # Output GitHub Actions workflow commands directly without color formatting
-    echo "$1" >&2
+    echo "$1"
 }
 
 # Validate and potentially fallback a PHP version
