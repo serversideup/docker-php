@@ -223,8 +223,8 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
         while IFS= read -r version; do
             if [ -n "$version" ]; then
                 echo_color_message yellow "🔍 Validating PHP $version..."
-                # Capture validation result without color codes
-                if validated_version=$(validate_php_version_with_fallback "$version" 2>/dev/null | tail -n1); then
+                # Capture validation result while preserving warnings
+                if validated_version=$(validate_php_version_with_fallback "$version" | tail -n1); then
                     # Double check that we got a valid version back
                     if [ -n "$validated_version" ] && [ "$validated_version" != "VALIDATION_FAILED" ]; then
                         echo "$version:$validated_version" >> "$validated_versions_file"
