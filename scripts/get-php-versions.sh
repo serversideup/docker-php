@@ -117,7 +117,8 @@ validate_php_version_with_fallback() {
             echo_color_message yellow "⚠️  Attempting fallback to PHP $fallback_version..." >&2
             
             if check_dockerhub_php_version "$fallback_version" "cli"; then
-                echo_color_message yellow "::warning title=PHP Version Fallback::PHP $original_version is not available on DockerHub. Falling back to PHP $fallback_version. This may indicate that DockerHub has not yet published the latest PHP release. Consider checking DockerHub availability before updating to newer versions." >&2
+                # Output GitHub Actions warning immediately
+                echo "::warning title=PHP Version Fallback::PHP $original_version is not available on DockerHub. Falling back to PHP $fallback_version. This may indicate that DockerHub has not yet published the latest PHP release. Consider checking DockerHub availability before updating to newer versions."
                 echo_color_message green "✅ Fallback successful: Using PHP $fallback_version" >&2
                 echo "$fallback_version"  # Output to stdout for capture
                 return 0
@@ -128,9 +129,9 @@ validate_php_version_with_fallback() {
         
         # If we get here, both original and fallback failed
         if [ "$fallback_attempted" = true ]; then
-            echo_color_message red "::error title=PHP Version Unavailable::Neither PHP $original_version nor fallback version $fallback_version are available on DockerHub. This suggests a significant lag in DockerHub publishing or a configuration issue. Please check DockerHub manually and consider using a known working version." >&2
+            echo "::error title=PHP Version Unavailable::Neither PHP $original_version nor fallback version $fallback_version are available on DockerHub. This suggests a significant lag in DockerHub publishing or a configuration issue. Please check DockerHub manually and consider using a known working version."
         else
-            echo_color_message red "::error title=PHP Version Unavailable::PHP $original_version is not available on DockerHub and no fallback version could be determined (patch version is 0). Please check DockerHub manually and use a known working version." >&2
+            echo "::error title=PHP Version Unavailable::PHP $original_version is not available on DockerHub and no fallback version could be determined (patch version is 0). Please check DockerHub manually and use a known working version."
         fi
         
         return 1
@@ -223,7 +224,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
         while IFS= read -r version; do
             if [ -n "$version" ]; then
                 echo_color_message yellow "🔍 Validating PHP $version..."
-                # Capture validation result while preserving warnings
+                # Capture validation result (warnings output immediately)
                 if validated_version=$(validate_php_version_with_fallback "$version" | tail -n1); then
                     # Double check that we got a valid version back
                     if [ -n "$validated_version" ] && [ "$validated_version" != "VALIDATION_FAILED" ]; then
