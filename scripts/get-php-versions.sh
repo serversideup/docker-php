@@ -96,8 +96,22 @@ get_previous_patch_version() {
 
 # Add a new function for GitHub Actions annotations (around line 193)
 function github_actions_annotation() {
-    # Output GitHub Actions workflow commands directly without color formatting
-    echo "$1"
+    local type="$1"        # warning, error, notice, debug
+    local title="$2"       # The title
+    local message="$3"     # The message
+    
+    # Output the official workflow command format
+    echo "::${type} title=${title}::${message}"
+    
+    # Add to step summary for better visibility
+    case "$type" in
+        warning)
+            echo "⚠️ **Warning: ${title}** - ${message}" >> $GITHUB_STEP_SUMMARY
+            ;;
+        error)
+            echo "❌ **Error: ${title}** - ${message}" >> $GITHUB_STEP_SUMMARY
+            ;;
+    esac
 }
 
 # Validate and potentially fallback a PHP version
@@ -124,7 +138,7 @@ validate_php_version_with_fallback() {
             
             if check_dockerhub_php_version "$fallback_version" "cli"; then
                 # Output GitHub Actions annotation without color formatting
-                github_actions_annotation "::warning title=PHP Version Fallback::PHP $original_version is not available on DockerHub. Falling back to PHP $fallback_version. This may indicate that DockerHub has not yet published the latest PHP release. Consider checking DockerHub availability before updating to newer versions."
+                github_actions_annotation "warning" "PHP Version Fallback" "PHP $original_version is not available on DockerHub. Falling back to PHP $fallback_version. This may indicate that DockerHub has not yet published the latest PHP release. Consider checking DockerHub availability before updating to newer versions."
                 echo_color_message green "✅ Fallback successful: Using PHP $fallback_version" >&2
                 echo "$fallback_version"  # Output to stdout for capture
                 return 0
@@ -135,9 +149,9 @@ validate_php_version_with_fallback() {
         
         # If we get here, both original and fallback failed
         if [ "$fallback_attempted" = true ]; then
-            github_actions_annotation "::error title=PHP Version Unavailable::Neither PHP $original_version nor fallback version $fallback_version are available on DockerHub. This suggests a significant lag in DockerHub publishing or a configuration issue. Please check DockerHub manually and consider using a known working version."
+            github_actions_annotation "error" "PHP Version Unavailable" "Neither PHP $original_version nor fallback version $fallback_version are available on DockerHub. This suggests a significant lag in DockerHub publishing or a configuration issue. Please check DockerHub manually and consider using a known working version."
         else
-            github_actions_annotation "::error title=PHP Version Unavailable::PHP $original_version is not available on DockerHub and no fallback version could be determined (patch version is 0). Please check DockerHub manually and use a known working version."
+            github_actions_annotation "error" "PHP Version Unavailable" "PHP $original_version is not available on DockerHub and no fallback version could be determined (patch version is 0). Please check DockerHub manually and use a known working version."
         fi
         
         return 1
