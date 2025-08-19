@@ -253,6 +253,10 @@ echo "Latest Patch Version within Build Minor: $latest_patch_within_build_minor"
 echo "Default Base OS within Build Minor: $default_base_os_within_build_minor"
 echo "Latest Global Patch Version: $latest_patch_global"
 
+echo_color_message yellow "🔍 To replicate this build, run the following command:"
+echo "bash scripts/dev.sh --variation $build_variation --version $build_patch_version --os $build_base_os"
+echo
+
 # Set default tag
 DOCKER_TAGS=""
 add_docker_tag "$build_patch_version-$build_variation-$build_base_os"
