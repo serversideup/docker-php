@@ -31,6 +31,13 @@ Experience the ***true difference*** of using these images vs the other options 
 
 </details>
 
+## Professionally Supported
+Are you looking for help on integreating Docker with your PHP application? We have multiple options to help your team out:
+
+- [Get Managed Hosting](https://serversideup.net/hire-us/): CI/CD design and engineering, managed hosting, guaranteed uptime, any host, any server.
+- [Get Professional Help](https://schedule.serversideup.net/team/serversideup/quick-chat-with-jay): Get video + screen-sharing help directly from the core contributors.
+- [Get a Full-Stack Development Team](https://serversideup.net/hire-us/): We can build your app from the ground up, or help you with your existing codebase.
+
 ## Usage
 This repository creates a number of Docker image variations, allowing you to choose exactly what you need.
 
