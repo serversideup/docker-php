@@ -20,42 +20,88 @@ RUN docker-php-serversideup-s6-install
 ####################
 # NGINX Signing Key
 ####################
-FROM php:${PHP_VERSION}-fpm AS nginx-repo-config
+FROM php:${PHP_VERSION}-fpm-${BASE_OS_VERSION} AS nginx-repo-config
 
 ARG SIGNING_KEY_URL="https://nginx.org/keys/nginx_signing.key"
 ARG SIGNING_FINGERPRINT="573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62"
 ARG SIGNING_KEY_OUTPUT_FILE="/usr/share/keyrings/nginx-archive-keyring.gpg"
+ARG SIGNING_ALPINE_RSA_PUB_SHA256="03833138bf6288dcb545f7a154af24f5c63b94931fef6b078cd8061204a44327"
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
 
-RUN docker-php-serversideup-dep-install-debian "curl gnupg2 ca-certificates lsb-release debian-archive-keyring" && \
-    \
-    # Import signing key
-    curl "$SIGNING_KEY_URL" | gpg --dearmor | tee "$SIGNING_KEY_OUTPUT_FILE" && \
-    \
-    # Verify signing key
-    VALID_KEY=$(gpg --dry-run --quiet --no-keyring --import --import-options import-show "$SIGNING_KEY_OUTPUT_FILE" | grep "$SIGNING_FINGERPRINT") && \
-    \
-    if [ -z "$VALID_KEY" ]; then \
-        echo "ERROR: Key did not match signing signature!" && \
+# Install NGINX signing key
+RUN \
+    if [ -f /etc/debian_version ]; then \
+        # Install dependencies
+        apt-get update && \
+        apt-get install -y curl gnupg2 ca-certificates lsb-release debian-archive-keyring && \
+        \
+        # Create GPG home directory
+        mkdir -p /root/.gnupg && \
+        \
+        # Import signing key
+        curl "$SIGNING_KEY_URL" | gpg --dearmor | tee "$SIGNING_KEY_OUTPUT_FILE" && \
+        \
+        # Verify signing key
+        VALID_KEY=$(gpg --dry-run --quiet --no-keyring --import --import-options import-show "$SIGNING_KEY_OUTPUT_FILE" | grep "$SIGNING_FINGERPRINT") && \
+        if [ -z "$VALID_KEY" ]; then \
+            echo "ERROR: Key did not match signing signature!" && \
+            exit 1; \
+        fi && \
+        \
+        # Setup apt repository for stable nginx packages
+        echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian $(lsb_release -cs) nginx" | tee /etc/apt/sources.list.d/nginx.list && \
+        \
+        # Setup repository pinning to prefer nginx packages over debian packages
+        printf "Package: *\nPin: origin nginx.org\nPin: release o=nginx\nPin-Priority: 900\n" > /etc/apt/preferences.d/99nginx && \
+        \
+        # Create dummy APK files so subsequent unconditional COPY does not fail on Debian
+        mkdir -p /etc/apk/keys && \
+        touch /etc/apk/repositories /etc/apk/keys/nginx_signing.rsa.pub; \
+    elif [ -f /etc/alpine-release ]; then \
+        # Install prerequisites for Alpine
+        apk add --no-cache openssl curl ca-certificates && \
+        \
+        # Set up the APK repository for stable NGINX packages
+        printf "%s%s%s%s%s\n" \
+            "@nginx " \
+            "http://nginx.org/packages/alpine/v" \
+            "$(egrep -o '^[0-9]+\.[0-9]+' /etc/alpine-release)" \
+            "/main" \
+            | tee -a /etc/apk/repositories && \
+        \
+        # Download the NGINX APK RSA repository key
+        curl -o /tmp/nginx_signing.rsa.pub https://nginx.org/keys/nginx_signing.rsa.pub && \
+        \
+        # Verify the key by pinning the SHA-256 of the DER-encoded public key.
+        # Allow multiple hashes (comma-separated) for rotation via build args.
+        CALC_SHA256=$(openssl rsa -pubin -in /tmp/nginx_signing.rsa.pub -outform DER 2>/dev/null | sha256sum | awk '{print $1}') && \
+        printf "%s" "$SIGNING_ALPINE_RSA_PUB_SHA256" | tr ',' '\n' | grep -qx "$CALC_SHA256" || { \
+            echo "ERROR: Alpine NGINX RSA key SHA-256 mismatch. Expected one of [$SIGNING_ALPINE_RSA_PUB_SHA256], got: $CALC_SHA256"; \
+            exit 1; \
+        } && \
+        \
+        # Move the key to APK's trusted keys directory
+        mv /tmp/nginx_signing.rsa.pub /etc/apk/keys/ && \
+        \
+        # Create dummy Debian files so subsequent unconditional COPY does not fail on Alpine
+        mkdir -p /usr/share/keyrings /etc/apt/sources.list.d /etc/apt/preferences.d && \
+        touch /usr/share/keyrings/nginx-archive-keyring.gpg /etc/apt/sources.list.d/nginx.list /etc/apt/preferences.d/99nginx; \
+    else \
+        echo "ERROR: Unsupported or undetected OS. Only Debian-based and Alpine-based systems are handled." && \
         exit 1; \
-    fi && \
-    \
-    # setup apt repository for stable nginx packages
-    echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian `lsb_release -cs` nginx" | tee /etc/apt/sources.list.d/nginx.list && \
-    \
-    # setup repository pinning to prefer nginx packages over debian packages
-    printf "Package: *\nPin: origin nginx.org\nPin-Priority: 900\n" > /etc/apt/preferences.d/99nginx
+    fi
 
 ##########
 # FPM-NGINX: Main Image
 ##########
 FROM ${BASE_IMAGE}
-ARG DEPENDENCY_PACKAGES_ALPINE='fcgi nginx gettext shadow'
-ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin nginx gettext-base procps zip'
+ARG DEPENDENCY_PACKAGES_ALPINE='fcgi gettext shadow'
+ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin gettext-base procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
+ARG NGINX_VERSION='1.28.0-1'
 
 LABEL org.opencontainers.image.title="serversideup/php (fpm-nginx)" \
     org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
@@ -125,10 +171,12 @@ COPY --from=s6-build /usr/local/bin/php-fpm-healthcheck /usr/local/bin/php-fpm-h
 COPY --from=nginx-repo-config /usr/share/keyrings/nginx-archive-keyring.gpg /usr/share/keyrings/
 COPY --from=nginx-repo-config /etc/apt/sources.list.d/nginx.list /etc/apt/sources.list.d/
 COPY --from=nginx-repo-config /etc/apt/preferences.d/99nginx /etc/apt/preferences.d/
+COPY --from=nginx-repo-config /etc/apk/repositories /etc/apk/repositories
+COPY --from=nginx-repo-config /etc/apk/keys/nginx_signing.rsa.pub /etc/apk/keys/
 
 # install pecl extensions, dependencies, and clean up
-RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
-    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
+RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE} nginx@nginx=${NGINX_VERSION}" && \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN} nginx=${NGINX_VERSION}"  && \
     docker-php-serversideup-install-php-ext-installer && \
     \
     # Ensure /var/www/ has the correct permissions
@@ -157,10 +205,14 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     rm -rf /etc/nginx/http.d/ && \
     rm /etc/nginx/nginx.conf && \
     \
-    # Docker doesn't support conditional COPY, so we have to remove the apt directory if we're on Alpine
+    # Docker doesn't support conditional COPY, so remove OS-specific repo/key artifacts that were copied unconditionally
     if cat /etc/os-release | grep -qi 'Alpine'; then \
+        # On Alpine, remove Debian APT artifacts
         rm -rf /usr/share/keyrings/ && \
         rm -rf /etc/apt/; \
+    else \
+        # On Debian, remove Alpine APK artifacts
+        rm -rf /etc/apk/; \
     fi
 
 # Copy our nginx configurations
