@@ -78,7 +78,7 @@ operating_systems:
       - name: "Alpine 3.17"
         version: alpine3.17
         number: 3.17
-        nginx_version: 1.26.1-r2
+        nginx_version: 1.26.2-r1
       - name: "Alpine 3.18"
         version: alpine3.18
         number: 3.18
