@@ -58,3 +58,39 @@ php_variations:
     supported_os: # Alpine with Unit is not supported yet. Submit a PR if you can help (https://github.com/serversideup/docker-php/issues/233)
       - bullseye
       - bookworm
+
+operating_systems:
+  - family: alpine
+    versions:
+      - name: "Alpine 3.16"
+        version: alpine3.16
+        nginx_version: 1.26.1-r2
+      - name: "Alpine 3.17"
+        version: alpine3.17
+        nginx_version: 1.26.1-r2
+      - name: "Alpine 3.18"
+        version: alpine3.18
+        nginx_version: 1.28.0-r1
+      - name: "Alpine 3.19"
+        version: alpine3.19
+        nginx_version: 1.28.0-r1
+      - name: "Alpine 3.20"
+        version: alpine3.20
+        nginx_version: 1.28.0-r1
+      - name: "Alpine 3.21"
+        version: alpine3.21
+        nginx_version: 1.28.0-r1
+      - name: "Alpine 3.22"
+        version: alpine3.22
+        nginx_version: 1.28.0-r1
+  - family: debian
+    versions:
+      - name: "Debian Bullseye"
+        version: bullseye
+        nginx_version: 1.28.0-1~bullseye
+      - name: "Debian Bookworm"
+        version: bookworm
+        nginx_version: 1.28.0-1~bookworm
+      - name: "Debian Trixie"
+        version: trixie
+        nginx_version: 1.28.0-1~trixie
