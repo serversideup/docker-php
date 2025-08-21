@@ -132,6 +132,23 @@ function is_default_base_os() {
     [[ "$build_base_os" == "$default_base_os_within_build_minor" ]]
 }
 
+function is_latest_family_os_for_build_minor() {
+    [[ "$build_base_os" == "$latest_family_os_within_build_minor" ]]
+}
+
+add_family_alias_if_latest() {
+  # Emits a family alias tag if the current build base OS is the latest within its family for this minor
+  local docker_tag_suffix=$1
+  if is_latest_family_os_for_build_minor; then
+    if [[ "$docker_tag_suffix" == *"-$build_base_os" ]]; then
+      local family_tag_suffix="${docker_tag_suffix%$build_base_os}$build_family"
+      add_docker_tag "$family_tag_suffix"
+    elif [[ "$docker_tag_suffix" == "$build_base_os" ]]; then
+      add_docker_tag "$build_family"
+    fi
+  fi
+}
+
 function ci_release_is_production_launch() {
     [[ -z "$DOCKER_TAG_PREFIX" && "$RELEASE_TYPE" == "latest" ]]
 }
@@ -226,9 +243,42 @@ build_minor_version="${build_patch_version%.*}"
 latest_global_stable_major=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r '[.php_versions[] | select(.major | test("-rc") | not) | .major | tonumber] | max | tostring')
 latest_global_stable_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg latest_global_stable_major "$latest_global_stable_major" '.php_versions[] | select(.major == $latest_global_stable_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $latest_global_stable_major + "." + tostring')
 latest_minor_within_build_major=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
-latest_patch_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .patch_versions | map( split(".") | map(tonumber) ) | max | join(".")')
-latest_patch_global=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r '[.php_versions[] | .minor_versions[] | select(.minor | test("-rc") | not) | .patch_versions[] | select(test("-rc") | not) | split(".") | map(tonumber) ] | max | join(".")')
-default_base_os_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | .base_os[] | select(.default == true) | .name')
+latest_patch_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | (.patch_versions // []) | map( split(".") | map(tonumber) ) | max | join(".")')
+latest_patch_global=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r '[.php_versions[] | .minor_versions[] | select(.minor | test("-rc") | not) | ((.patch_versions // [])[]) | select(test("-rc") | not) | split(".") | map(tonumber) ] | max | join(".")')
+# Determine default base OS within the build minor using operating_systems default family and highest available version
+default_base_os_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '
+  . as $root
+  | ($root.operating_systems[] | select(.default == true) | .family) as $defaultFamily
+  | ($root.operating_systems[] | select(.family == $defaultFamily) | .versions) as $familyVersions
+  | ($root.php_versions[]
+     | .minor_versions[]
+     | select(.minor == $build_minor)
+     | .base_os
+     | map(.name)) as $minorBaseOs
+  | $familyVersions
+  | map(select(.version as $v | $minorBaseOs | index($v)))
+  | max_by(.number)
+  | .version')
+
+# Determine the build family (alpine/debian) for the selected base OS
+build_family=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg base_os "$build_base_os" '
+  .operating_systems[]
+  | select(([.versions[] | .version] | index($base_os)) != null)
+  | .family' | head -n1)
+
+# Determine the latest OS within this family for the current minor
+latest_family_os_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" --arg family "$build_family" '
+  . as $root
+  | ($root.operating_systems[] | select(.family == $family) | .versions) as $familyVersions
+  | ($root.php_versions[]
+     | .minor_versions[]
+     | select(.minor == $build_minor)
+     | .base_os
+     | map(.name)) as $minorBaseOs
+  | $familyVersions
+  | map(select(.version as $v | $minorBaseOs | index($v)))
+  | max_by(.number)
+  | .version')
 
 check_vars \
   "🚨 Missing critical build variable. Check the script logic and logs" \
@@ -251,11 +301,14 @@ echo "Latest Global Minor Version: $latest_global_stable_minor"
 echo "Latest Minor Version within Build Major: $latest_minor_within_build_major"
 echo "Latest Patch Version within Build Minor: $latest_patch_within_build_minor"
 echo "Default Base OS within Build Minor: $default_base_os_within_build_minor"
+echo "Build Family: $build_family"
+echo "Latest Family OS within Build Minor: $latest_family_os_within_build_minor"
 echo "Latest Global Patch Version: $latest_patch_global"
 
 # Set default tag
 DOCKER_TAGS=""
 add_docker_tag "$build_patch_version-$build_variation-$build_base_os"
+add_family_alias_if_latest "$build_patch_version-$build_variation-$build_base_os"
 
 if is_default_base_os; then
   add_docker_tag "$build_patch_version-$build_variation"
@@ -263,6 +316,7 @@ fi
 
 if is_latest_stable_patch_within_build_minor; then
   add_docker_tag "$build_minor_version-$build_variation-$build_base_os"
+  add_family_alias_if_latest "$build_minor_version-$build_variation-$build_base_os"
 
   if is_default_base_os; then
     add_docker_tag "$build_minor_version-$build_variation"
@@ -270,6 +324,7 @@ if is_latest_stable_patch_within_build_minor; then
 
   if is_default_variation; then
     add_docker_tag "$build_minor_version-$build_base_os"
+    add_family_alias_if_latest "$build_minor_version-$build_base_os"
   fi
 
   if is_default_base_os && is_default_variation; then
@@ -278,6 +333,7 @@ if is_latest_stable_patch_within_build_minor; then
 
   if is_latest_minor_within_build_major; then
     add_docker_tag "$build_major_version-$build_variation-$build_base_os"
+    add_family_alias_if_latest "$build_major_version-$build_variation-$build_base_os"
 
     if is_default_base_os; then
         add_docker_tag "$build_major_version-$build_variation"
@@ -285,6 +341,7 @@ if is_latest_stable_patch_within_build_minor; then
 
     if is_default_variation; then
       add_docker_tag "$build_major_version-$build_base_os"
+      add_family_alias_if_latest "$build_major_version-$build_base_os"
     fi
 
     if is_default_base_os && is_default_variation; then
@@ -294,9 +351,11 @@ if is_latest_stable_patch_within_build_minor; then
 
   if is_latest_global_patch; then
     add_docker_tag "$build_variation-$build_base_os"
+    add_family_alias_if_latest "$build_variation-$build_base_os"
 
     if is_default_variation; then
       add_docker_tag "$build_base_os"
+      add_family_alias_if_latest "$build_base_os"
     fi
 
     if is_default_base_os; then

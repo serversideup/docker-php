@@ -108,6 +108,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
     # Use 'echo' to pass the JSON data to 'jq'
     merged_json=$(jq -s '
         {
+            php_variations: (.[1].php_variations // []),
             php_versions: (
                 .[0].php_versions + .[1].php_versions
                 | group_by(.major)
@@ -124,7 +125,8 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
                     )
                 })
             ),
-            php_variations: (. | map(.php_variations // []) | add)
+            operating_systems: (.[1].operating_systems // [])
+            
         }
     ' <(echo "$downloaded_and_normalized_json_data") <(echo "$base_json_data"))
 
