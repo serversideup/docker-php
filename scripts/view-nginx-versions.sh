@@ -4,7 +4,8 @@
 ###################################################
 # This script fetches the latest NGINX versions available for different
 # operating systems from the official NGINX repositories. By default, it
-# shows all operating systems, but you can filter to a specific OS.
+# shows all operating systems from the base config file, but you can filter
+# to a specific OS if needed.
 
 set -oe pipefail
 
