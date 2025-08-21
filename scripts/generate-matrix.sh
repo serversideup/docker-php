@@ -16,8 +16,14 @@ fi
 yq -o=json "$PHP_VERSIONS_FILE" | jq -c '
 
   def version_weight:
-    # Convert "x.y.z" into a sortable integer weight
-    split(".") | map(tonumber) as $nums | ($nums[0]*10000 + $nums[1]*100 + $nums[2]);
+    # Support numeric patches x.y.z and RC minors x.y-rc
+    if test("-rc$") then
+      capture("^(?<maj>[0-9]+)\\.(?<min>[0-9]+)-rc$") as $m
+      | ($m.maj|tonumber)*10000 + ($m.min|tonumber)*100 + 99
+    else
+      capture("^(?<maj>[0-9]+)\\.(?<min>[0-9]+)\\.(?<pat>[0-9]+)$") as $m
+      | ($m.maj|tonumber)*10000 + ($m.min|tonumber)*100 + ($m.pat|tonumber)
+    end;
 
   def os_family_match($os_name; $supported):
     # Allow listing "alpine" to include any alpine3.xx base_os
