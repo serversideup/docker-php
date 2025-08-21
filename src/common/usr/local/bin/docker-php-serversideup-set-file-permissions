@@ -159,17 +159,7 @@ case "$OS" in
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             nginx)
-                DIRS="
-                    /composer
-                    /run
-                    /var/www
-                    /etc/nginx
-                    /var/log/nginx
-                    /var/lib/nginx
-                    /etc/ssl/private
-                    /usr/local/etc/php-fpm.conf
-                    /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
-                    $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
+                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/cache/nginx /var/www/ /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             *)
                 echo "$script_name: Unsupported SERVICE: $SERVICE"
