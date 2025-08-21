@@ -117,7 +117,7 @@ function is_latest_stable_patch_within_build_minor() {
 }
 
 function is_latest_global_patch() {
-    [[ "$build_patch_version" == $latest_patch_global && "$build_patch_version" != *"rc"* ]]
+    [[ "$build_patch_version" == "$latest_patch_global" && "$build_patch_version" != *"rc"* ]]
 }
 
 function is_latest_minor_within_build_major() {
@@ -129,11 +129,11 @@ function is_latest_major() {
 }
 
 function is_default_base_os() {
-    [[ "$build_base_os" == "$default_base_os_within_build_minor" ]]
+    [[ "$build_base_os" == "$default_supported_base_os_within_build_minor" ]]
 }
 
 function is_latest_family_os_for_build_minor() {
-    [[ "$build_base_os" == "$latest_family_os_within_build_minor" ]]
+    [[ "$build_base_os" == "$latest_family_supported_os_within_build_minor" ]]
 }
 
 add_family_alias_if_latest() {
@@ -280,6 +280,49 @@ latest_family_os_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --
   | max_by(.number)
   | .version')
 
+# Determine the default base OS within the build minor considering the variation's supported_os
+default_supported_base_os_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" --arg variation "$build_variation" '
+  . as $root
+  | ($root.php_variations[] | select(.name == $variation) | (.supported_os // [])) as $supported
+  | ($root.operating_systems[] | select(.default == true) | .family) as $defaultFamily
+  | ($root.operating_systems[] | select(.family == $defaultFamily) | .versions) as $familyVersions
+  | ($root.php_versions[]
+     | .minor_versions[]
+     | select(.minor == $build_minor)
+     | .base_os
+     | map(.name)) as $minorBaseOs
+  | $familyVersions
+  | map(select(
+      .version as $v
+      | ($minorBaseOs | index($v)) != null
+      and (
+        ($supported | length) == 0
+        or any($supported[]; . == $v or (. == "alpine" and ($v | startswith("alpine"))))
+      )
+    ))
+  | if length > 0 then (max_by(.number) | .version) else empty end')
+
+# Determine the latest OS within this family for the current minor considering the variation's supported_os
+latest_family_supported_os_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" --arg family "$build_family" --arg variation "$build_variation" '
+  . as $root
+  | ($root.php_variations[] | select(.name == $variation) | (.supported_os // [])) as $supported
+  | ($root.operating_systems[] | select(.family == $family) | .versions) as $familyVersions
+  | ($root.php_versions[]
+     | .minor_versions[]
+     | select(.minor == $build_minor)
+     | .base_os
+     | map(.name)) as $minorBaseOs
+  | $familyVersions
+  | map(select(
+      .version as $v
+      | ($minorBaseOs | index($v)) != null
+      and (
+        ($supported | length) == 0
+        or any($supported[]; . == $v or (. == "alpine" and ($v | startswith("alpine"))))
+      )
+    ))
+  | if length > 0 then (max_by(.number) | .version) else empty end')
+
 check_vars \
   "🚨 Missing critical build variable. Check the script logic and logs" \
   build_patch_version \
@@ -303,6 +346,8 @@ echo "Latest Patch Version within Build Minor: $latest_patch_within_build_minor"
 echo "Default Base OS within Build Minor: $default_base_os_within_build_minor"
 echo "Build Family: $build_family"
 echo "Latest Family OS within Build Minor: $latest_family_os_within_build_minor"
+echo "Default Supported Base OS within Build Minor: ${default_supported_base_os_within_build_minor:-}"
+echo "Latest Supported Family OS within Build Minor: ${latest_family_supported_os_within_build_minor:-}"
 echo "Latest Global Patch Version: $latest_patch_global"
 
 # Set default tag
@@ -377,5 +422,5 @@ echo_color_message green "🚀 Summary of Docker Tags Being Shipped: $DOCKER_TAG
 # Save to GitHub's environment
 if [[ $CI == "true" ]]; then
   echo "DOCKER_TAGS=${DOCKER_TAGS}" >> $GITHUB_ENV
-  echo_color_message green "✅ Saved Docker Tags to "GITHUB_ENV""
+  echo_color_message green "✅ Saved Docker Tags to GITHUB_ENV"
 fi
