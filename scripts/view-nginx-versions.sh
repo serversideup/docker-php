@@ -50,7 +50,7 @@ help_menu() {
     echo "Usage: $0 [--os <os>]"
     echo
     echo "This script fetches the latest NGINX versions available for different"
-    echo "operating systems from the official NGINX repositories."
+    echo "operating systems from the PHP base config file."
     echo
     echo "Options:"
     echo "  --os <os>      Filter to a specific operating system"
