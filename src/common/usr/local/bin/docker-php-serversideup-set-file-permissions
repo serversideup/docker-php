@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -eu
 
 ###################################################
 # Usage: docker-php-serversideup-set-file-permissions --owner USER:GROUP --service SERVICE
@@ -16,6 +16,12 @@ usage() {
     echo "Usage: $0 --owner USER:GROUP --service SERVICE"
     exit 1
 }
+
+# Check for root privileges
+if [ "$(id -u)" -ne 0 ]; then
+    echo "${script_name}: This script must be run as root within the container. Be sure to set \"USER root\" in your Dockerfile before running this script."
+    exit 1
+fi
 
 # Check for minimum number of arguments
 if [ "$#" -ne 4 ]; then
