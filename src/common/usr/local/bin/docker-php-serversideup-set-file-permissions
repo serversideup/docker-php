@@ -17,6 +17,12 @@ usage() {
     exit 1
 }
 
+# Check for root privileges
+if [ "$(id -u)" -ne 0 ]; then
+    echo "${script_name}: This script must be run as root within the container. Be sure to set \"USER root\" in your Dockerfile before running this script."
+    exit 1
+fi
+
 # Check for minimum number of arguments
 if [ "$#" -ne 4 ]; then
     usage
@@ -42,12 +48,6 @@ done
 # Ensure OWNER and SERVICE are set
 if [ -z "$OWNER" ] || [ -z "$SERVICE" ]; then
     usage
-fi
-
-# Check for root privileges
-if [ "$(id -u)" -ne 0 ]; then
-    echo "${script_name}: This script must be run as root within the container. Be sure to set \"USER root\" in your Dockerfile before running this script."
-    exit 1
 fi
 
 # Detect the operating system using /etc/os-release
@@ -84,45 +84,45 @@ case "$OS" in
             fpm)
                 DIRS="
                     /composer
-                    /var/www
                     /usr/local/etc/php-fpm.conf
                     /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
+                    /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             apache)
                 DIRS="
                     /composer
-                    /run
-                    /var/www
-                    /var/log/apache2
                     /etc/apache2
                     /etc/ssl/private
+                    /run
                     /usr/local/etc/php-fpm.conf
                     /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
+                    /var/log/apache2
+                    /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             nginx)
                 DIRS="
                     /composer
-                    /run
-                    /var/www
-                    /var/log/nginx
-                    /var/cache/nginx
                     /etc/nginx
                     /etc/ssl/private
+                    /run
                     /usr/local/etc/php-fpm.conf
                     /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
+                    /var/cache/nginx
+                    /var/log/nginx
+                    /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             unit)
                 DIRS="
                     /composer
-                    /var/www
-                    /var/log/unit
-                    /var/run/unit
-                    /var/lib/unit
                     /etc/unit
                     /etc/ssl/private
+                    /var/lib/unit
+                    /var/log/unit
+                    /var/run/unit
+                    /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             *)
@@ -142,24 +142,33 @@ case "$OS" in
             fpm)
                 DIRS="
                     /composer
-                    /var/www
                     /usr/local/etc/php-fpm.conf
                     /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
+                    /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             apache)
                 DIRS="
                     /composer
-                    /run
-                    /var/www
                     /etc/apache2
                     /etc/ssl/private
+                    /run
                     /usr/local/etc/php-fpm.conf
                     /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
+                    /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             nginx)
-                DIRS="/etc/nginx/ /var/log/nginx /etc/ssl/private /var/cache/nginx /var/www/ /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
+                DIRS="
+                    /composer
+                    /etc/nginx/
+                    /etc/ssl/private
+                    /usr/local/etc/php-fpm.conf
+                    /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
+                    /var/cache/nginx
+                    /var/log/nginx
+                    /var/www/
+                    $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             *)
                 echo "$script_name: Unsupported SERVICE: $SERVICE"
@@ -174,16 +183,4 @@ case "$OS" in
 esac
 
 # Change ownership of the directories
-# Split DIRS into an array and properly quote each path
-for dir in ${DIRS}; do
-    if [ -e "${dir}" ]; then
-        chown -R "${OWNER}" "${dir}" || {
-            echo "${script_name}: Failed to change ownership of ${dir}"
-            exit 1
-        }
-        echo "${script_name}: Ownership of ${dir} changed to ${OWNER}."
-    else
-        echo "${script_name}: Directory not found: ${dir}"
-        exit 1
-    fi
-done
+change_ownership $DIRS
