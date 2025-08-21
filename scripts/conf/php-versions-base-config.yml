@@ -32,7 +32,6 @@ php_versions:
           - 8.0.30
       - minor: "8.1"
         base_os:
-          - name: alpine3.20
           - name: alpine3.21
           - name: alpine3.22
           - name: bookworm
@@ -41,7 +40,6 @@ php_versions:
           # - 8.1.28 # Pull latest from Official PHP source
       - minor: "8.2"
         base_os:
-          - name: alpine3.20
           - name: alpine3.21
           - name: alpine3.22
           - name: bookworm
@@ -50,7 +48,6 @@ php_versions:
         #   - 8.2.18 # Pull latest from Official PHP source
       - minor: "8.3"
         base_os:
-          - name: alpine3.20
           - name: alpine3.21
           - name: alpine3.22
           - name: bookworm
