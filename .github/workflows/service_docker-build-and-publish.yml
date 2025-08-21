@@ -78,7 +78,7 @@ jobs:
 
   docker-publish:
     needs: setup-matrix
-    runs-on: ubuntu-24.04
+    runs-on: depot-ubuntu-24.04-4
     strategy:
       matrix: ${{fromJson(needs.setup-matrix.outputs.php-version-map-json)}}
 
