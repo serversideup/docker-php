@@ -157,6 +157,55 @@ function is_default_variation() {
     [[ "$PHP_BUILD_VARIATION" == "$DEFAULT_IMAGE_VARIATION" ]]
 }
 
+function is_rc_build() {
+    [[ "$build_patch_version" == *"-rc"* ]]
+}
+
+validate_os_and_variation() {
+  local os_to_check="$build_base_os"
+  local variation_to_check="$build_variation"
+
+  # Validate OS exists in config
+  if ! yq -o=json "$PHP_VERSIONS_FILE" | jq -e --arg os "$os_to_check" 'any(.operating_systems[] | .versions[]; .version == $os)' > /dev/null; then
+    echo_color_message red "🛑 ERROR: Unknown --os '$os_to_check'"
+    echo "Valid options are:"
+    yq -o=json "$PHP_VERSIONS_FILE" | jq -r '.operating_systems[].versions[].version' | sed 's/^/- /'
+    echo
+    help_menu
+    exit 1
+  fi
+
+  # Validate variation exists
+  if ! yq -o=json "$PHP_VERSIONS_FILE" | jq -e --arg v "$variation_to_check" 'any(.php_variations[]; .name == $v)' > /dev/null; then
+    echo_color_message red "🛑 ERROR: Unknown --variation '$variation_to_check'"
+    echo "Valid options are:"
+    yq -o=json "$PHP_VERSIONS_FILE" | jq -r '.php_variations[].name' | sed 's/^/- /'
+    echo
+    help_menu
+    exit 1
+  fi
+
+  # Validate variation supports OS if a constraint is defined
+  local supports_json
+  supports_json=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg v "$variation_to_check" '[.php_variations[] | select(.name == $v) | (.supported_os // [])[]]')
+  local has_constraints
+  has_constraints=$(echo "$supports_json" | jq 'length > 0')
+
+  if [[ "$has_constraints" == "true" ]]; then
+    local is_supported
+    is_supported=$(echo "$supports_json" | jq -e --arg os "$os_to_check" '
+      any(.[]; . == $os or (. == "alpine" and ($os | startswith("alpine"))))
+    ' >/dev/null 2>&1; echo $?)
+    if [[ "$is_supported" != "0" ]]; then
+      echo_color_message red "🛑 ERROR: Variation '$variation_to_check' does not support OS '$os_to_check'"
+      echo "Supported values for '$variation_to_check' are:"
+      echo "$supports_json" | jq -r '.[]' | sed 's/^/- /'
+      echo
+      exit 1
+    fi
+  fi
+}
+
 help_menu() {
     echo "Usage: $0 --variation <variation> --os <os> --patch-version <patch-version> [--stable-release --github-release-tag <tag>]"
     echo
@@ -235,16 +284,41 @@ build_patch_version=$PHP_BUILD_VERSION
 build_base_os=$PHP_BUILD_BASE_OS
 build_variation=$PHP_BUILD_VARIATION
 
+# Validate inputs early
+validate_os_and_variation
+
 # Extract major and minor versions from build_patch_version
 build_major_version="${build_patch_version%%.*}"
-build_minor_version="${build_patch_version%.*}"
+if [[ "$build_patch_version" == *"-rc"* ]]; then
+  # For RC inputs like 8.5-rc, the minor identifier is the whole string
+  build_minor_version="$build_patch_version"
+else
+  build_minor_version="${build_patch_version%.*}"
+fi
 
 # Fetch version data from the PHP Versions file
 latest_global_stable_major=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r '[.php_versions[] | select(.major | test("-rc") | not) | .major | tonumber] | max | tostring')
 latest_global_stable_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg latest_global_stable_major "$latest_global_stable_major" '.php_versions[] | select(.major == $latest_global_stable_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $latest_global_stable_major + "." + tostring')
 latest_minor_within_build_major=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_major "$build_major_version" '.php_versions[] | select(.major == $build_major) | .minor_versions | map(select(.minor | test("-rc") | not) | .minor | split(".") | .[1] | tonumber) | max | $build_major + "." + tostring')
-latest_patch_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '.php_versions[] | .minor_versions[] | select(.minor == $build_minor) | (.patch_versions // []) | map( split(".") | map(tonumber) ) | max | join(".")')
-latest_patch_global=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r '[.php_versions[] | .minor_versions[] | select(.minor | test("-rc") | not) | ((.patch_versions // [])[]) | select(test("-rc") | not) | split(".") | map(tonumber) ] | max | join(".")')
+latest_patch_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '
+  .php_versions[]
+  | .minor_versions[]
+  | select(.minor == $build_minor)
+  | (.patch_versions // []) as $patches
+  | ($patches | map(select(test("-rc") | not) | split(".") | map(tonumber))) as $parsed
+  | if ($parsed | length) > 0 then ($parsed | max | join(".")) else empty end
+')
+latest_patch_global=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r '
+  [
+    .php_versions[]
+    | .minor_versions[]
+    | select(.minor | test("-rc") | not)
+    | ((.patch_versions // [])[])
+    | select(test("-rc") | not)
+    | split(".") | map(tonumber)
+  ] as $all
+  | if ($all | length) > 0 then ($all | max | join(".")) else empty end
+')
 # Determine default base OS within the build minor using operating_systems default family and highest available version
 default_base_os_within_build_minor=$(yq -o=json "$PHP_VERSIONS_FILE" | jq -r --arg build_minor "$build_minor_version" '
   . as $root
@@ -339,24 +413,37 @@ echo "Build Major Version: $build_major_version"
 echo "Build Minor Version: $build_minor_version"
 
 echo_color_message yellow "🧐 Queried results from $PHP_VERSIONS_FILE"
-echo "Latest Global Major Version: $latest_global_stable_major"
-echo "Latest Global Minor Version: $latest_global_stable_minor"
-echo "Latest Minor Version within Build Major: $latest_minor_within_build_major"
-echo "Latest Patch Version within Build Minor: $latest_patch_within_build_minor"
-echo "Default Base OS within Build Minor: $default_base_os_within_build_minor"
-echo "Build Family: $build_family"
-echo "Latest Family OS within Build Minor: $latest_family_os_within_build_minor"
-echo "Default Supported Base OS within Build Minor: ${default_supported_base_os_within_build_minor:-}"
-echo "Latest Supported Family OS within Build Minor: ${latest_family_supported_os_within_build_minor:-}"
-echo "Latest Global Patch Version: $latest_patch_global"
+echo "Latest Global Major Version: ${latest_global_stable_major:-N/A}"
+echo "Latest Global Minor Version: ${latest_global_stable_minor:-N/A}"
+echo "Latest Minor Version within Build Major: ${latest_minor_within_build_major:-N/A}"
+echo "Latest Patch Version within Build Minor: ${latest_patch_within_build_minor:-N/A}"
+echo "Default Base OS within Build Minor: ${default_base_os_within_build_minor:-N/A}"
+echo "Build Family: ${build_family:-N/A}"
+echo "Latest Family OS within Build Minor: ${latest_family_os_within_build_minor:-N/A}"
+echo "Default Supported Base OS within Build Minor: ${default_supported_base_os_within_build_minor:-N/A}"
+echo "Latest Supported Family OS within Build Minor: ${latest_family_supported_os_within_build_minor:-N/A}"
+echo "Latest Global Patch Version: ${latest_patch_global:-N/A}"
+
+if is_rc_build; then
+  echo_color_message yellow "🔶 RC build detected. Stable aliases (minor/major/latest) will be skipped."
+fi
 
 # Set default tag
 DOCKER_TAGS=""
 add_docker_tag "$build_patch_version-$build_variation-$build_base_os"
 add_family_alias_if_latest "$build_patch_version-$build_variation-$build_base_os"
 
+# Always allow the variation-only alias for the default base OS, including RC builds
 if is_default_base_os; then
   add_docker_tag "$build_patch_version-$build_variation"
+fi
+
+# For RC builds, allow publishing the root RC alias when both default OS and default variation are used
+if is_rc_build && is_default_base_os && is_default_variation; then
+  add_docker_tag "$build_patch_version"
+  # Also publish the OS-specific RC alias and its family alias
+  add_docker_tag "$build_patch_version-$build_base_os"
+  add_family_alias_if_latest "$build_patch_version-$build_base_os"
 fi
 
 if is_latest_stable_patch_within_build_minor; then
