@@ -1,6 +1,6 @@
 #!/bin/bash
 ###################################################
-# Usage: view-nginx-versions.sh [--os <os>]
+# Usage: get-nginx-versions.sh [--os <os>] [--write]
 ###################################################
 # This script fetches the latest NGINX versions available for different
 # operating systems from the official NGINX repositories. By default, it
@@ -21,10 +21,7 @@ os_config() {
         echo "yq is required but not found. Install 'yq' (https://github.com/mikefarah/yq) to continue." 1>&2
         return 1
     fi
-    if ! command -v jq >/dev/null 2>&1; then
-        echo "jq is required but not found. Install 'jq' to continue." 1>&2
-        return 1
-    fi
+    # jq is not required; all updates are handled via yq
 
     yq -r '.operating_systems[] | .family as $f | .versions[] | "\(.version)|\($f)|\(.name)"' "$config_file" \
     | while IFS='|' read -r version family name; do
@@ -47,13 +44,14 @@ os_config() {
 # Functions
 
 help_menu() {
-    echo "Usage: $0 [--os <os>]"
+    echo "Usage: $0 [--os <os>] [--write]"
     echo
     echo "This script fetches the latest NGINX versions available for different"
     echo "operating systems from the PHP base config file."
     echo
     echo "Options:"
     echo "  --os <os>      Filter to a specific operating system"
+    echo "  --write        Write discovered versions back to the base config (yq)"
     echo "  --help, -h     Show this help message"
     echo
     echo "Available Operating Systems:"
@@ -69,11 +67,16 @@ help_menu() {
 # Argument Parsing
 
 FILTER_OS=""
+WRITE_MODE=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --os)
         FILTER_OS="$2"
         shift 2
+        ;;
+        --write)
+        WRITE_MODE=true
+        shift 1
         ;;
         --help|-h)
         help_menu
@@ -92,6 +95,7 @@ done
 
 # Script Configurations
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+CONFIG_FILE="$SCRIPT_DIR/conf/php-versions-base-config.yml"
 
 # UI Colors
 function ui_set_yellow {
@@ -156,26 +160,65 @@ get_debian_version() {
     fi
 }
 
-fetch_nginx_version() {
-    local os_key="$1"
-    local os_name="$2"
-    local url="$3"
-    local pattern="$4"
-    
-    echo_color_message blue "🔍 Fetching NGINX version for $os_name from $url..."
-    
+compute_nginx_version() {
+    local url="$1"
+    local pattern="$2"
+
     local version=""
     if [[ "$url" == *"alpine"* ]]; then
         version=$(get_alpine_version "$url" "$pattern")
     else
         version=$(get_debian_version "$url")
     fi
-    
-    ui_set_bold
-    ui_set_green
-    printf "%-20s" "$os_name:"
-    ui_reset_colors
-    echo " $version"
+
+    echo "$version"
+}
+
+update_config_nginx_version() {
+    local version_key="$1"   # e.g., alpine3.20 or bookworm
+    local new_nginx_version="$2"
+
+    if [[ -z "$new_nginx_version" || "$new_nginx_version" == "Unable to fetch" ]]; then
+        echo_color_message red "⚠️  Skipping update for $version_key (no version found)"
+        return 0
+    fi
+
+    # Preserve comments/spacing: perform a targeted line replacement using awk
+    # Strategy: when we encounter the specific 'version: <key>' line, the next
+    # 'nginx_version:' line in that list item will be replaced with the new value,
+    # while keeping indentation and any spacing after the colon intact.
+    local tmp_file
+    tmp_file="$(mktemp)"
+
+    VERSION_KEY="$version_key" NEW_VER="$new_nginx_version" awk '
+      BEGIN { target = ENVIRON["VERSION_KEY"]; replacement = ENVIRON["NEW_VER"]; in_block = 0 }
+      {
+        # Detect a version line and check if it matches our target value
+        if ($0 ~ /^[ \t]*version:[ \t]*/) {
+          line = $0
+          gsub(/^[ \t]*version:[ \t]*/, "", line)
+          # Extract the first token before a space or comment
+          split(line, parts, /[ \t#]/)
+          val = parts[1]
+          in_block = (val == target) ? 1 : 0
+        }
+
+        if (in_block && $0 ~ /^[ \t]*nginx_version:[ \t]*/) {
+          # Capture exact prefix including key and any spaces after the colon
+          mpos = match($0, /^[ \t]*nginx_version:[ \t]*/)
+          if (mpos > 0) {
+            prefix = substr($0, RSTART, RLENGTH)
+            print prefix replacement
+            in_block = 0
+            next
+          }
+        }
+
+        print $0
+      }
+    ' "$CONFIG_FILE" > "$tmp_file" && mv "$tmp_file" "$CONFIG_FILE"
+
+    echo_color_message green "✍️  Updated nginx_version for $version_key -> $new_nginx_version"
 }
 
 ##########################
@@ -201,8 +244,23 @@ os_config | while IFS='|' read -r os_key os_name url pattern; do
         continue
     fi
 
-    fetch_nginx_version "$os_key" "$os_name" "$url" "$pattern"
+    echo_color_message blue "🔍 Fetching NGINX version for $os_name from $url..."
+    version=$(compute_nginx_version "$url" "$pattern")
+
+    ui_set_bold
+    ui_set_green
+    printf "%-20s" "$os_name:"
+    ui_reset_colors
+    echo " $version"
+
+    if [[ "$WRITE_MODE" == true ]]; then
+        update_config_nginx_version "$os_key" "$version"
+    fi
 done
 
 echo
-echo_color_message green "✅ NGINX version check complete!"
+if [[ "$WRITE_MODE" == true ]]; then
+    echo_color_message green "✅ NGINX version check and write complete!"
+else
+    echo_color_message green "✅ NGINX version check complete!"
+fi
