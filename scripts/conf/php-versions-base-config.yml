@@ -59,7 +59,6 @@ php_versions:
           # - 8.3.6 # Pull latest from Official PHP source
       - minor: "8.4"
         base_os:
-          - name: alpine3.20
           - name: alpine3.21
           - name: alpine3.22
           - name: bookworm
