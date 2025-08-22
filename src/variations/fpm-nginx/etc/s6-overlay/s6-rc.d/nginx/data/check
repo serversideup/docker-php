@@ -10,8 +10,10 @@ if is_online; then
     echo "✅ NGINX + PHP-FPM is running correctly."
     exit 0
 else
-    echo "❌ There seems to be a failure in checking the NGINX + PHP-FPM."
-    status_code=$(curl $curl_options -w "%{http_code}" "$healthcheck_url")
-    echo "HTTP Status Code: $status_code"
+    echo "👉 NGINX + PHP-FPM is not online. Waiting for it to start..."
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
+        status_code=$(curl $curl_options -w "%{http_code}" "$healthcheck_url")
+        echo "HTTP Status Code: $status_code"
+    fi
     exit 1
 fi

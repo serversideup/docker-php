@@ -1,34 +1,50 @@
-#!/bin/bash
-###################################################
-# Usage: generate-matrix.sh
-###################################################
-# This script is used to generate the GitHub Actions
-# matrix for the PHP versions and OS combinations.
-#
-# 👉 REQUIRED FILES
-# - PHP_VERSIONS_FILE must be valid and set to a valid file path
-#  (defaults to scripts/conf/php-versions.yml)
-
+#!/usr/bin/env bash
 set -euo pipefail
 
-# Path to the PHP versions configuration file
-PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"scripts/conf/php-versions.yml"}"
+# Usage: generate-matrix.sh [path/to/php-versions.yml]
+# Reads the provided YAML (or $PHP_VERSIONS_FILE, or default scripts/conf/php-versions.yml)
+# and prints a GitHub Actions matrix JSON of the form {"include": [...]}
 
-# Generate and output the MATRIX_JSON
-yq -o=json "$PHP_VERSIONS_FILE" | 
-jq -c '{
-  include: [
-    (.php_variations[] | 
-      {name, supported_os: (.supported_os // ["alpine", "bullseye", "bookworm"]), excluded_minor_versions: (.excluded_minor_versions // [])}
-    ) as $variation |
-    .php_versions[] |
-    .minor_versions[] | 
-    # Check if the minor version is not in the excluded list for the variation
-    select([.minor] | inside($variation.excluded_minor_versions | map(.)) | not) |
-    .patch_versions[] as $patch |
-    .base_os[] as $os |
-    select($variation.supported_os | if length == 0 then . else . | index($os.name) end) |
-    {patch_version: $patch, base_os: $os.name, php_variation: $variation.name}
-  ] 
-} | 
-{include: (.include | sort_by(.patch_version | split(".") | map(tonumber) | . as $nums | ($nums[0]*10000 + $nums[1]*100 + $nums[2])) | reverse)}'
+PHP_VERSIONS_FILE="${1:-${PHP_VERSIONS_FILE:-scripts/conf/php-versions.yml}}"
+
+if [ ! -f "$PHP_VERSIONS_FILE" ]; then
+  echo "YAML file not found: $PHP_VERSIONS_FILE" >&2
+  exit 1
+fi
+
+# Convert YAML to JSON, then shape it with jq.
+yq -o=json "$PHP_VERSIONS_FILE" | jq -c '
+
+  def version_weight:
+    # Support numeric patches x.y.z and RC minors x.y-rc
+    if test("-rc$") then
+      capture("^(?<maj>[0-9]+)\\.(?<min>[0-9]+)-rc$") as $m
+      | ($m.maj|tonumber)*10000 + ($m.min|tonumber)*100 + 99
+    else
+      capture("^(?<maj>[0-9]+)\\.(?<min>[0-9]+)\\.(?<pat>[0-9]+)$") as $m
+      | ($m.maj|tonumber)*10000 + ($m.min|tonumber)*100 + ($m.pat|tonumber)
+    end;
+
+  def os_family_match($os_name; $supported):
+    # Allow listing "alpine" to include any alpine3.xx base_os
+    # Exact matches like "bullseye", "bookworm", "trixie" must match exactly
+    ($supported == $os_name) or ($supported == "alpine" and ($os_name | startswith("alpine")));
+
+  def is_supported($variation; $os):
+    # If no supported_os specified, allow all; otherwise filter
+    (($variation.supported_os // []) | length) == 0 or
+    ((($variation.supported_os // []) | any(os_family_match($os.name; .))));
+
+  . as $root
+  | [ ($root.php_variations[] | {name, supported_os}) as $variation
+      | $root.php_versions[]
+      | .minor_versions[]
+      | .base_os[] as $os
+      | .patch_versions[] as $patch
+      | select(is_supported($variation; $os))
+      | {patch_version: $patch, base_os: $os.name, php_variation: $variation.name}
+    ]
+  | { include: ( . | sort_by(.patch_version | version_weight) | reverse ) }
+'
+
+

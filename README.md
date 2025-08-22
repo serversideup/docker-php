@@ -31,6 +31,13 @@ Experience the ***true difference*** of using these images vs the other options 
 
 </details>
 
+## Professionally Supported
+Are you looking for help on integreating Docker with your PHP application? We have multiple options to help your team out:
+
+- [Get Managed Hosting](https://serversideup.net/hire-us/): CI/CD design and engineering, managed hosting, guaranteed uptime, any host, any server.
+- [Get Professional Help](https://schedule.serversideup.net/team/serversideup/quick-chat-with-jay): Get video + screen-sharing help directly from the core contributors.
+- [Get a Full-Stack Development Team](https://serversideup.net/hire-us/): We can build your app from the ground up, or help you with your existing codebase.
+
 ## Usage
 This repository creates a number of Docker image variations, allowing you to choose exactly what you need.
 
@@ -86,14 +93,14 @@ All of our software is free an open to the world. None of this can be brought to
 <!-- bronze -->No bronze sponsors yet. <a href="https://github.com/sponsors/serversideup">Become a sponsor →</a><!-- bronze -->
 
 #### Individual Supporters
-<!-- supporters --><a href="https://github.com/GeekDougle"><img src="https://github.com/GeekDougle.png" width="40px" alt="GeekDougle" /></a>&nbsp;&nbsp;<a href="https://github.com/JQuilty"><img src="https://github.com/JQuilty.png" width="40px" alt="JQuilty" /></a>&nbsp;&nbsp;<a href="https://github.com/MaltMethodDev"><img src="https://github.com/MaltMethodDev.png" width="40px" alt="MaltMethodDev" /></a>&nbsp;&nbsp;<a href="https://github.com/harrisonratcliffe"><img src="https://github.com/harrisonratcliffe.png" width="40px" alt="harrisonratcliffe" /></a>&nbsp;&nbsp;<!-- supporters -->
+<!-- supporters --><a href="https://github.com/GeekDougle"><img src="https://github.com/GeekDougle.png" width="40px" alt="GeekDougle" /></a>&nbsp;&nbsp;<a href="https://github.com/JQuilty"><img src="https://github.com/JQuilty.png" width="40px" alt="JQuilty" /></a>&nbsp;&nbsp;<a href="https://github.com/MaltMethodDev"><img src="https://github.com/MaltMethodDev.png" width="40px" alt="MaltMethodDev" /></a>&nbsp;&nbsp;<a href="https://github.com/bananabrann"><img src="https://github.com/bananabrann.png" width="40px" alt="bananabrann" /></a>&nbsp;&nbsp;<!-- supporters -->
 
 #### Special thanks
 We'd like to specifically thank a few folks for taking the time for being a sound board that deeply influenced the direction of this project.
 
 Please check out all of their work:
 - [Chris Fidao](https://twitter.com/fideloper)
-- [Joel Clermont](https://twitter.com/joelclermont)
+- [Joel Clermont](https://x.com/jclermont)
 - [Patricio](https://twitter.com/PatricioOnCode)
 
 ## About Us

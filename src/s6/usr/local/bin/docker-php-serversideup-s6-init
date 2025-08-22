@@ -7,6 +7,74 @@ set -e
 # This script is used to take scripts from "/etc/entrypoint.d" and move them
 # to the S6 Overlay structure.
 
-echo "⚠️ CAUTION: This script is deprecated and will be removed in a future release. Please remove any references to this script from your Dockerfile."
-echo "For the latest information on how to add your own start up scripts, please refer to the documentation:"
-echo "https://serversideup.net/open-source/docker-php/docs/customizing-the-image/adding-your-own-start-up-scripts"
+S6_HOME="/etc/s6-overlay"
+ENTRYPOINT_DIR="/etc/entrypoint.d"
+
+# Sanity checks
+if [ ! -d "$ENTRYPOINT_DIR" ]; then
+    echo "Error: $ENTRYPOINT_DIR directory not found"
+    exit 1
+fi
+
+if [ ! -d "$S6_HOME" ]; then
+    echo "Error: S6_HOME directory ($S6_HOME) not found"
+    exit 1
+fi
+
+# Check for root privileges
+if [ "$(id -u)" -ne 0 ]; then
+    echo "$(basename "$0"): This script must be run as root within the container. Be sure to set \"USER root\" in your Dockerfile before running this script."
+    exit 1
+fi
+
+for file in "$ENTRYPOINT_DIR"/*.sh; do
+  [ -e "$file" ] || continue # Skip if no files match
+  
+  # Get the base name of the file
+  script_name=$(basename "$file" .sh)
+
+  # Proceed only if the script does not exist
+  if [ ! -e "${S6_HOME}/scripts/${script_name}" ]; then
+    # Create the service directory for that file
+    mkdir -p "${S6_HOME}/s6-rc.d/${script_name}"
+    
+    # Set service type to "oneshot"
+    echo "oneshot" > "${S6_HOME}/s6-rc.d/${script_name}/type"
+
+    # Set the "up" script
+    echo "${S6_HOME}/scripts/${script_name}" > "${S6_HOME}/s6-rc.d/${script_name}/up"
+
+    # Place empty file in contents.d
+    touch "${S6_HOME}/s6-rc.d/user/contents.d/${script_name}"
+
+    # Ensure the ${S6_HOME}/scripts/ directory exists
+    mkdir -p "${S6_HOME}/scripts"
+
+    # Move the script to the S6 Overlay scripts directory
+    mv "${file}" "${S6_HOME}/scripts/${script_name}"
+
+    # Ensure the script has the correct file header for S6
+    sed -i '1s%^#!/bin/sh$%#!/command/with-contenv sh%' "${S6_HOME}/scripts/${script_name}"
+
+    # Find the script that should be the dependency based on alphabetical order
+    previous_script_name=$(find "${S6_HOME}/s6-rc.d/" -maxdepth 1 -type d -name '[0-9]*' | \
+                    sort -V | \
+                    grep -B1 "${script_name}" | \
+                    head -n 1 | \
+                    xargs basename)
+    
+    # Check if the previous script is not the current script and set as dependency
+    if [ "$previous_script_name" != "$script_name" ] && [ -n "$previous_script_name" ]; then
+      dependencies_file="${S6_HOME}/s6-rc.d/${script_name}/dependencies"
+      touch "$dependencies_file"
+      echo "$previous_script_name" >> "$dependencies_file"
+      chmod 644 "$dependencies_file"
+    fi
+
+    # Set the previous file for the next loop
+    previous_script_name="$script_name"
+  else
+    echo "Skipping ${script_name} because it already exists at ${S6_HOME}/scripts/${script_name}"
+  fi
+
+done
