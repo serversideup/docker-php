@@ -9,8 +9,6 @@ php_variations:
       - trixie
   - name: fpm-nginx
   - name: frankenphp
-    supported_os:
-      - bookworm
     excluded_minor_versions:
       - "7.4"
       - "8.0"

@@ -125,6 +125,12 @@ case "$OS" in
                     /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
+            frankenphp)
+                DIRS="
+                    /composer
+                    /var/www
+                    $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
+                ;;
             *)
                 echo "$script_name: Unsupported service: $SERVICE"
                 exit 1
@@ -168,6 +174,12 @@ case "$OS" in
                     /var/cache/nginx
                     /var/log/nginx
                     /var/www/
+                    $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
+                ;;
+            frankenphp)
+                DIRS="
+                    /composer
+                    /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             *)
