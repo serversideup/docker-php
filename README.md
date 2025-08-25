@@ -99,9 +99,9 @@ All of our software is free an open to the world. None of this can be brought to
 We'd like to specifically thank a few folks for taking the time for being a sound board that deeply influenced the direction of this project.
 
 Please check out all of their work:
-- [Chris Fidao](https://twitter.com/fideloper)
+- [Chris Fidao](https://x.com/fideloper)
 - [Joel Clermont](https://x.com/jclermont)
-- [Patricio](https://twitter.com/PatricioOnCode)
+- [Patricio](https://x.com/PatricioOnCode)
 
 ## About Us
 We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers) - a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
