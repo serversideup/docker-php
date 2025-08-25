@@ -98,7 +98,7 @@ All of our software is free an open to the world. None of this can be brought to
 #### Special thanks
 We'd like to specifically thank a few folks for taking the time for being a sound board that deeply influenced the direction of this project.
 
-Please check out all of their work:
+Please check out their work:
 - [Chris Fidao](https://x.com/fideloper)
 - [Joel Clermont](https://x.com/jclermont)
 - [Patricio](https://x.com/PatricioOnCode)
