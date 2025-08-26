@@ -26,12 +26,20 @@ if [ "$NAME" != "Debian GNU/Linux" ] || [ $# -eq 0 ]; then
 fi
 
 ############
+# Functions
+############
+convert_comma_delimited_to_space_separated() {
+    echo $1 | tr ',' ' '
+}
+
+############
 # Main
 ############
-DEP_PACKAGES="$@"
+DEP_PACKAGES=$(convert_comma_delimited_to_space_separated "$@")
 echo "🤖 Installing: $DEP_PACKAGES"
 apt-get update
 apt-get install -y $DEP_PACKAGES
+
 
 echo "🧼 Cleaning up installation of: $DEP_PACKAGES"
 apt-get clean 

@@ -35,6 +35,7 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_ERROR_REPORTING="22527" \
     PHP_FPM_PM_CONTROL=dynamic \
     PHP_FPM_PM_MAX_CHILDREN="20" \
+    PHP_FPM_PM_MAX_REQUESTS="0" \
     PHP_FPM_PM_MAX_SPARE_SERVERS="3" \
     PHP_FPM_PM_MIN_SPARE_SERVERS="1" \
     PHP_FPM_PM_START_SERVERS="2" \
@@ -42,12 +43,18 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_FPM_PROCESS_CONTROL_TIMEOUT="10s" \
     PHP_MAX_EXECUTION_TIME="99" \
     PHP_MAX_INPUT_TIME="-1" \
+    PHP_MAX_INPUT_VARS="1000" \
     PHP_MEMORY_LIMIT="256M" \
     PHP_OPCACHE_ENABLE="0" \
+    PHP_OPCACHE_FORCE_RESTART_TIMEOUT="180" \
     PHP_OPCACHE_INTERNED_STRINGS_BUFFER="8" \
+    PHP_OPCACHE_JIT="off" \
+    PHP_OPCACHE_JIT_BUFFER_SIZE="0" \
     PHP_OPCACHE_MAX_ACCELERATED_FILES="10000" \
     PHP_OPCACHE_MEMORY_CONSUMPTION="128" \
     PHP_OPCACHE_REVALIDATE_FREQ="2" \
+    PHP_OPCACHE_SAVE_COMMENTS="1" \
+    PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
     PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
     PHP_SESSION_COOKIE_SECURE=Off \
@@ -76,7 +83,7 @@ RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
     \
     # Ensure "php-fpm-healthcheck" is installed
     echo "⬇️ Downloading php-fpm-healthcheck..." && \
-    curl -o /usr/local/bin/php-fpm-healthcheck https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.5.0/php-fpm-healthcheck && \
+    curl -o /usr/local/bin/php-fpm-healthcheck https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.6.0/php-fpm-healthcheck && \
     chmod +x /usr/local/bin/php-fpm-healthcheck && \
     \
     # Install default PHP extensions

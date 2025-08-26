@@ -38,7 +38,7 @@ on:
 
 jobs:
   setup-matrix:
-    runs-on: ubuntu-24.04
+    runs-on: depot-ubuntu-24.04
     outputs:
       php-version-map-json: ${{ steps.get-php-versions.outputs.php-version-map-json }}
     steps:
@@ -66,8 +66,9 @@ jobs:
     - name: Assemble PHP versions into the matrix. 😎
       id: get-php-versions
       run: |
-        chmod +x ./scripts/generate-matrix.sh
-        MATRIX_JSON=$(./scripts/generate-matrix.sh)
+        MATRIX_JSON=$(bash ./scripts/generate-matrix.sh '${{ inputs.php-versions-file }}')
+        echo "php-version-map-json=${MATRIX_JSON}" >> $GITHUB_OUTPUT
+        echo "${MATRIX_JSON}" | jq '.'
   
     - name: Upload the php-versions.yml file
       uses: actions/upload-artifact@v4
@@ -77,12 +78,7 @@ jobs:
 
   docker-publish:
     needs: setup-matrix
-    runs-on: ubuntu-24.04
-    ## Use AWS runners
-    # runs-on:
-    #   - runs-on
-    #   - runner=4cpu-linux-x64
-    #   - run-id=${{ github.run_id }}
+    runs-on: depot-ubuntu-24.04-4
     strategy:
       matrix: ${{fromJson(needs.setup-matrix.outputs.php-version-map-json)}}
 
@@ -160,20 +156,33 @@ jobs:
             echo "REPOSITORY_BUILD_VERSION=git-${SHORT_SHA}-${{ github.run_id }}" >> $GITHUB_ENV
           fi
 
+      - name: Compute NGINX build-arg (only for fpm-nginx)
+        id: compute_nginx
+        if: ${{ matrix.php_variation == 'fpm-nginx' }}
+        run: |
+          if command -v yq >/dev/null 2>&1; then
+            VERSION=$(yq -r '.operating_systems[].versions[] | select(.version == "${{ matrix.base_os }}") | .nginx_version' '${{ inputs.php-versions-file }}' | head -n1)
+          else
+            VERSION=$(awk -v key="${{ matrix.base_os }}" 'BEGIN{found=0} $1=="version:" && $2==key {found=1} found && $1=="nginx_version:" {print $2; exit}' "${{ inputs.php-versions-file }}")
+          fi
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Unable to determine NGINX version for OS ${{ matrix.base_os }}" 1>&2
+            exit 1
+          fi
+          echo "nginx_arg=NGINX_VERSION=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Build images
         uses: docker/build-push-action@v6
         with:
           file: src/variations/${{ matrix.php_variation }}/Dockerfile
           cache-from: type=gha
           cache-to: type=gha
-          ## Run-on cache
-          # cache-from: type=s3,blobs_prefix=cache/${{ github.repository }}/,manifests_prefix=cache/${{ github.repository }}/,region=${{ env.RUNS_ON_AWS_REGION }},bucket=${{ env.RUNS_ON_S3_BUCKET_CACHE }}
-          # cache-to: type=s3,blobs_prefix=cache/${{ github.repository }}/,manifests_prefix=cache/${{ github.repository }}/,region=${{ env.RUNS_ON_AWS_REGION }},bucket=${{ env.RUNS_ON_S3_BUCKET_CACHE }},mode=max
           build-args: |
             BASE_OS_VERSION=${{ matrix.base_os }}
             PHP_VERSION=${{ matrix.patch_version }}
             PHP_VARIATION=${{ matrix.php_variation }}
             REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
+            ${{ steps.compute_nginx.outputs.nginx_arg }}
           platforms: |
             linux/amd64
             linux/arm64/v8
