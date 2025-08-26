@@ -1,50 +1,3 @@
-php_versions:
-  - major: "7"
-    minor_versions:
-      - minor: "7.4"
-        base_os:
-          - name: alpine
-          - name: bullseye
-            default: true
-        patch_versions:
-          - 7.4.33
-  - major: "8"
-    minor_versions:
-      - minor: "8.0"
-        base_os:
-          - name: alpine
-          - name: bullseye
-            default: true
-        patch_versions:
-          - 8.0.30
-      - minor: "8.1"
-        base_os:
-          - name: alpine
-          - name: bookworm
-            default: true
-        patch_versions:
-          # - 8.1.28 # Pull latest from Official PHP source
-      - minor: "8.2"
-        base_os:
-          - name: alpine
-          - name: bookworm
-            default: true
-        patch_versions:
-        #   - 8.2.18 # Pull latest from Official PHP source
-      - minor: "8.3"
-        base_os:
-          - name: alpine
-          - name: bookworm
-            default: true
-        patch_versions:
-          # - 8.3.6 # Pull latest from Official PHP source
-      - minor: "8.4"
-        base_os:
-          - name: alpine
-          - name: bookworm
-            default: true
-        patch_versions:
-        #   - 8.4.1 # Pull latest from Official PHP source
 php_variations:
   - name: cli
     default: true
@@ -53,8 +6,117 @@ php_variations:
     supported_os: # Open a discussion on serversideup/php if you want to see Alpine support for fpm-apache (https://github.com/serversideup/docker-php/discussions/66)
       - bullseye
       - bookworm
+      - trixie
   - name: fpm-nginx
   - name: unit
     supported_os: # Alpine with Unit is not supported yet. Submit a PR if you can help (https://github.com/serversideup/docker-php/issues/233)
       - bullseye
       - bookworm
+      - trixie
+
+php_versions:
+  - major: "7"
+    minor_versions:
+      - minor: "7.4"
+        base_os:
+          - name: alpine3.16
+          - name: bullseye
+        patch_versions:
+          - 7.4.33
+  - major: "8"
+    minor_versions:
+      - minor: "8.0"
+        base_os:
+          - name: alpine3.16
+          - name: bullseye
+        patch_versions:
+          - 8.0.30
+      - minor: "8.1"
+        base_os:
+          - name: alpine3.21
+          - name: alpine3.22
+          - name: bookworm
+          - name: trixie
+        patch_versions:
+          # - 8.1.28 # Pull latest from Official PHP source
+      - minor: "8.2"
+        base_os:
+          - name: alpine3.21
+          - name: alpine3.22
+          - name: bookworm
+          - name: trixie
+        patch_versions:
+        #   - 8.2.18 # Pull latest from Official PHP source
+      - minor: "8.3"
+        base_os:
+          - name: alpine3.21
+          - name: alpine3.22
+          - name: bookworm
+          - name: trixie
+        patch_versions:
+          # - 8.3.6 # Pull latest from Official PHP source
+      - minor: "8.4"
+        base_os:
+          - name: alpine3.21
+          - name: alpine3.22
+          - name: bookworm
+          - name: trixie
+        patch_versions:
+        #   - 8.4.1 # Pull latest from Official PHP source
+      # PHP 8.5-rc has a blocking bug in a dependency that is not yet fixed.
+      # 
+      # - minor: "8.5-rc"
+      #   base_os:
+      #     - name: alpine3.21
+      #     - name: alpine3.22
+      #     - name: bookworm
+      #     - name: trixie
+      #   patch_versions:
+      #     - 8.5-rc
+
+operating_systems:
+  - family: alpine
+    versions:
+      - name: "Alpine 3.16"
+        version: alpine3.16
+        number: 3.16
+        nginx_version: 1.26.1-r2
+      - name: "Alpine 3.17"
+        version: alpine3.17
+        number: 3.17
+        nginx_version: 1.26.2-r1
+      - name: "Alpine 3.18"
+        version: alpine3.18
+        number: 3.18
+        nginx_version: 1.28.0-r1
+      - name: "Alpine 3.19"
+        version: alpine3.19
+        number: 3.19
+        nginx_version: 1.28.0-r1
+      - name: "Alpine 3.20"
+        version: alpine3.20
+        number: 3.20
+        nginx_version: 1.28.0-r1
+      - name: "Alpine 3.21"
+        version: alpine3.21
+        number: 3.21
+        nginx_version: 1.28.0-r1
+      - name: "Alpine 3.22"
+        version: alpine3.22
+        number: 3.22
+        nginx_version: 1.28.0-r1
+  - family: debian
+    default: true
+    versions:
+      - name: "Debian Bullseye"
+        version: bullseye
+        number: 11
+        nginx_version: 1.28.0-1~bullseye
+      - name: "Debian Bookworm"
+        version: bookworm
+        number: 12
+        nginx_version: 1.28.0-1~bookworm
+      - name: "Debian Trixie"
+        version: trixie
+        number: 13
+        nginx_version: 1.28.0-1~trixie

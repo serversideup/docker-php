@@ -1,3 +1,4 @@
+# check=skip=SecretsUsedInArgOrEnv
 ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.4'
 ARG PHP_VARIATION='unit'
@@ -9,7 +10,7 @@ ARG BASE_IMAGE="php:${PHP_VERSION}-cli-${BASE_OS_VERSION}"
 FROM ${BASE_IMAGE} AS build
 ARG DEPENDENCY_PACKAGES_ALPINE='build-base curl tar git openssl-dev pcre2-dev shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='ca-certificates git build-essential libssl-dev libpcre2-dev curl pkg-config'
-ARG NGINX_UNIT_VERSION='1.33.0-1'
+ARG NGINX_UNIT_VERSION='1.34.2'
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
