@@ -109,6 +109,8 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
 # FrankenPHP Final
 ####################
 FROM common AS final
+ARG DEPENDENCY_PACKAGES_ALPINE='shadow libstdc++'
+ARG DEPENDENCY_PACKAGES_DEBIAN='libstdc++6'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 
 LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
@@ -168,9 +170,9 @@ COPY src/variations/frankenphp/etc/frankenphp/ /etc/frankenphp/
 
 
 RUN \
+    docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}"; \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"; \
     # Fix for the file watcher on arm
-    docker-php-serversideup-dep-install-alpine "libstdc++"; \
-    docker-php-serversideup-dep-install-debian "libstdc++6"; \
     if cat /etc/os-release | grep -q 'alpine'; then \
         ldconfig /usr/local/lib; \
     elif cat /etc/os-release | grep -q 'debian'; then \
@@ -179,6 +181,10 @@ RUN \
         echo "Unsupported OS"; \
         exit 1; \
     fi; \
+    # Make composer cache directory
+    mkdir -p "${COMPOSER_HOME}" && \
+    chown -R www-data:www-data "${COMPOSER_HOME}" && \
+    \
     # Install PHP Extension installer
     docker-php-serversideup-install-php-ext-installer; \
     # Install default PHP extensions
