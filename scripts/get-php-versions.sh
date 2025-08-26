@@ -285,7 +285,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
         # Clean up temporary files
         rm -f "$validated_versions_file" "$version_map_file"
     fi
-    
+
     # Parse the fetched JSON data and transform it to a specific YAML structure using jq and yq.
     php_net_yaml_data=$(echo "$processed_json" | jq -r "
     {
@@ -318,6 +318,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
     # Use 'echo' to pass the JSON data to 'jq'
     merged_json=$(jq -s '
         {
+            php_variations: (.[1].php_variations // []),
             php_versions: (
                 .[0].php_versions + .[1].php_versions
                 | group_by(.major)
@@ -334,7 +335,8 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
                     )
                 })
             ),
-            php_variations: (. | map(.php_variations // []) | add)
+            operating_systems: (.[1].operating_systems // [])
+            
         }
     ' <(echo "$downloaded_and_normalized_json_data") <(echo "$base_json_data"))
 

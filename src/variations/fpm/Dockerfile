@@ -83,7 +83,7 @@ RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
     \
     # Ensure "php-fpm-healthcheck" is installed
     echo "⬇️ Downloading php-fpm-healthcheck..." && \
-    curl -o /usr/local/bin/php-fpm-healthcheck https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.5.0/php-fpm-healthcheck && \
+    curl -o /usr/local/bin/php-fpm-healthcheck https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.6.0/php-fpm-healthcheck && \
     chmod +x /usr/local/bin/php-fpm-healthcheck && \
     \
     # Install default PHP extensions
