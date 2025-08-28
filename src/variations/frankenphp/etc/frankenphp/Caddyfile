@@ -12,6 +12,42 @@
 		{$FRANKENPHP_CONFIG}
 	}
 
+	servers {
+		# Trust Docker/private networks + loopback + Cloudflare ranges
+		trusted_proxies static \
+10.0.0.0/8 \
+172.16.0.0/12 \
+192.168.0.0/16 \
+127.0.0.1/8 \
+::1 \
+fd00::/8 \
+173.245.48.0/20 \
+103.21.244.0/22 \
+103.22.200.0/22 \
+103.31.4.0/22 \
+141.101.64.0/18 \
+108.162.192.0/18 \
+190.93.240.0/20 \
+188.114.96.0/20 \
+197.234.240.0/22 \
+198.41.128.0/17 \
+162.158.0.0/15 \
+104.16.0.0/13 \
+104.24.0.0/14 \
+172.64.0.0/13 \
+131.0.72.0/22 \
+2400:cb00::/32 \
+2606:4700::/32 \
+2803:f800::/32 \
+2405:b500::/32 \
+2405:8100::/32 \
+2a06:98c0::/29 \
+2c0f:f248::/32
+
+		# Prefer Cloudflare's header; keep XFF as fallback
+		client_ip_headers CF-Connecting-IP X-Forwarded-For
+	}
+
 	log {
 		format console
 	}
@@ -37,7 +73,9 @@
 	respond @health "OK" 200
 	log_skip @health
 
-	php_server
+	php_server {
+		{$CADDY_PHP_SERVER_OPTIONS}
+	}
 	file_server
 
 	import performance
@@ -47,21 +85,26 @@
 }
 
 (performance) {
-	# Static files
-	@static {
-		path *.js *.css *.jpg *.jpeg *.gif *.png *.ico *.cur *.gz *.svg *.svgz *.mp4 *.mp3 *.ogg *.ogv *.webm *.htc *.woff2 *.woff
-	}
+	# Favicon/robots: skip noisy logs
+	@meta path /favicon.ico /robots.txt
+	log_skip @meta
 
-	# Short-lived static files
+	# Static assets (long cache)
+	@static {
+		path *.css *.css.map *.js *.js.map *.jpg *.jpeg *.png *.gif *.ico *.cur *.heic *.webp *.tif *.tiff *.mp3 *.m4a *.aac *.ogg *.midi *.mid *.wav *.mp4 *.mov *.webm *.mpeg *.mpg *.avi *.ogv *.flv *.wmv *.htc *.gz *.svg *.svgz *.woff2 *.woff
+	}
+	header @static Cache-Control "public, immutable, stale-while-revalidate, max-age=31536000"
+
+	# Fonts/SVG: allow cross-origin usage (cache header inherited from @static)
+	@fonts {
+		path *.svg *.svgz *.ttf *.ttc *.otf *.eot *.woff *.woff2
+	}
+	header @fonts Access-Control-Allow-Origin "*"
+
+	# Short-lived static
 	@staticshort {
 		path *.json *.xml *.rss
 	}
-
-	# 1 year, similar to h5bp nginx config
-	header @static Cache-Control "public, immutable, stale-while-revalidate, max-age=31536000"
-
-	# 1 hour max, gets validated with the origin server
-	# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#no-cache
 	header @staticshort Cache-Control "no-cache, max-age=3600"
 }
 
@@ -71,6 +114,28 @@
 
 	# Return 403 Forbidden for rejected files
 	respond @rejected 403
+
+	# Security headers
+	header {
+		defer
+		# Prevent IFRAME spoofing attacks
+		X-Frame-Options "SAMEORIGIN"
+		# Prevent MIME type sniffing
+		X-Content-Type-Options "nosniff"
+		# Prevent referrer leakage
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Prevent server header leakage
+		-Server
+		# Prevent powered by header leakage
+		-X-Powered-By
+	}
+}
+
+(security-https) {
+	header {
+		defer
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
 }
 
 # Pull in the per-mode listeners (off|mixed|full)
