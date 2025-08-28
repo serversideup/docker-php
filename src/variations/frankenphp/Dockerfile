@@ -123,11 +123,22 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
-ENV APP_BASE_DIR=/var/www/html \
+    ENV APP_BASE_DIR=/var/www/html \
+    CADDY_ADMIN="off" \
+    CADDY_APP_PUBLIC_PATH="/var/www/html/public" \
+    CADDY_AUTO_HTTPS="off" \
+    CADDY_GLOBAL_OPTIONS="" \
+    CADDY_HTTP_PORT="8080" \
+    CADDY_HTTPS_PORT="8443" \
+    CADDY_HTTP_SERVER_ADDRESS="http://" \
+    CADDY_HTTPS_SERVER_ADDRESS="https://" \
+    CADDY_PHP_SERVER_OPTIONS="" \
+    CADDY_SERVER_EXTRA_DIRECTIVES="" \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
+    FRANKEN_PHP_CONFIG="" \
     LOG_OUTPUT_LEVEL=warn \
     HEALTHCHECK_PATH="/healthcheck" \
     PHP_DATE_TIMEZONE="UTC" \
@@ -155,8 +166,8 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     SHOW_WELCOME_MESSAGE=true \
     SSL_MODE=off \
-    SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
-    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key \
+    SSL_CERTIFICATE_FILE="/etc/ssl/private/self-signed-web.crt" \
+    SSL_CERTIFICATE_KEY_FILE="/etc/ssl/private/self-signed-web.key" \
     XDG_CONFIG_HOME=/config \
     XDG_DATA_HOME=/data
 
@@ -188,7 +199,9 @@ RUN \
     # Install PHP Extension installer
     docker-php-serversideup-install-php-ext-installer; \
     # Install default PHP extensions
-    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
+    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"; \
+    # Ensure permissions are set for www-data
+    docker-php-serversideup-set-file-permissions --owner www-data:www-data --service frankenphp
 
 WORKDIR ${APP_BASE_DIR}
 

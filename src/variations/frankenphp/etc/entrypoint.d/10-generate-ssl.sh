@@ -7,7 +7,12 @@ script_name="generate-ssl"
 
 SSL_CERTIFICATE_FILE=${SSL_CERTIFICATE_FILE:-"/etc/ssl/private/self-signed-web.crt"}
 SSL_PRIVATE_KEY_FILE=${SSL_PRIVATE_KEY_FILE:-"/etc/ssl/private/self-signed-web.key"}
+SSL_MODE=${SSL_MODE:-"off"}
 
+if [ "$SSL_MODE" = "off" ]; then
+    echo "ℹ️ NOTICE ($script_name): SSL mode is off, so we'll not generate a self-signed SSL certificate and key."
+    return 0
+fi
 
 if [ -z "$SSL_CERTIFICATE_FILE" ] || [ -z "$SSL_PRIVATE_KEY_FILE" ]; then
     echo "🛑 ERROR ($script_name): SSL_CERTIFICATE_FILE or SSL_PRIVATE_KEY_FILE is not set."
