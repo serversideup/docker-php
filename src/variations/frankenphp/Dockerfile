@@ -167,7 +167,7 @@ COPY --from=frankenphp-build /usr/local/bin/frankenphp /usr/local/bin/frankenphp
 COPY --from=frankenphp-build /usr/local/lib/libwatcher* /usr/local/lib/
 
 COPY src/variations/frankenphp/etc/frankenphp/ /etc/frankenphp/
-
+COPY src/variations/frankenphp/etc/entrypoint.d/ /etc/entrypoint.d/
 
 RUN \
     docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}"; \
