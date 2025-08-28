@@ -1,0 +1,9 @@
+{$CADDY_HTTP_SERVER_ADDRESS:http://} {
+	redir https://{host}{uri} 308
+}
+
+{$CADDY_HTTPS_SERVER_ADDRESS:https://} {
+	tls {$SSL_CERTIFICATE_FILE} {$SSL_CERTIFICATE_KEY_FILE}
+	import app-common
+	import security-https
+}

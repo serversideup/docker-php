@@ -129,6 +129,7 @@ case "$OS" in
                 DIRS="
                     /composer
                     /var/www
+                    /etc/ssl/private
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             *)
@@ -180,6 +181,7 @@ case "$OS" in
                 DIRS="
                     /composer
                     /var/www
+                    /etc/ssl/private
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             *)

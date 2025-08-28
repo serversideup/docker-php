@@ -21,7 +21,8 @@ RUN set -eux; \
 		/var/www/config/caddy \
 		/var/www/data/caddy \
 		/etc/caddy \
-		/etc/frankenphp/ssl-modes \
+		/etc/frankenphp/ssl-mode \
+        /etc/frankenphp/log-level \
         /etc/frankenphp/caddyfile.d; \
     # Create default index.php
 	echo '<?php phpinfo();' > /var/www/html/public/index.php; \
@@ -109,6 +110,8 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
 # FrankenPHP Final
 ####################
 FROM common AS final
+ARG DEPENDENCY_PACKAGES_ALPINE='shadow libstdc++'
+ARG DEPENDENCY_PACKAGES_DEBIAN='libstdc++6'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 
 LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
@@ -121,11 +124,22 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
-ENV APP_BASE_DIR=/var/www/html \
+    ENV APP_BASE_DIR=/var/www/html \
+    CADDY_ADMIN="off" \
+    CADDY_APP_PUBLIC_PATH="/var/www/html/public" \
+    CADDY_AUTO_HTTPS="off" \
+    CADDY_GLOBAL_OPTIONS="" \
+    CADDY_HTTP_PORT="8080" \
+    CADDY_HTTPS_PORT="8443" \
+    CADDY_HTTP_SERVER_ADDRESS="http://" \
+    CADDY_HTTPS_SERVER_ADDRESS="https://" \
+    CADDY_PHP_SERVER_OPTIONS="" \
+    CADDY_SERVER_EXTRA_DIRECTIVES="" \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
+    FRANKEN_PHP_CONFIG="" \
     LOG_OUTPUT_LEVEL=warn \
     HEALTHCHECK_PATH="/healthcheck" \
     PHP_DATE_TIMEZONE="UTC" \
@@ -153,8 +167,8 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     SHOW_WELCOME_MESSAGE=true \
     SSL_MODE=off \
-    SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
-    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key \
+    SSL_CERTIFICATE_FILE="/etc/ssl/private/self-signed-web.crt" \
+    SSL_CERTIFICATE_KEY_FILE="/etc/ssl/private/self-signed-web.key" \
     XDG_CONFIG_HOME=/config \
     XDG_DATA_HOME=/data
 
@@ -165,12 +179,12 @@ COPY --from=frankenphp-build /usr/local/bin/frankenphp /usr/local/bin/frankenphp
 COPY --from=frankenphp-build /usr/local/lib/libwatcher* /usr/local/lib/
 
 COPY src/variations/frankenphp/etc/frankenphp/ /etc/frankenphp/
-
+COPY src/variations/frankenphp/etc/entrypoint.d/ /etc/entrypoint.d/
 
 RUN \
+    docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}"; \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"; \
     # Fix for the file watcher on arm
-    docker-php-serversideup-dep-install-alpine "libstdc++"; \
-    docker-php-serversideup-dep-install-debian "libstdc++6"; \
     if cat /etc/os-release | grep -q 'alpine'; then \
         ldconfig /usr/local/lib; \
     elif cat /etc/os-release | grep -q 'debian'; then \
@@ -179,10 +193,16 @@ RUN \
         echo "Unsupported OS"; \
         exit 1; \
     fi; \
+    # Make composer cache directory
+    mkdir -p "${COMPOSER_HOME}" && \
+    chown -R www-data:www-data "${COMPOSER_HOME}" && \
+    \
     # Install PHP Extension installer
     docker-php-serversideup-install-php-ext-installer; \
     # Install default PHP extensions
-    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
+    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"; \
+    # Ensure permissions are set for www-data
+    docker-php-serversideup-set-file-permissions --owner www-data:www-data --service frankenphp
 
 WORKDIR ${APP_BASE_DIR}
 
