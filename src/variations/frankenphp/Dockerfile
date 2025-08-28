@@ -21,7 +21,8 @@ RUN set -eux; \
 		/var/www/config/caddy \
 		/var/www/data/caddy \
 		/etc/caddy \
-		/etc/frankenphp/ssl-modes \
+		/etc/frankenphp/ssl-mode \
+        /etc/frankenphp/log-level \
         /etc/frankenphp/caddyfile.d; \
     # Create default index.php
 	echo '<?php phpinfo();' > /var/www/html/public/index.php; \
