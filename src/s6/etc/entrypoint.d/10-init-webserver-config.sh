@@ -55,6 +55,12 @@ process_template() {
     echo "($script_name): Processing $template_file → $output_file..."
     envsubst "$subst_vars" < "$template_file" > "$output_file"
 
+    #Remove line containing listen [::]: to disable IPv6 listening
+    if [ "$NGINX_IPV6" == "false" ]; then
+        sed -i '/listen \[::\]:/d' "$output_file"
+        echo "ℹ️ NOTICE (init-webserver-config): disabling IPv6 for configuration $output_file..."
+    fi
+
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "$script_name: Contents of $output_file:"
         cat $output_file
