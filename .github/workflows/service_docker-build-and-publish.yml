@@ -15,10 +15,6 @@ on:
         type: string
         default: 'scripts/conf/php-versions.yml'
         description: 'The path to the PHP versions file.'
-      default-image-variation:
-        type: string
-        default: 'cli'
-        description: 'The default PHP variation to use for the Docker image.'
       registry-repositories:
         type: string
         required: true
@@ -127,7 +123,6 @@ jobs:
           ./scripts/assemble-docker-tags.sh
         env:
           PHP_VERSIONS_FILE: "${{ inputs.php-versions-file }}"
-          DEFAULT_IMAGE_VARIATION: ${{ inputs.default-image-variation }}
           PHP_BUILD_VERSION: ${{ matrix.patch_version }}
           PHP_BUILD_VARIATION: ${{ matrix.php_variation }}
           PHP_BUILD_BASE_OS: ${{ matrix.base_os }}
