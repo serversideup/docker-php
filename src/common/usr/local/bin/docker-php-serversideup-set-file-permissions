@@ -89,7 +89,7 @@ case "$OS" in
                     /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
-            apache)
+            apache | fpm-apache)
                 DIRS="
                     /composer
                     /etc/apache2
@@ -154,7 +154,7 @@ case "$OS" in
                     /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
-            apache)
+            apache | fpm-apache)
                 DIRS="
                     /composer
                     /etc/apache2
@@ -165,7 +165,7 @@ case "$OS" in
                     /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
-            nginx)
+            nginx | fpm-nginx)
                 DIRS="
                     /composer
                     /etc/nginx/
