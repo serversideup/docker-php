@@ -113,6 +113,7 @@ FROM common AS final
 ARG DEPENDENCY_PACKAGES_ALPINE='shadow libstdc++'
 ARG DEPENDENCY_PACKAGES_DEBIAN='libstdc++6'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
@@ -196,6 +197,9 @@ RUN \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
+    \
+    # Set the image version
+    echo "${REPOSITORY_BUILD_VERSION}" > /etc/serversideup-php-version && \
     \
     # Install PHP Extension installer
     docker-php-serversideup-install-php-ext-installer; \
