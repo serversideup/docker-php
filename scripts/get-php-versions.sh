@@ -1,6 +1,6 @@
 #!/bin/bash
 ###################################################
-# Usage: get-php-versions.sh [--skip-download] [--skip-dockerhub-validation] [--output PATH]
+# Usage: get-php-versions.sh [--skip-download] [--skip-dockerhub-validation] [--input PATH] [--output PATH]
 ###################################################
 # This file takes the official latest PHP releases from php.net merges them with our
 # "base php configuration". These files get merged into a final file called "php-versions.yml"
@@ -22,6 +22,7 @@
 # 👉 OPTIONS
 # --skip-download: Skip downloading from php.net and use existing base config
 # --skip-dockerhub-validation: Skip DockerHub validation (useful for testing/development)
+# --input: Input file path (defaults to scripts/conf/php-versions-base-config.yml)
 # --output: Output file path (defaults to scripts/conf/php-versions.yml)
 
 set -oue pipefail
@@ -168,6 +169,15 @@ while [[ "$#" -gt 0 ]]; do
     case $1 in
         --skip-download) SKIP_DOWNLOAD=true ;;
         --skip-dockerhub-validation) SKIP_DOCKERHUB_VALIDATION=true ;;
+        --input)
+            if [ -z "$2" ]; then
+                echo "Error: --input requires a file path."
+                exit 1
+            fi
+            BASE_PHP_VERSIONS_CONFIG_FILE="$2"
+            shift 2
+            continue
+            ;;
         --output)
             if [ -z "$2" ]; then
                 echo "Error: --output requires a file path."
