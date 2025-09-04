@@ -2,7 +2,7 @@
 set -eu
 
 ###################################################
-# Usage: docker-php-serversideup-set-file-permissions --owner USER:GROUP --service SERVICE
+# Usage: docker-php-serversideup-set-file-permissions --owner USER:GROUP --service SERVICE [--dir PATH]...
 ###################################################
 # This script is intended to be called on build for sysadmins who want to
 # change the UID and GID of a specific user. This is useful for when you
@@ -13,7 +13,7 @@ script_name="docker-php-serversideup-set-file-permissions"
 
 # Usage function
 usage() {
-    echo "Usage: $0 --owner USER:GROUP --service SERVICE"
+    echo "Usage: $0 --owner USER:GROUP --service SERVICE [--dir PATH]..."
     exit 1
 }
 
@@ -23,10 +23,10 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Check for minimum number of arguments
-if [ "$#" -ne 4 ]; then
-    usage
-fi
+# Initialize variables to avoid unbound variable errors with 'set -u'
+OWNER=""
+SERVICE=""
+EXTRA_DIRS=""
 
 # Parse arguments
 while [ "$#" -gt 0 ]; do
@@ -35,9 +35,25 @@ while [ "$#" -gt 0 ]; do
             OWNER="$2"
             shift 2
             ;;
+        --owner=*)
+            OWNER="${1#--owner=}"
+            shift 1
+            ;;
         --service)
             SERVICE="$2"
             shift 2
+            ;;
+        --service=*)
+            SERVICE="${1#--service=}"
+            shift 1
+            ;;
+        --dir)
+            EXTRA_DIRS="$EXTRA_DIRS $2"
+            shift 2
+            ;;
+        --dir=*)
+            EXTRA_DIRS="$EXTRA_DIRS ${1#--dir=}"
+            shift 1
             ;;
         *)
             usage
@@ -195,6 +211,11 @@ case "$OS" in
         exit 1
         ;;
 esac
+
+# Append any extra directories provided via --dir flags
+if [ -n "$EXTRA_DIRS" ]; then
+    DIRS="$DIRS $EXTRA_DIRS"
+fi
 
 # Change ownership of the directories
 change_ownership $DIRS
