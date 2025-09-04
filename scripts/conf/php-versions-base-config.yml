@@ -8,6 +8,12 @@ php_variations:
       - bookworm
       - trixie
   - name: fpm-nginx
+  - name: frankenphp
+    excluded_minor_versions:
+      - "7.4"
+      - "8.0"
+      - "8.1"
+      - "8.2"
   - name: unit
     supported_os: # Alpine with Unit is not supported yet. Submit a PR if you can help (https://github.com/serversideup/docker-php/issues/233)
       - bullseye

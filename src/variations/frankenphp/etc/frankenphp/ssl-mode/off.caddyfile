@@ -1,0 +1,3 @@
+{$CADDY_HTTP_SERVER_ADDRESS:http://} {
+	import app-common
+}

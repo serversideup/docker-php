@@ -32,6 +32,9 @@ fi
 export SERVERSIDEUP_DEFAULT_COMMAND
 export S6_INITIALIZED
 
+# Export the CMD for use in initialization scripts
+export DOCKER_CMD="$*"
+
 ###############################################
 # Usage: docker-php-serversideup-entrypoint
 ###############################################
@@ -42,14 +45,24 @@ export S6_INITIALIZED
 find /etc/entrypoint.d/ -type f -name '*.sh' | sort -V | while IFS= read -r f; do
     if [ -e "$f" ]; then
         if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
-            echo "Executing $f"
+            echo "🔄 Executing initialization script: $f"
         fi
-        if ! . "$f"; then
-            echo "Error executing $f" >&2
-            exit 1
+        
+        # Source the script in a subshell to contain exits while preserving environment
+        (. "$f")
+        exit_code=$?
+        
+        if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
+            echo "📝 Script $f completed with exit code: $exit_code"
+        fi
+        
+        # Only stop on actual errors (non-zero exit codes)
+        if [ $exit_code -ne 0 ]; then
+            echo "❌ Error: Initialization script $f failed with exit code $exit_code" >&2
+            exit $exit_code
         fi
     else
-        echo "Warning: $f not found" >&2
+        echo "⚠️ Warning: Initialization script $f not found" >&2
     fi
 done
 
