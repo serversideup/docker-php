@@ -1,4 +1,6 @@
 # Ensure node files do not appear
+.idea
+vscode
 package-lock.json
 package.json
 yarn.lock
