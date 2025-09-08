@@ -105,6 +105,11 @@ build_docker_image() {
     build_args+=(--build-arg "NGINX_VERSION=$NGINX_VERSION")
   fi
 
+  if [ "$PHP_BUILD_VARIATION" = "frankenphp-builder" ]; then
+    PHP_BUILD_VARIATION="frankenphp"
+    build_args+=(--target frankenphp-build)
+  fi
+
   docker buildx build \
     "${DOCKER_ADDITIONAL_BUILD_ARGS[@]}" \
     --platform "$PLATFORM" \
