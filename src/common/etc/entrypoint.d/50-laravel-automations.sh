@@ -75,11 +75,20 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "false" ]; then
                 return 1
             fi
 
-            echo "🚀 Running migrations..."
-            if [ "${AUTORUN_LARAVEL_MIGRATION_ISOLATION:=false}" = "true" ]; then
-                php "$APP_BASE_DIR/artisan" migrate --force --isolated
+            if [ "${AUTORUN_LARAVEL_MIGRATION_FRESH_SEED:=false}" = "true" ]; then
+                echo "🚀 Running migrations from scratch and seeding database..."
+                if [ "${AUTORUN_LARAVEL_MIGRATION_ISOLATION:=false}" = "true" ]; then
+                    php "$APP_BASE_DIR/artisan" migrate:fresh --seed --force --isolated
+                else
+                    php "$APP_BASE_DIR/artisan" migrate:fresh --seed --force
+                fi
             else
-                php "$APP_BASE_DIR/artisan" migrate --force
+                echo "🚀 Running migrations..."
+                if [ "${AUTORUN_LARAVEL_MIGRATION_ISOLATION:=false}" = "true" ]; then
+                    php "$APP_BASE_DIR/artisan" migrate --force --isolated
+                else
+                    php "$APP_BASE_DIR/artisan" migrate --force
+                fi
             fi
         fi
 
