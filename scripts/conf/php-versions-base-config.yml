@@ -34,7 +34,6 @@ php_versions:
       - minor: "8.1"
         base_os:
           - name: alpine3.21
-          - name: alpine3.22
           - name: bookworm
           - name: trixie
         patch_versions:
