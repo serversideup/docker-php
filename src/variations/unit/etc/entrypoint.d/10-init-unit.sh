@@ -159,7 +159,7 @@ validate_ssl(){
     fi
 
     if [ -f "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.crt" ] && [ -f "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.key" ]; then
-        echo "ℹ️ NOTICE ($script_name): Custom SSL Certificate found in /etc/sss/private, so we'll use that."
+        echo "ℹ️ NOTICE ($script_name): Custom SSL Certificate found in /etc/ssl/private, so we'll use that."
         cat "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.key" "/etc/ssl/private/$UNIT_CERTIFICATE_NAME.crt" > "$UNIT_CONFIG_DIRECTORY/$UNIT_CERTIFICATE_NAME.pem"
         return 0
     fi

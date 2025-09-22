@@ -17,8 +17,16 @@ set -oe pipefail
 # Environment Settings
 
 # Required variables to set
-DEFAULT_IMAGE_VARIATION="${DEFAULT_IMAGE_VARIATION:-"cli"}"
 PHP_VERSIONS_FILE="${PHP_VERSIONS_FILE:-"scripts/conf/php-versions.yml"}"
+
+# Validate PHP Versions file exists
+if [ ! -f "$PHP_VERSIONS_FILE" ]; then
+  echo "🛑 ERROR: PHP Versions file not found at $PHP_VERSIONS_FILE"
+  exit 1
+fi
+
+# Determine default image variation
+DEFAULT_IMAGE_VARIATION="${DEFAULT_IMAGE_VARIATION:-$(yq e -r '.php_variations[] | select(.default == true) | .name' "$PHP_VERSIONS_FILE" 2>/dev/null | head -n1 || true)}"
 
 # Convert comma-separated DOCKER_REGISTRY_REPOSITORIES string to an array
 IFS=',' read -ra DOCKER_REGISTRY_REPOSITORIES <<< "${DOCKER_REGISTRY_REPOSITORIES:-"docker.io/serversideup/php,ghcr.io/serversideup/php"}"
@@ -222,7 +230,6 @@ help_menu() {
     echo "  --stable-release                Flag the tags for a stable release"
     echo
     echo "Environment Variables (Defaults):"
-    echo "  DEFAULT_IMAGE_VARIATION      The default PHP image variation (default: cli)"
     echo "  DOCKER_REGISTRY_REPOSITORIES  Names of images to tag (default: 'docker.io/serversideup/php' 'ghcr.io/serversideup/php')"
     echo "  PHP_VERSIONS_FILE            Path to PHP versions file (default: scripts/conf/php-versions.yml)"
 }
