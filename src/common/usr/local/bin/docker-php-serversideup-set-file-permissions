@@ -2,7 +2,7 @@
 set -eu
 
 ###################################################
-# Usage: docker-php-serversideup-set-file-permissions --owner USER:GROUP --service SERVICE [--dir PATH]...
+# Usage: docker-php-serversideup-set-file-permissions --owner USER:GROUP [--service SERVICE] [--dir PATH]...
 ###################################################
 # This script is intended to be called on build for sysadmins who want to
 # change the UID and GID of a specific user. This is useful for when you
@@ -11,11 +11,82 @@ set -eu
 # so developers don't need to worry about permissions issues.
 script_name="docker-php-serversideup-set-file-permissions"
 
-# Usage function
+############################
+# Functions
+############################
 usage() {
-    echo "Usage: $0 --owner USER:GROUP --service SERVICE [--dir PATH]..."
-    exit 1
+    echo "Usage: $0 --owner USER:GROUP [--service SERVICE] [--dir PATH]..."
+    echo ""
+    echo "Options:"
+    echo "  --owner USER:GROUP    Set the owner (required)"
+    echo "  --service SERVICE     Specify service type (optional, auto-detected if not provided)"
+    echo "                        Valid services: cli, fpm, apache, fpm-apache, nginx, fpm-nginx, unit, frankenphp"
+    echo "  --dir PATH            Additional directory to change ownership (can be used multiple times)"
 }
+
+detect_service() {
+    # Detection priority order (most specific to least specific):
+    
+    # Check for FrankenPHP (binary in path)
+    if command -v frankenphp >/dev/null 2>&1; then
+        echo "frankenphp"
+        return 0
+    fi
+    
+    # Check for NGINX Unit
+    if [ -d "/etc/unit" ] || command -v unitd >/dev/null 2>&1; then
+        echo "unit"
+        return 0
+    fi
+    
+    # Check for Apache (with PHP-FPM config indicates fpm-apache)
+    if command -v apache2 >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; then
+        if [ -f "/usr/local/etc/php-fpm.conf" ] || command -v php-fpm >/dev/null 2>&1; then
+            echo "fpm-apache"
+            return 0
+        else
+            echo "apache"
+            return 0
+        fi
+    fi
+    
+    # Check for Nginx (with PHP-FPM config indicates fpm-nginx)
+    if [ -d "/etc/nginx" ] || command -v nginx >/dev/null 2>&1; then
+        if [ -f "/usr/local/etc/php-fpm.conf" ] || command -v php-fpm >/dev/null 2>&1; then
+            echo "fpm-nginx"
+            return 0
+        else
+            echo "nginx"
+            return 0
+        fi
+    fi
+    
+    # Check for standalone PHP-FPM
+    if [ -f "/usr/local/etc/php-fpm.conf" ] || command -v php-fpm >/dev/null 2>&1; then
+        echo "fpm"
+        return 0
+    fi
+    
+    # Default to CLI if nothing else is detected
+    echo "cli"
+    return 0
+}
+
+change_ownership() {
+    for path in "$@"; do
+        if [ -e "$path" ]; then
+            chown -R "$OWNER" "$path"
+            echo "$script_name: Ownership of $path changed to $OWNER."
+        else
+            echo "$script_name: Directory not found: $path"
+            exit 1
+        fi
+    done
+}
+
+############################
+# Initialize
+############################
 
 # Check for root privileges
 if [ "$(id -u)" -ne 0 ]; then
@@ -61,9 +132,16 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
-# Ensure OWNER and SERVICE are set
-if [ -z "$OWNER" ] || [ -z "$SERVICE" ]; then
+# Ensure OWNER is set
+if [ -z "$OWNER" ]; then
     usage
+    exit 1
+fi
+
+# Auto-detect service if not provided
+if [ -z "$SERVICE" ]; then
+    SERVICE=$(detect_service)
+    echo "$script_name: Auto-detected service: $SERVICE"
 fi
 
 # Detect the operating system using /etc/os-release
@@ -74,18 +152,6 @@ else
     echo "$script_name: Cannot determine the operating system."
     exit 1
 fi
-
-change_ownership() {
-    for path in "$@"; do
-        if [ -e "$path" ]; then
-            chown -R "$OWNER" "$path"
-            echo "$script_name: Ownership of $path changed to $OWNER."
-        else
-            echo "$script_name: Directory not found: $path"
-            exit 1
-        fi
-    done
-}
 
 # Determine directories based on OS and SERVICE
 case "$OS" in
@@ -117,7 +183,7 @@ case "$OS" in
                     /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
-            nginx)
+            nginx | fpm-nginx)
                 DIRS="
                     /composer
                     /etc/nginx
@@ -193,6 +259,17 @@ case "$OS" in
                     /var/www/
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
+            unit)
+                DIRS="
+                    /composer
+                    /etc/unit
+                    /etc/ssl/private
+                    /var/lib/unit
+                    /var/log/unit
+                    /var/run/unit
+                    /var/www
+                    $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
+                ;;
             frankenphp)
                 DIRS="
                     /composer
@@ -218,4 +295,5 @@ if [ -n "$EXTRA_DIRS" ]; then
 fi
 
 # Change ownership of the directories
+# shellcheck disable=SC2086
 change_ownership $DIRS
