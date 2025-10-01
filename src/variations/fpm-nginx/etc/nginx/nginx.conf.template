@@ -27,6 +27,8 @@ http {
 
     access_log  $NGINX_ACCESS_LOG main if=$loggable;
 
+    client_max_body_size $NGINX_CLIENT_MAX_BODY_SIZE;
+
     sendfile        on;
     #tcp_nopush     on;
 
