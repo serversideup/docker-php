@@ -124,6 +124,7 @@ ENV APP_BASE_DIR=/var/www/html \
     NGINX_ERROR_LOG="/dev/stderr" \
     NGINX_FASTCGI_BUFFERS="8 8k" \
     NGINX_FASTCGI_BUFFER_SIZE="8k" \
+    NGINX_LISTEN_IP_PROTOCOL="all" \
     NGINX_SERVER_TOKENS=off \
     NGINX_WEBROOT=/var/www/html/public \
     PHP_DATE_TIMEZONE="UTC" \
