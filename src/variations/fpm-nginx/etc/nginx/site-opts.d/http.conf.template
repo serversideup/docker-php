@@ -10,9 +10,6 @@ server_name _;
 
 charset utf-8;
 
-# Set max upload to 2048M
-client_max_body_size 2048M;
-
 # Healthcheck: Set /healthcheck to be the static health check URL
 location /healthcheck {
     access_log off;
