@@ -19,7 +19,13 @@ http {
                       '$status $body_bytes_sent "$http_referer" '
                       '"$http_user_agent" "$http_x_forwarded_for"';
 
-    access_log  /dev/stdout  main;
+    # Disable access logs for healthcheck endpoint
+    map $request_uri $loggable {
+        $HEALTHCHECK_PATH 0;
+        default 1;
+    }
+
+    access_log  /dev/stdout  main if=$loggable;
 
     sendfile        on;
     #tcp_nopush     on;
