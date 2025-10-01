@@ -1,6 +1,6 @@
 worker_processes  auto;
 
-error_log  /dev/stderr $LOG_OUTPUT_LEVEL;
+error_log  $NGINX_ERROR_LOG $LOG_OUTPUT_LEVEL;
 pid        /var/run/nginx.pid;
 daemon off;
 
@@ -25,7 +25,7 @@ http {
         default 1;
     }
 
-    access_log  /dev/stdout  main if=$loggable;
+    access_log  $NGINX_ACCESS_LOG main if=$loggable;
 
     sendfile        on;
     #tcp_nopush     on;
