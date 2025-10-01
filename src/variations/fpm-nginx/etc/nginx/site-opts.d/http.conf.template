@@ -10,7 +10,7 @@ server_name _;
 
 charset utf-8;
 
-# Healthchecks: Set /healthcheck to be the healthcheck URL
+# Healthcheck: Set /healthcheck to be the static health check URL
 location /healthcheck {
     access_log off;
     
