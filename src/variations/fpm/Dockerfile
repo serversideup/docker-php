@@ -114,5 +114,5 @@ USER www-data
 
 CMD ["php-fpm"]
 
-HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
+HEALTHCHECK --start-period=60s --start-interval=3s --interval=10s --timeout=3s --retries=3 \
     CMD php-fpm-healthcheck || exit 1
