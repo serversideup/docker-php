@@ -6,6 +6,8 @@ server {
 
     server_name _;
 
+    absolute_redirect off;
+
     location / {
         set $redirect_to_local_https 0;
 
