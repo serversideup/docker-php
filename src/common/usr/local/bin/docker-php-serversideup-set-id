@@ -17,6 +17,12 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
+# Check for root privileges
+if [ "$(id -u)" -ne 0 ]; then
+    echo "${script_name}: This script must be run as root within the container. Be sure to set \"USER root\" in your Dockerfile before running this script."
+    exit 1
+fi
+
 username="$1"
 uid_gid="$2"
 

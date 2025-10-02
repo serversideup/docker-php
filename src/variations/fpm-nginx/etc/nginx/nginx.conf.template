@@ -1,6 +1,6 @@
 worker_processes  auto;
 
-error_log  /dev/stderr $LOG_OUTPUT_LEVEL;
+error_log  $NGINX_ERROR_LOG $LOG_OUTPUT_LEVEL;
 pid        /var/run/nginx.pid;
 daemon off;
 
@@ -19,7 +19,15 @@ http {
                       '$status $body_bytes_sent "$http_referer" '
                       '"$http_user_agent" "$http_x_forwarded_for"';
 
-    access_log  /dev/stdout  main;
+    # Disable access logs for healthcheck endpoint
+    map $request_uri $loggable {
+        $HEALTHCHECK_PATH 0;
+        default 1;
+    }
+
+    access_log  $NGINX_ACCESS_LOG main if=$loggable;
+
+    client_max_body_size $NGINX_CLIENT_MAX_BODY_SIZE;
 
     sendfile        on;
     #tcp_nopush     on;

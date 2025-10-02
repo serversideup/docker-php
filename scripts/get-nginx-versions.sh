@@ -21,8 +21,8 @@ os_config() {
         echo "yq is required but not found. Install 'yq' (https://github.com/mikefarah/yq) to continue." 1>&2
         return 1
     fi
-    # jq is not required; all updates are handled via yq
-
+    
+    # shellcheck disable=SC2016
     yq -r '.operating_systems[] | .family as $f | .versions[] | "\(.version)|\($f)|\(.name)"' "$config_file" \
     | while IFS='|' read -r version family name; do
         if [[ "$family" == "alpine" ]]; then
