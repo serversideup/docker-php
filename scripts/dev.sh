@@ -17,6 +17,7 @@ set -oe pipefail
 # Script Configurations
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+BASE_PHP_VERSIONS_CONFIG_FILE="${BASE_PHP_VERSIONS_CONFIG_FILE:-"$SCRIPT_DIR/conf/php-versions-base-config.yml"}"
 
 
 PHP_BUILD_VERSION=""
@@ -25,7 +26,7 @@ PHP_BUILD_BASE_OS=""
 PHP_BUILD_PREFIX=""
 DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php"}"
 DOCKER_ADDITIONAL_BUILD_ARGS=()
-CUSTOM_REGISTRY=""
+PUSH_TO_REGISTRY=false
 PLATFORM=""
 
 # UI Colors
@@ -94,24 +95,29 @@ build_docker_image() {
       PLATFORM=$(detect_platform)
   fi
   
+  # Assemble build arguments
+  local build_args=()
+  build_args+=(--build-arg PHP_VARIATION="$PHP_BUILD_VARIATION")
+  build_args+=(--build-arg PHP_VERSION="$PHP_BUILD_VERSION")
+  build_args+=(--build-arg BASE_OS_VERSION="$PHP_BUILD_BASE_OS")
+
+  if [ -n "$NGINX_VERSION" ] && [ "$PHP_BUILD_VARIATION" = "fpm-nginx" ]; then
+    build_args+=(--build-arg "NGINX_VERSION=$NGINX_VERSION")
+  fi
+
   docker buildx build \
     "${DOCKER_ADDITIONAL_BUILD_ARGS[@]}" \
     --platform "$PLATFORM" \
-    --build-arg PHP_VARIATION="$PHP_BUILD_VARIATION" \
-    --build-arg PHP_VERSION="$PHP_BUILD_VERSION" \
-    --build-arg BASE_OS_VERSION="$PHP_BUILD_BASE_OS" \
+    "${build_args[@]}" \
     --tag "$build_tag" \
     --file "$PROJECT_ROOT_DIR/src/variations/$PHP_BUILD_VARIATION/Dockerfile" \
     "$PROJECT_ROOT_DIR"
   echo_color_message green "✅ Docker Image Built: $build_tag"
-
-  if [ -n "$CUSTOM_REGISTRY" ]; then
-    registry_tag="${CUSTOM_REGISTRY}/${build_tag}"
-    echo_color_message yellow "🏷️  Tagging image for custom registry: $registry_tag"
-    docker tag "$build_tag" "$registry_tag"
-    echo_color_message yellow "🚀 Pushing image to custom registry: $registry_tag"
-    docker push "$registry_tag"
-    echo_color_message green "✅ Image pushed to custom registry: $registry_tag"
+  
+  if [ "$PUSH_TO_REGISTRY" = true ]; then
+    echo_color_message yellow "🚀 Pushing image to registry: $build_tag"
+    docker push "$build_tag"
+    echo_color_message green "✅ Image pushed to registry: $build_tag"
   fi
 }
 
@@ -130,10 +136,8 @@ help_menu() {
     echo "  --prefix <prefix>         Set the prefix for the Docker image (e.g., beta)"
     echo "  --registry <registry>     Set a custom registry (e.g., localhost:5000)"
     echo "  --platform <platform>     Set the platform (default: detected from system architecture)"
+    echo "  --push                    Push the image to the registry"
     echo "  --*                       Any additional options will be passed to the docker buildx command"
-    echo
-    echo "Environment Variables:"
-    echo "  DOCKER_REPOSITORY         The Docker repository (default: serversideup/php)"
 }
 
 ##########################
@@ -158,9 +162,10 @@ while [[ $# -gt 0 ]]; do
         shift 2
         ;;
         --registry)
-        CUSTOM_REGISTRY="$2"
+        DOCKER_REPOSITORY="$2"
         shift 2
         ;;
+
         --platform)
         PLATFORM="$2"
         shift 2
@@ -190,5 +195,24 @@ check_vars \
   PHP_BUILD_VARIATION \
   PHP_BUILD_VERSION \
   PHP_BUILD_BASE_OS
+
+# Auto-resolve NGINX version for fpm-nginx if not provided
+if [ -z "$NGINX_VERSION" ] && [ "$PHP_BUILD_VARIATION" = "fpm-nginx" ]; then
+  if ! command -v yq >/dev/null 2>&1; then
+    echo_color_message red "yq is required but not found. Install 'yq' (https://github.com/mikefarah/yq) to continue."
+    exit 1
+  fi
+
+  NGINX_VERSION=$(BASE_OS="$PHP_BUILD_BASE_OS" yq -r '.operating_systems[].versions[] | select(.version == env(BASE_OS)) | .nginx_version' "$BASE_PHP_VERSIONS_CONFIG_FILE")
+
+  if [ -z "$NGINX_VERSION" ] || [ "$NGINX_VERSION" = "null" ]; then
+    echo_color_message red "❌ Unable to determine NGINX version for OS '$PHP_BUILD_BASE_OS' from $BASE_PHP_VERSIONS_CONFIG_FILE"
+    echo
+    echo "Ensure an entry exists under 'operating_systems' with version: $PHP_BUILD_BASE_OS and a valid 'nginx_version' key."
+    exit 1
+  fi
+
+  echo_color_message green "✅ Using NGINX version '$NGINX_VERSION' for OS '$PHP_BUILD_BASE_OS'"
+fi
 
 build_docker_image
