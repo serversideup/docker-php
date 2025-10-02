@@ -94,15 +94,19 @@ artisan_migrate() {
         return 1
     fi
     
+    # Build migration flags
+    migrate_flags="--force"
+    
     if [ "$AUTORUN_LARAVEL_MIGRATION_ISOLATION" = "true" ] && laravel_version_is_at_least "9.38.0"; then
-        debug_log "Running migrations with --isolated flag"
-        echo "🚀 Running migrations: \"php artisan migrate --force --isolated\"..."
-        php "$APP_BASE_DIR/artisan" migrate --force --isolated
-    else
-        debug_log "Running standard migrations"
-        echo "🚀 Running migrations: \"php artisan migrate --force\"..."
-        php "$APP_BASE_DIR/artisan" migrate --force
+        migrate_flags="$migrate_flags --isolated"
+    elif [ "$AUTORUN_LARAVEL_MIGRATION_ISOLATION" = "true" ] && ! laravel_version_is_at_least "9.38.0"; then
+        echo "❌ $script_name: Isolated migrations require Laravel v9.38.0 or above. Detected version: $(get_laravel_version)"
+        return 1
     fi
+    
+    # Execute migration with accumulated flags
+    echo "🚀 Running migrations: \"php artisan migrate $migrate_flags\"..."
+    php "$APP_BASE_DIR/artisan" migrate $migrate_flags
 }
 
 artisan_storage_link() {
@@ -324,6 +328,9 @@ if laravel_is_installed; then
     debug_log "- Route Cache: $AUTORUN_LARAVEL_ROUTE_CACHE"
     debug_log "- View Cache: $AUTORUN_LARAVEL_VIEW_CACHE"
     debug_log "- Event Cache: $AUTORUN_LARAVEL_EVENT_CACHE"
+    debug_log "- Seed: $AUTORUN_LARAVEL_SEED"
+    debug_log "- Skip DB Check: $AUTORUN_LARAVEL_MIGRATION_SKIP_DB_CHECK"
+    debug_log "- Migration Timeout: $AUTORUN_LARAVEL_MIGRATION_TIMEOUT"
 
     echo "🤔 Checking for Laravel automations..."
     if [ "$AUTORUN_LARAVEL_STORAGE_LINK" = "true" ]; then
