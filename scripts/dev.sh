@@ -26,7 +26,7 @@ PHP_BUILD_BASE_OS=""
 PHP_BUILD_PREFIX=""
 DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php"}"
 DOCKER_ADDITIONAL_BUILD_ARGS=()
-CUSTOM_REGISTRY=""
+PUSH_TO_REGISTRY=false
 PLATFORM=""
 
 # UI Colors
@@ -113,14 +113,11 @@ build_docker_image() {
     --file "$PROJECT_ROOT_DIR/src/variations/$PHP_BUILD_VARIATION/Dockerfile" \
     "$PROJECT_ROOT_DIR"
   echo_color_message green "✅ Docker Image Built: $build_tag"
-
-  if [ -n "$CUSTOM_REGISTRY" ]; then
-    registry_tag="${CUSTOM_REGISTRY}/${build_tag}"
-    echo_color_message yellow "🏷️  Tagging image for custom registry: $registry_tag"
-    docker tag "$build_tag" "$registry_tag"
-    echo_color_message yellow "🚀 Pushing image to custom registry: $registry_tag"
-    docker push "$registry_tag"
-    echo_color_message green "✅ Image pushed to custom registry: $registry_tag"
+  
+  if [ "$PUSH_TO_REGISTRY" = true ]; then
+    echo_color_message yellow "🚀 Pushing image to registry: $build_tag"
+    docker push "$build_tag"
+    echo_color_message green "✅ Image pushed to registry: $build_tag"
   fi
 }
 
@@ -139,10 +136,8 @@ help_menu() {
     echo "  --prefix <prefix>         Set the prefix for the Docker image (e.g., beta)"
     echo "  --registry <registry>     Set a custom registry (e.g., localhost:5000)"
     echo "  --platform <platform>     Set the platform (default: detected from system architecture)"
+    echo "  --push                    Push the image to the registry"
     echo "  --*                       Any additional options will be passed to the docker buildx command"
-    echo
-    echo "Environment Variables:"
-    echo "  DOCKER_REPOSITORY         The Docker repository (default: serversideup/php)"
 }
 
 ##########################
@@ -167,9 +162,10 @@ while [[ $# -gt 0 ]]; do
         shift 2
         ;;
         --registry)
-        CUSTOM_REGISTRY="$2"
+        DOCKER_REPOSITORY="$2"
         shift 2
         ;;
+
         --platform)
         PLATFORM="$2"
         shift 2

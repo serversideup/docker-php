@@ -2,7 +2,7 @@
 ARG BASE_OS_VERSION='trixie'
 ARG PHP_VERSION='8.4'
 ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
-ARG FRANKENPHP_VERSION='1.9.0'
+ARG FRANKENPHP_VERSION='1.9.1'
 ARG GOLANG_VERSION='1.25'
 
 ########################
@@ -10,6 +10,7 @@ ARG GOLANG_VERSION='1.25'
 ########################
 FROM ${BASE_IMAGE} AS common
 ARG REPOSITORY_BUILD_VERSION='dev'
+ARG FRANKENPHP_VERSION
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -35,7 +36,8 @@ RUN set -eux; \
     chmod -R 755 /var/www/; \
     \
     # Set the image version
-    echo "${REPOSITORY_BUILD_VERSION}" > /etc/serversideup-php-version;
+    echo "${REPOSITORY_BUILD_VERSION}" > /etc/serversideup-php-version; \
+    echo "${FRANKENPHP_VERSION}" > /etc/serversideup-php-frankenphp-version;
     # \
     # # Make composer cache directory
     # mkdir -p "${COMPOSER_HOME}"; \
@@ -59,6 +61,9 @@ COPY --from=golang-image /usr/local/go /usr/local/go
 ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOTOOLCHAIN="local"
 
+# Copy xcaddy in the builder image
+COPY --from=caddy:builder /usr/bin/xcaddy /usr/bin/xcaddy
+
 # Install dependencies & Download FrankenPHP
 RUN docker-php-serversideup-dep-install-alpine "$PHPIZE_DEPS ${BUILD_DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${BUILD_DEPENDENCY_PACKAGES_DEBIAN}"
@@ -81,28 +86,28 @@ RUN curl -s https://api.github.com/repos/e-dant/watcher/releases/latest | \
 
 # Download and build FrankenPHP
 WORKDIR /go/src/app
-ENV CGO_CFLAGS="-DFRANKENPHP_VERSION=$FRANKENPHP_VERSION $PHP_CFLAGS" \
-    CGO_CPPFLAGS=$PHP_CPPFLAGS \
-    GOBIN=/usr/local/bin
+ENV GOBIN=/usr/local/bin
 
 RUN if cat /etc/os-release | grep -q 'debian'; then \
-        export CGO_LDFLAGS="-L/usr/local/lib -lssl -lcrypto -lreadline -largon2 -lcurl -lonig -lz $PHP_LDFLAGS"; \
         export ADDITIONAL_BUILD_FLAGS=''; \
     elif cat /etc/os-release | grep -q 'alpine'; then \
-        export CGO_LDFLAGS="-lssl -lcrypto -lreadline -largon2 -lcurl -lonig -lz $PHP_LDFLAGS"; \
         export ADDITIONAL_BUILD_FLAGS="-extldflags '-Wl,-z,stack-size=0x80000'"; \
-    else \
-        echo "Unsupported OS"; \
-        exit 1; \
     fi; \
     git clone --depth 1 --branch v${FRANKENPHP_VERSION} \
     https://github.com/php/frankenphp.git .; \
-    go mod download;\
-    cd /go/src/app/caddy/frankenphp; \
-    ../../go.sh install -ldflags "-w -s $ADDITIONAL_BUILD_FLAGS -X 'github.com/caddyserver/caddy/v2.CustomVersion=FrankenPHP $FRANKENPHP_VERSION PHP $PHP_VERSION Caddy'" -buildvcs=true; \
-    frankenphp version; \
-    frankenphp build-info; \
-    setcap cap_net_bind_service=+ep /usr/local/bin/frankenphp
+    CGO_ENABLED=1 \
+    XCADDY_SETCAP=1 \
+    XCADDY_GO_BUILD_FLAGS="-ldflags='-w -s' -tags=nobadger,nomysql,nopgx" \
+    CGO_CFLAGS="$(php-config --includes) $ADDITIONAL_BUILD_FLAGS" \
+    CGO_LDFLAGS="$(php-config --ldflags) $(php-config --libs)" \
+    xcaddy build \
+        --output /usr/local/bin/frankenphp \
+        --with github.com/dunglas/frankenphp=./ \
+        --with github.com/dunglas/frankenphp/caddy=./caddy/ \
+        --with github.com/dunglas/caddy-cbrotli \
+        # Mercure and Vulcain are included in the official build, but feel free to remove them
+        --with github.com/dunglas/mercure/caddy \
+        --with github.com/dunglas/vulcain/caddy
 
 # WORKDIR /go/src/app/caddy
 
@@ -113,6 +118,7 @@ FROM common AS final
 ARG DEPENDENCY_PACKAGES_ALPINE='shadow libstdc++'
 ARG DEPENDENCY_PACKAGES_DEBIAN='libstdc++6'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
@@ -152,6 +158,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     PHP_MAX_INPUT_VARS="1000" \
     PHP_MEMORY_LIMIT="256M" \
     PHP_OPCACHE_ENABLE="0" \
+    PHP_OPCACHE_ENABLE_FILE_OVERRIDE="0" \
     PHP_OPCACHE_FORCE_RESTART_TIMEOUT="180" \
     PHP_OPCACHE_INTERNED_STRINGS_BUFFER="8" \
     PHP_OPCACHE_JIT="off" \
@@ -163,8 +170,11 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
     PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
+    PHP_REALPATH_CACHE_TTL="120" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
+    PHP_ZEND_DETECT_UNICODE="" \
+    PHP_ZEND_MULTIBYTE="Off" \
     SHOW_WELCOME_MESSAGE=true \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE="/etc/ssl/private/self-signed-web.crt" \
@@ -196,6 +206,9 @@ RUN \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
+    \
+    # Set the image version
+    echo "${REPOSITORY_BUILD_VERSION}" > /etc/serversideup-php-version && \
     \
     # Install PHP Extension installer
     docker-php-serversideup-install-php-ext-installer; \

@@ -42,8 +42,8 @@ process_template() {
         return 1
     fi
 
-    # Get all environment variables starting with 'NGINX_', 'SSL_', `LOG_`, and 'APACHE_'
-    subst_vars=$(env | grep -E '^(PHP_|NGINX_|SSL_|LOG_|APACHE_)' | cut -d= -f1 | awk '{printf "${%s},",$1}' | sed 's/,$//')
+    # Get all environment variables starting with 'NGINX_', 'SSL_', `LOG_`, 'APACHE_', and 'HEALTHCHECK_PATH'
+    subst_vars=$(env | grep -E '^(PHP_|NGINX_|SSL_|LOG_|APACHE_|HEALTHCHECK_PATH)' | cut -d= -f1 | awk '{printf "${%s},",$1}' | sed 's/,$//')
 
     # Validate that all required variables are set
     for var_name in $(echo "$subst_vars" | tr ',' ' '); do
@@ -171,6 +171,35 @@ if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
         process_template /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf
         process_template /etc/nginx/site-opts.d/http.conf.template /etc/nginx/site-opts.d/http.conf
         process_template /etc/nginx/site-opts.d/https.conf.template /etc/nginx/site-opts.d/https.conf
+
+        # Configure NGINX IP listening protocol if NGINX is installed
+        nginx_config_files="/etc/nginx/site-opts.d/http.conf /etc/nginx/site-opts.d/https.conf /etc/nginx/sites-available/ssl-full"
+        case "$NGINX_LISTEN_IP_PROTOCOL" in
+            all)
+                # Do nothing, keep both IPv4 and IPv6
+                ;;
+            ipv4)
+                echo "ℹ️ NOTICE (init-webserver-config): Setting IPv4 only for NGINX configuration..."
+                for config_file in $nginx_config_files; do
+                    if [ -f "$config_file" ]; then
+                        sed -i '/listen \[::\]:/d' "$config_file"
+                    fi
+                done
+                ;;
+            ipv6)
+                echo "ℹ️ NOTICE (init-webserver-config): Setting IPv6 only for NGINX configuration..."
+                for config_file in $nginx_config_files; do
+                    if [ -f "$config_file" ]; then
+                        sed -i '/^[[:space:]]*listen [0-9]/d' "$config_file"
+                    fi
+                done
+                ;;
+            *)
+                echo "🛑 ERROR ($script_name): Invalid NGINX_LISTEN_IP_PROTOCOL value: $NGINX_LISTEN_IP_PROTOCOL"
+                return 1
+                ;;
+        esac
+
         enable_nginx_site "$SSL_MODE"
     else
         echo "🛑 ERROR ($script_name): Neither Apache nor NGINX could be detected."
