@@ -251,6 +251,7 @@ case "$OS" in
                 DIRS="
                     /composer
                     /etc/nginx/
+                    /run
                     /etc/ssl/private
                     /usr/local/etc/php-fpm.conf
                     /usr/local/etc/php-fpm.d/zzz-docker-php-serversideup-fpm-debug.conf
