@@ -63,12 +63,18 @@ fd00::/8 \
 	# Match serversideup/php log levels to Caddy address log levels
 	import log-level/address/{$LOG_OUTPUT_LEVEL:info}.caddyfile
 
-	# Healthcheck endpoint
-	@health {
+	# Define the Caddy healthcheck endpoint
+	@caddy-healthcheck {
 		path /healthcheck
 	}
-	respond @health "OK" 200
-	log_skip @health
+	respond @caddy-healthcheck "OK" 200
+	log_skip @caddy-healthcheck
+
+	# Define the custom healthcheck endpoint
+	@healthcheckpath {
+		path {$HEALTHCHECK_PATH:/healthcheck}
+	}
+	log_skip @healthcheckpath
 
 	php_server {
 		{$CADDY_PHP_SERVER_OPTIONS}

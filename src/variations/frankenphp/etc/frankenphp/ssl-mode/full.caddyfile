@@ -1,4 +1,14 @@
 {$CADDY_HTTP_SERVER_ADDRESS:http://} {
+	# Redirect localhost healthcheck requests to HTTPS with the correct port
+	@healthcheck {
+		remote_ip 127.0.0.1/8 ::1
+		path /healthcheck # Caddy healthcheck endpoint
+		path {$HEALTHCHECK_PATH:/healthcheck} # Custom healthcheck endpoint
+	}
+	log_skip @healthcheck
+	redir @healthcheck https://localhost:{$CADDY_HTTPS_PORT:8443}{uri} 308
+
+	# Redirect all other traffic to HTTPS (without explicit port)
 	redir https://{host}{uri} 308
 }
 
