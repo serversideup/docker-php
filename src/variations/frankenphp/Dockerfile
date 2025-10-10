@@ -115,8 +115,8 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
 # FrankenPHP Final
 ####################
 FROM common AS final
-ARG DEPENDENCY_PACKAGES_ALPINE='gettext shadow libstdc++'
-ARG DEPENDENCY_PACKAGES_DEBIAN='gettext-base procps zip libstdc++6'
+ARG DEPENDENCY_PACKAGES_ALPINE='shadow libstdc++'
+ARG DEPENDENCY_PACKAGES_DEBIAN='procps zip libstdc++6'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
