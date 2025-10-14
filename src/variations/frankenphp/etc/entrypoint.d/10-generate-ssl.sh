@@ -12,6 +12,9 @@ SSL_MODE=${SSL_MODE:-"off"}
 if [ "$SSL_MODE" = "off" ]; then
     echo "ℹ️ NOTICE ($script_name): SSL mode is off, so we'll not generate a self-signed SSL certificate and key."
     return 0
+elif [ "$SSL_MODE" = "acme" ]; then
+    echo "ℹ️ NOTICE ($script_name): SSL mode is acme, so we'll not generate a self-signed SSL certificate and key."
+    return 0
 fi
 
 if [ -z "$SSL_CERTIFICATE_FILE" ] || [ -z "$SSL_PRIVATE_KEY_FILE" ]; then
