@@ -98,7 +98,7 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
     CGO_ENABLED=1 \
     XCADDY_SETCAP=1 \
     XCADDY_GO_BUILD_FLAGS="-ldflags='-w -s' -tags=nobadger,nomysql,nopgx" \
-    CGO_CFLAGS="$(php-config --includes) $ADDITIONAL_BUILD_FLAGS" \
+    CGO_CFLAGS="-DFRANKENPHP_VERSION=${FRANKENPHP_VERSION} $(php-config --includes) $ADDITIONAL_BUILD_FLAGS" \
     CGO_LDFLAGS="$(php-config --ldflags) $(php-config --libs)" \
     xcaddy build \
         --output /usr/local/bin/frankenphp \
