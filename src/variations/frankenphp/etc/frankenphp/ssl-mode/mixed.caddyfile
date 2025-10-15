@@ -3,7 +3,7 @@
 }
 
 {$CADDY_HTTPS_SERVER_ADDRESS:https://} {
-	tls {$SSL_CERTIFICATE_FILE} {$SSL_CERTIFICATE_KEY_FILE}
+	import auto-https-{$CADDY_AUTO_HTTPS:off}
 	import app-common
 	import security-https
 }

@@ -1,7 +1,8 @@
 {
 	# Global Caddy configuration
 	admin {$CADDY_ADMIN:off}
-	auto_https {$CADDY_AUTO_HTTPS:off}
+
+	import auto-https/{$CADDY_AUTO_HTTPS:off}.caddyfile
 
 	http_port {$CADDY_HTTP_PORT:8080}
 	https_port {$CADDY_HTTPS_PORT:8443}
@@ -54,7 +55,15 @@ fd00::/8 \
 	{$CADDY_GLOBAL_OPTIONS}
 }
 
-# Common app logic; reused across all SSL modes
+(auto-https-off) {
+	tls {$SSL_CERTIFICATE_FILE} {$SSL_CERTIFICATE_KEY_FILE}
+}
+
+(auto-https-on) {
+	# tls directive is not needed when auto_https is enabled
+}
+
+# Common app logic; reused across all modes
 (app-common) {
 	root * {$CADDY_APP_PUBLIC_PATH:/var/www/html/public}
 

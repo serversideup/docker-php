@@ -24,13 +24,12 @@ RUN set -eux; \
 		/etc/caddy \
 		/etc/frankenphp/ssl-mode \
         /etc/frankenphp/log-level \
+        /etc/frankenphp/auto-https \
         /etc/frankenphp/caddyfile.d; \
     # Create default index.php
 	echo '<?php phpinfo();' > /var/www/html/public/index.php; \
     # Create symbolic links
     ln -sf /var/www/html /app; \
-    ln -sf /var/www/config/ /config; \
-    ln -sf /var/www/data/ /data; \
     # Ensure /var/www/ has the correct permissions
     chown -R www-data:www-data /var/www/; \
     chmod -R 755 /var/www/; \
@@ -108,8 +107,6 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
         # Mercure and Vulcain are included in the official build, but feel free to remove them
         --with github.com/dunglas/mercure/caddy \
         --with github.com/dunglas/vulcain/caddy
-
-# WORKDIR /go/src/app/caddy
 
 ####################
 # FrankenPHP Final

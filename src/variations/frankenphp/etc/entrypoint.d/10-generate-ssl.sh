@@ -10,10 +10,10 @@ SSL_PRIVATE_KEY_FILE=${SSL_PRIVATE_KEY_FILE:-"/etc/ssl/private/self-signed-web.k
 SSL_MODE=${SSL_MODE:-"off"}
 
 if [ "$SSL_MODE" = "off" ]; then
-    echo "ℹ️ NOTICE ($script_name): SSL mode is off, so we'll not generate a self-signed SSL certificate and key."
+    echo "ℹ️ NOTICE ($script_name): SSL mode is off, so we won't generate a self-signed SSL key pair."
     return 0
-elif [ "$SSL_MODE" = "acme" ]; then
-    echo "ℹ️ NOTICE ($script_name): SSL mode is acme, so we'll not generate a self-signed SSL certificate and key."
+elif [ "$CADDY_AUTO_HTTPS" != "off" ]; then
+    echo "ℹ️ NOTICE ($script_name): Caddy Auto HTTPS is enabled, so we won't generate a default, self-signed, SSL key pair."
     return 0
 fi
 
