@@ -19,8 +19,8 @@ RUN set -eux; \
     # Create directories
 	mkdir -p \
 		/var/www/html/public \
-		/var/www/config/caddy \
-		/var/www/data/caddy \
+		/config/caddy \
+		/data/caddy \
 		/etc/caddy \
 		/etc/frankenphp/ssl-mode \
         /etc/frankenphp/log-level \
