@@ -1,87 +1,87 @@
-import tailwindTypography from '@tailwindcss/typography'
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
     modules: [
-        'nuxt-og-image',
-        '@nuxtjs/color-mode',
+        '@nuxt/eslint',
+        '@nuxt/image',
+        '@nuxt/ui',
         '@nuxt/content',
         '@nuxtjs/plausible',
-        '@nuxtjs/tailwindcss',
-        '@vueuse/nuxt'
+        '@nuxtjs/sitemap',
+        'nuxt-og-image',
+        'nuxt-llms',
+        'nuxt-schema-org'
     ],
 
+    devtools: {
+        enabled: true
+    },
+
+    css: ['~/assets/css/main.css'],
+
     content: {
-        documentDriven: true,
-
-        experimental: {
-            search: {
-                indexed: true
+        build: {
+            markdown: {
+                toc: {
+                    searchDepth: 2
+                }
             }
-        },
-
-        markdown: {
-            tags: {
-                h2: 'AppHeading2',
-                h3: 'AppHeading3',
-                h4: 'AppHeading4'
-            }
-        },
-
-        highlight: {
-            theme: {
-              // Default theme (same as single string)
-              default: 'github-dark',
-              // Theme used if `html.dark`
-              dark: 'github-dark',
-              // Theme used if `html.sepia`
-              sepia: 'monokai'
-            },
-
-            preload: [
-                'dockerfile',
-                'ini',
-                'php'
-            ]
-        },
+        }
     },
 
-    colorMode: {
-        classSuffix: ''
-    },
+    compatibilityDate: '2024-07-11',
 
     nitro: {
         prerender: {
             routes: [
-                '/sitemap.xml',
-                '/api/search.json'
-            ]
+                '/'
+            ],
+            crawlLinks: true,
+            autoSubfolderIndex: false
         }
     },
 
-    ogImage: {
-        componentDirs: ['~/components/Global/OgImage'],
-    },
-
-    plausible: {
-        apiHost: 'https://a.521dimensions.com'
-    },
-
-    runtimeConfig: {
-        public: {
-            basePath: process.env.NUXT_APP_BASE_URL || '/',
-            domain: process.env.TOP_LEVEL_DOMAIN
-        }
-    },
-
-    site: {
-        url: process.env.BASE_PATH,
-    },
-
-    tailwindcss: {
+    eslint: {
         config: {
-            plugins: [tailwindTypography]
+            stylistic: {
+                commaDangle: 'never',
+                braceStyle: '1tbs'
+            }
+        }
+    },
+
+    icon: {
+        provider: 'iconify'
+    },
+
+    site: { 
+        url: process.env.NUXT_SITE_URL || 'SITE URL',
+        name: process.env.NUXT_SITE_NAME || 'SITE NAME',
+        env: process.env.NUXT_SITE_ENV || 'production'
+    },
+
+    llms: {
+        domain: 'https://docs-template.nuxt.dev/',
+        title: 'Nuxt Docs Template',
+        description: 'A template for building documentation with Nuxt UI and Nuxt Content.',
+        full: {
+            title: 'Nuxt Docs Template - Full Documentation',
+            description: 'This is the full documentation for the Nuxt Docs Template.'
         },
-        cssPath: '~/assets/css/tailwind.css',
+        sections: [
+            {
+                title: 'Getting Started',
+                contentCollection: 'docs',
+                contentFilters: [
+                    { field: 'path', operator: 'LIKE', value: '/getting-started%' }
+                ]
+            },
+            {
+                title: 'Essentials',
+                contentCollection: 'docs',
+                contentFilters: [
+                    { field: 'path', operator: 'LIKE', value: '/essentials%' }
+                ]
+            }
+        ]
     }
 })

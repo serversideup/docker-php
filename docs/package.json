@@ -1,29 +1,38 @@
 {
+  "name": "documentation-template",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
-    "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
-  },
-  "devDependencies": {
-    "@headlessui/vue": "^1.7.8",
-    "@nuxtjs/color-mode": "^3.2.0",
-    "@nuxtjs/plausible": "^0.2.0",
-    "@nuxtjs/tailwindcss": "^6.11.3",
-    "@tailwindcss/typography": "^0.5.9",
-    "@vueuse/core": "^10.7.2",
-    "@vueuse/nuxt": "^10.7.2",
-    "nuxt-og-image": "^2.2.4",
-    "nuxt-site-config": "^1.6.6",
-    "nuxt-site-config-kit": "^1.6.6",
-    "sitemap": "^7.1.1",
-    "surge": "^0.23.1"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "@heroicons/vue": "^2.1.3",
-    "@nuxt/content": "^2.12.1",
-    "nuxt": "^3.11.2"
-  }
+    "@iconify-json/lucide": "^1.2.69",
+    "@iconify-json/simple-icons": "^1.2.54",
+    "@iconify-json/vscode-icons": "^1.2.32",
+    "@nuxt/content": "^3.7.1",
+    "@nuxt/image": "^1.11.0",
+    "@nuxt/ui": "^4.0.1",
+    "@nuxtjs/plausible": "^2.0.1",
+    "@nuxtjs/sitemap": "^7.4.7",
+    "better-sqlite3": "^12.4.1",
+    "nuxt": "^4.1.3",
+    "nuxt-llms": "0.1.3",
+    "nuxt-og-image": "^5.1.11",
+    "nuxt-schema-org": "^5.0.9"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.9.0",
+    "eslint": "^9.37.0",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.1.1"
+  },
+  "resolutions": {
+    "unimport": "4.1.1"
+  },
+  "packageManager": "yarn@4.0.0"
 }

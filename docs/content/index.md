@@ -1,23 +1,195 @@
 ---
-layout: marketing
+seo:
+  title: Nuxt Docs Template
+  description: Create stunning, fast and SEO-optimized documentation sites with Nuxt UI.
 ---
-::marketing-hero
+
+::u-page-hero{class="dark:bg-neutral-950"}
+---
+orientation: vertical
+---
+#top
+
+#title
+Supercharge your PHP experience, [in seconds.]{.text-green-500}
+
+#description
+Built upon the official PHP images, our production-ready serversideup/php images take your Docker PHP experience to the next level. Enjoy variable-first configurations, nginx-unit variation, native CloudFlare support, and more.
+
+#links
+    :::u-button
+    ---
+    to: /getting-started
+    size: xl
+    trailing-icon: i-lucide-arrow-right
+    ---
+    Get started
+    :::
+
+    :::u-button
+    ---
+    icon: i-simple-icons-github
+    color: neutral
+    variant: outline
+    size: xl
+    to: https://github.com/serversideup/docker-php
+    target: _blank
+    ---
+    Star on GitHub
+    :::
+
+#default
+  :::hero-video
+  ---
+  src: https://docker-php-public-assets.serversideup.net/docker-demo.mp4
+  ---
 ::
 
-::marketing-grid
+::u-page-section{class="dark:bg-neutral-950"}
+#title
+These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
+
+#features
+    :::u-page-card
+    ---
+    icon: i-lucide-rocket
+    orientation: vertical
+    ---
+    #title
+    Production Ready
+
+    #description
+    Built to be performant and secure to exist on the wild web.
+    :::
+
+    :::u-page-card
+    ---
+    icon: i-lucide-heart
+    orientation: vertical
+    ---
+    #title
+    Native Health Checks
+
+    #description
+    Be 100% confident your application is actually running.
+    :::
+
+    :::u-page-card
+    ---
+    icon: i-lucide-zap
+    orientation: vertical
+    ---
+    #title
+    High Performance
+
+    #description
+    Get the easiest experience for fine tuning performance.
+    :::
+
+    :::u-page-card
+    ---
+    icon: i-lucide-sparkles
+    orientation: vertical
+    ---
+    #title
+    Customizable & Flexible
+
+    #description
+    Environment variables make customizations a breeze.
+    :::
+
+    :::u-page-card
+    ---
+    icon: i-lucide-cloud
+    orientation: vertical
+    ---
+    #title
+    Native CloudFlare Support
+
+    #description
+    Get real IP addresses from visitors from trusted proxies.
+    :::
+
+    :::u-page-card
+    ---
+    icon: i-lucide-moon
+    orientation: vertical
+    ---
+    #title
+    Based on official PHP
+
+    #description
+    Upgrade from the official PHP docker images with confidence.
+    :::
+
+    :::u-page-card
+    ---
+    icon: i-lucide-moon
+    orientation: vertical
+    ---
+    #title
+    NGINX Unit
+
+    #description
+    Ditch FPM for a modern way of running PHP. Designed for containers from the ground up.
+    :::
+
+    :::u-page-card
+    ---
+    icon: i-lucide-moon
+    orientation: vertical
+    ---
+    #title
+    Unified Logging
+
+    #description
+    All logs are directed to STDOUT & STDERR for centralized output.
+    :::
+
+    :::u-page-card
+    ---
+    icon: i-lucide-moon
+    orientation: vertical
+    ---
+    #title
+    FPM + S6 Overlay
+
+    #description
+    Our FPM-Apache & FPM-NGINX images use this intelligent init system.
+    :::
 ::
 
-::marketing-optimized
+::u-page-section{class="dark:bg-neutral-950"}
+#title
+Highly optimized for Laravel 💪
+
+#description
+Horizon, queues, tasks, storage linking, migrations - these images handle it all.
+
+#default
+  :::hero-video
+  ---
+  src: https://docker-php-public-assets.serversideup.net/docker-laravel-horizon-demo.mp4
+  ---
 ::
 
-::marketing-dev-to-prod
-::
+::u-page-section{class="dark:bg-gradient-to-b from-neutral-950 to-neutral-900"}
+  :::u-page-c-t-a
+  ---
+  links:
+    - label: Start building
+      to: '/getting-started'
+      trailingIcon: i-lucide-arrow-right
+    - label: View on GitHub
+      to: 'https://github.com/nuxt-ui-templates/docs'
+      target: _blank
+      variant: subtle
+      icon: i-simple-icons-github
+  title: Ready to build an amazing documentation?
+  description: Join thousands of developers building with Nuxt and Nuxt UI. Get this template and start shipping today.
+  class: dark:bg-neutral-950
+  ---
 
-::marketing-testimonials
-::
-
-::landing-signup
-::
-
-::marketing-follow-along
+  :stars-bg
+  :::
 ::
