@@ -34,5 +34,5 @@
   "resolutions": {
     "unimport": "4.1.1"
   },
-  "packageManager": "yarn@4.0.0"
+  "packageManager": "yarn@1.22.22"
 }
