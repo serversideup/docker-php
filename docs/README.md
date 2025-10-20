@@ -52,4 +52,4 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 If you're diving deep into the docs, here are some tips to help you out:
 
 ## Icons
-All icons are from the [Lucide](https://lucide.dev/icons/) icon set. Use the icon name as the value for the `icon` field in the YAML frontmatter.
+All icons are from the [Lucide](https://lucide.dev/icons/) icon set. Use the icon name of `i-lucide-<icon-name>` as the value for the `icon` field in the YAML frontmatter.
