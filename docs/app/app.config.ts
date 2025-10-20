@@ -113,9 +113,9 @@ export default defineAppConfig({
                 to: 'https://github.com/serversideup/',
                 target: '_blank'
             }, {
-                icon: 'i-lucide-podcast',
-                label: 'Nuxst UI docs',
-                to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
+                icon: 'i-lucide-bell-ring',
+                label: 'Subscribe',
+                to: 'https://serversideup.net/subscribe',
                 target: '_blank'
             }]
         }
