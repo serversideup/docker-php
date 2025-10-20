@@ -46,6 +46,7 @@ useHead({
     ],
     htmlAttrs: {
         lang: 'en',
+        class: 'dark'
     }
 })
 

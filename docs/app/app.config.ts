@@ -37,7 +37,7 @@ export default defineAppConfig({
         search: true,
         links: [{
             'icon': 'i-lucide-book-open',
-            'to': '/getting-started',
+            'to': '/docs/getting-started',
             'aria-label': 'Documentation',
             'label': 'Docs',
             'variant': 'ghost',
@@ -74,7 +74,7 @@ export default defineAppConfig({
         },{
             'trailingIcon': 'i-lucide-arrow-right',
             'label': 'Get Started',
-            'to': '/docs',
+            'to': '/docs/getting-started',
             'aria-label': 'Get Started',
             'size': 'xl',
             'variant': 'solid',

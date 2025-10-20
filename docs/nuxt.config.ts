@@ -72,7 +72,7 @@ export default defineNuxtConfig({
                 title: 'Getting Started',
                 contentCollection: 'docs',
                 contentFilters: [
-                    { field: 'path', operator: 'LIKE', value: '/getting-started%' }
+                    { field: 'path', operator: 'LIKE', value: '/docs/getting-started%' }
                 ]
             },
             {
@@ -85,8 +85,7 @@ export default defineNuxtConfig({
         ]
     },
 
-    colorMode: {
-        preference: 'dark',
-        fallback: 'dark'
+    ui: {
+        colorMode: false
     }
 })

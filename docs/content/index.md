@@ -19,7 +19,7 @@ Built upon the official PHP images, our production-ready serversideup/php images
 #links
     :::u-button
     ---
-    to: /getting-started
+    to: /docs/getting-started
     size: xl
     trailing-icon: i-lucide-arrow-right
     ---
@@ -178,7 +178,7 @@ Horizon, queues, tasks, storage linking, migrations - these images handle it all
   ---
   links:
     - label: Start building
-      to: '/getting-started'
+      to: '/docs/getting-started'
       trailingIcon: i-lucide-arrow-right
     - label: View on GitHub
       to: 'https://github.com/nuxt-ui-templates/docs'

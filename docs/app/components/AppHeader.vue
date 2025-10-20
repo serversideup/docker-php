@@ -8,11 +8,9 @@
             v-if="header?.logo?.dark || header?.logo?.light || header?.title"
             #title
         >
-            <UColorModeImage
+            <NuxtImg
                 v-if="header?.logo?.dark || header?.logo?.light"
-                :light="header?.logo?.light"
-                :dark="header?.logo?.dark"
-                :alt="header?.logo?.alt"
+                :src="header?.logo?.dark || header?.logo?.light"
                 class="w-52 xl:w-72 shrink-0"
             />
 
