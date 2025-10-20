@@ -3,10 +3,17 @@
 
 @source "../../../content/**/*";
 
+@theme {
+  --color-mode: 'dark';
+  --color-mode-fallback: 'dark';
+  --color-mode-preference: 'dark';
+  --color-mode-fallback: 'dark';
+}
+
 @theme static {
   --ui-header-height: --spacing(24);
   --container-8xl: 90rem;
-  --font-sans: 'Public Sans', sans-serif;
+  --font-sans: 'Inter', sans-serif;
 
   --color-green-50: #EFFDF5;
   --color-green-100: #D9FBE8;
