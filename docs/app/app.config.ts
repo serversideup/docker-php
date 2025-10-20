@@ -89,17 +89,17 @@ export default defineAppConfig({
             'icon': 'i-simple-icons-discord',
             'to': 'https://serversideup.net/discord',
             'target': '_blank',
-            'aria-label': 'Nuxt on Discord'
+            'aria-label': 'Server Side Up on Discord'
         }, {
             'icon': 'i-simple-icons-x',
             'to': 'https://x.com/serversideup',
             'target': '_blank',
-            'aria-label': 'Nuxt on X'
+            'aria-label': 'Server Side Up on X'
         }, {
             'icon': 'i-simple-icons-github',
             'to': 'https://github.com/serversideup/',
             'target': '_blank',
-            'aria-label': 'Nuxt UI on GitHub'
+            'aria-label': 'Server Side Up on GitHub'
         }]
     },
     toc: {
