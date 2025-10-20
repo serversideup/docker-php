@@ -24,7 +24,7 @@ export default defineAppConfig({
         }
     },
     seo: {
-        siteName: 'Nuxt Docs Template'
+        siteName: 'PHP Docker Images (serversideup/docker-php)'
     },
     header: {
         title: 'PHP Docker Images (serversideup/docker-php)',

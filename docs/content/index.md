@@ -1,7 +1,7 @@
 ---
 seo:
-  title: Nuxt Docs Template
-  description: Create stunning, fast and SEO-optimized documentation sites with Nuxt UI.
+  title: PHP Docker Images (serversideup/docker-php)
+  description: Production-ready PHP Docker images for Laravel, WordPress, and more.
 ---
 
 ::u-page-hero{class="dark:bg-neutral-950"}
