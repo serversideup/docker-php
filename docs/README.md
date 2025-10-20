@@ -51,5 +51,10 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 # Power User Tips
 If you're diving deep into the docs, here are some tips to help you out:
 
+## Components
+All components are from the [Nuxt UI](https://ui.nuxt.com/) component library, using the [Nuxt UI Documentation Template](https://docs-template.nuxt.dev).
+
+[View the Nuxt UI Documentation Template components →](https://docs-template.nuxt.dev/essentials/prose-components)
+
 ## Icons
 All icons are from the [Lucide](https://lucide.dev/icons/) icon set. Use the icon name of `i-lucide-<icon-name>` as the value for the `icon` field in the YAML frontmatter.
