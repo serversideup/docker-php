@@ -24,13 +24,13 @@ export default defineAppConfig({
         }
     },
     seo: {
-        siteName: 'PHP Docker Images (serversideup/docker-php)'
+        siteName: 'PHP Docker Images (serversideup/php)'
     },
     header: {
-        title: 'PHP Docker Images (serversideup/docker-php)',
+        title: 'PHP Docker Images (serversideup/php)',
         to: '/',
         logo: {
-            alt: 'PHP Docker Images (serversideup/docker-php)',
+            alt: 'PHP Docker Images (serversideup/php)',
             light: '/images/php-docker-logo.svg',
             dark: '/images/php-docker-logo.svg'
         },

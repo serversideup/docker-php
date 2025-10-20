@@ -1,6 +1,6 @@
 ---
 seo:
-  title: PHP Docker Images (serversideup/docker-php)
+  title: PHP Docker Images (serversideup/php)
   description: Production-ready PHP Docker images for Laravel, WordPress, and more.
 ---
 

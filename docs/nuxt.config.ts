@@ -60,12 +60,12 @@ export default defineNuxtConfig({
     },
 
     llms: {
-        domain: 'https://docs-template.nuxt.dev/',
-        title: 'Nuxt Docs Template',
-        description: 'A template for building documentation with Nuxt UI and Nuxt Content.',
+        domain: 'https://serversideup.net/open-source/docker-php/',
+        title: 'PHP Docker Images (serversideup/php)',
+        description: 'Production-ready PHP Docker images for Laravel, WordPress, and more.',
         full: {
-            title: 'Nuxt Docs Template - Full Documentation',
-            description: 'This is the full documentation for the Nuxt Docs Template.'
+            title: 'PHP Docker Images (serversideup/php) - Full Documentation',
+            description: 'Production-ready PHP Docker images for Laravel, WordPress, and more.'
         },
         sections: [
             {
@@ -73,13 +73,6 @@ export default defineNuxtConfig({
                 contentCollection: 'docs',
                 contentFilters: [
                     { field: 'path', operator: 'LIKE', value: '/docs/getting-started%' }
-                ]
-            },
-            {
-                title: 'Essentials',
-                contentCollection: 'docs',
-                contentFilters: [
-                    { field: 'path', operator: 'LIKE', value: '/essentials%' }
                 ]
             }
         ]
