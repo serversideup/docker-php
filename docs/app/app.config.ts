@@ -83,16 +83,16 @@ export default defineAppConfig({
         }]
     },
     footer: {
-        credits: `Built with Nuxt UI • © ${new Date().getFullYear()}`,
+        credits: `⚡️ Powered by Server Side Up`,
         colorMode: false,
         links: [{
             'icon': 'i-simple-icons-discord',
-            'to': 'https://go.nuxt.com/discord',
+            'to': 'https://serversideup.net/discord',
             'target': '_blank',
             'aria-label': 'Nuxt on Discord'
         }, {
             'icon': 'i-simple-icons-x',
-            'to': 'https://go.nuxt.com/x',
+            'to': 'https://x.com/serversideup',
             'target': '_blank',
             'aria-label': 'Nuxt on X'
         }, {
@@ -113,8 +113,8 @@ export default defineAppConfig({
                 to: 'https://github.com/serversideup/',
                 target: '_blank'
             }, {
-                icon: 'i-lucide-book-open',
-                label: 'Nuxt UI docs',
+                icon: 'i-lucide-podcast',
+                label: 'Nuxst UI docs',
                 to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
                 target: '_blank'
             }]
