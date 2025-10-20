@@ -97,7 +97,7 @@ export default defineAppConfig({
             'aria-label': 'Nuxt on X'
         }, {
             'icon': 'i-simple-icons-github',
-            'to': 'https://github.com/nuxt/ui',
+            'to': 'https://github.com/serversideup/',
             'target': '_blank',
             'aria-label': 'Nuxt UI on GitHub'
         }]
@@ -106,11 +106,11 @@ export default defineAppConfig({
         title: 'Table of Contents',
         bottom: {
             title: 'Community',
-            edit: 'https://github.com/nuxt-ui-templates/docs/edit/main/content',
+            edit: 'https://github.com/serversideup/docker-php/edit/main/docs/content',
             links: [{
                 icon: 'i-lucide-star',
                 label: 'Star on GitHub',
-                to: 'https://github.com/nuxt/ui',
+                to: 'https://github.com/serversideup/',
                 target: '_blank'
             }, {
                 icon: 'i-lucide-book-open',
