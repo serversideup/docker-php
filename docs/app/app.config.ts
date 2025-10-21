@@ -124,17 +124,26 @@ export default defineAppConfig({
         bottom: {
             title: 'Community',
             edit: 'https://github.com/serversideup/docker-php/edit/main/docs/content',
-            links: [{
-                icon: 'i-lucide-star',
-                label: 'Star on GitHub',
-                to: 'https://github.com/serversideup/',
-                target: '_blank'
-            }, {
-                icon: 'i-lucide-bell-ring',
-                label: 'Subscribe',
-                to: 'https://serversideup.net/subscribe',
-                target: '_blank'
-            }]
+            links: [
+                {
+                    icon: 'i-lucide-star',
+                    label: 'Star on GitHub',
+                    to: 'https://github.com/serversideup/',
+                    target: '_blank'
+                },
+                {
+                    icon: 'i-lucide-bell-ring',
+                    label: 'Subscribe',
+                    to: 'https://serversideup.net/subscribe',
+                    target: '_blank'
+                },
+                {
+                    icon: 'i-lucide-handshake',
+                    label: 'Professional Help',
+                    to: 'https://serversideup.net/professional-support',
+                    target: '_blank'
+                }
+            ]
         }
     }
 })
