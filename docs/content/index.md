@@ -52,7 +52,7 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
 #features
     :::u-page-card
     ---
-    icon: i-lucide-rocket
+    icon: i-features-rocket-square
     orientation: vertical
     ---
     #title
@@ -64,7 +64,7 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
 
     :::u-page-card
     ---
-    icon: i-lucide-heart
+    icon: i-features-heart-square
     orientation: vertical
     ---
     #title
@@ -76,7 +76,7 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
 
     :::u-page-card
     ---
-    icon: i-lucide-zap
+    icon: i-features-lightning-square
     orientation: vertical
     ---
     #title
@@ -88,7 +88,7 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
 
     :::u-page-card
     ---
-    icon: i-lucide-sparkles
+    icon: i-features-stars-square
     orientation: vertical
     ---
     #title
@@ -100,7 +100,7 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
 
     :::u-page-card
     ---
-    icon: i-lucide-cloud
+    icon: i-features-cloudflare-square
     orientation: vertical
     ---
     #title
@@ -112,7 +112,7 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
 
     :::u-page-card
     ---
-    icon: i-lucide-moon
+    icon: i-features-php-square
     orientation: vertical
     ---
     #title
@@ -124,11 +124,11 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
 
     :::u-page-card
     ---
-    icon: i-lucide-moon
+    icon: i-features-frankenphp-square
     orientation: vertical
     ---
     #title
-    NGINX Unit
+    FrankenPHP
 
     #description
     Ditch FPM for a modern way of running PHP. Designed for containers from the ground up.
@@ -136,7 +136,7 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
 
     :::u-page-card
     ---
-    icon: i-lucide-moon
+    icon: i-features-logging-square
     orientation: vertical
     ---
     #title
@@ -148,7 +148,7 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
 
     :::u-page-card
     ---
-    icon: i-lucide-moon
+    icon: i-features-heartbeat-square
     orientation: vertical
     ---
     #title
