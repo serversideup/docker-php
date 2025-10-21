@@ -19,12 +19,12 @@ export default defineAppConfig({
         },
         prose: {
             codeIcon: {
-                'compose.yml': 'i-simple-icons-docker text-[#2496ED]',
-                'compose.yaml': 'i-simple-icons-docker text-[#2496ED]',
-                'dockerfile': 'i-simple-icons-docker text-[#2496ED]',
-                'docker-compose.yml': 'i-simple-icons-docker text-[#2496ED]',
-                'docker-compose.yaml': 'i-simple-icons-docker text-[#2496ED]',
-                'Dockerfile': 'i-simple-icons-docker text-[#2496ED]'
+                'compose.yml': 'i-services-docker',
+                'compose.yaml': 'i-services-docker',
+                'dockerfile': 'i-services-docker',
+                'docker-compose.yml': 'i-services-docker',
+                'docker-compose.yaml': 'i-services-docker',
+                'Dockerfile': 'i-services-docker'
             }
         },
         mode: 'dark',
