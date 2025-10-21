@@ -10,6 +10,13 @@ export default defineAppConfig({
                 title: 'text-white font-bold text-sm truncate',
             }
         },
+        pageCard: {
+            slots: {
+                leadingIcon: 'size-12 text-primary-500', // Bigger icon with primary color
+                title: 'text-xl font-bold text-white mb-2', // Larger, bold title
+                description: 'text-gray-300 text-md leading-relaxed' // Styled description
+            }
+        },
         mode: 'dark',
         header: {
             slots: {
