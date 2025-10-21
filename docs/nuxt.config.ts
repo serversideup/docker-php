@@ -21,6 +21,16 @@ export default defineNuxtConfig({
     content: {
         build: {
             markdown: {
+                highlight: {
+                    theme: 'github-dark',
+                    langs: [
+                        'jinja',
+                        'bash',
+                        'dockerfile',
+                        'nginx',
+                        'php',
+                    ]
+                },
                 toc: {
                     searchDepth: 2
                 }
