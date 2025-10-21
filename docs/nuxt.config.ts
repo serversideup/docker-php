@@ -50,7 +50,11 @@ export default defineNuxtConfig({
     },
 
     icon: {
-        provider: 'iconify'
+        provider: 'iconify',
+        customCollections: [{
+            prefix: 'features',
+            dir: './app/assets/icons/features'
+          }]
     },
 
     site: { 
