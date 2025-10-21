@@ -17,6 +17,16 @@ export default defineAppConfig({
                 description: 'text-gray-300 text-md leading-relaxed' // Styled description
             }
         },
+        prose: {
+            codeIcon: {
+                'compose.yml': 'i-simple-icons-docker text-[#2496ED]',
+                'compose.yaml': 'i-simple-icons-docker text-[#2496ED]',
+                'dockerfile': 'i-simple-icons-docker text-[#2496ED]',
+                'docker-compose.yml': 'i-simple-icons-docker text-[#2496ED]',
+                'docker-compose.yaml': 'i-simple-icons-docker text-[#2496ED]',
+                'Dockerfile': 'i-simple-icons-docker text-[#2496ED]'
+            }
+        },
         mode: 'dark',
         header: {
             slots: {
