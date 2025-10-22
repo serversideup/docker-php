@@ -24,7 +24,8 @@ export default defineAppConfig({
                 'dockerfile': 'i-services-docker',
                 'docker-compose.yml': 'i-services-docker',
                 'docker-compose.yaml': 'i-services-docker',
-                'Dockerfile': 'i-services-docker'
+                'Dockerfile': 'i-services-docker',
+                'Terminal': 'i-ph-terminal-window-duotone',
             }
         },
         mode: 'dark',
