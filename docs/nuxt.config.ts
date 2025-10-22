@@ -26,6 +26,7 @@ export default defineNuxtConfig({
                     langs: [
                         'jinja',
                         'bash',
+                        'diff',
                         'dockerfile',
                         'nginx',
                         'php',
