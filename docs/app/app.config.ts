@@ -21,6 +21,7 @@ export default defineAppConfig({
             codeIcon: {
                 'compose.yml': 'i-services-docker',
                 'compose.yaml': 'i-services-docker',
+                'custom-nginx.conf': 'i-services-nginx',
                 'deployment.yaml': 'i-services-kubernetes',
                 'deployment.yml': 'i-services-kubernetes',
                 'docker-compose.yaml': 'i-services-docker',
