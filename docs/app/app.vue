@@ -2,6 +2,8 @@
     <UApp>
         <NuxtLoadingIndicator />
 
+        <ServerSideUp/>
+        
         <UBanner 
             icon="i-lucide-rocket" 
             title="Spin Pro now available with Laravel Horizon, Reverb, and more!" 

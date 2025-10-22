@@ -77,6 +77,10 @@ if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: true })
 }
 
+if (page.value?.redirect) {
+  navigateTo(page.value?.redirect)
+}
+
 const { data: surround } = await useAsyncData(`${route.path}-surround`, () => {
   return queryCollectionItemSurroundings('docs', route.path, {
     fields: ['description']

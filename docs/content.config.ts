@@ -13,6 +13,7 @@ export default defineContentConfig({
                 exclude: ['index.md']
             },
             schema: z.object({
+                redirect: z.string().optional(),
                 links: z.array(z.object({
                     label: z.string(),
                     icon: z.string(),
