@@ -21,11 +21,14 @@ export default defineAppConfig({
             codeIcon: {
                 'compose.yml': 'i-services-docker',
                 'compose.yaml': 'i-services-docker',
-                'dockerfile': 'i-services-docker',
-                'docker-compose.yml': 'i-services-docker',
+                'deployment.yaml': 'i-services-kubernetes',
+                'deployment.yml': 'i-services-kubernetes',
                 'docker-compose.yaml': 'i-services-docker',
+                'docker-compose.yml': 'i-services-docker',
+                'dockerfile': 'i-services-docker',
                 'Dockerfile': 'i-services-docker',
-                'Terminal': 'i-ph-terminal-window-duotone',
+                'nginx.conf': 'i-services-nginx',
+                'Terminal': 'i-ph-terminal-window-duotone'
             }
         },
         mode: 'dark',
