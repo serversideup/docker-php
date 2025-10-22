@@ -97,10 +97,12 @@ services:
     image: serversideup/php:8.4-fpm-apache
     ports:
       - "80:8080"
+      - "443:8443"
     volumes:
       - ./:/var/www/html
     environment:
       PHP_OPCACHE_ENABLE: "1"
+      SSL_MODE: "full"
 ```
 
 ::tip
@@ -115,10 +117,12 @@ services:
   wordpress:
     image: serversideup/php:8.4-fpm-apache
     ports:
-      - "8080:8080"
+      - "80:8080"
+      - "443:8443"
     volumes:
-      - ./wordpress:/var/www/html/public
+      - ./wordpress:/var/www/html
     environment:
+      SSL_MODE: "full"
       PHP_MEMORY_LIMIT: "512M"
       PHP_OPCACHE_ENABLE: "1"
     depends_on:
