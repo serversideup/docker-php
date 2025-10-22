@@ -1,0 +1,7 @@
+{
+  "search.exclude": {
+    "**/.nuxt": true,
+    "**/node_modules": true,
+    "**/dist": true
+  }
+}
