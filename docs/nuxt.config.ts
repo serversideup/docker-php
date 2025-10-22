@@ -7,6 +7,7 @@ export default defineNuxtConfig({
         '@nuxt/content',
         '@nuxtjs/plausible',
         '@nuxtjs/sitemap',
+        '@vueuse/nuxt',
         'nuxt-og-image',
         'nuxt-llms',
         'nuxt-schema-org'
