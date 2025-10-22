@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import type { ContentNavigationItem } from '@nuxt/content'
 
-const navigation = inject<Ref<ContentNavigationItem[]>>('navigation')
+const navigationData = inject<Ref<ContentNavigationItem[]>>('navigation')
 
+// Simply pass through the navigation data
+// The defaultOpen property from .navigation.yml will already be included
+const navigation = computed(() => {
+  return navigationData?.value?.[0]?.children || []
+})
 </script>
 
 <template>
@@ -12,7 +17,7 @@ const navigation = inject<Ref<ContentNavigationItem[]>>('navigation')
         <UPageAside>
           <UContentNavigation
             highlight
-            :navigation="navigation[0].children"
+            :navigation="navigation"
           />
         </UPageAside>
       </template>
