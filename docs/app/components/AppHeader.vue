@@ -8,7 +8,7 @@ const { header } = useAppConfig()
 
 <template>
   <UHeader
-    class="bg-neutral-950"
+    class="bg-black"
     :ui="{ center: 'flex-1' }"
     :to="header?.to || '/'"
   >
