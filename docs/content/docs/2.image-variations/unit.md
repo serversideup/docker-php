@@ -4,7 +4,7 @@ description: 'Unit was offered as a variation, but the entire project was archiv
 ---
 
 ## Unit was archived by NGINX and is no longer maintained
-::caution
+::caution{to="https://github.com/nginx/unit?tab=readme-ov-file#nginx-unit" target="_blank"}
 In October 2025, NGINX stopped supporting NGINX Unit and archived the project. NGINX Unit will eventually be removed from our project. [See the official announcement →](https://github.com/nginx/unit?tab=readme-ov-file#nginx-unit){target="_blank"}
 ::
 
