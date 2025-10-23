@@ -31,3 +31,7 @@
 :root {
   --ui-container: var(--container-8xl);
 }
+
+ul ul ul {
+  border: none !important;
+}

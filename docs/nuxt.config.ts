@@ -81,6 +81,10 @@ export default defineNuxtConfig({
         env: process.env.NUXT_SITE_ENV || 'production'
     },
 
+    plausible: {
+        apiHost: 'https://a.521dimensions.com'
+    },
+
     llms: {
         domain: 'https://serversideup.net/open-source/docker-php/',
         title: 'PHP Docker Images (serversideup/php)',

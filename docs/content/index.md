@@ -173,23 +173,18 @@ Horizon, queues, tasks, storage linking, migrations - these images handle it all
   ---
 ::
 
-::u-page-section{class="dark:bg-gradient-to-b from-neutral-950 to-neutral-900"}
-  :::u-page-c-t-a
-  ---
-  links:
-    - label: Start building
-      to: '/docs/getting-started'
-      trailingIcon: i-lucide-arrow-right
-    - label: View on GitHub
-      to: 'https://github.com/nuxt-ui-templates/docs'
-      target: _blank
-      variant: subtle
-      icon: i-simple-icons-github
-  title: Ready to build an amazing documentation?
-  description: Join thousands of developers building with Nuxt and Nuxt UI. Get this template and start shipping today.
-  class: dark:bg-neutral-950
-  ---
+::u-page-section
+#title
+Built to run from Dev → Prod
 
-  :stars-bg
-  :::
+#description
+Get the full benefits of containerization. Stop using containers in dev only. Works with Kubernetes, Docker Swarm and more.
 ::
+
+:get-started
+
+:testimonials
+
+:landing-signup
+
+:follow-along

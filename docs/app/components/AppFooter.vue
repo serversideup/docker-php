@@ -3,7 +3,7 @@ const { footer } = useAppConfig()
 </script>
 
 <template>
-  <UFooter>
+  <UFooter class="bg-neutral-950">
     <template #left>
       {{ footer.credits }}
     </template>

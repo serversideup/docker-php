@@ -30,6 +30,36 @@ export default defineAppConfig({
                 'Dockerfile': 'i-services-docker',
                 'nginx.conf': 'i-services-nginx',
                 'Terminal': 'i-ph-terminal-window-duotone'
+            },
+            callout: {
+                slots: {
+                    base: 'text-white [&_a]:text-white [&_a]:hover:text-white [&_a]:hover:border-white'
+                },
+                variants: {
+                    color: {
+                        primary: {
+                            base: '[&_a]:text-white [&_a]:hover:text-white [&_a]:hover:border-white'
+                        },
+                        secondary: {
+                            base: '[&_a]:text-white [&_a]:hover:text-white [&_a]:hover:border-white'
+                        },
+                        success: {
+                            base: '[&_a]:text-white [&_a]:hover:text-white [&_a]:hover:border-white'
+                        },
+                        info: {
+                            base: '[&_a]:text-white [&_a]:hover:text-white [&_a]:hover:border-white'
+                        },
+                        warning: {
+                            base: '[&_a]:text-white [&_a]:hover:text-white [&_a]:hover:border-white'
+                        },
+                        error: {
+                            base: '[&_a]:text-white [&_a]:hover:text-white [&_a]:hover:border-white'
+                        },
+                        neutral: {
+                            base: '[&_a]:text-white [&_a]:hover:text-white [&_a]:hover:border-white'
+                        }
+                    }
+                }
             }
         },
         mode: 'dark',
@@ -43,7 +73,7 @@ export default defineAppConfig({
                 root: 'border-t border-default',
                 left: 'text-sm text-muted'
             }
-        }
+        },
     },
     seo: {
         siteName: 'PHP Docker Images (serversideup/php)'
