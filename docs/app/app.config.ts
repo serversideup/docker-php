@@ -163,7 +163,7 @@ export default defineAppConfig({
                 {
                     icon: 'i-lucide-star',
                     label: 'Star on GitHub',
-                    to: 'https://github.com/serversideup/',
+                    to: 'https://github.com/serversideup/docker-php',
                     target: '_blank'
                 },
                 {
