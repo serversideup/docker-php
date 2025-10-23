@@ -215,7 +215,7 @@ The FPM-NGINX variation supports extensive customization through environment var
 | `SSL_PRIVATE_KEY_FILE` | `/etc/ssl/private/self-signed-web.key` | Path to SSL private key |
 | `HEALTHCHECK_PATH` | `/healthcheck` | Path for health check endpoint |
 
-::tip
+::tip{to="/docs/reference/environment-variable-specification"}
 For a complete list of available environment variables, see the [Environment Variable Specification →](/docs/reference/environment-variable-specification).
 ::
 
@@ -275,7 +275,7 @@ services:
       PHP_OPCACHE_ENABLE: "1"
 ```
 
-::note
+::note{to="/docs/reference/environment-variable-specification"}
 These are just examples. Review the [Environment Variable Specification](/docs/reference/environment-variable-specification) for a complete list of available environment variables to match your needs.
 ::
 

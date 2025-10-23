@@ -211,7 +211,7 @@ The FPM-Apache variation supports extensive customization through environment va
 | `SSL_PRIVATE_KEY_FILE` | `/etc/ssl/private/self-signed-web.key` | Path to SSL private key |
 | `HEALTHCHECK_PATH` | `/healthcheck` | Path for health check endpoint |
 
-::tip
+::tip{to="/docs/reference/environment-variable-specification"}
 For a complete list of available environment variables, see the [Environment Variable Specification →](/docs/reference/environment-variable-specification).
 ::
 
@@ -230,7 +230,7 @@ For a complete list of available environment variables, see the [Environment Var
 | `PHP_UPLOAD_MAX_FILE_SIZE` | `100M` | Maximum upload file size |
 | `PHP_POST_MAX_SIZE` | `100M` | Maximum POST request size |
 
-::tip
+::tip{to="/docs/reference/environment-variable-specification"}
 For a complete list of available environment variables, see the [Environment Variable Specification →](/docs/reference/environment-variable-specification).
 ::
 

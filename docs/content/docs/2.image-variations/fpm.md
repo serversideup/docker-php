@@ -188,7 +188,7 @@ The FPM variation supports extensive customization through environment variables
 | `PHP_MEMORY_LIMIT` | `256M` | Maximum memory a script can use |
 | `PHP_MAX_EXECUTION_TIME` | `99` | Maximum time a script can run (seconds) |
 
-::tip
+::tip{to="/docs/reference/environment-variable-specification"}
 For a complete list of available environment variables, see the [Environment Variable Specification →](/docs/reference/environment-variable-specification).
 ::
 
