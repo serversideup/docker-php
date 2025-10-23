@@ -4,7 +4,7 @@ seo:
   description: Production-ready PHP Docker images for Laravel, WordPress, and more.
 ---
 
-::u-page-hero{class="dark:bg-neutral-950"}
+::u-page-hero{class="dark:bg-black"}
 ---
 orientation: vertical
 ---
@@ -45,7 +45,7 @@ Built upon the official PHP images, our production-ready serversideup/php images
   ---
 ::
 
-::u-page-section{class="dark:bg-neutral-950"}
+::u-page-section{class="dark:bg-black"}
 #title
 These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
 
@@ -159,7 +159,7 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
     :::
 ::
 
-::u-page-section{class="dark:bg-neutral-950"}
+::u-page-section{class="dark:bg-black"}
 #title
 Highly optimized for Laravel 💪
 
