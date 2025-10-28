@@ -1,5 +1,5 @@
-listen 8443 ssl default_server;
-listen [::]:8443 ssl default_server;
+listen ${NGINX_HTTPS_PORT} ssl default_server;
+listen [::]:${NGINX_HTTPS_PORT} ssl default_server;
 http2 on;
 
 root $NGINX_WEBROOT;

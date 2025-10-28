@@ -177,4 +177,4 @@ WORKDIR ${APP_BASE_DIR}
 CMD ["/init"]
 
 HEALTHCHECK --start-period=60s --start-interval=3s --interval=10s --timeout=3s --retries=3 \
-    CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]
+    CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:${APACHE_HTTP_PORT}${HEALTHCHECK_PATH} || exit 1" ]

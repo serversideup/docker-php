@@ -1,6 +1,6 @@
 #!/command/with-contenv sh
 curl_options="--fail --location --insecure --silent --show-error --output /dev/null"
-healthcheck_url="http://localhost:8080${HEALTHCHECK_PATH}"
+healthcheck_url="http://localhost:${NGINX_HTTP_PORT}${HEALTHCHECK_PATH}"
 
 is_online() {
     curl $curl_options "$healthcheck_url"

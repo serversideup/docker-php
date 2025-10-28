@@ -124,6 +124,8 @@ ENV APP_BASE_DIR=/var/www/html \
     NGINX_ERROR_LOG="/dev/stderr" \
     NGINX_FASTCGI_BUFFERS="8 8k" \
     NGINX_FASTCGI_BUFFER_SIZE="8k" \
+    NGINX_HTTP_PORT="8080" \
+    NGINX_HTTPS_PORT="8443" \
     NGINX_LISTEN_IP_PROTOCOL="all" \
     NGINX_SERVER_TOKENS=off \
     NGINX_WEBROOT=/var/www/html/public \
@@ -259,4 +261,4 @@ WORKDIR ${APP_BASE_DIR}
 CMD ["/init"]
 
 HEALTHCHECK --start-period=60s --start-interval=3s --interval=10s --timeout=3s --retries=3 \
-    CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:8080$HEALTHCHECK_PATH || exit 1" ]
+    CMD [ "sh", "-c", "curl --insecure --silent --location --show-error --fail http://localhost:${NGINX_HTTP_PORT}${HEALTHCHECK_PATH} || exit 1" ]

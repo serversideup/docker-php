@@ -1,5 +1,5 @@
-listen 8080 default_server;
-listen [::]:8080 default_server;
+listen ${NGINX_HTTP_PORT} default_server;
+listen [::]:${NGINX_HTTP_PORT} default_server;
 
 root $NGINX_WEBROOT;
 
