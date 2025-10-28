@@ -1,5 +1,7 @@
+########################################################
+# Global Caddy configuration
+########################################################
 {
-	# Global Caddy configuration
 	admin {$CADDY_ADMIN:off}
 
 	import auto-https/{$CADDY_AUTO_HTTPS:off}.caddyfile
@@ -55,9 +57,9 @@ fd00::/8 \
 	{$CADDY_GLOBAL_OPTIONS}
 }
 
-(auto-https-off) {
-	tls {$SSL_CERTIFICATE_FILE} {$SSL_CERTIFICATE_KEY_FILE}
-}
+########################################################
+# Common snippets
+########################################################
 
 (auto-https-on) {
 	# tls directive is not needed when auto_https is enabled
@@ -150,8 +152,12 @@ fd00::/8 \
 	}
 }
 
+########################################################
+# Dynamic imports
+########################################################
+
 # Pull in the per-mode listeners (off|mixed|full)
 import ssl-mode/{$SSL_MODE:off}.caddyfile
 
-# Add your web servers here
+# Add additional Caddy configuration files from the caddyfile.d directory
 import caddyfile.d/*.caddyfile
