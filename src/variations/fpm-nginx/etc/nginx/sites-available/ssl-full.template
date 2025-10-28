@@ -23,7 +23,7 @@ server {
 
         if ($redirect_to_local_https) {
 						access_log off;
-            return 301 https://localhost:8443$request_uri;
+            return 301 https://localhost:${NGINX_HTTPS_PORT}$request_uri;
         }
         
         return 301 https://$host$request_uri;

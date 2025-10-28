@@ -171,6 +171,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
         process_template /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf
         process_template /etc/nginx/site-opts.d/http.conf.template /etc/nginx/site-opts.d/http.conf
         process_template /etc/nginx/site-opts.d/https.conf.template /etc/nginx/site-opts.d/https.conf
+        process_template /etc/nginx/sites-available/ssl-full.template /etc/nginx/sites-available/ssl-full
 
         # Configure NGINX IP listening protocol if NGINX is installed
         nginx_config_files="/etc/nginx/site-opts.d/http.conf /etc/nginx/site-opts.d/https.conf /etc/nginx/sites-available/ssl-full"
