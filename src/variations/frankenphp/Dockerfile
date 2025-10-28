@@ -40,7 +40,7 @@ RUN set -eux; \
     \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}"; \
-    chown -R www-data:www-data "${COMPOSER_HOME}";
+    docker-php-serversideup-set-file-permissions --owner www-data:www-data
 
 ####################
 # Go Image
