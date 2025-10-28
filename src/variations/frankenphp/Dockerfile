@@ -36,11 +36,7 @@ RUN set -eux; \
     \
     # Set the image version
     echo "${REPOSITORY_BUILD_VERSION}" > /etc/serversideup-php-version; \
-    echo "${FRANKENPHP_VERSION}" > /etc/serversideup-php-frankenphp-version;
-    \
-    # Make composer cache directory
-    mkdir -p "${COMPOSER_HOME}"; \
-    docker-php-serversideup-set-file-permissions --owner www-data:www-data
+    echo "${FRANKENPHP_VERSION}" > /etc/serversideup-php-frankenphp-version
 
 ####################
 # Go Image
