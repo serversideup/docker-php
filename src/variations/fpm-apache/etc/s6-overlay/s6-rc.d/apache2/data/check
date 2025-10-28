@@ -10,7 +10,7 @@ if is_online; then
     echo "✅ Apache + PHP-FPM is running correctly."
     exit 0
 else
-    echo "❌ There seems to be a failure in checking the Apache + PHP-FPM."
+    echo "Health check waiting for Apache + PHP-FPM to start..."
     status_code=$(curl $curl_options -w "%{http_code}" "$healthcheck_url")
     echo "HTTP Status Code: $status_code"
     exit 1
