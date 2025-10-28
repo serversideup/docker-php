@@ -13,7 +13,7 @@ if [ "$SSL_MODE" = "off" ]; then
     echo "ℹ️ NOTICE ($script_name): SSL mode is off, so we won't generate a self-signed SSL key pair."
     return 0
 elif [ "$CADDY_AUTO_HTTPS" != "off" ]; then
-    echo "ℹ️ NOTICE ($script_name): Caddy Auto HTTPS is enabled, so we won't generate a default, self-signed, SSL key pair."
+    echo "ℹ️ NOTICE ($script_name): Caddy Auto HTTPS is enabled, so we won't generate a self-signed SSL key pair."
     return 0
 fi
 
