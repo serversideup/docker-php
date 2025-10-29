@@ -61,12 +61,16 @@ fd00::/8 \
 # Common snippets
 ########################################################
 
+(auto-https-off) {
+	tls {$SSL_CERTIFICATE_FILE} {$SSL_CERTIFICATE_KEY_FILE}
+}
+
 (auto-https-on) {
 	# tls directive is not needed when auto_https is enabled
 }
 
 # Common app logic; reused across all modes
-(app-common) {
+(php-app-common) {
 	root * {$CADDY_APP_PUBLIC_PATH:/var/www/html/public}
 
 	encode zstd br gzip
