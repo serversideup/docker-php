@@ -175,7 +175,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     SHOW_WELCOME_MESSAGE=true \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE="/etc/ssl/private/self-signed-web.crt" \
-    SSL_CERTIFICATE_KEY_FILE="/etc/ssl/private/self-signed-web.key" \
+    SSL_PRIVATE_KEY_FILE="/etc/ssl/private/self-signed-web.key" \
     XDG_CONFIG_HOME=/config \
     XDG_DATA_HOME=/data
 

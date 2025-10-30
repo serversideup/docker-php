@@ -62,7 +62,7 @@ fd00::/8 \
 ########################################################
 
 (auto-https-off) {
-	tls {$SSL_CERTIFICATE_FILE} {$SSL_CERTIFICATE_KEY_FILE}
+	tls {$SSL_CERTIFICATE_FILE} {$SSL_PRIVATE_KEY_FILE}
 }
 
 (auto-https-on) {
