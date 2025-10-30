@@ -11,7 +11,7 @@ http://localhost:{$CADDY_HTTP_PORT:8080} {
 
 # Healthcheck - HTTPS: Use self-signed certificate
 https://localhost:{$CADDY_HTTPS_PORT:8443} {
-	tls {$HEALTHCHECK_SSL_CERTIFICATE_FILE:/etc/ssl/private/healthcheck-localhost.crt} {$HEALTHCHECK_SSL_PRIVATE_KEY_FILE:/etc/ssl/private/healthcheck-localhost.key}
+	tls {$HEALTHCHECK_SSL_CERTIFICATE_FILE:/etc/ssl/healthcheck/localhost.crt} {$HEALTHCHECK_SSL_PRIVATE_KEY_FILE:/etc/ssl/healthcheck/localhost.key}
 	import php-app-common
 	import security-https
 }

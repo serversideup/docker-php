@@ -8,8 +8,8 @@ script_name="generate-ssl"
 SSL_CERTIFICATE_FILE=${SSL_CERTIFICATE_FILE:-"/etc/ssl/private/self-signed-web.crt"}
 SSL_PRIVATE_KEY_FILE=${SSL_PRIVATE_KEY_FILE:-"/etc/ssl/private/self-signed-web.key"}
 SSL_MODE=${SSL_MODE:-"off"}
-HEALTHCHECK_SSL_CERTIFICATE_FILE=${HEALTHCHECK_SSL_CERTIFICATE_FILE:-"/etc/ssl/private/healthcheck-localhost.crt"}
-HEALTHCHECK_SSL_PRIVATE_KEY_FILE=${HEALTHCHECK_SSL_PRIVATE_KEY_FILE:-"/etc/ssl/private/healthcheck-localhost.key"}
+HEALTHCHECK_SSL_CERTIFICATE_FILE=${HEALTHCHECK_SSL_CERTIFICATE_FILE:-"/etc/ssl/healthcheck/localhost.crt"}
+HEALTHCHECK_SSL_PRIVATE_KEY_FILE=${HEALTHCHECK_SSL_PRIVATE_KEY_FILE:-"/etc/ssl/healthcheck/localhost.key"}
 
 if [ "$SSL_MODE" = "off" ]; then
     echo "ℹ️ NOTICE ($script_name): SSL mode is off, so we won't generate a self-signed SSL key pair."
@@ -29,13 +29,16 @@ if [ -f "$SSL_CERTIFICATE_FILE" ] && [ ! -f "$SSL_PRIVATE_KEY_FILE" ] ||
     return 1
 fi
 
-echo "🔐 Generating self-signed Healthcheck SSL keypair..."
-openssl req -x509 \
-    -subj "/CN=localhost" \
-    -nodes -newkey rsa:2048 \
-    -keyout "$HEALTHCHECK_SSL_PRIVATE_KEY_FILE" \
-    -out "$HEALTHCHECK_SSL_CERTIFICATE_FILE" \
-    -days 365 >/dev/null 2>&1
+# Generate self-signed Healthcheck SSL keypair for FrankenPHP only
+if [ -d "/etc/frankenphp/" ]; then
+    echo "🔐 Generating self-signed Healthcheck SSL keypair..."
+    openssl req -x509 \
+        -subj "/CN=localhost" \
+        -nodes -newkey rsa:2048 \
+        -keyout "$HEALTHCHECK_SSL_PRIVATE_KEY_FILE" \
+        -out "$HEALTHCHECK_SSL_CERTIFICATE_FILE" \
+        -days 365 >/dev/null 2>&1
+fi
 
 if [ -f "$SSL_CERTIFICATE_FILE" ] && [ -f "$SSL_PRIVATE_KEY_FILE" ]; then
     echo "ℹ️ NOTICE ($script_name): SSL certificate and private key already exist, so we'll use the existing files."

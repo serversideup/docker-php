@@ -20,6 +20,7 @@ RUN set -eux; \
     # Create directories
 	mkdir -p \
 		/var/www/html/public \
+		/etc/ssl/healthcheck \
 		/config/caddy \
 		/data/caddy \
 		/etc/caddy \
