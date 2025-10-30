@@ -178,6 +178,7 @@ ENV APP_BASE_DIR=/var/www/html \
 # copy our scripts
 COPY --chmod=755 src/common/ /
 COPY --chmod=755 src/s6/ /
+COPY --chmod=755 src/utilities-webservers/ /
 
 # copy s6-overlay from s6-build
 COPY --from=s6-build /opt/s6/ /

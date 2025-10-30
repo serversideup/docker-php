@@ -104,6 +104,7 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
 # copy our scripts
 COPY --chmod=755 src/common/ /
 COPY --chmod=755 src/s6/ /
+COPY --chmod=755 src/utilities-webservers/ /
 
 # copy s6-overlay from s6-build
 COPY --from=s6-build /opt/s6/ /
