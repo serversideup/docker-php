@@ -11,7 +11,9 @@ if is_online; then
     exit 0
 else
     echo "Health check waiting for Apache + PHP-FPM to start..."
-    status_code=$(curl $curl_options -w "%{http_code}" "$healthcheck_url")
-    echo "HTTP Status Code: $status_code"
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
+        status_code=$(curl $curl_options -w "%{http_code}" "$healthcheck_url")
+        echo "HTTP Status Code: $status_code"
+    fi
     exit 1
 fi
