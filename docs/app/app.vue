@@ -10,6 +10,7 @@
             to="https://getspin.pro/?ref=docker-php"
             color="primary"
             class="text-white"
+            target="_blank"
         />
 
         <AppHeader />
