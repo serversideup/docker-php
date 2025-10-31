@@ -157,7 +157,7 @@ spec:
 ### Health Check
 The FPM variation includes [`php-fpm-healthcheck`](https://github.com/renatomefi/php-fpm-healthcheck){target="_blank"}, a POSIX-compliant script that monitors PHP-FPM's `/status` endpoint to verify the service is healthy.
 
-```yaml [compose.yml]{7-10}
+```yml [compose.yml]{7-10}
 services:
   php:
     image: serversideup/php:8.4-fpm
@@ -196,7 +196,7 @@ For a complete list of available environment variables, see the [Environment Var
 The FPM variation gives you fine-grained control over PHP process management. Here are some tuning tips:
 
 ### For High-Traffic Applications
-```yaml [compose.yml]
+```yml [compose.yml]
 services:
   php:
     image: serversideup/php:8.4-fpm
@@ -207,7 +207,7 @@ services:
 ```
 
 ### For Low-Memory Environments
-```yaml [compose.yml]
+```yml [compose.yml]
 services:
   php:
     image: serversideup/php:8.4-fpm
