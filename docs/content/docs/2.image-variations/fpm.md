@@ -45,11 +45,13 @@ Use the FPM variation when you need to:
 Unlike variations that include a web server, the FPM variation only runs PHP-FPM, which listens on port 9000 for FastCGI requests.
 
 You'll need a separate web server (like NGINX, Apache, or Caddy) to:
-1. Accept HTTP requests from clients
-2. Serve static files directly (CSS, JavaScript, images)
-3. Forward PHP requests to the FPM container on port 9000
-4. Return the PHP-FPM response back to the client
 
+::steps{level="4"}
+#### Accept HTTP requests from clients
+#### Serve static files directly (CSS, JavaScript, images)
+#### Forward PHP requests to the FPM container on port 9000
+#### Return the PHP-FPM response back to the client
+::
 This architecture gives you maximum flexibility but requires more configuration than the all-in-one variations.
 
 ::note
@@ -100,10 +102,6 @@ server {
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }
-
-    location ~ /\.(?!well-known).* {
-        deny all;
-    }
 }
 ```
 
@@ -111,51 +109,12 @@ server {
 Notice how the `fastcgi_pass` directive points to `php:9000`. This is the service name from your Docker Compose file. Docker's networking allows services to communicate using their service names.
 ::
 
-### Kubernetes Example
-The FPM variation is particularly well-suited for Kubernetes deployments where you might have separate containers in the same pod.
-
-```yml [deployment.yaml]
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: my-app
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: my-app
-  template:
-    metadata:
-      labels:
-        app: my-app
-    spec:
-      containers:
-      - name: nginx
-        image: nginx:alpine
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: app-code
-          mountPath: /var/www/html
-        - name: nginx-config
-          mountPath: /etc/nginx/conf.d
-
-      - name: php-fpm
-        image: serversideup/php:8.4-fpm
-        volumeMounts:
-        - name: app-code
-          mountPath: /var/www/html
-
-      volumes:
-      - name: app-code
-        emptyDir: {}
-      - name: nginx-config
-        configMap:
-          name: nginx-config
-```
-
 ### Health Check
 The FPM variation includes [`php-fpm-healthcheck`](https://github.com/renatomefi/php-fpm-healthcheck){target="_blank"}, a POSIX-compliant script that monitors PHP-FPM's `/status` endpoint to verify the service is healthy.
+
+::tip
+The `php-fpm-healthcheck` script can also monitor specific metrics like accepted connections or queue length. For example, you could fail the health check if the listen queue exceeds 10 processes: `php-fpm-healthcheck --listen-queue=10`
+::
 
 ```yml [compose.yml]{7-10}
 services:
@@ -164,15 +123,11 @@ services:
     volumes:
       - ./:/var/www/html
     healthcheck:
-      test: ["CMD", "php-fpm-healthcheck"]
+      test: ["CMD", "php-fpm-healthcheck", "--listen-queue=10"]
       interval: 10s
       timeout: 3s
       retries: 3
 ```
-
-::tip
-The `php-fpm-healthcheck` script can also monitor specific metrics like accepted connections or queue length. For example, you could fail the health check if the listen queue exceeds 10 processes: `php-fpm-healthcheck --listen-queue=10`
-::
 
 ## Environment Variables
 The FPM variation supports extensive customization through environment variables. Here are some common ones:
