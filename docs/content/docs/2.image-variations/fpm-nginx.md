@@ -242,7 +242,7 @@ For a complete list of available environment variables, see the [Environment Var
 Here are some tuning recommendations for different scenarios:
 
 ### For Production (low memory environments)
-::note{to="docs/deployment-and-production/packaging-your-app-for-deployment"}
+::note{to="/docs/deployment-and-production/packaging-your-app-for-deployment"}
 If you're running an application in production, you'll likely want to package your application inside an image for deployment. Click here to learn more.
 ::
 ```yml [compose.yml]

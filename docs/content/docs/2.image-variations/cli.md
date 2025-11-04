@@ -74,5 +74,5 @@ docker compose run php php my-script.php
 ### Further Customization
 If you need to customize the container further, reference the docs below:
 
-- [Environment Variable Specifications](docs/reference/environment-variable-specification) - See which environment variables are available to customize common PHP settings.
-- [Command Reference](docs/reference/command-reference) - See which commands are available to run inside the container.
+- [Environment Variable Specifications](/docs/reference/environment-variable-specification) - See which environment variables are available to customize common PHP settings.
+- [Command Reference](/docs/reference/command-reference) - See which commands are available to run inside the container.
