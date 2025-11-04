@@ -69,6 +69,10 @@ export default defineNuxtConfig({
                 dir: './app/assets/icons/features'
             },
             {
+                prefix: 'hosts',
+                dir: './app/assets/icons/hosts'
+            },
+            {
                 prefix: 'services',
                 dir: './app/assets/icons/services'
             }
