@@ -127,7 +127,6 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
 
     ENV APP_BASE_DIR=/var/www/html \
     CADDY_ADMIN="off" \
-    CADDY_APP_PUBLIC_PATH="/var/www/html/public" \
     CADDY_AUTO_HTTPS="off" \
     CADDY_GLOBAL_OPTIONS="" \
     CADDY_HTTP_PORT="8080" \
@@ -138,6 +137,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     CADDY_LOG_OUTPUT="stdout" \
     CADDY_PHP_SERVER_OPTIONS="" \
     CADDY_SERVER_EXTRA_DIRECTIVES="" \
+    CADDY_SERVER_ROOT="/var/www/html/public" \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
