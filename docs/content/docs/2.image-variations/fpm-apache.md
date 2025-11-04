@@ -149,7 +149,14 @@ The FPM-Apache variation includes a built-in health check that verifies Apache i
 The health check endpoint is configurable via the `HEALTHCHECK_PATH` environment variable, which defaults to `/healthcheck`.
 ::
 
+If you are using Laravel, you can use the `/up` route to validate that Laravel is running and healthy.
+
+:u-button{to="/docs/guide/using-healthchecks-with-laravel" label="Learn more about using healthchecks with Laravel" aria-label="Learn more about using healthchecks with Laravel" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold"}
+
 ## SSL/TLS Support
+::tip{to="/docs/deployment-and-production/configuring-ssl"}
+For more information on SSL, see the [Configuring SSL](/docs/deployment-and-production/configuring-ssl) guide.
+::
 The FPM-Apache variation includes built-in SSL support with self-signed certificates for development.
 
 ### Enabling SSL
