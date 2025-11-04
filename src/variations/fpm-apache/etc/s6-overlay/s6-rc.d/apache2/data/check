@@ -1,5 +1,5 @@
 #!/command/with-contenv sh
-curl_options="--fail --location --insecure --silent --show-error --output /dev/null"
+curl_options="--fail --location --insecure --silent --output /dev/null"
 healthcheck_url="http://localhost:${APACHE_HTTP_PORT}${HEALTHCHECK_PATH}"
 
 is_online() {
