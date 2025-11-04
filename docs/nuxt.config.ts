@@ -79,12 +79,6 @@ export default defineNuxtConfig({
         ]
     },
 
-    site: { 
-        url: process.env.NUXT_SITE_URL || 'SITE URL',
-        name: process.env.NUXT_SITE_NAME || 'SITE NAME',
-        env: process.env.NUXT_SITE_ENV || 'production'
-    },
-
     plausible: {
         apiHost: 'https://a.521dimensions.com'
     },
