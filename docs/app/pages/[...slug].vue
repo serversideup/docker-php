@@ -99,10 +99,6 @@ defineOgImageComponent('Docs', {
   headline: headline.value
 })
 
-if (page.value?.redirect) {
-  navigateTo(page.value?.redirect)
-}
-
 const links = computed(() => {
   const links = []
   if (toc?.bottom?.edit) {
@@ -115,5 +111,11 @@ const links = computed(() => {
   }
 
   return [...links, ...(toc?.bottom?.links || [])].filter(Boolean)
+})
+
+onMounted(() => {
+  if (page.value?.redirect) {
+    navigateTo(page.value?.redirect)
+  }
 })
 </script>
