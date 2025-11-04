@@ -71,7 +71,7 @@ fd00::/8 \
 
 # Common app logic; reused across all modes
 (php-app-common) {
-	root * {$CADDY_APP_PUBLIC_PATH:/var/www/html/public}
+	root * {$CADDY_SERVER_ROOT:/var/www/html/public}
 
 	encode zstd br gzip
 
