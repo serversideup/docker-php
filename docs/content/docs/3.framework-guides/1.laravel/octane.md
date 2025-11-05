@@ -56,6 +56,9 @@ docker compose run php composer require laravel/octane
 ### Configure Worker Mode
 We now want to update the compose file to run Laravel Octane and use proper health checks.
 
+::note
+Laravel Octane provides [its own Caddyfile](https://github.com/laravel/octane/blob/2.x/src/Commands/stubs/Caddyfile){target="_blank"}. This may cause some of the serversideup/php environment variables to not be respected. Be sure to review the official Octane Caddyfile for which variables are supported.
+::
 
 ```yml [compose.yml]{8-13}
 services:
