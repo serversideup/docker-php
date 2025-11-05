@@ -1,6 +1,6 @@
 #!/bin/sh
 ###################################################
-# Usage: 10-generate-ssl.sh
+# Usage: 5-generate-ssl.sh
 ###################################################
 # This script generates a self-signed SSL certificate and key for the container.
 script_name="generate-ssl"  
