@@ -53,6 +53,22 @@
               :title="toc.bottom.title"
               :links="links"
             />
+
+            <UPageLinks
+              title="Sponsors"
+              :links="[{
+                label: 'Become a Sponsor',
+                icon: 'i-lucide-external-link',
+                to: 'https://github.com/sponsors/serversideup',
+                target: '_blank'
+              }]"
+            />
+            
+            <NuxtLink
+              to="https://sevalla.com/"
+              target="_blank">
+              <img src="/assets/icons/hosts/sevalla.svg" alt="Sevalla" class="w-full"/>
+            </NuxtLink>
           </div>
         </template>
       </UContentToc>
@@ -69,7 +85,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { toc } = useAppConfig()
+const { toc, sponsors } = useAppConfig()
 const navigation = inject<Ref<ContentNavigationItem[]>>('navigation')
 
 const { data: page } = await useAsyncData(route.path, () => queryCollection('docs').path(route.path).first())

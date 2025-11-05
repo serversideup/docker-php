@@ -185,6 +185,8 @@ Get the full benefits of containerization. Stop using containers in dev only. Wo
 
 :testimonials
 
+:sponsors
+
 :landing-signup
 
 :follow-along
