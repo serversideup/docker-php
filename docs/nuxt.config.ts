@@ -102,6 +102,12 @@ export default defineNuxtConfig({
         ]
     },
 
+    site: {
+        url: process.env.NUXT_SITE_URL || 'https://serversideup.net/open-source/docker-php/',
+        name: process.env.NUXT_SITE_NAME || 'PHP Docker Images (serversideup/php)',
+        env: process.env.NUXT_SITE_ENV || 'production',
+    },
+
     ui: {
         colorMode: false
     }
