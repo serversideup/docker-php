@@ -54,11 +54,17 @@
               :links="links"
             />
 
+            <USeparator
+              v-if="page.body?.toc?.links?.length"
+              type="dashed"
+            />
+
+
             <UPageLinks
               title="Sponsors"
               :links="[{
                 label: 'Become a Sponsor',
-                icon: 'i-lucide-external-link',
+                icon: 'i-lucide-heart',
                 to: 'https://github.com/sponsors/serversideup',
                 target: '_blank'
               }]"
