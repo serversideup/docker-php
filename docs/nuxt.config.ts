@@ -98,6 +98,55 @@ export default defineNuxtConfig({
                 contentFilters: [
                     { field: 'path', operator: 'LIKE', value: '/docs/getting-started%' }
                 ]
+            },
+            {
+                title: 'Image Variations',
+                contentCollection: 'docs',
+                contentFilters: [
+                    { field: 'path', operator: 'LIKE', value: '/docs/image-variations%' }
+                ]
+            },
+            {
+                title: 'Framework Guides',
+                contentCollection: 'docs',
+                contentFilters: [
+                    { field: 'path', operator: 'LIKE', value: '/docs/framework-guides%' }
+                ]
+            },
+            {
+                title: 'Deployment and Production',
+                contentCollection: 'docs',
+                contentFilters: [
+                    { field: 'path', operator: 'LIKE', value: '/docs/deployment-and-production%' }
+                ]
+            },
+            {
+                title: 'Advanced Guides',
+                contentCollection: 'docs',
+                contentFilters: [
+                    { field: 'path', operator: 'LIKE', value: '/docs/guide%' }
+                ]
+            },
+            {
+                title: 'Customizing The Image',
+                contentCollection: 'docs',
+                contentFilters: [
+                    { field: 'path', operator: 'LIKE', value: '/docs/customizing-the-image%' }
+                ]
+            },
+            {
+                title: 'Troubleshooting',
+                contentCollection: 'docs',
+                contentFilters: [
+                    { field: 'path', operator: 'LIKE', value: '/docs/troubleshooting%' }
+                ]
+            },
+            {
+                title: 'Reference',
+                contentCollection: 'docs',
+                contentFilters: [
+                    { field: 'path', operator: 'LIKE', value: '/docs/reference%' }
+                ]
             }
         ]
     },
