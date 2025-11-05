@@ -228,7 +228,7 @@ For a complete list of available environment variables, see the [Environment Var
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PHP_FPM_POOL_NAME` | `www` | Name of the PHP-FPM pool |
-| `PHP_FPM_PM_CONTROL` | `dynamic` | Process manager control (`dynamic`, `static`, `ondemand`) |
+| `PHP_FPM_PM_CONTROL` | `ondemand` | Process manager control (`dynamic`, `static`, `ondemand`) |
 | `PHP_FPM_PM_MAX_CHILDREN` | `20` | Maximum number of child processes |
 | `PHP_FPM_PM_START_SERVERS` | `2` | Number of child processes created on startup |
 | `PHP_FPM_PM_MIN_SPARE_SERVERS` | `1` | Minimum number of idle processes |
