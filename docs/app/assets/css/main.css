@@ -32,6 +32,10 @@
   --ui-container: var(--container-8xl);
 }
 
+ul li a:after {
+  margin-left: 6px;
+}
+
 ul ul ul {
   border: none !important;
 }
