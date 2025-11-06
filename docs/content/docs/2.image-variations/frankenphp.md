@@ -53,7 +53,7 @@ Some people are reporting performance issues on the `alpine` version of FrankenP
 
 FrankenPHP is cutting edge and is a very active project. Be sure to understand FrankenPHP's known issues before using it in production. If you're looking for better compatibility, consider using the [FPM-NGINX](/docs/image-variations/fpm-nginx) image.
 
-:u-button{to="https://frankenphp.dev/docs/known-issues/" target="_blank" label="View FrankenPHP's known issues" aria-label="FrankenPHP known issues" size="md" color="primary" variant="outline"  trailing-icon="i-lucide-arrow-right" class="font-bold"}
+:u-button{to="https://frankenphp.dev/docs/known-issues/" target="_blank" label="View FrankenPHP's known issues" aria-label="FrankenPHP known issues" size="md" color="primary" variant="outline"  trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
 
 #### What's Inside
 
@@ -168,7 +168,7 @@ The FrankenPHP variation uses ports 8080 and 8443 (instead of 80 and 443) to all
 ### Laravel Octane
 Laravel Octane natively supports FrankenPHP. Use our guide below to learn more.
 
-:u-button{to="/docs/framework-guides/laravel/octane" label="Learn more about Laravel Octane" aria-label="Learn more about Laravel Octane" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold"}
+:u-button{to="/docs/framework-guides/laravel/octane" label="Learn more about Laravel Octane" aria-label="Learn more about Laravel Octane" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
 
 ### Health Check
 The FrankenPHP variation includes a built-in health check that verifies the server is responding:
@@ -179,7 +179,7 @@ The health check endpoint is configurable via the `HEALTHCHECK_PATH` environment
 
 If you are using Laravel, you can use the `/up` route to validate that Laravel is running and healthy.
 
-:u-button{to="/docs/guide/using-healthchecks-with-laravel" label="Learn more about using healthchecks with Laravel" aria-label="Learn more about using healthchecks with Laravel" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold"}
+:u-button{to="/docs/guide/using-healthchecks-with-laravel" label="Learn more about using healthchecks with Laravel" aria-label="Learn more about using healthchecks with Laravel" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
 
 ## Automatic HTTPS
 One of FrankenPHP's standout features is automatic HTTPS powered by Caddy. It can automatically obtain and renew SSL certificates from Let's Encrypt.
@@ -232,7 +232,7 @@ Available SSL modes:
 
 Learn more about SSL modes in the [Configuring SSL](/docs/deployment-and-production/configuring-ssl) guide.
 
-:u-button{to="/docs/deployment-and-production/configuring-ssl" label="Learn more about SSL modes" aria-label="Learn more about SSL modes" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold"}
+:u-button{to="/docs/deployment-and-production/configuring-ssl" label="Learn more about SSL modes" aria-label="Learn more about SSL modes" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
 
 ## Environment Variables
 The FrankenPHP variation supports extensive customization through environment variables.

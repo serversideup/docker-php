@@ -35,7 +35,7 @@ We recommend **FrankenPHP** as the best alternative because it offers:
 - **Laravel Octane support** for enhanced performance
 - **Better performance** than traditional PHP-FPM setups
 
-:u-button{to="/docs/image-variations/frankenphp" label="Learn about FrankenPHP" aria-label="Learn about FrankenPHP variation" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold"}
+:u-button{to="/docs/image-variations/frankenphp" label="Learn about FrankenPHP" aria-label="Learn about FrankenPHP variation" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
 
 ### What if FrankenPHP doesn't work for me?
 

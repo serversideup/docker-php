@@ -154,7 +154,7 @@ The health check endpoint is configurable via the `HEALTHCHECK_PATH` environment
 
 If you are using Laravel, you can use the `/up` route to validate that Laravel is running and healthy.
 
-:u-button{to="/docs/guide/using-healthchecks-with-laravel" label="Learn more about using healthchecks with Laravel" aria-label="Learn more about using healthchecks with Laravel" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold"}
+:u-button{to="/docs/guide/using-healthchecks-with-laravel" label="Learn more about using healthchecks with Laravel" aria-label="Learn more about using healthchecks with Laravel" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
 
 ## SSL/TLS Support
 The FPM-NGINX variation includes built-in SSL support with self-signed certificates for development.

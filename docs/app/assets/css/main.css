@@ -40,11 +40,10 @@ ul ul ul {
   border: none !important;
 }
 
-ul ul ul li a:after {
+/* ul ul ul li a:after {
   margin-left: -13px;
-  /* background-color: transparent !important; */
 }
 
 ul li ul li{
   padding-inline-start: 0;
-}
+} */
