@@ -53,11 +53,26 @@ First, install Octane in your Laravel application:
 docker compose run php composer require laravel/octane
 ```
 
+When that command runs, you should see a PHP file that Laravel creates in your `/public` directory. This is required for Laravel Octane to work.
+
+```php [public/frankenphp-worker.php]
+<?php
+
+// Set a default for the application base path and public path if they are missing...
+$_SERVER['APP_BASE_PATH'] = $_ENV['APP_BASE_PATH'] ?? $_SERVER['APP_BASE_PATH'] ?? __DIR__.'/..';
+$_SERVER['APP_PUBLIC_PATH'] = $_ENV['APP_PUBLIC_PATH'] ?? $_SERVER['APP_BASE_PATH'] ?? __DIR__;
+
+require __DIR__.'/../vendor/laravel/octane/bin/frankenphp-worker.php';
+
+```
+
+It is safe to commit this file to your repository.
+
 ### Configure Worker Mode
 We now want to update the compose file to run Laravel Octane and use proper health checks.
 
 ::note
-Laravel Octane provides [its own Caddyfile](https://github.com/laravel/octane/blob/2.x/src/Commands/stubs/Caddyfile){target="_blank"}. This may cause some of the serversideup/php environment variables to not be respected. Be sure to review the official Octane Caddyfile for which variables are supported.
+Laravel Octane provides its own Caddyfile. This may cause some of the serversideup/php environment variables to not be respected (mainly any `CADDY_*` variables). Be sure to review the [official Laravel Octane Caddyfile](https://github.com/laravel/octane/blob/2.x/src/Commands/stubs/Caddyfile){target="_blank"} for which variables are supported.
 ::
 
 ```yml [compose.yml]{8-13}
