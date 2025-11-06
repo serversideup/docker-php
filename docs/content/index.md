@@ -22,6 +22,7 @@ Built upon the official PHP images, our production-ready serversideup/php images
     to: /docs/getting-started
     size: xl
     trailing-icon: i-lucide-arrow-right
+    class: bg-blue-600 text-white hover:bg-blue-700
     ---
     Get started
     :::

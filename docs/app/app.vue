@@ -9,7 +9,7 @@
             title="Spin Pro now available with Laravel Horizon, Reverb, and more!" 
             to="https://getspin.pro/?ref=docker-php"
             color="primary"
-            class="text-white"
+            class="text-white bg-blue-600 hover:bg-blue-700"
             target="_blank"
         />
 

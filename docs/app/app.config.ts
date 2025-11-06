@@ -130,7 +130,7 @@ export default defineAppConfig({
             'aria-label': 'Get Started',
             'size': 'xl',
             'variant': 'solid',
-            'class': 'font-bold',
+            'class': 'font-bold bg-blue-600 text-white hover:bg-blue-700',
             'color': 'primary',
         }]
     },
