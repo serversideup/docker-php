@@ -1,6 +1,6 @@
 #!/bin/bash
 ###################################################
-# Usage: get-php-versions.sh [--skip-download] [--skip-dockerhub-validation]
+# Usage: get-php-versions.sh [--skip-download] [--skip-dockerhub-validation] [--input PATH] [--output PATH]
 ###################################################
 # This file takes the official latest PHP releases from php.net merges them with our
 # "base php configuration". These files get merged into a final file called "php-versions.yml"
@@ -22,6 +22,8 @@
 # 👉 OPTIONS
 # --skip-download: Skip downloading from php.net and use existing base config
 # --skip-dockerhub-validation: Skip DockerHub validation (useful for testing/development)
+# --input: Input file path (defaults to scripts/conf/php-versions-base-config.yml)
+# --output: Output file path (defaults to scripts/conf/php-versions.yml)
 
 set -oue pipefail
 
@@ -167,6 +169,24 @@ while [[ "$#" -gt 0 ]]; do
     case $1 in
         --skip-download) SKIP_DOWNLOAD=true ;;
         --skip-dockerhub-validation) SKIP_DOCKERHUB_VALIDATION=true ;;
+        --input)
+            if [ -z "$2" ]; then
+                echo "Error: --input requires a file path."
+                exit 1
+            fi
+            BASE_PHP_VERSIONS_CONFIG_FILE="$2"
+            shift 2
+            continue
+            ;;
+        --output)
+            if [ -z "$2" ]; then
+                echo "Error: --output requires a file path."
+                exit 1
+            fi
+            FINAL_PHP_VERSIONS_CONFIG_FILE="$2"
+            shift 2
+            continue
+            ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -184,7 +204,7 @@ PHP_VERSIONS_ACTIVE_JSON_FEED="${PHP_VERSIONS_ACTIVE_JSON_FEED:-"https://www.php
 # File settings
 BASE_PHP_VERSIONS_CONFIG_FILE="${BASE_PHP_VERSIONS_CONFIG_FILE:-"$SCRIPT_DIR/conf/php-versions-base-config.yml"}"
 DOWNLOADED_PHP_VERSIONS_CONFIG_FILE="$SCRIPT_DIR/conf/php-versions-downloaded.yml.tmp"
-FINAL_PHP_VERSIONS_CONFIG_FILE="$SCRIPT_DIR/conf/php-versions.yml"
+FINAL_PHP_VERSIONS_CONFIG_FILE="${FINAL_PHP_VERSIONS_CONFIG_FILE:-"$SCRIPT_DIR/conf/php-versions.yml"}"
 
 # UI Colors
 function ui_set_yellow {
@@ -287,7 +307,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
     fi
 
     # Parse the fetched JSON data and transform it to a specific YAML structure using jq and yq.
-    php_net_yaml_data=$(echo "$php_net_version_json" | jq -r "
+    php_net_yaml_data=$(echo "$processed_json" | jq -r "
     {
         \"php_versions\": [
         . as \$major |

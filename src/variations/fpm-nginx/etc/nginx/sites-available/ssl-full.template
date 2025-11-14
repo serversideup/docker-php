@@ -1,0 +1,37 @@
+# HTTP Redirect configuration
+#
+server {
+    listen ${NGINX_HTTP_PORT} default_server;
+    listen [::]:${NGINX_HTTP_PORT} default_server;
+
+    server_name _;
+
+    absolute_redirect off;
+
+    location / {
+        set $redirect_to_local_https 0;
+
+        # Check for IPv4 and IPv6 localhost addresses
+        if ($remote_addr ~ ^127\.0\.0\.1$) {
+            access_log off;
+            set $redirect_to_local_https 1;
+        }
+        if ($remote_addr ~ ^::1$) {
+            access_log off;
+            set $redirect_to_local_https 1;
+        }
+
+        if ($redirect_to_local_https) {
+						access_log off;
+            return 301 https://localhost:${NGINX_HTTPS_PORT}$request_uri;
+        }
+        
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS configuration
+#
+server {
+    include /etc/nginx/site-opts.d/https.conf;
+}

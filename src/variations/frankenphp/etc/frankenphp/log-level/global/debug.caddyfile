@@ -1,0 +1,6 @@
+debug
+log {
+	format {$CADDY_LOG_FORMAT:console}
+	output {$CADDY_LOG_OUTPUT:stdout}
+	level {$CADDY_SERVER_LOG_LEVEL:DEBUG}
+}

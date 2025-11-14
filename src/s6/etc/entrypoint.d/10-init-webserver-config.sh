@@ -9,8 +9,10 @@ script_name="init-webserver-config"
 
 # Check if S6 is initialized
 if [ "$S6_INITIALIZED" != "true" ]; then
-    echo "ℹ️  [NOTICE]: Running custom command instead of web server configuration: '$*'"
-    return 0
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
+        echo "👉 $script_name: S6 is not initialized, so web server configuration will NOT be performed."
+    fi
+    exit 0
 fi
 
 ##########
@@ -40,8 +42,8 @@ process_template() {
         return 1
     fi
 
-    # Get all environment variables starting with 'NGINX_', 'SSL_', `LOG_`, and 'APACHE_'
-    subst_vars=$(env | grep -E '^(PHP_|NGINX_|SSL_|LOG_|APACHE_)' | cut -d= -f1 | awk '{printf "${%s},",$1}' | sed 's/,$//')
+    # Get all environment variables starting with 'NGINX_', 'SSL_', `LOG_`, 'APACHE_', and 'HEALTHCHECK_PATH'
+    subst_vars=$(env | grep -E '^(PHP_|NGINX_|SSL_|LOG_|APACHE_|HEALTHCHECK_PATH)' | cut -d= -f1 | awk '{printf "${%s},",$1}' | sed 's/,$//')
 
     # Validate that all required variables are set
     for var_name in $(echo "$subst_vars" | tr ',' ' '); do
@@ -97,10 +99,6 @@ enable_apache_site (){
     # Transform to lowercase
     ssl_mode=$(echo "$ssl_mode" | tr '[:upper:]' '[:lower:]')
 
-    if [ "$ssl_mode" != "off" ]; then
-        validate_ssl
-    fi
-
     # Enable the site
     if [ ! -e "$apache2_enabled_site_path/ssl-$ssl_mode.conf" ]; then
         echo "ℹ️ NOTICE ($script_name): Enabling Apache site with SSL '$ssl_mode'..."
@@ -117,10 +115,6 @@ enable_nginx_site (){
     # Transform to lowercase
     ssl_mode=$(echo "$ssl_mode" | tr '[:upper:]' '[:lower:]')
 
-    if [ "$ssl_mode" != "off" ]; then
-        validate_ssl
-    fi
-
     # Link the site available to be the active site
     if [ -f "$default_nginx_site_config" ]; then
         echo "ℹ️ NOTICE ($script_name): $default_nginx_site_config already exists, so we'll use the provided configuration."
@@ -131,29 +125,6 @@ enable_nginx_site (){
         mkdir -p "$base_dir"
         ln -s "/etc/nginx/sites-available/ssl-$ssl_mode" "$default_nginx_site_config"
     fi
-}
-
-validate_ssl(){
-    if [ -z "$SSL_CERTIFICATE_FILE" ] || [ -z "$SSL_PRIVATE_KEY_FILE" ]; then
-        echo "🛑 ERROR ($script_name): SSL_CERTIFICATE_FILE or SSL_PRIVATE_KEY_FILE is not set."
-        return 1
-    fi
-
-    if ([ -f "$SSL_CERTIFICATE_FILE" ] && [ ! -f "$SSL_PRIVATE_KEY_FILE" ]) || 
-       ([ ! -f "$SSL_CERTIFICATE_FILE" ] && [ -f "$SSL_PRIVATE_KEY_FILE" ]); then
-        echo "🛑 ERROR ($script_name): Only one of the SSL certificate or private key exists. Check the SSL_CERTIFICATE_FILE and SSL_PRIVATE_KEY_FILE variables and try again."
-        echo "🛑 ERROR ($script_name): SSL_CERTIFICATE_FILE: $SSL_CERTIFICATE_FILE"
-        echo "🛑 ERROR ($script_name): SSL_PRIVATE_KEY_FILE: $SSL_PRIVATE_KEY_FILE"
-        return 1
-    fi
-
-    if [ -f "$SSL_CERTIFICATE_FILE" ] && [ -f "$SSL_PRIVATE_KEY_FILE" ]; then
-        echo "ℹ️ NOTICE ($script_name): SSL certificate and private key already exist, so we'll use the existing files."
-        return 0
-    fi
-
-    echo "🔐 SSL Keypair not found. Generating self-signed SSL keypair..."    
-    openssl req -x509 -subj "/C=US/ST=Wisconsin/L=Milwaukee/O=IT/CN=*.dev.test,*.gitpod.io,*.ngrok.io,*.nip.io" -nodes -newkey rsa:2048 -keyout "$SSL_PRIVATE_KEY_FILE" -out "$SSL_CERTIFICATE_FILE" -days 365 >/dev/null 2>&1
 }
 
 ##########
@@ -169,6 +140,36 @@ if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
         process_template /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf
         process_template /etc/nginx/site-opts.d/http.conf.template /etc/nginx/site-opts.d/http.conf
         process_template /etc/nginx/site-opts.d/https.conf.template /etc/nginx/site-opts.d/https.conf
+        process_template /etc/nginx/sites-available/ssl-full.template /etc/nginx/sites-available/ssl-full
+
+        # Configure NGINX IP listening protocol if NGINX is installed
+        nginx_config_files="/etc/nginx/site-opts.d/http.conf /etc/nginx/site-opts.d/https.conf /etc/nginx/sites-available/ssl-full"
+        case "$NGINX_LISTEN_IP_PROTOCOL" in
+            all)
+                # Do nothing, keep both IPv4 and IPv6
+                ;;
+            ipv4)
+                echo "ℹ️ NOTICE (init-webserver-config): Setting IPv4 only for NGINX configuration..."
+                for config_file in $nginx_config_files; do
+                    if [ -f "$config_file" ]; then
+                        sed -i '/listen \[::\]:/d' "$config_file"
+                    fi
+                done
+                ;;
+            ipv6)
+                echo "ℹ️ NOTICE (init-webserver-config): Setting IPv6 only for NGINX configuration..."
+                for config_file in $nginx_config_files; do
+                    if [ -f "$config_file" ]; then
+                        sed -i '/^[[:space:]]*listen [0-9]/d' "$config_file"
+                    fi
+                done
+                ;;
+            *)
+                echo "🛑 ERROR ($script_name): Invalid NGINX_LISTEN_IP_PROTOCOL value: $NGINX_LISTEN_IP_PROTOCOL"
+                return 1
+                ;;
+        esac
+
         enable_nginx_site "$SSL_MODE"
     else
         echo "🛑 ERROR ($script_name): Neither Apache nor NGINX could be detected."

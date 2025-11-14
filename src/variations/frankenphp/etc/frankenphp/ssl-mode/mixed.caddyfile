@@ -1,0 +1,9 @@
+{$CADDY_HTTP_SERVER_ADDRESS:http://} {
+	import php-app-common
+}
+
+{$CADDY_HTTPS_SERVER_ADDRESS:https://} {
+	import auto-https-{$CADDY_AUTO_HTTPS:off}
+	import php-app-common
+	import security-https
+}
