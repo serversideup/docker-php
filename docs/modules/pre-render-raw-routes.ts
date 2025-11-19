@@ -28,11 +28,11 @@ export default defineNuxtModule({
                     
                     if (entry.isDirectory()) {
                         files.push(...getMarkdownFiles(fullPath, relativePath))
-                    } else if (entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'index.md') {
-                        const route = `/${relativePath.replace(/\.md$/, '')}`
-                        
+                    } else if (entry.isFile() && entry.name.endsWith('.md') && entry.name.includes('index.md')) {
+                        // For index.md, use the directory path (basePath) instead of including "index"
+                        const route = basePath ? `/${basePath}` : '/'
                         files.push(route)
-                    } else if (entry.isFile() && entry.name.endsWith('.md') && entry.name === 'index.md') {
+                    } else if (entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'index.md') {
                         const route = `/${relativePath.replace(/\.md$/, '')}`
                         files.push(route)
                     }
