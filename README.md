@@ -86,11 +86,11 @@ serversideup/php:{{version}}-{{variation-name}}
 
 | Variation | Best For | Example |
 |-----------|----------|---------|
-| **fpm-nginx** | Production web apps | `serversideup/php:8.4-fpm-nginx` |
-| **fpm-apache** | Apache-based deployments | `serversideup/php:8.4-fpm-apache` |
 | **cli** | CLI scripts, cron jobs, queues | `serversideup/php:8.4-cli` |
-| **frankenphp** | Modern, high-performance apps | `serversideup/php:8.4-frankenphp` |
 | **fpm** | Custom web server setup | `serversideup/php:8.4-fpm` |
+| **fpm-apache** | Apache-based deployments | `serversideup/php:8.4-fpm-apache` |
+| **fpm-nginx** | Stable and performant web server | `serversideup/php:8.4-fpm-nginx` |
+| **frankenphp** | Modern, high-performance apps with worker mode | `serversideup/php:8.4-frankenphp` |
 
 ### Supported PHP Versions & Platforms
 
@@ -115,8 +115,8 @@ We support **PHP 7.4 through 8.4** with both **Debian** and **Alpine** base imag
 Need help integrating Docker with your PHP application?
 
 - **[Managed Hosting](https://serversideup.net/hire-us/)** - CI/CD design, managed hosting, guaranteed uptime
-- **[Professional Help](https://schedule.serversideup.net/team/serversideup/quick-chat-with-jay)** - Video + screen-sharing with core contributors
-- **[Development Team](https://serversideup.net/hire-us/)** - From ground-up builds to existing codebases
+- **[One-time Session](https://schedule.serversideup.net/team/serversideup/quick-chat-with-jay)** - Video + screen-sharing with core contributors
+- **[Complete Development Team](https://serversideup.net/hire-us/)** - Get help from hardware to pixel and everything in between.
 
 ## Resources
 - **[Website](https://serversideup.net/open-source/docker-php/)** overview of the product.
