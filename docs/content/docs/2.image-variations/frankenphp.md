@@ -45,7 +45,6 @@ Use the FrankenPHP variation when you need to:
 FrankenPHP is the newest variation and represents the future of PHP application servers. If you're starting a new project and can commit to modern practices, this is the variation to choose.
 ::
 
-
 #### Known Issues
 ::warning{to="https://frankenphp.dev/docs/known-issues/#standalone-binary-and-alpine-based-docker-images" target="_blank"}
 Some people are reporting performance issues on the `alpine` version of FrankenPHP. If you're experiencing this, consider using the `debian` version.
@@ -54,6 +53,107 @@ Some people are reporting performance issues on the `alpine` version of FrankenP
 FrankenPHP is cutting edge and is a very active project. Be sure to understand FrankenPHP's known issues before using it in production. If you're looking for better compatibility, consider using the [FPM-NGINX](/docs/image-variations/fpm-nginx) image.
 
 :u-button{to="https://frankenphp.dev/docs/known-issues/" target="_blank" label="View FrankenPHP's known issues" aria-label="FrankenPHP known issues" size="md" color="primary" variant="outline"  trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
+
+## Differences from Official FrankenPHP Images
+
+Our FrankenPHP images are built with production deployments and enterprise security in mind. While the official FrankenPHP images are great for getting started, we've made several enhancements that make these images more suitable for production environments, especially when deploying at scale with orchestrators like Kubernetes, Docker Swarm, or managed container platforms.
+
+### Security-First Design: Unprivileged by Default
+
+Unlike the official FrankenPHP images that run as root, our images run as the unprivileged `www-data` user by default. This dramatically reduces your security footprint in production environments.
+
+**What this means for you:**
+- Containers run with minimal privileges, following security best practices
+- HTTP listens on port `8080` (instead of 80)
+- HTTPS listens on port `8443` (instead of 443)
+- Consistent with our other image variations for a unified experience
+
+::tip
+This unprivileged design is consistent across all our image variations. Learn more about our [default configurations](/docs/getting-started/default-configurations#unprivileged-by-default).
+::
+
+### Native Health Checks with Laravel Integration
+
+Health checks are critical for zero-downtime deployments, but the official images don't include them. Our images come with intelligent health check endpoints that work out of the box.
+
+**Built-in features:**
+- Default `/healthcheck` endpoint configured in Caddy
+- Configurable via `HEALTHCHECK_PATH` environment variable
+- Works with Laravel's native `/up` health check endpoint
+- Ensures your application is truly ready before accepting traffic
+
+```yml [compose.yml]
+services:
+  php:
+    image: serversideup/php:8.4-frankenphp
+    environment:
+      # Use Laravel's built-in health check
+      HEALTHCHECK_PATH: /up
+    healthcheck:
+      test: ["CMD", "healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+```
+
+::tip
+Learn more about [using health checks with Laravel](/docs/guide/using-healthchecks-with-laravel) to ensure your application is ready before accepting requests.
+::
+
+### Production-Grade Caddyfile Configuration
+
+The official FrankenPHP Dockerfile provides a basic Caddyfile to get started. We've spent considerable time crafting a production-ready configuration that includes security hardening, performance optimizations, and enterprise features.
+
+**What's included:**
+- **CloudFlare integration** - Trusted IP addresses configured automatically
+- **Security headers** - Best-practice headers included by default
+- **Performance rules** - Smart caching and compression configured
+- **Flexible logging** - Configurable output formats and levels
+- **Self-signed certificates** - Automatic generation for development environments
+- **Let's Encrypt support** - Easy configuration for automatic SSL certificates
+
+### Designed for Orchestrator Deployments
+
+FrankenPHP's tight integration with Caddy enables amazing features like automatic Let's Encrypt SSL certificates. However, in most production deployments, you're likely using a load balancer or reverse proxy for SSL termination, making Caddy's automatic SSL less useful and potentially problematic at scale.
+
+**Our orchestrator-first approach:**
+- Assumes SSL/TLS termination happens at the load balancer level
+- Optimized for zero-downtime rolling deployments
+- Works seamlessly with Kubernetes, Docker Swarm, and managed platforms
+- Simplifies scaling from one container to hundreds
+
+![Reverse Proxy](images/docs/reverse-proxy-ssl-zerodowntime.png){:zoom=false}
+
+::note
+You can still use Caddy's automatic HTTPS with Let's Encrypt if you prefer. See our [Configuring SSL](/docs/deployment-and-production/configuring-ssl) guide for all available options.
+::
+
+### Consistent Environment Variable Experience
+
+Just like all our other PHP variations, the FrankenPHP images support the same environment variables and helper scripts you're already familiar with.
+
+**Unified configuration across all variations:**
+- `SSL_MODE` - Control SSL behavior (`off`, `mixed`, `full`)
+- `LOG_OUTPUT_LEVEL` - Adjust logging verbosity
+- PHP INI settings via environment variables
+- Helper scripts for permissions management
+- Consistent startup script behavior
+
+This means you can switch between variations (FrankenPHP, FPM-NGINX, FPM-Apache) with minimal configuration changes.
+
+:u-button{to="/docs/reference/environment-variable-specification" label="View all environment variables" aria-label="View environment variable specification" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
+
+### More Operating System Variations
+
+We compile FrankenPHP from source, which allows us to support multiple operating systems for maximum flexibility.
+
+**Available platforms:**
+- Debian Bookworm (12)
+- Debian Trixie (13)
+- Alpine 3.21
+- Alpine 3.22
+
+This gives you the freedom to choose the base OS that best fits your infrastructure and security requirements.
 
 #### What's Inside
 
