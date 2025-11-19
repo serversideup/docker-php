@@ -1,6 +1,6 @@
 #!/command/with-contenv sh
-curl_options="--fail --location --insecure --silent --show-error --output /dev/null"
-healthcheck_url="http://localhost:8080${HEALTHCHECK_PATH}"
+curl_options="--fail --location --insecure --silent --output /dev/null"
+healthcheck_url="http://localhost:${NGINX_HTTP_PORT}${HEALTHCHECK_PATH}"
 
 is_online() {
     curl $curl_options "$healthcheck_url"
@@ -10,8 +10,10 @@ if is_online; then
     echo "✅ NGINX + PHP-FPM is running correctly."
     exit 0
 else
-    echo "❌ There seems to be a failure in checking the NGINX + PHP-FPM."
-    status_code=$(curl $curl_options -w "%{http_code}" "$healthcheck_url")
-    echo "HTTP Status Code: $status_code"
+    echo "Health check waiting for NGINX + PHP-FPM to start..."
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
+        status_code=$(curl $curl_options -w "%{http_code}" "$healthcheck_url")
+        echo "HTTP Status Code: $status_code"
+    fi
     exit 1
 fi

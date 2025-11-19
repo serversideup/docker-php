@@ -5,3 +5,4 @@ yarn.lock
 node_modules
 php-versions.yml
 *.tmp
+/docs/_OLD_

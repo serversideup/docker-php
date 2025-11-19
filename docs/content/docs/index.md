@@ -1,0 +1,3 @@
+---
+redirect: /docs/getting-started
+---
