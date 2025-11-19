@@ -14,7 +14,7 @@ orientation: vertical
 Supercharge your PHP experience, [in seconds.]{.text-green-500}
 
 #description
-Built upon the official PHP images, our production-ready serversideup/php images take your Docker PHP experience to the next level. Enjoy variable-first configurations, nginx-unit variation, native CloudFlare support, and more.
+Built upon the official PHP images, our production-ready serversideup/php images take your Docker PHP experience to the next level. Enjoy variable-first configurations, FrankenPHP, native CloudFlare support, and more.
 
 #links
     :::u-button
