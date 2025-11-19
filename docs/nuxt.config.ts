@@ -10,7 +10,8 @@ export default defineNuxtConfig({
         '@vueuse/nuxt',
         'nuxt-og-image',
         'nuxt-llms',
-        'nuxt-schema-org'
+        'nuxt-schema-org',
+        './modules/pre-render-raw-routes'
     ],
 
     devtools: {
