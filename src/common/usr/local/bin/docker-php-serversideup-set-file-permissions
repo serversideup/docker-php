@@ -20,7 +20,7 @@ usage() {
     echo "Options:"
     echo "  --owner USER:GROUP    Set the owner (required)"
     echo "  --service SERVICE     Specify service type (optional, auto-detected if not provided)"
-    echo "                        Valid services: cli, fpm, apache, fpm-apache, nginx, fpm-nginx, unit, frankenphp"
+    echo "                        Valid services: cli, fpm, apache, fpm-apache, nginx, fpm-nginx, frankenphp"
     echo "  --dir PATH            Additional directory to change ownership (can be used multiple times)"
 }
 
@@ -30,12 +30,6 @@ detect_service() {
     # Check for FrankenPHP (binary in path)
     if command -v frankenphp >/dev/null 2>&1; then
         echo "frankenphp"
-        return 0
-    fi
-    
-    # Check for NGINX Unit
-    if [ -d "/etc/unit" ] || command -v unitd >/dev/null 2>&1; then
-        echo "unit"
         return 0
     fi
     
@@ -196,17 +190,6 @@ case "$OS" in
                     /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
-            unit)
-                DIRS="
-                    /composer
-                    /etc/unit
-                    /etc/ssl/private
-                    /var/lib/unit
-                    /var/log/unit
-                    /var/run/unit
-                    /var/www
-                    $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
-                ;;
             frankenphp)
                 DIRS="
                     /composer
@@ -261,17 +244,6 @@ case "$OS" in
                     /var/cache/nginx
                     /var/log/nginx
                     /var/www/
-                    $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
-                ;;
-            unit)
-                DIRS="
-                    /composer
-                    /etc/unit
-                    /etc/ssl/private
-                    /var/lib/unit
-                    /var/log/unit
-                    /var/run/unit
-                    /var/www
                     $PHP_INI_DIR/conf.d/zzz-serversideup-docker-php-debug.ini"
                 ;;
             frankenphp)

@@ -8,7 +8,7 @@ description: 'NGINX Unit has been archived. This guide helps you understand what
 In October 2025, NGINX officially archived the NGINX Unit project and stopped all maintenance. If you're seeing this page, you're likely using our Unit-based images and wondering what to do next.
 
 ::caution{to="https://github.com/nginx/unit?tab=readme-ov-file#nginx-unit" target="_blank"}
-**The Unit variation is deprecated and will be removed in the next major release.** [View official NGINX announcement →](https://github.com/nginx/unit?tab=readme-ov-file#nginx-unit){target="_blank"}
+**The Unit variation is deprecated and has been removed from our project.** [View official NGINX announcement →](https://github.com/nginx/unit?tab=readme-ov-file#nginx-unit){target="_blank"}
 ::
 
 **The good news:** Your application will continue to work, and you have time to plan your migration. Below, we'll answer your most important questions and guide you through your options.

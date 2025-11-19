@@ -14,11 +14,6 @@ php_variations:
       - "8.0"
       - "8.1"
       - "8.2"
-  - name: unit
-    supported_os: # Alpine with Unit is not supported yet. Submit a PR if you can help (https://github.com/serversideup/docker-php/issues/233)
-      - bullseye
-      - bookworm
-      - trixie
 
 php_versions:
   - major: "7"
