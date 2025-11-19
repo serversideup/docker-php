@@ -85,7 +85,7 @@ Health checks are critical for zero-downtime deployments, but the official image
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-frankenphp
+    image: serversideup/php:8.5-frankenphp
     environment:
       # Use Laravel's built-in health check
       HEALTHCHECK_PATH: /up
@@ -222,7 +222,7 @@ Here are a few examples to help you get started with the FrankenPHP variation.
 ### Docker CLI
 
 ```bash [Terminal]
-docker run -p 80:8080 -v $(pwd):/var/www/html/public serversideup/php:8.4-frankenphp
+docker run -p 80:8080 -v $(pwd):/var/www/html/public serversideup/php:8.5-frankenphp
 ```
 
 Your application will be available at `http://localhost`. The default webroot is `/var/www/html/public`.
@@ -240,7 +240,7 @@ Don't forget to create a `public` directory and put your PHP code in there.
 services:
   php:
     # Choose our PHP version and variation
-    image: serversideup/php:8.4-frankenphp
+    image: serversideup/php:8.5-frankenphp
     # Expose and map HTTP and HTTPS ports
     ports:
       - 80:8080
@@ -292,7 +292,7 @@ See our [Configuring SSL](/docs/deployment-and-production/configuring-ssl) guide
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-frankenphp
+    image: serversideup/php:8.5-frankenphp
     ports:
       - "80:8080"
       - "443:8443"
@@ -315,7 +315,7 @@ For local development, use the `SSL_MODE` environment variable:
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-frankenphp
+    image: serversideup/php:8.5-frankenphp
     ports:
       - "80:8080"
       - "443:8443"
@@ -389,7 +389,7 @@ There are a few areas where you can use environment variables to customize your 
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-frankenphp
+    image: serversideup/php:8.5-frankenphp
     environment:
       CADDY_SERVER_EXTRA_DIRECTIVES: |
         # Add custom headers

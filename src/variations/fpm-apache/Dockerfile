@@ -1,6 +1,6 @@
 # check=skip=SecretsUsedInArgOrEnv
 ARG BASE_OS_VERSION='bookworm'
-ARG PHP_VERSION='8.4'
+ARG PHP_VERSION='8.5'
 ARG PHP_VARIATION='fpm-apache'
 ARG BASE_IMAGE="php:${PHP_VERSION}-fpm-${BASE_OS_VERSION}"
 

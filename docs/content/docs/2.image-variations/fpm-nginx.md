@@ -75,7 +75,7 @@ Here are a few examples to help you get started with the FPM-NGINX variation.
 
 ### Docker CLI
 ```bash [Terminal]
-docker run -p 80:8080 -v $(pwd):/var/www/html/public serversideup/php:8.4-fpm-nginx
+docker run -p 80:8080 -v $(pwd):/var/www/html/public serversideup/php:8.5-fpm-nginx
 ```
 
 Your application will be available at `http://localhost`. The default webroot is `/var/www/html/public`.
@@ -91,7 +91,7 @@ This is the recommended approach for local development and production deployment
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-fpm-nginx
+    image: serversideup/php:8.5-fpm-nginx
     ports:
       - "80:8080"
     volumes:
@@ -110,7 +110,7 @@ The FPM-NGINX variation is perfectly suited for Laravel applications:
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-fpm-nginx
+    image: serversideup/php:8.5-fpm-nginx
     ports:
       - "80:8080"
       - "443:8443"
@@ -163,7 +163,7 @@ The FPM-NGINX variation includes built-in SSL support with self-signed certifica
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-fpm-nginx
+    image: serversideup/php:8.5-fpm-nginx
     ports:
       - "80:8080"
       - "443:8443"
@@ -184,7 +184,7 @@ For production, use your own SSL certificates:
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-fpm-nginx
+    image: serversideup/php:8.5-fpm-nginx
     ports:
       - "443:8443"
     volumes:
@@ -249,7 +249,7 @@ If you're running an application in production, you'll likely want to package yo
 services:
   php:
     # You'll likely replace this with your own custom image name
-    image: serversideup/php:8.4-fpm-nginx
+    image: serversideup/php:8.5-fpm-nginx
     environment:
       # Enable OPcache for production
       PHP_OPCACHE_ENABLE: "1"
@@ -264,7 +264,7 @@ services:
 services:
   php:
     # You'll likely replace this with your own custom image name
-    image: serversideup/php:8.4-fpm-nginx
+    image: serversideup/php:8.5-fpm-nginx
     environment:
       # NGINX Settings
       NGINX_CLIENT_MAX_BODY_SIZE: "200M"
@@ -300,7 +300,7 @@ You can add custom NGINX server configuration by mounting files:
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-fpm-nginx
+    image: serversideup/php:8.5-fpm-nginx
     ports:
       - "80:8080"
     volumes:
