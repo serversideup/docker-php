@@ -128,7 +128,7 @@ RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
     # Install default PHP extensions
-    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" && \
+    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS} && \
     \
     # redirect logs to STDOUT and STERR
     ln -sf /dev/stdout /var/log/apache2/access.log && \
