@@ -67,7 +67,7 @@ This example shows a common setup with PHP-FPM in one container and NGINX in ano
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-fpm
+    image: serversideup/php:8.5-fpm
     volumes:
       - ./:/var/www/html
 
@@ -119,7 +119,7 @@ The `php-fpm-healthcheck` script can also monitor specific metrics like accepted
 ```yml [compose.yml]{7-10}
 services:
   php:
-    image: serversideup/php:8.4-fpm
+    image: serversideup/php:8.5-fpm
     volumes:
       - ./:/var/www/html
     healthcheck:
@@ -154,7 +154,7 @@ The FPM variation gives you fine-grained control over PHP process management. He
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-fpm
+    image: serversideup/php:8.5-fpm
     environment:
       PHP_FPM_PM_CONTROL: "static"
       PHP_FPM_PM_MAX_CHILDREN: "50"
@@ -165,7 +165,7 @@ services:
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-fpm
+    image: serversideup/php:8.5-fpm
     environment:
       PHP_FPM_PM_CONTROL: "ondemand"
       PHP_FPM_PM_MAX_CHILDREN: "10"
