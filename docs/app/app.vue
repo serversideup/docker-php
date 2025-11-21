@@ -6,7 +6,7 @@
         
         <UBanner 
             icon="i-lucide-rocket" 
-            title="Spin Pro now available with Laravel Horizon, Reverb, and more!" 
+            title="Celebrate the PHP 8.5 + FrankenPHP release with 50% off Spin Pro!" 
             to="https://getspin.pro/?ref=docker-php"
             color="primary"
             class="text-white bg-blue-600 hover:bg-blue-700"
