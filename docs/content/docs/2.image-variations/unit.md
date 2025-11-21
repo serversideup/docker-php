@@ -50,8 +50,7 @@ All of these variations are actively maintained and production-ready.
 ### How urgent is this migration?
 
 **Timeline:**
-- **Now:** Unit images work but receive no updates
-- **Next release:** Unit images will be removed from our project
+- **Now:** You can still pull `serversideup/php:unit` images, but they will not receive any future feature or security updates.
 
 **Recommendation:** Start planning your migration now. Don't rush, but don't delay indefinitely.
 
