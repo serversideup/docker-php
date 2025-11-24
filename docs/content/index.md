@@ -14,7 +14,7 @@ orientation: vertical
 Supercharge your PHP experience, [in seconds.]{.text-green-500}
 
 #description
-Production-ready PHP images that extend the official PHP base with everything you need: better security, native health checks, intelligent configurations through environment variables, and support for modern tools like FrankenPHP and CloudFlare.
+Production-ready PHP images that extend the official PHP images with everything you need: better security, native health checks, simple configuration, and support for modern tools like FrankenPHP and CloudFlare.
 
 #links
     :::u-button
