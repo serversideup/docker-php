@@ -125,7 +125,8 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
-    ENV APP_BASE_DIR=/var/www/html \
+    ENV TZ=UTC \
+    APP_BASE_DIR=/var/www/html \
     CADDY_ADMIN="off" \
     CADDY_AUTO_HTTPS="off" \
     CADDY_GLOBAL_OPTIONS="" \
@@ -134,6 +135,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     CADDY_HTTP_SERVER_ADDRESS="http://" \
     CADDY_HTTPS_SERVER_ADDRESS="https://" \
     CADDY_LOG_FORMAT="console" \
+    CADDY_LOG_DATETIME_FORMAT="wall_milli" \
     CADDY_LOG_OUTPUT="stdout" \
     CADDY_PHP_SERVER_OPTIONS="" \
     CADDY_SERVER_EXTRA_DIRECTIVES="" \

@@ -37,7 +37,8 @@ LABEL org.opencontainers.image.title="serversideup/php (fpm-apache)" \
     org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
+ENV TZ=UTC \
+    APACHE_DOCUMENT_ROOT=/var/www/html/public \
     APACHE_HTTP_PORT="8080" \
     APACHE_HTTPS_PORT="8443" \
     APACHE_START_SERVERS="2" \

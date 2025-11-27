@@ -1,6 +1,9 @@
 debug
 log {
-	format {$CADDY_LOG_FORMAT:console}
+	format {$CADDY_LOG_FORMAT:console} {
+	    time_format {$CADDY_LOG_DATETIME_FORMAT:wall_milli}
+	    time_local
+    }
 	output {$CADDY_LOG_OUTPUT:stdout}
 	level {$CADDY_SERVER_LOG_LEVEL:DEBUG}
 }
