@@ -5,11 +5,11 @@
         <ServerSideUp/>
         
         <UBanner 
-            icon="i-lucide-rocket" 
-            title="Celebrate the PHP 8.5 + FrankenPHP release with 50% off Spin Pro!" 
+            icon="i-lucide-zap" 
+            title="Zero-downtime deployments to any VPS — one purchase, unlimited deploys with Spin Pro" 
             to="https://getspin.pro/?ref=docker-php"
             color="primary"
-            class="text-white bg-blue-600 hover:bg-blue-700"
+            class="text-white bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             target="_blank"
         />
 
