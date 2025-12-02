@@ -16,6 +16,8 @@
 
 	frankenphp {
 		{$FRANKENPHP_CONFIG}
+		{$CADDY_SERVER_WORKER_DIRECTIVE}
+		{$CADDY_SERVER_WATCH_DIRECTIVES}
 	}
 
 	servers {
