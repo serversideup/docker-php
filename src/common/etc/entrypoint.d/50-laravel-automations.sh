@@ -53,8 +53,6 @@ fi
 ############################################################################
 
 artisan_migrate() {
-    debug_log "Starting migrations (isolation: $AUTORUN_LARAVEL_MIGRATION_ISOLATION)"
-
     echo "🚀 Clearing Laravel cache before attempting migrations..."
     php "$APP_BASE_DIR/artisan" config:clear
     
