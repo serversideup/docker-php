@@ -53,8 +53,6 @@ fi
 ############################################################################
 
 artisan_migrate() {
-    migrate_flags=""
-
     debug_log "Starting migrations (isolation: $AUTORUN_LARAVEL_MIGRATION_ISOLATION)"
 
     echo "🚀 Clearing Laravel cache before attempting migrations..."
@@ -73,7 +71,8 @@ artisan_migrate() {
             ;;
     esac
 
-    # Build migration flags (used for all databases)
+    # Determine if isolation is intended to be used
+    isolation_enabled="false"
     if [ "$AUTORUN_LARAVEL_MIGRATION_ISOLATION" = "true" ]; then
         # Isolation only works in default mode
         if [ "$AUTORUN_LARAVEL_MIGRATION_MODE" != "default" ]; then
@@ -87,8 +86,11 @@ artisan_migrate() {
             return 1
         fi
         
-        migrate_flags="$migrate_flags --isolated"
+        isolation_enabled="true"
     fi
+
+    # Start assembling migration flags
+    migrate_flags=""
 
     if [ "$AUTORUN_LARAVEL_MIGRATION_FORCE" = "true" ]; then
         migrate_flags="$migrate_flags --force"
@@ -98,30 +100,55 @@ artisan_migrate() {
         migrate_flags="$migrate_flags --seed"
     fi
 
-    # Determine if multiple databases are specified
+    # Helper function to run migrations for a specific database
+    run_migration_for_db() {
+        db_name="${1:-}"
+        
+        # Build display name and database flag for messages/commands
+        if [ -n "$db_name" ]; then
+            db_display_name="'$db_name'"
+            db_flag="--database=$db_name"
+        else
+            db_display_name="default database"
+            db_flag=""
+        fi
+        
+        # Wait for database connection
+        if ! wait_for_database_connection $db_name; then
+            echo "❌ $script_name: Failed to connect to $db_display_name"
+            return 1
+        fi
+        
+        # Determine if --isolated can be used for this database
+        db_migrate_flags="$migrate_flags"
+        if [ "$isolation_enabled" = "true" ]; then
+            if db_has_migrations_table $db_name; then
+                db_migrate_flags="$db_migrate_flags --isolated"
+                debug_log "Using --isolated flag for $db_display_name"
+            else
+                echo "ℹ️ Skipping --isolated flag for $db_display_name: migrations table not ready (normal for first deployment)"
+                echo "   The --isolated flag will be used on subsequent deployments."
+            fi
+        fi
+        
+        echo "🚀 Running migrations for $db_display_name"
+        php "$APP_BASE_DIR/artisan" $migration_command $db_flag $db_migrate_flags
+    }
+
+    # Run migrations for specified database(s)
     if [ -n "$AUTORUN_LARAVEL_MIGRATION_DATABASE" ]; then
         databases=$(convert_comma_delimited_to_space_separated "$AUTORUN_LARAVEL_MIGRATION_DATABASE")
         database_list=$(echo "$databases" | tr ',' ' ')
         
         for db in $database_list; do
-            # Wait for this specific database to be ready
-            if ! wait_for_database_connection "$db"; then
-                echo "❌ $script_name: Failed to connect to database: $db"
+            if ! run_migration_for_db "$db"; then
                 return 1
             fi
-            
-            echo "🚀 Running migrations for database: $db"
-            php "$APP_BASE_DIR/artisan" $migration_command --database=$db $migrate_flags
         done
     else
-        # Wait for default database connection
-        if ! wait_for_database_connection; then
-            echo "❌ $script_name: Failed to connect to default database"
+        if ! run_migration_for_db; then
             return 1
         fi
-        
-        # Run migration with default database connection
-        php "$APP_BASE_DIR/artisan" $migration_command $migrate_flags
     fi
 }
 
@@ -316,6 +343,16 @@ laravel_version_is_at_least() {
     fi
 }
 
+db_has_migrations_table() {
+    database_arg="${1:-}"
+    
+    if [ -n "$database_arg" ]; then
+        php "$APP_BASE_DIR/artisan" migrate:status --database="$database_arg" > /dev/null 2>&1
+    else
+        php "$APP_BASE_DIR/artisan" migrate:status > /dev/null 2>&1
+    fi
+}
+
 test_db_connection() {
     if [ "$AUTORUN_LARAVEL_MIGRATION_SKIP_DB_CHECK" = "true" ]; then
         return 0
@@ -324,9 +361,9 @@ test_db_connection() {
     # Pass database connection name only if specified (not empty)
     database_arg="${1:-}"
     if [ -n "$database_arg" ]; then
-        php "$AUTORUN_LIB_DIR/laravel/test-db-connection.php" "$APP_BASE_DIR" "$AUTORUN_LARAVEL_MIGRATION_MODE" "$AUTORUN_LARAVEL_MIGRATION_ISOLATION" "$database_arg"
+        php "$AUTORUN_LIB_DIR/laravel/test-db-connection.php" "$APP_BASE_DIR" "$AUTORUN_LARAVEL_MIGRATION_MODE" "$database_arg"
     else
-        php "$AUTORUN_LIB_DIR/laravel/test-db-connection.php" "$APP_BASE_DIR" "$AUTORUN_LARAVEL_MIGRATION_MODE" "$AUTORUN_LARAVEL_MIGRATION_ISOLATION"
+        php "$AUTORUN_LIB_DIR/laravel/test-db-connection.php" "$APP_BASE_DIR" "$AUTORUN_LARAVEL_MIGRATION_MODE"
     fi
 }
 
