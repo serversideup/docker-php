@@ -113,8 +113,7 @@ LABEL org.opencontainers.image.title="serversideup/php (fpm-nginx)" \
     org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
-ENV TZ=UTC \
-    APP_BASE_DIR=/var/www/html \
+ENV APP_BASE_DIR=/var/www/html \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
