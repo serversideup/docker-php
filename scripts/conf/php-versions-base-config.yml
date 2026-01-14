@@ -95,31 +95,31 @@ operating_systems:
       - name: "Alpine 3.20"
         version: alpine3.20
         number: 3.20
-        nginx_version: 1.28.0-r1
+        nginx_version: 1.28.1-r1
       - name: "Alpine 3.21"
         version: alpine3.21
         number: 3.21
-        nginx_version: 1.28.0-r1
+        nginx_version: 1.28.1-r1
       - name: "Alpine 3.22"
         version: alpine3.22
         number: 3.22
-        nginx_version: 1.28.0-r1
+        nginx_version: 1.28.1-r1
       - name: "Alpine 3.23"
         version: alpine3.23
         number: 3.23
-        nginx_version: 1.28.0-r1
+        nginx_version: 1.28.1-r1
   - family: debian
     default: true
     versions:
       - name: "Debian Bullseye"
         version: bullseye
         number: 11
-        nginx_version: 1.28.0-1~bullseye
+        nginx_version: 1.28.1-1~bullseye
       - name: "Debian Bookworm"
         version: bookworm
         number: 12
-        nginx_version: 1.28.0-1~bookworm
+        nginx_version: 1.28.1-1~bookworm
       - name: "Debian Trixie"
         version: trixie
         number: 13
-        nginx_version: 1.28.0-1~trixie
+        nginx_version: 1.28.1-1~trixie
