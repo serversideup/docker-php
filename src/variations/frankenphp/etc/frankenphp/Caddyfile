@@ -91,39 +91,6 @@ fd00::/8 \
 	}
 	log_skip @healthcheckpath
 
-    # Define specific endpoint under .well-known/
-    # https://www.iana.org/assignments/well-known-uris/well-known-uris.xhtml
-    # https://en.wikipedia.org/wiki/Well-known_URI
-    @wellknown-allowed {
-        # ACME
-        path /.well-known/acme-challenge/*
-
-        # Security & identity
-        path /.well-known/security.txt
-
-        # OAuth / OpenID
-        path /.well-known/openid-configuration
-        path /.well-known/oauth-authorization-server
-
-        # Mobile / platform verification
-        # https://developer.apple.com/documentation/xcode/supporting-associated-domains
-        path /.well-known/assetlinks.json
-        path /.well-known/apple-app-site-association
-        path /.well-known/apple-developer-merchantid-domain-association
-
-        # Passkey support
-        path /.well-known/passkey-endpoints
-        path /.well-known/webauthn
-    }
-
-    handle @wellknown-allowed {
-        file_server
-    }
-
-    # Block everything else under .well-known
-    @wellknown-blocked path /.well-known/*
-    respond @wellknown-blocked 403
-
 	php_server {
 		{$CADDY_PHP_SERVER_OPTIONS}
 	}
