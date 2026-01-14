@@ -80,8 +80,7 @@ artisan_migrate() {
         
         # Isolation requires Laravel 9.38.0+
         if ! laravel_version_is_at_least "9.38.0"; then
-            echo "❌ $script_name: Isolated migrations require Laravel v9.38.0 or above. Detected version: $(get_laravel_version)"
-            return 1
+            echo "⚠️ $script_name: Isolated migrations require Laravel v9.38.0 or above. Detected version: $(get_laravel_version)"
         fi
         
         isolation_enabled="true"
