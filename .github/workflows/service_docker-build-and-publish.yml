@@ -85,7 +85,7 @@ jobs:
           ref: ${{ inputs.ref }}
   
       - name: Download PHP Versions file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: php-versions.yml
           path: ./artifacts
