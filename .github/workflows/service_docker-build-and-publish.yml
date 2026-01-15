@@ -67,7 +67,7 @@ jobs:
         echo "${MATRIX_JSON}" | jq '.'
   
     - name: Upload the php-versions.yml file
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: php-versions.yml
         path: ${{ inputs.php-versions-file }}
