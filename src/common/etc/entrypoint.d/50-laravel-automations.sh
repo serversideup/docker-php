@@ -79,11 +79,13 @@ artisan_migrate() {
         fi
         
         # Isolation requires Laravel 9.38.0+
-        if ! laravel_version_is_at_least "9.38.0"; then
+        if laravel_version_is_at_least "9.38.0"; then
+            isolation_enabled="true"
+            debug_log "Isolation mode enabled (Laravel version check passed)"
+        else
             echo "⚠️ $script_name: Isolated migrations require Laravel v9.38.0 or above. Detected version: $(get_laravel_version)"
+            echo "   Continuing without isolation mode..."
         fi
-        
-        isolation_enabled="true"
     fi
 
     # Start assembling migration flags
@@ -265,17 +267,16 @@ get_laravel_version() {
     fi
 
     debug_log "Detecting Laravel version..."
-    # Use 2>/dev/null to handle potential PHP warnings
-    artisan_version_output=$(php "$APP_BASE_DIR/artisan" --version 2>/dev/null)
     
-    # Check if command was successful
-    if [ $? -ne 0 ]; then
+    # Capture artisan output
+    if ! artisan_version_output=$(php "$APP_BASE_DIR/artisan" --version 2>/dev/null); then
         echo "❌ $script_name: Failed to execute artisan command" >&2
         return 1
     fi
     
+    debug_log "Raw artisan output: $artisan_version_output"
+    
     # Extract version number using sed (POSIX compliant)
-    # Using a more strict pattern that matches "Laravel Framework X.Y.Z"
     laravel_version=$(echo "$artisan_version_output" | sed -e 's/^Laravel Framework \([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*$/\1/')
     
     # Validate that we got a version number (POSIX compliant regex)
@@ -285,7 +286,7 @@ get_laravel_version() {
         echo "$laravel_version"
         return 0
     else
-        echo "❌ $script_name: Failed to determine Laravel version" >&2
+        echo "❌ $script_name: Failed to determine Laravel version from: $artisan_version_output" >&2
         return 1
     fi
 }
@@ -310,34 +311,46 @@ laravel_version_is_at_least() {
         return 1
     fi
 
-    # Validate required version format
-    if ! echo "$required_version" | grep -Eq '^[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
-        echo "❌ $script_name - Invalid version requirement format: $required_version" >&2
-        return 1
-    fi
-
     current_version=$(get_laravel_version)
     if [ $? -ne 0 ]; then
         echo "❌ $script_name: Failed to get Laravel version" >&2
         return 1
     fi
 
-    # normalize_version() takes a version string and ensures it has 3 parts
-    normalize_version() {
-        echo "$1" | awk -F. '{ print $1"."$2"."(NF>2?$3:0) }'
-    }
+    # Extract version components using cut (POSIX compliant)
+    cur_major=$(echo "$current_version" | cut -d. -f1)
+    cur_minor=$(echo "$current_version" | cut -d. -f2)
+    cur_patch=$(echo "$current_version" | cut -d. -f3)
 
-    normalized_current=$(normalize_version "$current_version")
-    normalized_required=$(normalize_version "$required_version")
+    req_major=$(echo "$required_version" | cut -d. -f1)
+    req_minor=$(echo "$required_version" | cut -d. -f2)
+    req_patch=$(echo "$required_version" | cut -d. -f3)
 
-    # Use sort -V to get the lower version, then compare it with required version
-    # This works in BusyBox because we only need to check the first line of output
-    lowest_version=$(printf '%s\n%s\n' "$normalized_required" "$normalized_current" | sort -V | head -n1)
-    if [ "$lowest_version" = "$normalized_required" ]; then
-        return 0    # Success: current version is >= required version
-    else
-        return 1    # Failure: current version is < required version
+    # Default patch to 0 if not specified
+    : "${cur_patch:=0}"
+    : "${req_patch:=0}"
+
+    # Numeric comparison (POSIX arithmetic expansion handles this correctly)
+    # Compare major version
+    if [ "$cur_major" -gt "$req_major" ]; then
+        return 0
+    elif [ "$cur_major" -lt "$req_major" ]; then
+        return 1
     fi
+
+    # Major versions equal, compare minor
+    if [ "$cur_minor" -gt "$req_minor" ]; then
+        return 0
+    elif [ "$cur_minor" -lt "$req_minor" ]; then
+        return 1
+    fi
+
+    # Minor versions equal, compare patch
+    if [ "$cur_patch" -ge "$req_patch" ]; then
+        return 0
+    fi
+
+    return 1
 }
 
 db_has_migrations_table() {
