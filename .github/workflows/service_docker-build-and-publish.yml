@@ -39,7 +39,7 @@ jobs:
       php-version-map-json: ${{ steps.get-php-versions.outputs.php-version-map-json }}
     steps:
     - name: Check out code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ inputs.ref }}
     
@@ -67,25 +67,25 @@ jobs:
         echo "${MATRIX_JSON}" | jq '.'
   
     - name: Upload the php-versions.yml file
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: php-versions.yml
         path: ${{ inputs.php-versions-file }}
 
   docker-publish:
     needs: setup-matrix
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: depot-ubuntu-24.04-8
     strategy:
       matrix: ${{fromJson(needs.setup-matrix.outputs.php-version-map-json)}}
 
     steps:
       - name: Check out code.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
   
       - name: Download PHP Versions file
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: php-versions.yml
           path: ./artifacts
