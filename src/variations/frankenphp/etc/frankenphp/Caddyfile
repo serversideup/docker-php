@@ -138,6 +138,11 @@ fd00::/8 \
 	#   RFC 8615 - Well-Known URIs
 	#   https://www.rfc-editor.org/rfc/rfc8615
 
+	# Block PHP execution in storage directory to prevent uploaded malicious PHP files from running
+	# Reference: Livewire arbitrary file upload (GHSA-29cq-5w36-x7w3)
+	@storage-php path_regexp ^/storage/.*\.php$
+	respond @storage-php 403
+
 	# Block access to files that may expose sensitive information
 	@rejected {
 		path *.bak *.conf *.config *.dist *.inc *.ini *.log *.sh *.sql *.swp *.swo *~ */.*
