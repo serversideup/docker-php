@@ -127,24 +127,43 @@ fd00::/8 \
 }
 
 (security) {
-	# Reject dot files and certain file extensions
-	@rejected path *.bak *.conf *.dist *.fla *.ini *.inc *.inci *.log *.orig *.psd *.sh *.sql *.swo *.swp *.swop */.*
+	# This configuration follows security best practices from:
+	#
+	#   H5BP Server Configs (nginx) - Adapted for Caddy
+	#   https://github.com/h5bp/server-configs-nginx
+	#
+	#   OWASP Secure Headers Project
+	#   https://owasp.org/www-project-secure-headers/
+	#
+	#   RFC 8615 - Well-Known URIs
+	#   https://www.rfc-editor.org/rfc/rfc8615
 
-	# Return 403 Forbidden for rejected files
+	# Block PHP execution in storage directory to prevent uploaded malicious PHP files from running
+	# Reference: Livewire arbitrary file upload (GHSA-29cq-5w36-x7w3)
+	@storage-php path_regexp ^/storage/.*\.php$
+	respond @storage-php 403
+
+	# Block access to files that may expose sensitive information
+	@rejected {
+		path *.bak *.conf *.config *.dist *.inc *.ini *.log *.sh *.sql *.swp *.swo *~ */.*
+		# EXCEPTION: /.well-known/* is allowed per RFC 8615 for ACME challenges
+		# https://www.rfc-editor.org/rfc/rfc8615
+		not path /.well-known/*
+	}
 	respond @rejected 403
 
-	# Security headers
+	# Security Headers
+	# https://owasp.org/www-project-secure-headers/
 	header {
 		defer
-		# Prevent IFRAME spoofing attacks
+		# Prevent clickjacking attacks by disabling iframe embedding
 		X-Frame-Options "SAMEORIGIN"
-		# Prevent MIME type sniffing
+		# Prevent MIME type sniffing attacks
 		X-Content-Type-Options "nosniff"
-		# Prevent referrer leakage
+		# Control referrer information sent with requests
 		Referrer-Policy "strict-origin-when-cross-origin"
-		# Prevent server header leakage
+		# Remove server identification headers
 		-Server
-		# Prevent powered by header leakage
 		-X-Powered-By
 	}
 }
