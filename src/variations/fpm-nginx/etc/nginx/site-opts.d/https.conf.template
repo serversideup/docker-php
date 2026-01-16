@@ -36,6 +36,12 @@ location / {
     try_files $uri $uri/ /index.php?$query_string;
 }
 
+# Block PHP execution in storage directory to prevent uploaded malicious PHP files from running
+# Reference: Livewire arbitrary file upload (GHSA-29cq-5w36-x7w3)
+location ~* ^/storage/.*\.php$ {
+    deny all;
+}
+
 # Pass "*.php" files to PHP-FPM
 location ~ \.php$ {
     fastcgi_pass   127.0.0.1:9000;
