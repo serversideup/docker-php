@@ -176,6 +176,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE="/etc/ssl/private/self-signed-web.crt" \
     SSL_PRIVATE_KEY_FILE="/etc/ssl/private/self-signed-web.key" \
+    TRUSTED_PROXY=cloudflare \
     XDG_CONFIG_HOME=/config \
     XDG_DATA_HOME=/data
 

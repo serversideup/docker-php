@@ -99,7 +99,8 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     SHOW_WELCOME_MESSAGE=true \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
-    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key
+    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key \
+    TRUSTED_PROXY=cloudflare
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
