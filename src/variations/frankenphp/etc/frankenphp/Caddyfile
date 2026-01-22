@@ -11,14 +11,16 @@
 
 	skip_install_trust
 
-	# Match serversideup/php log levels to Caddy global log levels
 	import log-level/global/{$LOG_OUTPUT_LEVEL:info}.caddyfile
 
 	frankenphp {
 		{$FRANKENPHP_CONFIG}
 	}
 
-	import trusted-proxy/{$TRUSTED_PROXY:cloudflare}.caddyfile 
+	import trusted-proxy/{$TRUSTED_PROXY:cloudflare}.caddyfile
+
+	# Add additional Caddy configuration files from the caddyfile-global.d directory
+	import caddyfile-global.d/*.caddyfile 
 
 	{$CADDY_GLOBAL_OPTIONS}
 }
