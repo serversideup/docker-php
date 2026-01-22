@@ -27,7 +27,7 @@ RUN set -eux; \
 		/etc/frankenphp/ssl-mode \
         /etc/frankenphp/log-level \
         /etc/frankenphp/auto-https \
-        /etc/frankenphp/caddyfile.d; \
+        /etc/frankenphp/caddyfile.d \
         /etc/frankenphp/caddyfile-global.d; \
     # Create default index.php
 	echo '<?php phpinfo();' > /var/www/html/public/index.php; \
