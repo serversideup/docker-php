@@ -3,7 +3,11 @@
 # Usage: 5-generate-ssl.sh
 ###################################################
 # This script generates a self-signed SSL certificate and key for the container.
-script_name="generate-ssl"  
+script_name="generate-ssl"
+
+if [ "$DISABLE_DEFAULT_CONFIG" = "true" ]; then
+    exit 0 # Exit if DISABLE_DEFAULT_CONFIG is true
+fi
 
 SSL_CERTIFICATE_FILE=${SSL_CERTIFICATE_FILE:-"/etc/ssl/private/self-signed-web.crt"}
 SSL_PRIVATE_KEY_FILE=${SSL_PRIVATE_KEY_FILE:-"/etc/ssl/private/self-signed-web.key"}
