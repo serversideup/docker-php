@@ -6,7 +6,7 @@
 script_name="generate-ssl"
 
 if [ "$DISABLE_DEFAULT_CONFIG" = "true" ]; then
-    exit 0 # Exit if DISABLE_DEFAULT_CONFIG is true
+    exit 0
 fi
 
 SSL_CERTIFICATE_FILE=${SSL_CERTIFICATE_FILE:-"/etc/ssl/private/self-signed-web.crt"}
