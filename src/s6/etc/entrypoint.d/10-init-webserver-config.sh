@@ -42,8 +42,8 @@ process_template() {
         return 1
     fi
 
-    # Get all environment variables starting with 'NGINX_', 'SSL_', `LOG_`, 'APACHE_', and 'HEALTHCHECK_PATH'
-    subst_vars=$(env | grep -E '^(PHP_|NGINX_|SSL_|LOG_|APACHE_|HEALTHCHECK_PATH)' | cut -d= -f1 | awk '{printf "${%s},",$1}' | sed 's/,$//')
+    # Get all environment variables starting with certain prefixes
+    subst_vars=$(env | grep -E '^(PHP_|NGINX_|SSL_|LOG_|APACHE_|HEALTHCHECK_PATH|TRUSTED_PROXY)' | cut -d= -f1 | awk '{printf "${%s},",$1}' | sed 's/,$//')
 
     # Validate that all required variables are set
     for var_name in $(echo "$subst_vars" | tr ',' ' '); do
