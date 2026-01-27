@@ -1,6 +1,6 @@
 # check=skip=SecretsUsedInArgOrEnv
 ARG BASE_OS_VERSION='bookworm'
-ARG PHP_VERSION='8.4'
+ARG PHP_VERSION='8.5'
 ARG PHP_VARIATION='fpm-apache'
 ARG BASE_IMAGE="php:${PHP_VERSION}-fpm-${BASE_OS_VERSION}"
 
@@ -99,7 +99,8 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     SHOW_WELCOME_MESSAGE=true \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
-    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key
+    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key \
+    TRUSTED_PROXY=cloudflare
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -128,7 +129,7 @@ RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
     # Install default PHP extensions
-    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" && \
+    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS} && \
     \
     # redirect logs to STDOUT and STERR
     ln -sf /dev/stdout /var/log/apache2/access.log && \

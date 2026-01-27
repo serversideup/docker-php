@@ -11,48 +11,16 @@
 
 	skip_install_trust
 
-	# Match serversideup/php log levels to Caddy global log levels
 	import log-level/global/{$LOG_OUTPUT_LEVEL:info}.caddyfile
 
 	frankenphp {
 		{$FRANKENPHP_CONFIG}
 	}
 
-	servers {
-		# Trust Docker/private networks + loopback + Cloudflare ranges
-		trusted_proxies static \
-10.0.0.0/8 \
-172.16.0.0/12 \
-192.168.0.0/16 \
-127.0.0.1/8 \
-::1 \
-fd00::/8 \
-173.245.48.0/20 \
-103.21.244.0/22 \
-103.22.200.0/22 \
-103.31.4.0/22 \
-141.101.64.0/18 \
-108.162.192.0/18 \
-190.93.240.0/20 \
-188.114.96.0/20 \
-197.234.240.0/22 \
-198.41.128.0/17 \
-162.158.0.0/15 \
-104.16.0.0/13 \
-104.24.0.0/14 \
-172.64.0.0/13 \
-131.0.72.0/22 \
-2400:cb00::/32 \
-2606:4700::/32 \
-2803:f800::/32 \
-2405:b500::/32 \
-2405:8100::/32 \
-2a06:98c0::/29 \
-2c0f:f248::/32
+	import trusted-proxy/{$TRUSTED_PROXY:cloudflare}.caddyfile
 
-		# Prefer Cloudflare's header; keep XFF as fallback
-		client_ip_headers CF-Connecting-IP X-Forwarded-For
-	}
+	# Add additional Caddy configuration files from the caddyfile-global.d directory
+	import caddyfile-global.d/*.caddyfile 
 
 	{$CADDY_GLOBAL_OPTIONS}
 }
@@ -127,24 +95,43 @@ fd00::/8 \
 }
 
 (security) {
-	# Reject dot files and certain file extensions
-	@rejected path *.bak *.conf *.dist *.fla *.ini *.inc *.inci *.log *.orig *.psd *.sh *.sql *.swo *.swp *.swop */.*
+	# This configuration follows security best practices from:
+	#
+	#   H5BP Server Configs (nginx) - Adapted for Caddy
+	#   https://github.com/h5bp/server-configs-nginx
+	#
+	#   OWASP Secure Headers Project
+	#   https://owasp.org/www-project-secure-headers/
+	#
+	#   RFC 8615 - Well-Known URIs
+	#   https://www.rfc-editor.org/rfc/rfc8615
 
-	# Return 403 Forbidden for rejected files
+	# Block PHP execution in storage directory to prevent uploaded malicious PHP files from running
+	# Reference: Livewire arbitrary file upload (GHSA-29cq-5w36-x7w3)
+	@storage-php path_regexp ^/storage/.*\.php$
+	respond @storage-php 403
+
+	# Block access to files that may expose sensitive information
+	@rejected {
+		path *.bak *.conf *.config *.dist *.inc *.ini *.log *.sh *.sql *.swp *.swo *~ */.*
+		# EXCEPTION: /.well-known/* is allowed per RFC 8615 for ACME challenges
+		# https://www.rfc-editor.org/rfc/rfc8615
+		not path /.well-known/*
+	}
 	respond @rejected 403
 
-	# Security headers
+	# Security Headers
+	# https://owasp.org/www-project-secure-headers/
 	header {
 		defer
-		# Prevent IFRAME spoofing attacks
+		# Prevent clickjacking attacks by disabling iframe embedding
 		X-Frame-Options "SAMEORIGIN"
-		# Prevent MIME type sniffing
+		# Prevent MIME type sniffing attacks
 		X-Content-Type-Options "nosniff"
-		# Prevent referrer leakage
+		# Control referrer information sent with requests
 		Referrer-Policy "strict-origin-when-cross-origin"
-		# Prevent server header leakage
+		# Remove server identification headers
 		-Server
-		# Prevent powered by header leakage
 		-X-Powered-By
 	}
 }

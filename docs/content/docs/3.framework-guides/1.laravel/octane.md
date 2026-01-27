@@ -36,7 +36,7 @@ By default, FrankenPHP runs in classic mode. Your compose file might look someth
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-frankenphp
+    image: serversideup/php:8.5-frankenphp
     ports:
       - "80:8080"
     volumes:
@@ -78,7 +78,7 @@ Laravel Octane provides its own Caddyfile. This may cause some of the serverside
 ```yml [compose.yml]{8-13}
 services:
   php:
-    image: serversideup/php:8.4-frankenphp
+    image: serversideup/php:8.5-frankenphp
     ports:
       - "80:8080"
     volumes:

@@ -14,7 +14,7 @@ orientation: vertical
 Supercharge your PHP experience, [in seconds.]{.text-green-500}
 
 #description
-Built upon the official PHP images, our production-ready serversideup/php images take your Docker PHP experience to the next level. Enjoy variable-first configurations, nginx-unit variation, native CloudFlare support, and more.
+Production-ready PHP images that extend the official PHP images with everything you need: better security, native health checks, simple configuration, and support for modern tools like FrankenPHP and CloudFlare.
 
 #links
     :::u-button
@@ -105,10 +105,10 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
     orientation: vertical
     ---
     #title
-    Native CloudFlare Support
+    Trusted Proxy Support
 
     #description
-    Get real IP addresses from visitors from trusted proxies.
+    Get real IP addresses from Cloudflare, Sucuri, or local proxies.
     :::
 
     :::u-page-card

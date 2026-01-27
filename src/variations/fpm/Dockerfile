@@ -1,5 +1,5 @@
 ARG BASE_OS_VERSION='bookworm'
-ARG PHP_VERSION='8.4'
+ARG PHP_VERSION='8.5'
 ARG PHP_VARIATION='fpm'
 
 ##########
@@ -92,7 +92,7 @@ RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
     chmod +x /usr/local/bin/php-fpm-healthcheck && \
     \
     # Install default PHP extensions
-    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"
+    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS}
 
 # copy our fpm configurations
 COPY src/php-fpm.d/ /
