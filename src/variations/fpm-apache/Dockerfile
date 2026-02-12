@@ -1,6 +1,6 @@
 # check=skip=SecretsUsedInArgOrEnv
 ARG BASE_OS_VERSION='bookworm'
-ARG PHP_VERSION='8.4'
+ARG PHP_VERSION='8.5'
 ARG PHP_VARIATION='fpm-apache'
 ARG BASE_IMAGE="php:${PHP_VERSION}-fpm-${BASE_OS_VERSION}"
 
@@ -128,7 +128,7 @@ RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
     # Install default PHP extensions
-    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" && \
+    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS} && \
     \
     # redirect logs to STDOUT and STERR
     ln -sf /dev/stdout /var/log/apache2/access.log && \

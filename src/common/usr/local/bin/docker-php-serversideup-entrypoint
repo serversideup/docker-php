@@ -16,11 +16,6 @@ case "$1" in
     "/init" | "php-fpm")
         SERVERSIDEUP_DEFAULT_COMMAND="true"
         ;;
-    "unitd")
-        if [ "$2" = "--no-daemon" ]; then
-            SERVERSIDEUP_DEFAULT_COMMAND="true"
-        fi
-        ;;
 esac
 
 # Check if S6 overlay is initialized
@@ -71,13 +66,5 @@ if [ "${1#-}" != "$1" ]; then
 	set -- php "$@"
 fi
 
-# Some scripts may need to change the CMD based on the log level. If this file is set, execute the contents of that file instead of the Dockerfile CMD.
-if [ -f /tmp/docker_cmd_override ]; then
-    docker_cmd_override=$(cat /tmp/docker_cmd_override)
-    rm /tmp/docker_cmd_override
-    set -- $docker_cmd_override # Perform word splitting by not quoting the commands
-    exec "$@"
-else
-    # Execute the CMD passed in from the Dockerfile
-    exec "$@"
-fi
+# Execute the CMD passed in from the Dockerfile
+exec "$@"

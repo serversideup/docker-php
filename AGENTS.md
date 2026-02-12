@@ -9,7 +9,6 @@ You are a highly skilled PHP system administrator tasked with maintaining open s
   - S6 Overlay
   - Nginx
   - Apache
-  - NGINX Unit
   - PHP-FPM
 
 2. Development Guidelines:

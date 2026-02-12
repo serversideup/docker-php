@@ -1,6 +1,6 @@
 # check=skip=SecretsUsedInArgOrEnv
 ARG BASE_OS_VERSION='bookworm'
-ARG PHP_VERSION='8.4'
+ARG PHP_VERSION='8.5'
 ARG BASE_IMAGE="php:${PHP_VERSION}-fpm-${BASE_OS_VERSION}"
 
 ##########
@@ -214,7 +214,7 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE} ng
     chown -R www-data:www-data /var/cache/nginx/ && \
     \
     # Install default PHP extensions
-    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" && \
+    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS} && \
     \
     # clear all php provided fpm configurations
     rm -rf /usr/local/etc/php-fpm.d/*.conf && \

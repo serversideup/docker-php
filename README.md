@@ -11,13 +11,18 @@
 </p>
 
 ## Introduction
-`serversideup/php` is an optimized set of Docker Images for running PHP applications in production. Everything is designed around improving the developer experience with PHP and Docker. Gone are the days of configuring each environment differently, and gone are the days of trying to figure out why your code works in one environment and not the other.
+Production-ready PHP Docker images built on official PHP. Optimized for Laravel, WordPress, and modern PHP applications.
 
-These images are highly optimized to run modern PHP applications, no matter where you want your application to run.
+### What Makes These Images Different?
 
-Experience the ***true difference*** of using these images vs the other options out there.
+**serversideup/php** takes the official PHP Docker images and adds everything you need for real-world production use:
 
-[Read more about the key differences with these images →](https://serversideup.net/open-source/docker-php/docs/getting-started/these-images-vs-others)
+- ✅ **Secure by Default** - Runs as unprivileged user, not root
+- ✅ **Zero Config Required** - Production-ready defaults, customize with environment variables
+- ✅ **Batteries Included** - Composer, common extensions, and helpful utilities pre-installed
+- ✅ **Framework Optimized** - Special automations for Laravel (migrations, queues, Horizon, etc.)
+- ✅ **Multiple Variations** - CLI, FPM, FPM+NGINX, FPM+Apache, FrankenPHP
+- ✅ **Modern Architecture** - Native health checks, S6 Overlay, unified logging
 
 <details open>
 <summary>
@@ -27,40 +32,91 @@ Experience the ***true difference*** of using these images vs the other options 
 |<picture><img width="100%" alt="Production-Ready" src="https://serversideup.net/wp-content/uploads/2023/08/production-ready.png"></picture>|<picture><img width="100%" alt="Native Health Checks" src="https://serversideup.net/wp-content/uploads/2023/08/native-health-checks.png"></picture>|<picture><img width="100%" alt="High Performance" src="https://serversideup.net/wp-content/uploads/2023/11/high-performance.png"></picture>|
 |:---:|:---:|:---:|
 |<picture><img width="100%" alt="Customizable and Flexible" src="https://serversideup.net/wp-content/uploads/2023/08/customizable-flexible.png"></picture>|<picture><img width="100%" alt="Native CloudFlare Support" src="https://serversideup.net/wp-content/uploads/2023/11/cloudflare.png"></picture>|<picture><img width="100%" alt="Base on Official PHP" src="https://serversideup.net/wp-content/uploads/2023/11/official-php.png"></picture>|
-|<picture><img width="100%" alt="NGINX Unit" src="https://serversideup.net/wp-content/uploads/2023/11/nginx-unit.png"></picture>|<picture><img width="100%" alt="Unified Logging" src="https://serversideup.net/wp-content/uploads/2023/11/unified-logging.png"></picture>|<picture><img width="100%" alt="FPM + S6 Overlay" src="https://serversideup.net/wp-content/uploads/2023/11/fpm-s6.png"></picture>|
+|<picture><img width="100%" alt="FrankenPHP" src="https://serversideup.net/wp-content/uploads/2023/11/frankenphp.png"></picture>|<picture><img width="100%" alt="Unified Logging" src="https://serversideup.net/wp-content/uploads/2023/11/unified-logging.png"></picture>|<picture><img width="100%" alt="FPM + S6 Overlay" src="https://serversideup.net/wp-content/uploads/2023/11/fpm-s6.png"></picture>|
 
 </details>
 
-## Professionally Supported
-Are you looking for help on integreating Docker with your PHP application? We have multiple options to help your team out:
+## Getting Started
 
-- [Get Managed Hosting](https://serversideup.net/hire-us/): CI/CD design and engineering, managed hosting, guaranteed uptime, any host, any server.
-- [Get Professional Help](https://schedule.serversideup.net/team/serversideup/quick-chat-with-jay): Get video + screen-sharing help directly from the core contributors.
-- [Get a Full-Stack Development Team](https://serversideup.net/hire-us/): We can build your app from the ground up, or help you with your existing codebase.
+### Try it in 2 minutes ⚡
 
-## Usage
-This repository creates a number of Docker image variations, allowing you to choose exactly what you need.
+Want to see how easy it is? Our installation guide walks you through creating your first PHP app with Docker:
 
-Simply use this image name pattern in any of your projects:
-```sh
+1. ✅ Run `phpinfo()` in your browser
+2. ✅ Upgrade PHP versions by changing one line
+3. ✅ Switch between variations (FPM, FrankenPHP, etc.)
+4. ✅ See environment variables in action
+
+**[👉 Follow the quick start guide](https://serversideup.net/open-source/docker-php/docs/getting-started/installation)**
+
+### Quick Example
+
+Here's what a complete Laravel setup with NGINX + PHP 8.5 looks like:
+
+```yml
+services:
+  php:
+    image: serversideup/php:8.5-fpm-nginx
+    ports:
+      - "80:8080"
+    environment:
+      # Customize PHP with environment variables
+      PHP_OPCACHE_ENABLE: "1"
+      PHP_MEMORY_LIMIT: "512M"
+      
+      # Laravel automations (migrations, storage link, etc.)
+      AUTORUN_ENABLED: "true"
+    volumes:
+      - .:/var/www/html
+```
+
+That's it. No complex configs. Just environment variables.
+
+**Ready to try it?** [Get started with our tutorial →](https://serversideup.net/open-source/docker-php/docs/getting-started/installation)
+
+## Available Image Variations
+
+Choose the variation that fits your needs. All images follow the pattern:
+
+```
 serversideup/php:{{version}}-{{variation-name}}
 ```
-For example... If I wanted to run **PHP 8.2** with **FPM + NGINX**, I would use this image:
-```sh
-serversideup/php:8.2-fpm-nginx
-```
+
+### Popular Variations
+
+| Variation | Best For | Example |
+|-----------|----------|---------|
+| **cli** | CLI scripts, cron jobs, queues | `serversideup/php:8.5-cli` |
+| **fpm** | Custom web server setup | `serversideup/php:8.5-fpm` |
+| **fpm-apache** | Apache-based deployments | `serversideup/php:8.5-fpm-apache` |
+| **fpm-nginx** | Stable and performant web server | `serversideup/php:8.5-fpm-nginx` |
+| **frankenphp** | Modern, high-performance apps with worker mode | `serversideup/php:8.5-frankenphp` |
+
+### Supported PHP Versions & Platforms
 
 > [!NOTE]  
-> All our images are available on [**Docker Hub**](https://hub.docker.com/r/serversideup/php/) and [**GitHub Packages**](https://github.com/serversideup/docker-php/pkgs/container/php). 🥳
+> All images are available on [**Docker Hub**](https://hub.docker.com/r/serversideup/php/) and [**GitHub Packages**](https://github.com/serversideup/docker-php/pkgs/container/php).
+
+We support **PHP 7.4 through 8.5** with both **Debian** and **Alpine** base images.
+
+[Learn More About Choosing an Image →](https://serversideup.net/open-source/docker-php/docs/getting-started/choosing-an-image)
+
 
 | ⚙️ Variation | 🚀 Version |
 | ------------ | ---------- |
-| cli | **Debian Based**<br>[![serversideup/php:8.4-cli](https://img.shields.io/docker/image-size/serversideup/php/8.4-cli?label=serversideup%2Fphp%3A8.4-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-cli&page=1&ordering=-name)<br>[![serversideup/php:8.3-cli](https://img.shields.io/docker/image-size/serversideup/php/8.3-cli?label=serversideup%2Fphp%3A8.3-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-cli&page=1&ordering=-name)<br>[![serversideup/php:8.2-cli](https://img.shields.io/docker/image-size/serversideup/php/8.2-cli?label=serversideup%2Fphp%3A8.2-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-cli&page=1&ordering=-name)<br>[![serversideup/php:8.1-cli](https://img.shields.io/docker/image-size/serversideup/php/8.1-cli?label=serversideup%2Fphp%3A8.1-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-cli&page=1&ordering=-name)<br>[![serversideup/php:8.0-cli](https://img.shields.io/docker/image-size/serversideup/php/8.0-cli?label=serversideup%2Fphp%3A8.0-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli&page=1&ordering=-name)<br>[![serversideup/php:7.4-cli](https://img.shields.io/docker/image-size/serversideup/php/7.4-cli?label=serversideup%2Fphp%3A7.4-cli)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli&page=1&ordering=-name)<br>**Alpine Based**<br>[![serversideup/php:8.4-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.4-cli-alpine?label=serversideup%2Fphp%3A8.4-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-cli-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.3-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.3-cli-alpine?label=serversideup%2Fphp%3A8.3-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-cli&page=1&ordering=-name)<br>[![serversideup/php:8.2-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.2-cli-alpine?label=serversideup%2Fphp%3A8.2-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-cli-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.1-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.1-cli-alpine?label=serversideup%2Fphp%3A8.1-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-cli-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.0-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.0-cli-alpine?label=serversideup%2Fphp%3A8.0-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli-alpine&page=1&ordering=-name)<br>[![serversideup/php:7.4-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/7.4-cli-alpine?label=serversideup%2Fphp%3A7.4-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli-alpine&page=1&ordering=-name) |
-| fpm | **Debian Based**<br>[![serversideup/php:8.4-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm?label=serversideup%2Fphp%3A8.4-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm?label=serversideup%2Fphp%3A8.3-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm?label=serversideup%2Fphp%3A8.2-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm&page=1&ordering=-name)<br>[![serversideup/php:8.1-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm?label=serversideup%2Fphp%3A8.1-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm&page=1&ordering=-name)<br>[![serversideup/php:8.0-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm?label=serversideup%2Fphp%3A8.0-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm&page=1&ordering=-name)<br>[![serversideup/php:7.4-fpm](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm?label=serversideup%2Fphp%3A7.4-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm&page=1&ordering=-name)<br>**Alpine Based**<br>[![serversideup/php:8.4-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm-alpine?label=serversideup%2Fphp%3A8.4-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm-alpine?label=serversideup%2Fphp%3A8.3-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-alpine?label=serversideup%2Fphp%3A8.2-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.1-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-alpine?label=serversideup%2Fphp%3A8.1-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.0-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-alpine?label=serversideup%2Fphp%3A8.0-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-alpine&page=1&ordering=-name)<br>[![serversideup/php:7.4-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-alpine?label=serversideup%2Fphp%3A7.4-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-alpine&page=1&ordering=-name) |
-| fpm-apache | **Debian Based**<br>[![serversideup/php:8.4-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm-apache?label=serversideup%2Fphp%3A8.4-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm-apache?label=serversideup%2Fphp%3A8.3-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-apache?label=serversideup%2Fphp%3A8.2-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.1-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-apache?label=serversideup%2Fphp%3A8.1-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.0-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-apache?label=serversideup%2Fphp%3A8.0-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:7.4-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-apache?label=serversideup%2Fphp%3A7.4-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-apache&page=1&ordering=-name) |
-| fpm-nginx | **Debian Based**<br>[![serversideup/php:8.4-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm-nginx?label=serversideup%2Fphp%3A8.4-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm-nginx?label=serversideup%2Fphp%3A8.3-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-nginx?label=serversideup%2Fphp%3A8.2-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.1-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-nginx?label=serversideup%2Fphp%3A8.1-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.0-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-nginx?label=serversideup%2Fphp%3A8.0-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:7.4-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-nginx?label=serversideup%2Fphp%3A7.4-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx&page=1&ordering=-name)<br>**Alpine Based**<br>[![serversideup/php:8.4-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.4-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.3-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.2-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.1-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.1-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.0-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.0-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:7.4-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-nginx-alpine?label=serversideup%2Fphp%3A7.4-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx-alpine&page=1&ordering=-name) |
-| frankenphp | **Debian Based**<br>[![serversideup/php:8.4-frankenphp](https://img.shields.io/docker/image-size/serversideup/php/8.4-frankenphp?label=serversideup%2Fphp%3A8.4-frankenphp)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-frankenphp&page=1&ordering=-name)<br>[![serversideup/php:8.3-frankenphp](https://img.shields.io/docker/image-size/serversideup/php/8.3-frankenphp?label=serversideup%2Fphp%3A8.3-frankenphp)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-frankenphp&page=1&ordering=-name)<br>**Alpine Based**<br>[![serversideup/php:8.4-frankenphp-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.4-frankenphp-alpine?label=serversideup%2Fphp%3A8.4-frankenphp-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-frankenphp-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.3-frankenphp-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.3-frankenphp-alpine?label=serversideup%2Fphp%3A8.3-frankenphp-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-frankenphp-alpine&page=1&ordering=-name) |
-| unit (deprecated) | ⚠️ NGINX is no longer maintaining NGINX Unit. It will eventually be removed from this project. [Learn more →](https://serversideup.net/open-source/docker-php/docs/image-variations/unit) |
+| cli | **Debian Based**<br>[![serversideup/php:8.5-cli](https://img.shields.io/docker/image-size/serversideup/php/8.5-cli?label=serversideup%2Fphp%3A8.5-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-cli&page=1&ordering=-name)<br>[![serversideup/php:8.4-cli](https://img.shields.io/docker/image-size/serversideup/php/8.4-cli?label=serversideup%2Fphp%3A8.4-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-cli&page=1&ordering=-name)<br>[![serversideup/php:8.3-cli](https://img.shields.io/docker/image-size/serversideup/php/8.3-cli?label=serversideup%2Fphp%3A8.3-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-cli&page=1&ordering=-name)<br>[![serversideup/php:8.2-cli](https://img.shields.io/docker/image-size/serversideup/php/8.2-cli?label=serversideup%2Fphp%3A8.2-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-cli&page=1&ordering=-name)<br>[![serversideup/php:8.1-cli](https://img.shields.io/docker/image-size/serversideup/php/8.1-cli?label=serversideup%2Fphp%3A8.1-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-cli&page=1&ordering=-name)<br>[![serversideup/php:8.0-cli](https://img.shields.io/docker/image-size/serversideup/php/8.0-cli?label=serversideup%2Fphp%3A8.0-cli)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli&page=1&ordering=-name)<br>[![serversideup/php:7.4-cli](https://img.shields.io/docker/image-size/serversideup/php/7.4-cli?label=serversideup%2Fphp%3A7.4-cli)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli&page=1&ordering=-name)<br>**Alpine Based**<br>[![serversideup/php:8.5-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.5-cli-alpine?label=serversideup%2Fphp%3A8.5-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-cli-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.4-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.4-cli-alpine?label=serversideup%2Fphp%3A8.4-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-cli-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.3-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.3-cli-alpine?label=serversideup%2Fphp%3A8.3-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-cli&page=1&ordering=-name)<br>[![serversideup/php:8.2-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.2-cli-alpine?label=serversideup%2Fphp%3A8.2-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-cli-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.1-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.1-cli-alpine?label=serversideup%2Fphp%3A8.1-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-cli-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.0-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.0-cli-alpine?label=serversideup%2Fphp%3A8.0-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-cli-alpine&page=1&ordering=-name)<br>[![serversideup/php:7.4-cli-alpine](https://img.shields.io/docker/image-size/serversideup/php/7.4-cli-alpine?label=serversideup%2Fphp%3A7.4-cli-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-cli-alpine&page=1&ordering=-name) |
+| fpm | **Debian Based**<br>[![serversideup/php:8.5-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.5-fpm?label=serversideup%2Fphp%3A8.5-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-fpm&page=1&ordering=-name)<br>[![serversideup/php:8.4-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm?label=serversideup%2Fphp%3A8.4-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm?label=serversideup%2Fphp%3A8.3-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm?label=serversideup%2Fphp%3A8.2-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm&page=1&ordering=-name)<br>[![serversideup/php:8.1-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm?label=serversideup%2Fphp%3A8.1-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm&page=1&ordering=-name)<br>[![serversideup/php:8.0-fpm](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm?label=serversideup%2Fphp%3A8.0-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm&page=1&ordering=-name)<br>[![serversideup/php:7.4-fpm](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm?label=serversideup%2Fphp%3A7.4-fpm)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm&page=1&ordering=-name)<br>**Alpine Based**<br>[![serversideup/php:8.5-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.5-fpm-alpine?label=serversideup%2Fphp%3A8.5-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-fpm-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.4-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm-alpine?label=serversideup%2Fphp%3A8.4-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm-alpine?label=serversideup%2Fphp%3A8.3-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-alpine?label=serversideup%2Fphp%3A8.2-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.1-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-alpine?label=serversideup%2Fphp%3A8.1-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.0-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-alpine?label=serversideup%2Fphp%3A8.0-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-alpine&page=1&ordering=-name)<br>[![serversideup/php:7.4-fpm-alpine](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-alpine?label=serversideup%2Fphp%3A7.4-fpm-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-alpine&page=1&ordering=-name) |
+| fpm-apache | **Debian Based**<br>[![serversideup/php:8.5-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.5-fpm-apache?label=serversideup%2Fphp%3A8.5-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.4-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm-apache?label=serversideup%2Fphp%3A8.4-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm-apache?label=serversideup%2Fphp%3A8.3-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-apache?label=serversideup%2Fphp%3A8.2-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.1-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-apache?label=serversideup%2Fphp%3A8.1-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.0-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-apache?label=serversideup%2Fphp%3A8.0-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:7.4-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-apache?label=serversideup%2Fphp%3A7.4-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-apache&page=1&ordering=-name) |
+| fpm-nginx | **Debian Based**<br>[![serversideup/php:8.5-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.5-fpm-nginx?label=serversideup%2Fphp%3A8.5-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.4-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm-nginx?label=serversideup%2Fphp%3A8.4-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm-nginx?label=serversideup%2Fphp%3A8.3-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-nginx?label=serversideup%2Fphp%3A8.2-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.1-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-nginx?label=serversideup%2Fphp%3A8.1-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.0-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-nginx?label=serversideup%2Fphp%3A8.0-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:7.4-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-nginx?label=serversideup%2Fphp%3A7.4-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx&page=1&ordering=-name)<br>**Alpine Based**<br>[![serversideup/php:8.5-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.5-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.5-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.4-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.4-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.3-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.2-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.1-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.1-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.1-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.1-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.0-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.0-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.0-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.0-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:7.4-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/7.4-fpm-nginx-alpine?label=serversideup%2Fphp%3A7.4-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=7.4-fpm-nginx-alpine&page=1&ordering=-name) |
+| frankenphp | **Debian Based**<br>[![serversideup/php:8.5-frankenphp](https://img.shields.io/docker/image-size/serversideup/php/8.5-frankenphp?label=serversideup%2Fphp%3A8.5-frankenphp)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-frankenphp&page=1&ordering=-name)<br>[![serversideup/php:8.4-frankenphp](https://img.shields.io/docker/image-size/serversideup/php/8.4-frankenphp?label=serversideup%2Fphp%3A8.4-frankenphp)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-frankenphp&page=1&ordering=-name)<br>[![serversideup/php:8.3-frankenphp](https://img.shields.io/docker/image-size/serversideup/php/8.3-frankenphp?label=serversideup%2Fphp%3A8.3-frankenphp)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-frankenphp&page=1&ordering=-name)<br>**Alpine Based**<br>[![serversideup/php:8.5-frankenphp-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.5-frankenphp-alpine?label=serversideup%2Fphp%3A8.5-frankenphp-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-frankenphp-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.4-frankenphp-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.4-frankenphp-alpine?label=serversideup%2Fphp%3A8.4-frankenphp-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-frankenphp-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.3-frankenphp-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.3-frankenphp-alpine?label=serversideup%2Fphp%3A8.3-frankenphp-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-frankenphp-alpine&page=1&ordering=-name) |
+| unit (deprecated) | ⚠️ NGINX is no longer maintaining NGINX Unit. We stopped providing updates for this image. [Learn more →](https://serversideup.net/open-source/docker-php/docs/image-variations/unit) |
+
+## Professional Support
+Need help integrating Docker with your PHP application?
+
+- **[Managed Hosting](https://serversideup.net/hire-us/)** - CI/CD design, managed hosting, guaranteed uptime
+- **[One-time Session](https://schedule.serversideup.net/team/serversideup/quick-chat-with-jay)** - Video + screen-sharing with core contributors
+- **[Complete Development Team](https://serversideup.net/hire-us/)** - Get help from hardware to pixel and everything in between.
 
 ## Resources
 - **[Website](https://serversideup.net/open-source/docker-php/)** overview of the product.
@@ -83,7 +139,7 @@ Need help getting started? Join our Discord community and we'll help you out!
 <a href="https://serversideup.net/discord"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/join-discord.svg" title="Join Discord"></a>
 
 ## Our Sponsors
-All of our software is free an open to the world. None of this can be brought to you without the financial backing of our sponsors.
+All of our software is free and open to the world. None of this can be brought to you without the financial backing of our sponsors.
 
 <p align="center"><a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-box.png" alt="Sponsors"></a></p>
 
@@ -93,24 +149,16 @@ All of our software is free an open to the world. None of this can be brought to
 #### Bronze Sponsors
 <!-- bronze -->No bronze sponsors yet. <a href="https://github.com/sponsors/serversideup">Become a sponsor →</a><!-- bronze -->
 
-#### Special Infrastructure Sponsors
-This project takes an incredible amount of computing power to build and maintain over 8,000 different docker image tags. We're extremely grateful for the following sponsors who help bring the power to ship more PHP.
+#### Infrastructure Sponsors
+This project requires significant computing power to build and maintain over 8,000 different Docker image tags. We're extremely grateful for the following sponsors:
 
 <a href="https://depot.dev/"><img src="https://serversideup.net/sponsors/depot.png" alt="Depot" width="250px"></a>&nbsp;&nbsp;<a href="https://hub.docker.com/u/serversideup"><img src="https://serversideup.net/sponsors/docker.png" alt="Docker" width="250px"></a>
 
 #### Individual Supporters
 <!-- supporters --><a href="https://github.com/aagjalpankaj"><img src="https://github.com/aagjalpankaj.png" width="40px" alt="aagjalpankaj" /></a>&nbsp;&nbsp;<!-- supporters -->
 
-#### Special thanks
-We'd like to specifically thank a few folks for taking the time for being a sound board that deeply influenced the direction of this project.
-
-Please check out their work:
-- [Chris Fidao](https://x.com/fideloper)
-- [Joel Clermont](https://x.com/jclermont)
-- [Patricio](https://x.com/PatricioOnCode)
-
 ## About Us
-We're [Dan](https://x.com/danpastori) and [Jay](https://x.com/jaydrogers) - a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
+We're [Dan](https://x.com/danpastori) and [Jay](https://x.com/jaydrogers) - a two-person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
 
 <div align="center">
 
@@ -130,7 +178,7 @@ We're [Dan](https://x.com/danpastori) and [Jay](https://x.com/jaydrogers) - a tw
 * **🐥 [Twitter](https://x.com/serversideup)** - You can also follow [Dan](https://x.com/danpastori) and [Jay](https://x.com/jaydrogers).
 * **❤️ [Sponsor Us](https://github.com/sponsors/serversideup)** - Please consider sponsoring us so we can create more helpful resources.
 
-## Our products
+## Our Products
 If you appreciate this project, be sure to check out our other projects.
 
 ### 📚 Books

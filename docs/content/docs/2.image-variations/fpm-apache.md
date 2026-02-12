@@ -79,7 +79,7 @@ Here are a few examples to help you get started with the FPM-Apache variation.
 
 ### Docker CLI
 ```bash [Terminal]
-docker run -p 80:8080 -v $(pwd):/var/www/html/public serversideup/php:8.4-fpm-apache
+docker run -p 80:8080 -v $(pwd):/var/www/html/public serversideup/php:8.5-fpm-apache
 ```
 
 Your application will be available at `http://localhost`. The default document root is `/var/www/html/public`.
@@ -94,7 +94,7 @@ This is the recommended approach for local development and production deployment
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-fpm-apache
+    image: serversideup/php:8.5-fpm-apache
     ports:
       - "80:8080"
       - "443:8443"
@@ -115,7 +115,7 @@ The FPM-Apache variation is excellent for WordPress hosting:
 ```yml [compose.yml]
 services:
   wordpress:
-    image: serversideup/php:8.4-fpm-apache
+    image: serversideup/php:8.5-fpm-apache
     ports:
       - "80:8080"
       - "443:8443"
@@ -163,7 +163,7 @@ The FPM-Apache variation includes built-in SSL support with self-signed certific
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-fpm-apache
+    image: serversideup/php:8.5-fpm-apache
     ports:
       - "8080:8080"
       - "8443:8443"
@@ -184,7 +184,7 @@ For production, use your own SSL certificates:
 ```yml [compose.yml]
 services:
   php:
-    image: serversideup/php:8.4-fpm-apache
+    image: serversideup/php:8.5-fpm-apache
     ports:
       - "443:8443"
     volumes:

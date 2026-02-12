@@ -1,9 +1,9 @@
 # check=skip=SecretsUsedInArgOrEnv
 ARG BASE_OS_VERSION='trixie'
-ARG PHP_VERSION='8.4'
+ARG PHP_VERSION='8.5'
 ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
-ARG FRANKENPHP_VERSION='1.9.1'
-ARG GOLANG_VERSION='1.25'
+ARG FRANKENPHP_VERSION='1.11.2'
+ARG GOLANG_VERSION='1.26'
 
 ########################
 # Common
@@ -111,7 +111,7 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
 ####################
 FROM common AS final
 ARG DEPENDENCY_PACKAGES_ALPINE='shadow libstdc++'
-ARG DEPENDENCY_PACKAGES_DEBIAN='procps libstdc++6'
+ARG DEPENDENCY_PACKAGES_DEBIAN='procps libstdc++6 zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG REPOSITORY_BUILD_VERSION='dev'
 
@@ -209,7 +209,7 @@ RUN \
     # Install PHP Extension installer
     docker-php-serversideup-install-php-ext-installer; \
     # Install default PHP extensions
-    install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}"; \
+    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS}; \
     # Ensure permissions are set for www-data
     docker-php-serversideup-set-file-permissions --owner www-data:www-data --service frankenphp
 
