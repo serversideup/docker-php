@@ -105,10 +105,10 @@ These images [give a lot more]{.text-pink-500} than other PHP Docker Images.
     orientation: vertical
     ---
     #title
-    Native CloudFlare Support
+    Trusted Proxy Support
 
     #description
-    Get real IP addresses from visitors from trusted proxies.
+    Get real IP addresses from Cloudflare, Sucuri, or local proxies.
     :::
 
     :::u-page-card
