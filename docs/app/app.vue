@@ -2,18 +2,20 @@
     <UApp>
         <NuxtLoadingIndicator />
 
-        <ProjectSwitcherBar />
-        
-        <UBanner 
-            icon="i-lucide-zap" 
-            title="Zero-downtime deployments to any VPS — one purchase, unlimited deploys with Spin Pro" 
-            to="https://getspin.pro/?ref=docker-php"
-            color="primary"
-            class="text-white bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-            target="_blank"
-        />
+        <div class="sticky top-0 z-50">
+            <ProjectSwitcherBar />
 
-        <AppHeader />
+            <UBanner
+                icon="i-lucide-zap"
+                title="Zero-downtime deployments to any VPS — one purchase, unlimited deploys with Spin Pro"
+                to="https://getspin.pro/?ref=docker-php"
+                color="primary"
+                class="text-white bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                target="_blank"
+            />
+
+            <AppHeader />
+        </div>
 
         <UMain class="bg-black">
             <NuxtLayout>
