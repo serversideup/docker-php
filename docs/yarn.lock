@@ -2086,7 +2086,7 @@
 
 "@serversideup/project-switcher-bar@https://github.com/serversideup/project-switcher-bar":
   version "0.0.1"
-  resolved "https://github.com/serversideup/project-switcher-bar#f533ba459c27cd0a5c36dbb6cc8c828c6816cba6"
+  resolved "https://github.com/serversideup/project-switcher-bar#6c086ac7cf352a212c2732041d555f62ca2b43ef"
 
 "@shikijs/core@3.13.0", "@shikijs/core@^3.12.2":
   version "3.13.0"
