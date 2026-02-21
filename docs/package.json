@@ -20,7 +20,7 @@
     "@nuxt/ui": "^4.0.1",
     "@nuxtjs/plausible": "^2.0.1",
     "@nuxtjs/sitemap": "^7.4.7",
-    "@serversideup/project-switcher-bar": "^0.0.4",
+    "@serversideup/project-switcher-bar": "^0.0.5",
     "@vueuse/core": "^14.0.0",
     "@vueuse/nuxt": "^14.0.0",
     "better-sqlite3": "^12.4.1",
