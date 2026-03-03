@@ -237,8 +237,54 @@ function echo_color_message (){
 
 if [ "$SKIP_DOWNLOAD" = false ]; then
     echo_color_message yellow "⚡️ Getting PHP Versions from $PHP_VERSIONS_ACTIVE_JSON_FEED"
-    # Fetch the JSON from the PHP website
-    php_net_version_json=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
+
+    # Fetch the JSON from the PHP website with retry logic and validation
+    max_retries=3
+    retry_count=0
+    php_net_version_json=""
+
+    while [ $retry_count -lt $max_retries ]; do
+        http_code=$(curl -s -o /tmp/php_versions_response.json -w "%{http_code}" --max-time 30 --connect-timeout 10 "$PHP_VERSIONS_ACTIVE_JSON_FEED")
+
+        if [ "$http_code" = "200" ]; then
+            php_net_version_json=$(cat /tmp/php_versions_response.json)
+            rm -f /tmp/php_versions_response.json
+
+            # Validate that the response is actually JSON
+            if echo "$php_net_version_json" | jq empty 2>/dev/null; then
+                break
+            else
+                echo_color_message red "❌ Response from php.net returned HTTP $http_code but body is not valid JSON."
+                echo_color_message red "--- Response Body (first 500 chars) ---"
+                echo "$php_net_version_json" | head -c 500
+                echo ""
+                echo_color_message red "--- End Response Body ---"
+                php_net_version_json=""
+            fi
+        else
+            echo_color_message red "❌ Failed to fetch PHP versions from php.net (HTTP $http_code)"
+            if [ -f /tmp/php_versions_response.json ]; then
+                echo_color_message red "--- Response Body (first 500 chars) ---"
+                head -c 500 /tmp/php_versions_response.json
+                echo ""
+                echo_color_message red "--- End Response Body ---"
+                rm -f /tmp/php_versions_response.json
+            fi
+        fi
+
+        retry_count=$((retry_count + 1))
+        if [ $retry_count -lt $max_retries ]; then
+            wait_time=$((retry_count * 5))
+            echo_color_message yellow "⚠️  Retrying in ${wait_time}s... (attempt $((retry_count + 1))/$max_retries)"
+            sleep "$wait_time"
+        fi
+    done
+
+    if [ -z "$php_net_version_json" ]; then
+        echo_color_message red "❌ Failed to fetch valid JSON from $PHP_VERSIONS_ACTIVE_JSON_FEED after $max_retries attempts"
+        echo "::error title=PHP Version Fetch Failed::Failed to get valid JSON from php.net after $max_retries attempts. The server may be returning a Cloudflare challenge, rate limiting, or experiencing an outage. Check the response body logged above for details."
+        exit 1
+    fi
 
     # Parse the fetched JSON data and optionally validate PHP versions on DockerHub
     if [ "$SKIP_DOCKERHUB_VALIDATION" = true ]; then
