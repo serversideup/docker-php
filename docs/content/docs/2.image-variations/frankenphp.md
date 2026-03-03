@@ -89,11 +89,6 @@ services:
     environment:
       # Use Laravel's built-in health check
       HEALTHCHECK_PATH: /up
-    healthcheck:
-      test: ["CMD", "healthcheck"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 ```
 
 ::tip
