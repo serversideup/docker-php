@@ -244,7 +244,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
     php_net_version_json=""
 
     while [ $retry_count -lt $max_retries ]; do
-        http_code=$(curl -s -o /tmp/php_versions_response.json -w "%{http_code}" --max-time 30 --connect-timeout 10 "$PHP_VERSIONS_ACTIVE_JSON_FEED")
+        http_code=$(curl -s -o /tmp/php_versions_response.json -w "%{http_code}" --max-time 30 --connect-timeout 10 -A "serversideup-docker-php/1.0 (https://github.com/serversideup/docker-php)" "$PHP_VERSIONS_ACTIVE_JSON_FEED")
 
         if [ "$http_code" = "200" ]; then
             php_net_version_json=$(cat /tmp/php_versions_response.json)
