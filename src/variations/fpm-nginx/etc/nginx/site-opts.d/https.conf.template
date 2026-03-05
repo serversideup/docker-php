@@ -53,5 +53,8 @@ location ~ \.php$ {
     fastcgi_read_timeout $PHP_MAX_EXECUTION_TIME;
 }
 
+# trusted proxy configuration
+include /etc/nginx/trusted-proxy/${TRUSTED_PROXY}.conf;
+
 # additional config
 include /etc/nginx/server-opts.d/*.conf;

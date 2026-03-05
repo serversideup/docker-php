@@ -5,12 +5,11 @@
  * This script tests if the Laravel application can connect to its configured database.
  * It's designed to be called from shell scripts during container initialization.
  * 
- * Usage: php test-db-connection.php /path/to/app/base/dir [migration_mode] [migration_isolation] [database_connection]
+ * Usage: php test-db-connection.php /path/to/app/base/dir [migration_mode] [database_connection]
  * 
  * Arguments:
- *   app_base_dir    - Path to Laravel application root
- *   migration_mode  - Migration mode: 'default', 'fresh', or 'refresh' (optional, defaults to 'default')
- *   migration_isolation - Whether to run migrations in isolation (optional, defaults to 'false')
+ *   app_base_dir        - Path to Laravel application root
+ *   migration_mode      - Migration mode: 'default', 'fresh', or 'refresh' (optional, defaults to 'default')
  *   database_connection - Name of the database connection to test (optional, defaults to 'default')
  * 
  * Exit codes:
@@ -21,27 +20,19 @@
  */
 
 // Validate arguments
-if ($argc < 2 || $argc > 5) {
-    fwrite(STDERR, "Usage: php test-db-connection.php /path/to/app/base/dir [migration_mode] [migration_isolation] [database_connection]\n");
+if ($argc < 2 || $argc > 4) {
+    fwrite(STDERR, "Usage: php test-db-connection.php /path/to/app/base/dir [migration_mode] [database_connection]\n");
     exit(1);
 }
 
 $appBaseDir = $argv[1];
 $migrationMode = $argc >= 3 ? $argv[2] : 'default';
-$migrationIsolation = $argc >= 4 ? $argv[3] : 'false';
-$databaseConnection = $argc >= 5 ? $argv[4] : null;
+$databaseConnection = $argc >= 4 ? $argv[3] : null;
 
 // Validate migration mode
 $validModes = ['default', 'fresh', 'refresh'];
 if (!in_array($migrationMode, $validModes)) {
     fwrite(STDERR, "Error: Invalid migration mode '{$migrationMode}'. Must be one of: " . implode(', ', $validModes) . "\n");
-    exit(1);
-}
-
-// Validate migration isolation
-$validIsolations = ['true', 'false'];
-if (!in_array($migrationIsolation, $validIsolations)) {
-    fwrite(STDERR, "Error: Invalid migration isolation '{$migrationIsolation}'. Must be one of: " . implode(', ', $validIsolations) . "\n");
     exit(1);
 }
 
@@ -126,17 +117,7 @@ try {
             exit(1);
         }
         
-        // For isolated migrations, the database file must exist (even in default mode)
-        if ($migrationIsolation === 'true') {
-            fwrite(STDERR, "SQLite database file does not exist: {$dbPath}\n");
-            fwrite(STDERR, "Isolated migrations require the database file to exist before running.\n");
-            fwrite(STDERR, "Either:\n");
-            fwrite(STDERR, "  1. Create the database (ensure it has read and write permissions for your user): touch {$dbPath}\n");
-            fwrite(STDERR, "  2. Set AUTORUN_LARAVEL_MIGRATION_ISOLATION=false to let migrations create it\n");
-            exit(1);
-        }
-        
-        // Directory exists and is writable - migrations can create the database file (default mode only)
+        // Directory exists and is writable - migrations can create the database file
         fwrite(STDOUT, "SQLite database directory is ready - migrations will create database\n");
         exit(0);
     }
