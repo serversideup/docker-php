@@ -42,6 +42,11 @@ location ~* ^/storage/.*\.php$ {
     deny all;
 }
 
+# Redirect /index.php/... to /... to prevent SEO duplicate content
+location ~ ^/index\.php(/.+)$ {
+    return 301 $1$is_args$args;
+}
+
 # Pass "*.php" files to PHP-FPM
 location ~ \.php$ {
     fastcgi_pass   127.0.0.1:9000;
