@@ -1,21 +1,29 @@
 # Security Policy
 
-## Supported Versions
-The following versions of PHP are being actively updated:
+## PHP upstream support (php.net)
 
-| PHP Version | Supported          |
-| ------- | ------------------ |
-| 8.5  | :white_check_mark: Active support |
-| 8.4  | :white_check_mark: Active support |
-| 8.3  | :warning: Security updates only |
-| 8.2  | :warning: Security updates only |
-| 8.1  | :heavy_exclamation_mark: End of life, update ASAP |
-| 8.0  | :heavy_exclamation_mark: End of life, update ASAP |
-| 7.4  | :heavy_exclamation_mark: End of life, update ASAP |
-| 7.3  | :x: Not supported |
+The table below is the **official PHP project** support phase for each branch—not a guarantee that every branch appears in our image matrix. Use it to decide when to upgrade.
 
-View the official [PHP supported versions policy](https://www.php.net/supported-versions.php) for more information.
+| Branch | Phase on php.net |
+| --- | --- |
+| 8.5 | Active support (bug + security fixes) |
+| 8.4 | Active support (bug + security fixes) |
+| 8.3 | Security fixes only |
+| 8.2 | Security fixes only |
+| 8.1 | End of life — upgrade as soon as practical |
+| 8.0 | End of life — upgrade as soon as practical |
+| 7.4 | End of life — upgrade as soon as practical |
+| ≤ 7.3 | End of life — not built in this project’s current matrix |
 
-## Reporting a Vulnerability
+**References**
 
-If you have a vulnerability to report, please follow [our responsible disclosure policy](https://www.notion.so/Responsible-Disclosure-Policy-421a6a3be1714d388ebbadba7eebbdc8).
+- [Supported Versions](https://www.php.net/supported-versions.php) — active and security support dates for current branches  
+- [End-of-life branches](https://www.php.net/eol.php) — historical EOL dates  
+
+We may still ship images for **EOL** PHP versions to help migrate legacy apps; prefer a [currently supported branch](https://www.php.net/supported-versions.php) for production.
+
+---
+
+## Reporting a vulnerability
+
+Follow [our responsible disclosure policy](https://www.notion.so/Responsible-Disclosure-Policy-421a6a3be1714d388ebbadba7eebbdc8).
