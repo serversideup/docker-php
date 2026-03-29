@@ -47,6 +47,7 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     APACHE_THREADS_PER_CHILD="25" \
     APACHE_MAX_REQUEST_WORKERS="150" \
     APACHE_MAX_CONNECTIONS_PER_CHILD="0" \
+    APACHE_REMOTE_IP_HEADER="CF-Connecting-IP" \
     APACHE_RUN_USER="www-data" \
     APACHE_RUN_GROUP="www-data" \
     APP_BASE_DIR=/var/www/html \

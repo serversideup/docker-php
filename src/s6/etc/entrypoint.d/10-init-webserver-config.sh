@@ -137,6 +137,7 @@ if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
         enable_apache_conf remoteip security serversideup
         enable_apache_site "$SSL_MODE"
     elif [ "$SERVER_TYPE" = "NGINX" ]; then
+        process_template /etc/nginx/server-opts.d/remoteip.conf.template /etc/nginx/server-opts.d/remoteip.conf
         process_template /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf
         process_template /etc/nginx/site-opts.d/http.conf.template /etc/nginx/site-opts.d/http.conf
         process_template /etc/nginx/site-opts.d/https.conf.template /etc/nginx/site-opts.d/https.conf

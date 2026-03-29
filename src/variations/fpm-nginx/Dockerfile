@@ -127,6 +127,7 @@ ENV APP_BASE_DIR=/var/www/html \
     NGINX_HTTP_PORT="8080" \
     NGINX_HTTPS_PORT="8443" \
     NGINX_LISTEN_IP_PROTOCOL="all" \
+    NGINX_REAL_IP_HEADER="CF-Connecting-IP" \
     NGINX_SERVER_TOKENS=off \
     NGINX_WEBROOT=/var/www/html/public \
     NGINX_CLIENT_MAX_BODY_SIZE="100M" \
