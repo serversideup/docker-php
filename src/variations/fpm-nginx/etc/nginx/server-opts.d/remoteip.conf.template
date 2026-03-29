@@ -32,5 +32,5 @@ set_real_ip_from 2a06:98c0::/29;
 set_real_ip_from 2c0f:f248::/32;
 
 # Set RealIP header
-real_ip_header CF-Connecting-IP;
+real_ip_header ${NGINX_REAL_IP_HEADER};
 real_ip_recursive on;
