@@ -1,0 +1,116 @@
+name: Build ECR Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag to checkout (e.g., v3.5.2, v3.6.1, v4.1.0)"
+        required: true
+        type: string
+      php_versions:
+        description: "Comma-separated PHP minor versions to build (e.g., 8.2,8.3)"
+        required: true
+        type: string
+        default: "8.2,8.3,8.4,8.5"
+      dry_run:
+        description: "Build without pushing to ECR"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-2
+
+jobs:
+  generate-matrix:
+    name: Generate build matrix
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Generate matrix from input
+        id: matrix
+        run: |
+          MATRIX=$(echo '${{ inputs.php_versions }}' \
+            | tr ',' '\n' \
+            | jq -R '.' \
+            | jq -sc '{"include": [.[] | {php_version: .}]}')
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "Matrix: $MATRIX"
+
+  build-and-push:
+    name: Build PHP ${{ matrix.php_version }}
+    needs: generate-matrix
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout at tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Resolve NGINX version
+        id: nginx
+        run: |
+          CONFIG="scripts/conf/php-versions-base-config.yml"
+          if [ -f "$CONFIG" ]; then
+            # Extract nginx_version for bookworm from the base config YAML
+            VERSION=$(awk '/version: bookworm/{found=1} found && /nginx_version:/{print $2; exit}' "$CONFIG")
+          fi
+
+          if [ -z "$VERSION" ]; then
+            echo "::warning::Could not resolve NGINX version from config, using Dockerfile default"
+            echo "nginx_arg=" >> $GITHUB_OUTPUT
+          else
+            echo "Resolved NGINX version: $VERSION"
+            echo "nginx_arg=NGINX_VERSION=$VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.GHA_ROLE }}
+          role-session-name: gha-ecr-push
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: "true"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/variations/fpm-nginx/Dockerfile
+          platforms: linux/arm64
+          pull: true
+          push: ${{ !inputs.dry_run }}
+          build-args: |
+            BASE_OS_VERSION=bookworm
+            PHP_VERSION=${{ matrix.php_version }}
+            PHP_VARIATION=fpm-nginx
+            REPOSITORY_BUILD_VERSION=${{ inputs.tag }}
+            ${{ steps.nginx.outputs.nginx_arg }}
+          tags: |
+            ${{ secrets.GHA_ECR_REPO }}:${{ matrix.php_version }}-fpm-nginx-bookworm-${{ inputs.tag }}
+
+      - name: Verify PHP version
+        run: |
+          docker run --rm --platform linux/arm64 \
+            "${{ secrets.GHA_ECR_REPO }}:${{ matrix.php_version }}-fpm-nginx-bookworm-${{ inputs.tag }}" \
+            php -v
