@@ -67,7 +67,7 @@ jobs:
         echo "${MATRIX_JSON}" | jq '.'
   
     - name: Upload the php-versions.yml file
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: php-versions.yml
         path: ${{ inputs.php-versions-file }}
@@ -85,7 +85,7 @@ jobs:
           ref: ${{ inputs.ref }}
   
       - name: Download PHP Versions file
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: php-versions.yml
           path: ./artifacts
@@ -100,14 +100,14 @@ jobs:
       # Docker build & publish
       ##
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         if: ${{ inputs.push-to-registry }}
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         if: ${{ inputs.push-to-registry && inputs.authenticate_with_ghcr }}
         with:
           registry: ghcr.io
