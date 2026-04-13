@@ -2,6 +2,7 @@
 @import "@nuxt/ui";
 
 @source "../../../content/**/*";
+@source "../../../node_modules/@serversideup/project-switcher-bar/src";
 
 @theme {
   --color-mode: 'dark';
