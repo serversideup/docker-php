@@ -15,8 +15,10 @@ jobs:
     steps:
       - name: Get Latest Release
         id: get_latest_release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          LATEST_TAG=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+          LATEST_TAG=$(gh api /repos/${{ github.repository }}/releases/latest --jq '.tag_name')
           echo "release_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
 
   build-production-images:
