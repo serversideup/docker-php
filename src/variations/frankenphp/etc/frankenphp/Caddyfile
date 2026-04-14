@@ -59,6 +59,10 @@
 	}
 	log_skip @healthcheckpath
 
+	# Redirect /index.php/... to /... to prevent SEO duplicate content
+	@indexphp path_regexp indexphp ^/index\.php(/.+)$
+	redir @indexphp {re.indexphp.1} 301
+
 	php_server {
 		{$CADDY_PHP_SERVER_OPTIONS}
 	}
