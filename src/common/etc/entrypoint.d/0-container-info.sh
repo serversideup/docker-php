@@ -1,7 +1,7 @@
 #!/bin/sh
-if [ "$SHOW_WELCOME_MESSAGE" = "false" ] || [ "$LOG_OUTPUT_LEVEL" = "off" ] || [ "$DISABLE_DEFAULT_CONFIG" = "true" ]; then
+if [ "$SHOW_WELCOME_MESSAGE" = "false" ] || [ "$DISABLE_DEFAULT_CONFIG" = "true" ]; then
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
-        echo "👉 $0: Container info was display was skipped."
+        echo "👉 $0: Container info display was skipped."
     fi
     # Skip the rest of the script
     exit 0
