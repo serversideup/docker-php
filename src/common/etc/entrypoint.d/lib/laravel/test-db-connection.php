@@ -80,6 +80,8 @@ try {
 
 // Test database connection
 try {
+    use Illuminate\Support\Facades\DB;
+    
     // Use specific database connection if provided
     $connection = $databaseConnection ? DB::connection($databaseConnection) : DB::connection();
     $driver = $connection->getDriverName();
