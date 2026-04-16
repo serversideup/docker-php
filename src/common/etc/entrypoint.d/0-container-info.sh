@@ -55,7 +55,8 @@ Brought to you by serversideup.net
 • Upload Limit:  '"$UPLOAD_LIMIT"'
 
 🔄 Runtime
-• Docker CMD:     '"$DOCKER_CMD"'
+• Automations:   '"$AUTORUN_ENABLED"'
+• Docker CMD:    '"$DOCKER_CMD"'
 '
 
 if [ "$PHP_OPCACHE_STATUS" = "0" ]; then
