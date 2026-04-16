@@ -116,7 +116,7 @@ export default defineAppConfig({
         },{
             'trailingIcon': 'i-lucide-heart',
             'label': 'Sponsor',
-            'to': 'https://github.com/sponsors/serversideup',
+            'to': 'https://serversideup.net/sponsor/',
             'target': '_blank',
             'aria-label': 'Sponsor',
             'size': 'xl',

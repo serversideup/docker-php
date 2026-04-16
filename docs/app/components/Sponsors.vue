@@ -7,7 +7,7 @@
                 <img src="/assets/icons/hosts/sevalla.svg" alt="Sponsor" class="w-64 md:w-full object-contain" />
             </NuxtLink>
 
-            <NuxtLink target="_blank" to="https://github.com/sponsors/serversideup" class="p-[10px] rounded bg-[#13161B] h-32 flex items-center justify-center text-[#94979C] font-medium font-sans hover:bg-[#22262F] transition-all duration-200">
+            <NuxtLink target="_blank" to="https://serversideup.net/sponsor/" class="p-[10px] rounded bg-[#13161B] h-32 flex items-center justify-center text-[#94979C] font-medium font-sans hover:bg-[#22262F] transition-all duration-200">
                 Become a Sponsor
             </NuxtLink>
 
