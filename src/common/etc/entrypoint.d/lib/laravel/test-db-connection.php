@@ -20,6 +20,8 @@
  * @package serversideup/php
  */
 
+use Illuminate\Support\Facades\DB;
+
 // Validate arguments
 if ($argc < 2 || $argc > 5) {
     fwrite(STDERR, "Usage: php test-db-connection.php /path/to/app/base/dir [migration_mode] [migration_isolation] [database_connection]\n");
@@ -80,8 +82,6 @@ try {
 
 // Test database connection
 try {
-    use Illuminate\Support\Facades\DB;
-    
     // Use specific database connection if provided
     $connection = $databaseConnection ? DB::connection($databaseConnection) : DB::connection();
     $driver = $connection->getDriverName();
