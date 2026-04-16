@@ -19,6 +19,8 @@
  * @package serversideup/php
  */
 
+use Illuminate\Support\Facades\DB;
+
 // Validate arguments
 if ($argc < 2 || $argc > 4) {
     fwrite(STDERR, "Usage: php test-db-connection.php /path/to/app/base/dir [migration_mode] [database_connection]\n");
