@@ -13,7 +13,7 @@ fi
 
 # Check if the default command is being used
 case "$1" in
-    "/init" | "php-fpm")
+    "/init" | "php-fpm" | "frankenphp")
         SERVERSIDEUP_DEFAULT_COMMAND="true"
         ;;
 esac
