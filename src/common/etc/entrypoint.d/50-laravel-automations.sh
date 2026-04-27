@@ -154,7 +154,7 @@ artisan_migrate() {
 
 artisan_storage_link() {
     if [ -d "$APP_BASE_DIR/public/storage" ]; then
-        echo "✅ Storage already linked..."
+        debug_log "✅ Storage already linked..."
         return 0
     else
         echo "🔐 Running storage link: \"php artisan storage:link\"..."
@@ -453,7 +453,7 @@ if laravel_is_installed; then
         done
     fi
 
-    echo "🤔 Checking for Laravel automations..."
+    debug_log "🤔 Checking for Laravel automations..."
     if [ "$AUTORUN_LARAVEL_STORAGE_LINK" = "true" ]; then
         artisan_storage_link
     fi
