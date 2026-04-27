@@ -9,6 +9,7 @@ script_name="laravel-automations"
 # Set default values for Laravel automations
 : "${AUTORUN_ENABLED:=false}"
 : "${AUTORUN_DEBUG:=false}"
+: "${AUTORUN_LARAVEL_SKIP_IF_NOT_FOUND:=false}"
 
 # Set default values for storage link
 : "${AUTORUN_LARAVEL_STORAGE_LINK:=true}"
@@ -469,6 +470,10 @@ if laravel_is_installed; then
         artisan_optimize
     fi
 else
+    if [ "$AUTORUN_LARAVEL_SKIP_IF_NOT_FOUND" = "true" ]; then
+        debug_log "Laravel not detected in $APP_BASE_DIR. Skipping automations (AUTORUN_LARAVEL_SKIP_IF_NOT_FOUND=true)."
+        exit 0
+    fi
     echo "❌ $script_name: Could not detect Laravel installation."
     echo "ℹ️  Check that the application is installed in $APP_BASE_DIR"
     exit 1
