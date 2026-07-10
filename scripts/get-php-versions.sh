@@ -238,7 +238,7 @@ function echo_color_message (){
 if [ "$SKIP_DOWNLOAD" = false ]; then
     echo_color_message yellow "⚡️ Getting PHP Versions from $PHP_VERSIONS_ACTIVE_JSON_FEED"
     # Fetch the JSON from the PHP website
-    php_net_version_json=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
+    php_net_version_json=$(curl -sS --fail --retry 5 --retry-all-errors --max-time 15 "$PHP_VERSIONS_ACTIVE_JSON_FEED")
 
     # Parse the fetched JSON data and optionally validate PHP versions on DockerHub
     if [ "$SKIP_DOCKERHUB_VALIDATION" = true ]; then
