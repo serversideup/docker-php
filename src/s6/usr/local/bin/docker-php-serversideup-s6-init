@@ -78,3 +78,36 @@ for file in "$ENTRYPOINT_DIR"/*.sh; do
   fi
 
 done
+
+# Make the long-running services wait for the entrypoint oneshots that configure
+# them. When the container runs as root, php-fpm and the web server otherwise
+# start in parallel with these oneshots and can lose the race: php-fpm reads the
+# pool before "5-fpm-pool-user" adds "user = www-data" (ALERT: [pool www] user
+# has not been defined -> FPM initialization failed), and the web server starts
+# before "10-init-webserver-config" renders its config. s6 restarts the crashed
+# services so the container recovers, but it produces alarming errors, a slower
+# start, and a brief window with no service. The entrypoint oneshots are chained
+# in alphabetical order, so depending on one transitively waits for all earlier
+# ones. Each dependency is only added when both the service and the oneshot exist.
+add_startup_dependency() {
+  # $1 = long-running service that must wait, $2 = entrypoint oneshot it needs
+  service_dir="${S6_HOME}/s6-rc.d/$1"
+  [ -d "$service_dir" ] && [ -d "${S6_HOME}/s6-rc.d/$2" ] || return 0
+
+  dependencies_file="${service_dir}/dependencies"
+  [ -e "$dependencies_file" ] || : > "$dependencies_file"
+
+  # Skip if the dependency is already declared
+  grep -qxF "$2" "$dependencies_file" 2>/dev/null && return 0
+
+  # Ensure existing content ends with a newline before appending (some shipped
+  # dependency files, e.g. nginx's, have no trailing newline)
+  if [ -s "$dependencies_file" ] && [ -n "$(tail -c 1 "$dependencies_file")" ]; then
+    printf '\n' >> "$dependencies_file"
+  fi
+  printf '%s\n' "$2" >> "$dependencies_file"
+}
+
+add_startup_dependency php-fpm 5-fpm-pool-user
+add_startup_dependency nginx 10-init-webserver-config
+add_startup_dependency apache2 10-init-webserver-config
