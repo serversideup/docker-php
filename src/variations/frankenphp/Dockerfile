@@ -127,6 +127,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
     ENV APP_BASE_DIR=/var/www/html \
+    CADDY_ACME_PROFILE="off" \
     CADDY_ADMIN="off" \
     CADDY_AUTO_HTTPS="off" \
     CADDY_GLOBAL_OPTIONS="" \

@@ -19,8 +19,11 @@
 
 	import trusted-proxy/{$TRUSTED_PROXY:cloudflare}.caddyfile
 
+	# Select a Let's Encrypt ACME certificate profile (default: off)
+	import acme-profile/{$CADDY_ACME_PROFILE:off}.caddyfile
+
 	# Add additional Caddy configuration files from the caddyfile-global.d directory
-	import caddyfile-global.d/*.caddyfile 
+	import caddyfile-global.d/*.caddyfile
 
 	{$CADDY_GLOBAL_OPTIONS}
 }
