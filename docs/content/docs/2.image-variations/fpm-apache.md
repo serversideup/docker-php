@@ -235,6 +235,8 @@ For a complete list of available environment variables, see the [Environment Var
 | `PHP_MEMORY_LIMIT` | `256M` | Maximum memory a script can use |
 | `PHP_MAX_EXECUTION_TIME` | `99` | Maximum time a script can run (seconds) |
 | `PHP_UPLOAD_MAX_FILE_SIZE` | `100M` | Maximum upload file size |
+| `PHP_FILE_UPLOADS` | `On` | Whether HTTP file uploads are allowed |
+| `PHP_MAX_FILE_UPLOADS` | `20` | Maximum number of files per request |
 | `PHP_POST_MAX_SIZE` | `100M` | Maximum POST request size |
 
 ::tip{to="/docs/reference/environment-variable-specification"}
