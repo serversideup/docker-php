@@ -1,0 +1,5 @@
+# No ACME certificate profile is configured (default).
+#
+# Caddy keeps its stock issuer behavior, including the automatic
+# Let's Encrypt + ZeroSSL fallback. Set CADDY_ACME_PROFILE to select a
+# specific Let's Encrypt certificate profile instead.

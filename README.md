@@ -4,7 +4,7 @@
 <p align="center">
 	<a href="https://github.com/serversideup/docker-php/actions/workflows/action_publish-images-production.yml"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/serversideup/docker-php/.github%2Fworkflows%2Faction_publish-images-production.yml"></a>
 	<a href="https://github.com/serversideup/docker-php/blob/main/LICENSE" target="_blank"><img src="https://badgen.net/github/license/serversideup/docker-php" alt="License"></a>
-	<a href="https://github.com/sponsors/serversideup"><img src="https://badgen.net/badge/icon/Support%20Us?label=GitHub%20Sponsors&color=orange" alt="Support us"></a>
+	<a href="https://serversideup.net/sponsor/"><img src="https://badgen.net/badge/icon/Support%20Us?label=GitHub%20Sponsors&color=orange" alt="Support us"></a>
   <br />
   <a href="https://hub.docker.com/r/serversideup/php/"><img alt="Docker Hub Pulls" src="https://img.shields.io/docker/pulls/serversideup/php"></a>
   <a href="https://serversideup.net/discord"><img alt="Discord" src="https://img.shields.io/discord/910287105714954251?color=blueviolet"></a>
@@ -141,13 +141,13 @@ Need help getting started? Join our Discord community and we'll help you out!
 ## Our Sponsors
 All of our software is free and open to the world. None of this can be brought to you without the financial backing of our sponsors.
 
-<p align="center"><a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-box.png" alt="Sponsors"></a></p>
+<p align="center"><a href="https://serversideup.net/sponsor/"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-box.png" alt="Sponsors"></a></p>
 
 ### Black Level Sponsors
 <a href="https://sevalla.com"><img src="https://serversideup.net/wp-content/uploads/2024/10/sponsor-image.png" alt="Sevalla" width="546px"></a>
 
 #### Bronze Sponsors
-<!-- bronze -->No bronze sponsors yet. <a href="https://github.com/sponsors/serversideup">Become a sponsor →</a><!-- bronze -->
+<!-- bronze -->No bronze sponsors yet. <a href="https://serversideup.net/sponsor/">Become a sponsor →</a><!-- bronze -->
 
 #### Infrastructure Sponsors
 This project requires significant computing power to build and maintain over 8,000 different Docker image tags. We're extremely grateful for the following sponsors:
@@ -176,7 +176,7 @@ We're [Dan](https://x.com/danpastori) and [Jay](https://x.com/jaydrogers) - a tw
 * **💻 [GitHub](https://github.com/serversideup)** - Check out our other open source projects.
 * **📫 [Newsletter](https://serversideup.net/subscribe)** - Skip the algorithms and get quality content right to your inbox.
 * **🐥 [Twitter](https://x.com/serversideup)** - You can also follow [Dan](https://x.com/danpastori) and [Jay](https://x.com/jaydrogers).
-* **❤️ [Sponsor Us](https://github.com/sponsors/serversideup)** - Please consider sponsoring us so we can create more helpful resources.
+* **❤️ [Sponsor Us](https://serversideup.net/sponsor/)** - Please consider sponsoring us so we can create more helpful resources.
 
 ## Our Products
 If you appreciate this project, be sure to check out our other projects.
