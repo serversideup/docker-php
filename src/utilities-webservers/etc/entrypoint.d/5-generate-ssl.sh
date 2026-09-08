@@ -3,7 +3,18 @@
 # Usage: 5-generate-ssl.sh
 ###################################################
 # This script generates a self-signed SSL certificate and key for the container.
-script_name="generate-ssl"  
+script_name="generate-ssl"
+
+if [ "$DISABLE_DEFAULT_CONFIG" = "true" ]; then
+    exit 0
+fi
+
+if [ "$SERVERSIDEUP_DEFAULT_COMMAND" != "true" ]; then
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
+        echo "👉 $script_name: SERVERSIDEUP_DEFAULT_COMMAND is not true, so we won't generate a self-signed SSL key pair."
+    fi
+    exit 0
+fi
 
 SSL_CERTIFICATE_FILE=${SSL_CERTIFICATE_FILE:-"/etc/ssl/private/self-signed-web.crt"}
 SSL_PRIVATE_KEY_FILE=${SSL_PRIVATE_KEY_FILE:-"/etc/ssl/private/self-signed-web.key"}
@@ -12,7 +23,9 @@ HEALTHCHECK_SSL_CERTIFICATE_FILE=${HEALTHCHECK_SSL_CERTIFICATE_FILE:-"/etc/ssl/h
 HEALTHCHECK_SSL_PRIVATE_KEY_FILE=${HEALTHCHECK_SSL_PRIVATE_KEY_FILE:-"/etc/ssl/healthcheck/localhost.key"}
 
 if [ "$SSL_MODE" = "off" ]; then
-    echo "ℹ️ NOTICE ($script_name): SSL mode is off, so we won't generate a self-signed SSL key pair."
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
+        echo "👉 $script_name: SSL mode is off, so we won't generate a self-signed SSL key pair."
+    fi
     return 0
 fi
 
@@ -41,7 +54,9 @@ if [ -d "/etc/frankenphp/" ]; then
 fi
 
 if [ -f "$SSL_CERTIFICATE_FILE" ] && [ -f "$SSL_PRIVATE_KEY_FILE" ]; then
-    echo "ℹ️ NOTICE ($script_name): SSL certificate and private key already exist, so we'll use the existing files."
+    if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
+        echo "👉 $script_name: SSL certificate and private key already exist, so we'll use the existing files."
+    fi
     return 0
 fi
 

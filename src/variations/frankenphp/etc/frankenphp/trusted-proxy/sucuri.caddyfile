@@ -1,0 +1,18 @@
+servers {
+	# Trust Docker/private networks + loopback + Sucuri ranges
+	# IP source: https://docs.sucuri.net/website-firewall/sucuri-firewall-troubleshooting-guide/
+	trusted_proxies static \
+10.0.0.0/8 \
+172.16.0.0/12 \
+192.168.0.0/16 \
+127.0.0.1/8 \
+::1 \
+fd00::/8 \
+192.88.134.0/23 \
+185.93.228.0/22 \
+66.248.200.0/22 \
+2a02:fe80::/29 \
+208.109.0.0/22
+
+	client_ip_headers X-Forwarded-For
+}
