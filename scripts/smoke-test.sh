@@ -6,6 +6,8 @@ set -euo pipefail
 # Runs a published or locally built image and checks the things a user would notice
 # first: it starts, it runs as an unprivileged user, PHP reports the expected version,
 # and images with a HEALTHCHECK become healthy. Works against any image reference.
+# Commands go through the image's own entrypoint so every entrypoint.d script runs.
+# The entrypoint prints a welcome banner first, so a command's own output is the last line.
 
 image="${1:?Usage: smoke-test.sh <image> [expected-php-version]}"
 expected_php="${2:-}"
@@ -16,13 +18,13 @@ fail() { echo "❌ $1" >&2; exit 1; }
 
 echo "🔎 Smoke testing $image"
 
-php_version=$(docker run --rm --entrypoint php "$image" -r 'echo PHP_VERSION;')
+php_version=$(docker run --rm "$image" php -r 'echo PHP_VERSION;' | tail -n1)
 if [ -n "$expected_php" ] && [ "$php_version" != "$expected_php" ]; then
     fail "PHP reports $php_version, expected $expected_php"
 fi
 pass "PHP $php_version"
 
-uid=$(docker run --rm --entrypoint id "$image" -u)
+uid=$(docker run --rm "$image" id -u | tail -n1)
 [ "$uid" != "0" ] || fail "Container runs as root by default"
 pass "Runs as unprivileged user (uid $uid)"
 

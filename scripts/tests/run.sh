@@ -21,17 +21,6 @@ assert_contains() {
     fi
 }
 
-assert_not_contains() {
-    local haystack="$1" needle="$2" message="$3"
-    if [[ "$haystack" != *"$needle"* ]]; then
-        echo "✅ $message"
-    else
-        echo "❌ $message"
-        echo "   did not expect to find: $needle"
-        failures=$((failures + 1))
-    fi
-}
-
 # One JSON file per image, the way the build jobs upload them.
 image_details=$(mktemp -d)
 trap 'rm -rf "$image_details"' EXIT
@@ -63,17 +52,6 @@ assert_contains "$summary" "| 50.0 MB | 49.9 MB |" "keeps a trailing zero so col
 assert_contains "$summary" "| cli | 8.4.25 | bookworm |  |  | ❌ not built |" "lists images that never reported back"
 assert_contains "$summary" "| built, not published |" "marks images that were built but not promoted"
 assert_contains "$summary" '`serversideup/php-dev:700-8.5.10-cli-trixie`' "shows the image reference without the registry prefix"
-
-echo
-echo "select-smoke-images.sh"
-selection=$(bash "$scripts_dir/select-smoke-images.sh" "$image_details")
-picked=$(echo "$selection" | jq -r '.include[] | "\(.variation) \(.php)-\(.os) \(.arch)"' | sort | tr '\n' ';')
-assert_contains "$picked" "cli 8.5.10-trixie amd64;cli 8.5.10-trixie arm64;" "tests the newest PHP on both architectures"
-assert_contains "$picked" "cli 8.5.10-alpine3.24 amd64;" "picks the newest Alpine as well as Debian"
-assert_not_contains "$picked" "alpine3.23" "skips older OS releases in the same family"
-assert_not_contains "$picked" "8.4.25" "skips older PHP versions"
-assert_not_contains "$picked" "frankenphp" "skips images that were not saved to the Depot Registry"
-assert_contains "$(echo "$selection" | jq '.include | length')" "6" "selects six tests for this set"
 
 echo
 if [ "$failures" -gt 0 ]; then

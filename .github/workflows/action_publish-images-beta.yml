@@ -13,11 +13,15 @@ on:
   schedule:
     - cron: '25 8 * * 1'
 
+# A release event and the weekly rebuild must not publish the same tags at the same time.
+concurrency:
+  group: beta-images
+
 permissions: {}
 
 jobs:
   release:
-    name: latest beta release
+    name: beta release to build
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -25,13 +29,15 @@ jobs:
     outputs:
       tag: ${{ steps.release.outputs.tag }}
     steps:
-      - name: Find the latest beta release
+      # A prerelease event builds the prerelease that fired it. Scheduled and manual runs rebuild the latest prerelease.
+      - name: Find the beta release to build
         id: release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          TAG=$(gh api "repos/${GH_REPO}/releases?per_page=30" --jq '[.[] | select(.prerelease)][0].tag_name')
+          TAG="${RELEASE_TAG:-$(gh api "repos/${GH_REPO}/releases?per_page=30" --jq '[.[] | select(.prerelease)][0].tag_name')}"
           if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
             echo "::error title=No beta release found::Could not find a prerelease to build."
             exit 1

@@ -57,11 +57,15 @@ jobs:
       tag-prefix: ${{ inputs.pr_number || github.event.pull_request.number }}
       release-type: testing
       # Only save and publish when the code comes from this repository or a maintainer asked for it.
-      # Pull requests from forks are built but never leave Depot's isolated builders.
+      # Pull requests from forks are built but never leave Depot's isolated builders. Dependabot
+      # runs have no access to the registry secrets, so they are treated the same way.
       publish: >-
         ${{
           github.event_name == 'workflow_dispatch' ||
-          github.event.pull_request.head.repo.full_name == github.repository
+          (
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            github.actor != 'dependabot[bot]'
+          )
         }}
     secrets: inherit
 
@@ -105,7 +109,10 @@ jobs:
       always() &&
       (
         github.event_name == 'workflow_dispatch' ||
-        github.event.pull_request.head.repo.full_name == github.repository
+        (
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          github.actor != 'dependabot[bot]'
+        )
       )
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -130,7 +137,7 @@ jobs:
             *)       BUILD_CELL="⚠️ Build $BUILD_RESULT" ;;
           esac
           case "$SMOKE_RESULT" in
-            success) SMOKE_CELL="✅ Passed on amd64 and arm64" ;;
+            success) SMOKE_CELL="✅ Every image passed on amd64 and arm64" ;;
             failure) SMOKE_CELL="❌ Failed" ;;
             *)       SMOKE_CELL="⏭️ Skipped" ;;
           esac
@@ -141,6 +148,26 @@ jobs:
           esac
           TABLE=$(printf '%s\n' "$SUMMARY_MARKDOWN" | sed '1{/^## /d}' | sed '1{/^$/d}')
 
+          # The example uses the newest stable PHP minor that has a published fpm-nginx image.
+          # Table columns: | Variation | PHP | Base OS | amd64 | arm64 | Image |
+          EXAMPLE_MINOR=$(printf '%s\n' "$SUMMARY_MARKDOWN" | awk -F' *\\| *' '
+            $2 == "fpm-nginx" && $3 ~ /^[0-9]+\.[0-9]+\.[0-9]+$/ && $7 ~ /^`/ { sub(/\.[0-9]+$/, "", $3); print $3; exit }')
+
+          if [ "$PUBLISH_RESULT" = "success" ] && [ -n "$EXAMPLE_MINOR" ]; then
+            PULL_SECTION=$(cat <<MARKDOWN
+          Try it:
+
+          \`\`\`bash
+          docker run --rm -v "\$PWD:/var/www/html" -p 8080:8080 serversideup/php-dev:${PR_NUMBER}-${EXAMPLE_MINOR}-fpm-nginx
+          \`\`\`
+
+          Every image is on Docker Hub as \`serversideup/php-dev:${PR_NUMBER}-<php>-<variation>-<os>\`. [Browse all tags](https://hub.docker.com/r/serversideup/php-dev/tags?name=${PR_NUMBER}-) or [view the run]($RUN_URL).
+          MARKDOWN
+            )
+          else
+            PULL_SECTION="No images were published from this run. [View the run]($RUN_URL) for details."
+          fi
+
           cat > comment.md <<MARKDOWN
           ### Images for PR #${PR_NUMBER}
 
@@ -148,13 +175,7 @@ jobs:
           |---|---|---|
           | $BUILD_CELL | $SMOKE_CELL | $PUBLISH_CELL |
 
-          Try it:
-
-          \`\`\`bash
-          docker run --rm -v "\$PWD:/var/www/html" -p 8080:8080 serversideup/php-dev:${PR_NUMBER}-8.4-fpm-nginx
-          \`\`\`
-
-          Every image is on Docker Hub as \`serversideup/php-dev:${PR_NUMBER}-<php>-<variation>-<os>\`. [Browse all tags](https://hub.docker.com/r/serversideup/php-dev/tags?name=${PR_NUMBER}-) or [view the run]($RUN_URL).
+          ${PULL_SECTION}
 
           <details>
           <summary>All images with sizes</summary>

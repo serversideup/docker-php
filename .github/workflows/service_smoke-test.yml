@@ -1,9 +1,8 @@
 name: Smoke Test
 
-# Phase 2 of 3: pull a representative slice of the images saved by the build phase
-# from the Depot Registry and run scripts/smoke-test.sh against each one on native
-# amd64 and arm64 runners: the newest PHP version of every variation, on one Debian
-# and one Alpine base. Publishing only happens if this phase passes.
+# Phase 2 of 3: pull every image the build phase saved to the Depot Registry and run
+# scripts/smoke-test.sh against each one on native amd64 and arm64 runners.
+# Publishing only happens if this phase passes.
 on:
   workflow_call:
     inputs:
@@ -22,11 +21,6 @@ jobs:
       matrix: ${{ steps.select.outputs.matrix }}
       count: ${{ steps.select.outputs.count }}
     steps:
-      - name: Check out code
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.ref }}
-
       - name: Download image details from every build job
         uses: actions/download-artifact@v8
         with:
@@ -34,14 +28,18 @@ jobs:
           path: image-details
           merge-multiple: true
 
-      - name: Pick the images to test
+      - name: List every saved image on both architectures
         id: select
         run: |
-          MATRIX=$(bash scripts/select-smoke-images.sh image-details)
+          MATRIX=$(find image-details -name '*.json' -print0 | xargs -0 -r jq -s -c '
+            { include: [ .[] | select(.saved != null)
+              | { variation, php, os, saved }
+                + ({ runner: "ubuntu-24.04", arch: "amd64" }, { runner: "ubuntu-24.04-arm", arch: "arm64" }) ] }')
+          MATRIX="${MATRIX:-{\"include\":[]\}}"
           COUNT=$(echo "$MATRIX" | jq '.include | length')
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
-          echo "Selected $COUNT image tests:"
+          echo "$COUNT image tests:"
           echo "$MATRIX" | jq -r '.include[] | "  \(.variation) \(.php)-\(.os) on \(.arch)"'
 
   test:
