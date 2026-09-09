@@ -25,7 +25,13 @@ concurrency:
 permissions: {}
 
 jobs:
+  lint:
+    uses: ./.github/workflows/service_lint.yml
+    permissions:
+      contents: read
+
   setup:
+    needs: lint
     uses: ./.github/workflows/service_setup-matrix.yml
     permissions:
       contents: read

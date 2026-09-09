@@ -71,7 +71,8 @@ check_vars() {
 }
 
 detect_platform() {
-    local arch=$(uname -m)
+    local arch
+    arch=$(uname -m)
     case $arch in
         x86_64)
             echo "linux/amd64"

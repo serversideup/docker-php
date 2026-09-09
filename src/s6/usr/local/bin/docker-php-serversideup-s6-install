@@ -11,7 +11,8 @@ set -oue
 
 S6_VERSION=v3.2.3.2
 mkdir -p $S6_DIR
-export SYS_ARCH=$(uname -m)
+SYS_ARCH=$(uname -m)
+export SYS_ARCH
 case "$SYS_ARCH" in
     aarch64 ) export S6_ARCH='aarch64' ;;
     arm64   ) export S6_ARCH='aarch64' ;;

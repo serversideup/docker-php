@@ -44,6 +44,7 @@ find /etc/entrypoint.d/ -type f -name '*.sh' | sort -V | while IFS= read -r f; d
         fi
         
         # Source the script in a subshell to contain exits while preserving environment
+        # shellcheck source=/dev/null
         (. "$f")
         exit_code=$?
         

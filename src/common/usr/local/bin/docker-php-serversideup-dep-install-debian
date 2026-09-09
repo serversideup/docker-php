@@ -6,7 +6,7 @@ set -oe
 ###################################################
 # This script installs debian packages that are passed to it
 
-DEBIAN_FRONTEND=noninteractive
+export DEBIAN_FRONTEND=noninteractive
 script_name="docker-php-serversideup-dep-install-debian"
 
 ############

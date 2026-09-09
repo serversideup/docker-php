@@ -1,0 +1,43 @@
+name: Lint
+
+# Fast checks that run before any image is built. Add new linters as jobs here.
+# The same commands work locally; see docs/content/docs/1.getting-started/99.contributing.md.
+on:
+  workflow_call:
+
+env:
+  ACTIONLINT_VERSION: 1.7.12
+  SHELLCHECK_VERSION: v0.11.0
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Lint GitHub Actions workflows
+        run: docker run --rm -v "$PWD:/repo" -w /repo "rhysd/actionlint:${ACTIONLINT_VERSION}" -color
+
+  shellcheck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Lint shell scripts
+        run: |
+          # The find output is meant to expand into a list of files.
+          # shellcheck disable=SC2046
+          docker run --rm -v "$PWD:/repo" -w /repo "koalaman/shellcheck:${SHELLCHECK_VERSION}" \
+            --color=always --severity=warning \
+            scripts/*.sh \
+            src/common/usr/local/bin/* \
+            src/s6/usr/local/bin/* \
+            $(find src -path '*entrypoint.d*' -name '*.sh')

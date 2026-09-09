@@ -97,7 +97,7 @@ When modifying the version pipeline, the base config (`php-versions-base-config.
 - The build matrix is generated from the PHP version pipeline described above.
 - Image tags follow the pattern: `serversideup/php:{version}-{variation}` (Debian default) or `serversideup/php:{version}-{variation}-{os}` (Alpine/specific OS).
 - Depot authentication: the project ID lives in `depot.json` (not a secret). Same-repo runs authenticate through a Depot OIDC trust relationship (`id-token: write`). Pull requests from forks have no OIDC token, so Depot falls back to its open-source pull request flow: the full matrix builds on isolated builders with `push` disabled. A maintainer publishes a fork's images to `serversideup/php-dev` by running the "Docker Publish (PR Images)" workflow manually with the PR number.
-- Workflow changes are linted by `action_lint-workflows.yml` (actionlint). Run it locally with `docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:latest -color`.
+- Every PR run starts with `service_lint.yml` (actionlint for workflows, ShellCheck at warning severity for `scripts/*.sh`, `src/common/usr/local/bin/*`, `src/s6/usr/local/bin/*`, and `entrypoint.d/*.sh`) before any image builds. New linters go there. The local commands are in the contributing docs.
 - `fail-fast` is off, so one failed image never cancels the others. `trigger_auto-retry-failed-builds.yml` re-runs the failed jobs of a production, beta, or PR run once when only a few jobs failed and no newer run exists; if that also fails, the run stays red for a human.
 
 ## Verification
