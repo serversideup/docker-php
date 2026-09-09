@@ -12,14 +12,14 @@ on:
         description: 'The git ref to checkout (branch, tag, or commit SHA)'
 
 jobs:
-  select:
+  images:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
     outputs:
-      matrix: ${{ steps.select.outputs.matrix }}
-      count: ${{ steps.select.outputs.count }}
+      matrix: ${{ steps.images.outputs.matrix }}
+      count: ${{ steps.images.outputs.count }}
     steps:
       - name: Download image details from every build job
         uses: actions/download-artifact@v8
@@ -29,7 +29,7 @@ jobs:
           merge-multiple: true
 
       - name: List every saved image on both architectures
-        id: select
+        id: images
         run: |
           MATRIX=$(find image-details -name '*.json' -print0 | xargs -0 -r jq -s -c '
             { include: [ .[] | select(.saved != null)
@@ -43,8 +43,8 @@ jobs:
           echo "$MATRIX" | jq -r '.include[] | "  \(.variation) \(.php)-\(.os) on \(.arch)"'
 
   test:
-    needs: select
-    if: needs.select.outputs.count > 0
+    needs: images
+    if: needs.images.outputs.count > 0
     name: ${{ matrix.variation }} ${{ matrix.php }}-${{ matrix.os }} ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 10
@@ -53,7 +53,7 @@ jobs:
       id-token: write
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.select.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.images.outputs.matrix) }}
     steps:
       - name: Check out code
         uses: actions/checkout@v6
