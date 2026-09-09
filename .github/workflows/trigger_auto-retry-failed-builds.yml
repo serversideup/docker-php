@@ -30,7 +30,7 @@ jobs:
       WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
       HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
       # More failures than this means the change itself is broken, not the infrastructure.
-      MAX_FAILED_JOBS: 5
+      MAX_FAILED_JOBS: 10
     steps:
       - name: Decide whether a retry makes sense
         id: check
