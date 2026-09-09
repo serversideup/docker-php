@@ -49,7 +49,21 @@ Our images bundle third-party software, each with its own support window. Before
 | Apache HTTP Server | [endoflife.date/apache](https://endoflife.date/apache) |
 | Composer | [endoflife.date/composer](https://endoflife.date/composer) |
 
-We continue to publish images for end-of-life PHP versions and operating system bases so legacy applications have a path into containers — but those bases will not receive new upstream security fixes. Use them as a stepping stone, not a destination. See [Choosing an image — Operating Systems](https://serversideup.net/open-source/docker-php/docs/getting-started/choosing-an-image#operating-systems) for the trade-off.
+We publish images for end-of-life PHP versions and operating system bases so legacy applications have a path into containers — but only for as long as the base OS still serves a signed package repository. Once a distribution stops signing its repositories, we can no longer build a patched image at all, so we stop rebuilding that base and its existing tags freeze at their last successful build. Use an EOL base as a stepping stone, not a destination. See [Choosing an image — Operating Systems](https://serversideup.net/open-source/docker-php/docs/getting-started/choosing-an-image#operating-systems) for the trade-off.
+
+## EOL versions and the legacy-modernization path
+
+The following images are no longer built. Their existing tags remain pullable on Docker Hub and GitHub Packages, but they are frozen at their last successful build and will receive no further security updates — not for PHP, and not for the operating system underneath them.
+
+| Image | Last built | Why it stopped |
+| --- | --- | --- |
+| PHP 7.4 (all variations) | 2026-09-03 | Debian 11 reached end of LTS on 2026-08-31 and Alpine 3.16 is long EOL. These were the only bases the official `php:7.4` images ever shipped, and upstream stopped building them in November 2022. |
+| PHP 8.0 (all variations) | 2026-09-03 | Same as above. Upstream stopped building `php:8.0` in November 2023. |
+| PHP 8.1 (all variations) | 2025-12-16 | PHP 8.1 reached end of security support and upstream removed the `8.1` branch, so there is no base image left to rebuild from. |
+| Anything on Debian Bullseye | 2026-09-03 | Debian 11's final `bullseye-security` release file expired on 2026-09-07. `apt-get update` now fails inside the build, so a patched image cannot be produced. |
+| Anything on Alpine 3.16 | 2026-09-03 | Alpine 3.16 is past end of support and was only ever used by PHP 7.4 and 8.0. |
+
+If you are running one of these images, treat it as a migration deadline rather than a stable base. Move to PHP 8.2 or newer on `bookworm`, `trixie`, `alpine3.23`, or `alpine3.24`. The [Upgrade Guide](https://serversideup.net/open-source/docker-php/docs/getting-started/upgrade-guide) covers moving between our releases, and [Choosing an image](https://serversideup.net/open-source/docker-php/docs/getting-started/choosing-an-image) covers picking a supported base.
 
 ## How updates flow
 

@@ -114,6 +114,7 @@ FROM common AS final
 ARG DEPENDENCY_PACKAGES_ALPINE='shadow libstdc++'
 ARG DEPENDENCY_PACKAGES_DEBIAN='procps libstdc++6 zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
@@ -214,7 +215,7 @@ RUN \
     # Install PHP Extension installer
     docker-php-serversideup-install-php-ext-installer; \
     # Install default PHP extensions
-    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS}; \
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}"; \
     # Ensure permissions are set for www-data
     docker-php-serversideup-set-file-permissions --owner www-data:www-data --service frankenphp
 

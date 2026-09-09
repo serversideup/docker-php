@@ -41,7 +41,7 @@ check_dockerhub_php_version() {
     local os="${3:-}"
     
     local image_tag
-    if [ -n "$os" ] && [ "$os" != "bullseye" ] && [ "$os" != "bookworm" ]; then
+    if [ -n "$os" ] && [ "$os" != "bookworm" ]; then
         image_tag="${version}-${variant}-${os}"
     else
         image_tag="${version}-${variant}"
@@ -396,7 +396,8 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
                         | map({
                             minor: .[0].minor,
                             base_os: (map(.base_os // []) | add),
-                            patch_versions: (map(.patch_versions // []) | flatten | unique | select(. != null))
+                            patch_versions: (map(.patch_versions // []) | flatten | unique | select(. != null)),
+                            php_extension_overrides: (map(.php_extension_overrides // []) | add | unique)
                         })
                     )
                 })
