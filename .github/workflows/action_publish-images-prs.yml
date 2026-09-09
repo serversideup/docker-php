@@ -115,14 +115,14 @@ jobs:
             *)       HEADLINE="⚠️ PR image build ended with status: $BUILD_RESULT" ;;
           esac
 
-          cat > comment.md <<MARKDOWN
-          ### $HEADLINE
-
           case "$SMOKE_RESULT" in
             success) SMOKE_LINE="✅ Smoke tests passed on amd64 and arm64" ;;
             failure) SMOKE_LINE="❌ Smoke tests failed, see the run" ;;
             *)       SMOKE_LINE="⏭️ Smoke tests $SMOKE_RESULT" ;;
           esac
+
+          cat > comment.md <<MARKDOWN
+          ### $HEADLINE
 
           [View the run]($RUN_URL)
 
