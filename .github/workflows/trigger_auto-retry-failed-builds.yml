@@ -1,0 +1,35 @@
+name: Auto-retry failed image builds
+
+# Transient failures (php.net timeouts, a mirror blip, a base image not on Docker Hub yet)
+# used to need a maintainer to sign in and click "Re-run failed jobs". This does that once.
+# If the re-run fails too, the run stays red and a human takes over.
+on:
+  workflow_run:
+    workflows:
+      - "Docker Publish (Production Images)"
+      - "Docker Publish (Beta Images)"
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  retry-once:
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
+      RUN_URL: ${{ github.event.workflow_run.html_url }}
+    steps:
+      - name: Re-run the failed jobs once
+        run: |
+          echo "Waiting two minutes before retrying $RUN_URL so transient upstream issues can settle."
+          sleep 120
+          gh run rerun "$RUN_ID" --failed
+          echo "::notice title=Retry started::Re-running failed jobs for $RUN_URL. If this attempt also fails, manual attention is needed."

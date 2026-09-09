@@ -1,4 +1,10 @@
 name: Docker Publish (Production Images)
+run-name: >-
+  Production images (${{
+    github.event.release.tag_name ||
+    (github.event_name == 'schedule' && 'weekly rebuild') ||
+    'manual rebuild'
+  }})
 
 on:
   workflow_dispatch:
@@ -7,24 +13,57 @@ on:
   schedule:
     - cron: '0 8 * * 2'
 
-jobs:
-  get-latest-release:
-    runs-on: ubuntu-24.04
-    outputs:
-      release_tag: ${{ steps.get_latest_release.outputs.release_tag }}
-    steps:
-      - name: Get Latest Release
-        id: get_latest_release
-        run: |
-          LATEST_TAG=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
-          echo "release_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
+permissions: {}
 
-  build-production-images:
-    needs: get-latest-release
+jobs:
+  release:
+    name: latest release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - name: Find the latest release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG=$(gh release view --json tagName --jq .tagName)
+          if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+            echo "::error title=No release found::Could not find a published release to build."
+            exit 1
+          fi
+          echo "Building release $TAG"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+  setup:
+    needs: release
+    uses: ./.github/workflows/service_setup-matrix.yml
+    permissions:
+      contents: read
+    with:
+      ref: ${{ needs.release.outputs.tag }}
+
+  build:
+    needs: [release, setup]
+    name: ${{ matrix.variation }}
+    strategy:
+      fail-fast: false
+      matrix:
+        variation: ${{ fromJson(needs.setup.outputs.variations) }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
+      variation: ${{ matrix.variation }}
+      matrix: ${{ needs.setup.outputs.matrix }}
+      ref: ${{ needs.release.outputs.tag }}
       registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
       tag-prefix: ''
       release-type: "latest"
-      ref: ${{ needs.get-latest-release.outputs.release_tag }}
     secrets: inherit

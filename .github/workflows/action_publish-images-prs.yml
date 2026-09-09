@@ -1,32 +1,107 @@
 name: Docker Publish (PR Images)
+run-name: ${{ github.event.pull_request.title || format('Manual build for PR #{0}', inputs.pr_number) }}
 
 on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: 'PR number to build (leave empty for manual branch build)'
-        required: false
+        description: 'PR number to build and publish to serversideup/php-dev (use this for pull requests from forks)'
+        required: true
         type: string
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
       - src/**
       - .github/workflows/action_publish-images-**
-      - .github/workflows/service_docker-**
+      - .github/workflows/service_**
       - scripts/**
+      - depot.json
+
+# A new push to the same PR cancels the run that is still building the previous commit.
+concurrency:
+  group: pr-images-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+permissions: {}
 
 jobs:
-  build-dev-images:
+  setup:
+    uses: ./.github/workflows/service_setup-matrix.yml
+    permissions:
+      contents: read
+    with:
+      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
+
+  build:
+    needs: setup
+    name: ${{ matrix.variation }}
+    strategy:
+      fail-fast: false
+      matrix:
+        variation: ${{ fromJson(needs.setup.outputs.variations) }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
+      variation: ${{ matrix.variation }}
+      matrix: ${{ needs.setup.outputs.matrix }}
+      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
       registry-repositories: "docker.io/serversideup/php-dev"
-      # Use PR number from input if provided, otherwise use the PR event number
       tag-prefix: ${{ inputs.pr_number || github.event.pull_request.number }}
       release-type: testing
       authenticate_with_ghcr: false
+      # Only publish when the code comes from this repository or a maintainer asked for it.
+      # Pull requests from forks are built but never pushed.
       push-to-registry: >-
-        ${{ 
+        ${{
           github.event_name == 'workflow_dispatch' ||
-          (github.event_name == 'pull_request' && github.event.pull_request.head.repo.owner.type == 'Organization')
+          github.event.pull_request.head.repo.full_name == github.repository
         }}
     secrets: inherit
+
+  pr-comment:
+    needs: build
+    if: >-
+      always() &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        github.event.pull_request.head.repo.full_name == github.repository
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+      BUILD_RESULT: ${{ needs.build.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Post or update the image comment
+        run: |
+          case "$BUILD_RESULT" in
+            success) HEADLINE="✅ PR images published" ;;
+            failure) HEADLINE="❌ PR image build failed" ;;
+            *)       HEADLINE="⚠️ PR image build ended with status: $BUILD_RESULT" ;;
+          esac
+
+          cat > comment.md <<MARKDOWN
+          ### $HEADLINE
+
+          [View the run]($RUN_URL)
+
+          Images from this PR are published to \`serversideup/php-dev\` with the tag pattern \`${PR_NUMBER}-<php>-<variation>-<os>\`. For example:
+
+          \`\`\`bash
+          docker pull serversideup/php-dev:${PR_NUMBER}-8.4-fpm-nginx-alpine
+          \`\`\`
+
+          [Browse all tags for this PR](https://hub.docker.com/r/serversideup/php-dev/tags?name=${PR_NUMBER}-)
+
+          _Updated automatically on every push to this PR._
+          MARKDOWN
+
+          gh pr comment "$PR_NUMBER" --edit-last --create-if-none --body-file comment.md

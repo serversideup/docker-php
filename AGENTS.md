@@ -90,10 +90,12 @@ When modifying the version pipeline, the base config (`php-versions-base-config.
 
 ## CI/CD
 
-- Builds run via GitHub Actions using **Depot** (`depot/build-push-action`) for multi-arch (`linux/amd64` + `linux/arm64/v8`).
-- The reusable workflow is `.github/workflows/service_docker-build-and-publish.yml`.
+- Builds run via GitHub Actions using **Depot** (`depot/build-push-action`) for multi-arch (`linux/amd64` + `linux/arm64/v8`). Depot builds both architectures natively on its own builders; the GitHub runner only orchestrates, so runner size and architecture do not affect build speed.
+- Two reusable workflows: `.github/workflows/service_setup-matrix.yml` generates the matrix once per run (grouped by variation), and `.github/workflows/service_docker-build-and-publish.yml` builds one variation. Each caller (`action_publish-images-*.yml`) runs `setup` and then `build` with a matrix over variations, so jobs render as `cli / 8.4.25-bookworm` in the GitHub UI.
 - The build matrix is generated from the PHP version pipeline described above.
 - Image tags follow the pattern: `serversideup/php:{version}-{variation}` (Debian default) or `serversideup/php:{version}-{variation}-{os}` (Alpine/specific OS).
+- Depot authentication: the project ID lives in `depot.json` (not a secret). Same-repo runs authenticate through a Depot OIDC trust relationship (`id-token: write`). Pull requests from forks have no OIDC token, so Depot falls back to its open-source pull request flow: the full matrix builds on isolated builders with `push` disabled. A maintainer publishes a fork's images to `serversideup/php-dev` by running the "Docker Publish (PR Images)" workflow manually with the PR number.
+- `fail-fast` is off, so one failed image never cancels the others. `trigger_auto-retry-failed-builds.yml` re-runs the failed jobs of a production or beta run once; if that also fails, the run stays red for a human.
 
 ## Verification
 
