@@ -115,13 +115,13 @@ jobs:
             else
               VERSION="${{ inputs.ref }}"
             fi
-            echo "REPOSITORY_BUILD_VERSION=${VERSION}-${{ github.run_id }}" >> $GITHUB_ENV
+            echo "REPOSITORY_BUILD_VERSION=${VERSION}-${{ github.run_id }}" >> "$GITHUB_ENV"
           else
             # Regular git build (PR, branch push, etc). Read the SHA from the checkout so
             # builds dispatched for a PR number report the PR's commit, not the dispatched branch.
             echo "👨‍🔬 Setting REPOSITORY_BUILD_VERSION to Git SHA + Run ID"
             SHORT_SHA=$(git rev-parse --short=7 HEAD)
-            echo "REPOSITORY_BUILD_VERSION=git-${SHORT_SHA}-${{ github.run_id }}" >> $GITHUB_ENV
+            echo "REPOSITORY_BUILD_VERSION=git-${SHORT_SHA}-${{ github.run_id }}" >> "$GITHUB_ENV"
           fi
 
       - name: Compute NGINX build-arg (only for fpm-nginx)
@@ -137,7 +137,7 @@ jobs:
             echo "Unable to determine NGINX version for OS ${{ matrix.base_os }}" 1>&2
             exit 1
           fi
-          echo "nginx_arg=NGINX_VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "nginx_arg=NGINX_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       # Authentication: the Depot project ID comes from depot.json. Same-repo runs authenticate
       # through the Depot OIDC trust relationship (id-token: write). Pull requests from forks

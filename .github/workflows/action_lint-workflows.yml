@@ -1,0 +1,25 @@
+name: Lint GitHub Actions workflows
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/**
+      - .github/actionlint.yaml
+
+permissions: {}
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Run actionlint
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color
