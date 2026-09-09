@@ -2,7 +2,7 @@
 ARG BASE_OS_VERSION='trixie'
 ARG PHP_VERSION='8.5'
 ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
-ARG FRANKENPHP_VERSION='1.12.6'
+ARG FRANKENPHP_VERSION='1.12.7'
 ARG GOLANG_VERSION='1.26'
 
 ########################
@@ -27,7 +27,8 @@ RUN set -eux; \
 		/etc/frankenphp/ssl-mode \
         /etc/frankenphp/log-level \
         /etc/frankenphp/auto-https \
-        /etc/frankenphp/caddyfile.d; \
+        /etc/frankenphp/caddyfile.d \
+        /etc/frankenphp/caddyfile-global.d; \
     # Create default index.php
 	echo '<?php phpinfo();' > /var/www/html/public/index.php; \
     # Create symbolic links
@@ -126,6 +127,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
     ENV APP_BASE_DIR=/var/www/html \
+    CADDY_ACME_PROFILE="off" \
     CADDY_ADMIN="off" \
     CADDY_AUTO_HTTPS="off" \
     CADDY_GLOBAL_OPTIONS="" \
@@ -150,7 +152,9 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
     PHP_ERROR_LOG="/dev/stderr" \
     PHP_ERROR_REPORTING="22527" \
+    PHP_FILE_UPLOADS="On" \
     PHP_MAX_EXECUTION_TIME="99" \
+    PHP_MAX_FILE_UPLOADS="20" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MAX_INPUT_VARS="1000" \
     PHP_MEMORY_LIMIT="256M" \
@@ -176,6 +180,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE="/etc/ssl/private/self-signed-web.crt" \
     SSL_PRIVATE_KEY_FILE="/etc/ssl/private/self-signed-web.key" \
+    TRUSTED_PROXY=cloudflare \
     XDG_CONFIG_HOME=/config \
     XDG_DATA_HOME=/data
 
