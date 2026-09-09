@@ -39,6 +39,7 @@ jobs:
           docker run --rm -v "$PWD:/repo" -w /repo "koalaman/shellcheck:${SHELLCHECK_VERSION}" \
             --color=always --severity=warning \
             scripts/*.sh \
+            scripts/tests/*.sh \
             src/common/usr/local/bin/* \
             src/s6/usr/local/bin/* \
             $(find src -path '*entrypoint.d*' -name '*.sh')
@@ -54,3 +55,17 @@ jobs:
 
       - name: Lint Dockerfiles
         run: docker run --rm -v "$PWD:/repo" -w /repo "hadolint/hadolint:${HADOLINT_VERSION}" hadolint src/variations/*/Dockerfile
+
+  script-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      # Runs on a real runner on purpose: tool versions here (jq, yq) are what the
+      # publish workflows use, and they differ from laptops.
+      - name: Test the CI helper scripts
+        run: bash scripts/tests/run.sh

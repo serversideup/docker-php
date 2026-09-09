@@ -19,19 +19,9 @@ expected=$(echo "$expected_matrix" | jq -c '[.[]? | .include[] | {variation: .ph
 echo "$built" | jq -r --argjson expected "$expected" '
   def version_key: gsub("-rc"; ".999") | split(".") | map(tonumber? // 0) | map(-.);
   def megabytes: if . == null then "" else ((. / 100000) | round) as $tenths | "\($tenths / 10 | floor).\($tenths % 10) MB" end;
-  def growth_threshold: 10;
-  def size_cell($platform):
-    (.sizes[$platform]) as $size
-    | (.baseline[$platform]) as $baseline
-    | if $size == null then ""
-      elif $baseline == null or $baseline == 0 then ($size | megabytes)
-      else ((($size - $baseline) / $baseline * 1000 | round) / 10) as $pct
-        | (if $pct > 0 then "+" else "" end) + ($pct | tostring) + "%" as $delta
-        | (if $pct > growth_threshold then "⚠️ " else "" end) + ($size | megabytes) + " (" + $delta + ")"
-      end;
-  def pull_cell:
-    if has("tag") | not then "❌ not built"
-    elif .pushed then "`docker pull " + (.tag | sub("^docker.io/"; "")) + "`"
+  def image_cell:
+    if has("tags") | not then "❌ not built"
+    elif .published then "`" + (.tags[0] | sub("^docker.io/"; "")) + "`"
     else "built, not published"
     end;
 
@@ -40,16 +30,16 @@ echo "$built" | jq -r --argjson expected "$expected" '
   | ($rows | map(. as $row
       | (first($built[] | select(.variation == $row.variation and .php == $row.php and .os == $row.os)) // $row)
     )) as $merged
-  | ($merged | map(select(has("tag"))) | length) as $built_count
-  | ($merged | any(.pushed == true)) as $published
+  | ($merged | map(select(has("tags"))) | length) as $built_count
+  | ($merged | any(.published == true)) as $published
   | "## Images: \($built_count) of \($rows | length) built" + (if $published then "" else " (not published)" end),
     "",
-    "Sizes are compressed, per architecture. The percentage compares against the same tag currently on `serversideup/php`; ⚠️ marks growth over \(growth_threshold)%.",
+    "Sizes are compressed, per architecture.",
     "",
-    "| Variation | PHP | Base OS | amd64 | arm64 | Pull |",
+    "| Variation | PHP | Base OS | amd64 | arm64 | Image |",
     "|---|---|---|---|---|---|",
     ($merged
       | sort_by([.variation, (.php | version_key), .os])
       | .[]
-      | "| \(.variation) | \(.php) | \(.os) | \(size_cell("linux/amd64")) | \(size_cell("linux/arm64")) | \(pull_cell) |")
+      | "| \(.variation) | \(.php) | \(.os) | \(.sizes["linux/amd64"] | megabytes) | \(.sizes["linux/arm64"] | megabytes) | \(image_cell) |")
 '

@@ -1,5 +1,9 @@
-name: Build and Publish
+name: Build Images
 
+# Phase 1 of 3: build every image for one variation. Nothing is pushed to a public
+# registry here. When publishing is requested, each image is saved to the Depot
+# Registry so the smoke tests can run against it and, if they pass,
+# service_publish-images.yml promotes the exact same image to Docker Hub and GHCR.
 on:
   workflow_call:
     inputs:
@@ -11,10 +15,6 @@ on:
         required: true
         type: string
         description: 'Build matrix JSON keyed by variation, as produced by service_setup-matrix.yml.'
-      authenticate_with_ghcr:
-        default: true
-        type: boolean
-        description: 'Whether to authenticate with GitHub Container Registry.'
       tag-prefix:
         required: true
         type: string
@@ -26,15 +26,15 @@ on:
       registry-repositories:
         type: string
         required: true
-        description: 'The Docker registry repositories to push the images to. Separate multiple repositories with a comma (example: docker.io/serversideup/php,ghcr.io/serversideup/php)'
+        description: 'The Docker registry repositories the images will be published to. Separate multiple repositories with a comma (example: docker.io/serversideup/php,ghcr.io/serversideup/php)'
       release-type:
         type: string
         default: 'testing'
         description: 'The type of release to create. Options: testing, latest'
-      push-to-registry:
+      publish:
         type: boolean
         default: true
-        description: 'Whether to push the images to the registry.'
+        description: 'Save the images to the Depot Registry so they can be smoke tested and published. False for pull requests from forks.'
       ref:
         type: string
         default: ${{ github.ref }}
@@ -47,11 +47,12 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
-      packages: write
       id-token: write
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(inputs.matrix)[inputs.variation] }}
+    env:
+      IMAGE_NAME: ${{ matrix.php_variation }}-${{ matrix.patch_version }}-${{ matrix.base_os }}
 
     steps:
       - name: Check out code.
@@ -70,24 +71,6 @@ jobs:
 
       - name: Set up Depot CLI
         uses: depot/setup-action@v1
-
-      ##
-      # Docker build & publish
-      ##
-      - name: Login to DockerHub
-        uses: docker/login-action@v4
-        if: ${{ inputs.push-to-registry }}
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
-        if: ${{ inputs.push-to-registry && inputs.authenticate_with_ghcr }}
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "📦 Assemble the Docker Tags"
         run: |
@@ -139,24 +122,10 @@ jobs:
           fi
           echo "nginx_arg=NGINX_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
-      # Used by the run summary to flag images that grew compared to what users pull today.
-      - name: Look up the current production image size
-        env:
-          BASELINE_TAG: ${{ matrix.patch_version }}-${{ matrix.php_variation }}-${{ matrix.base_os }}
-        run: |
-          RESPONSE=$(curl --silent --fail --retry 3 --retry-delay 2 --max-time 20 \
-            "https://hub.docker.com/v2/repositories/serversideup/php/tags/${BASELINE_TAG}") || RESPONSE='{}'
-          BASELINE_SIZES=$(echo "$RESPONSE" | jq -c '
-            [ (.images // [])[] | select(.os == "linux")
-              | { key: (.os + "/" + .architecture), value: .size } ]
-            | from_entries')
-          echo "Production ${BASELINE_TAG}: ${BASELINE_SIZES}"
-          echo "BASELINE_SIZES=${BASELINE_SIZES}" >> "$GITHUB_ENV"
-
       # Authentication: the Depot project ID comes from depot.json. Same-repo runs authenticate
       # through the Depot OIDC trust relationship (id-token: write). Pull requests from forks
       # have no OIDC token, so Depot falls back to its open-source pull request flow, which
-      # builds on isolated builders and cannot push.
+      # builds on isolated builders and cannot save or push.
       - name: Build images
         uses: depot/build-push-action@v1
         with:
@@ -172,42 +141,34 @@ jobs:
             linux/amd64
             linux/arm64/v8
           pull: true
-          push: ${{ inputs.push-to-registry }}
+          push: false
+          save: ${{ inputs.publish }}
+          save-tags: ${{ github.run_id }}-${{ env.IMAGE_NAME }}
           tags: ${{ env.DOCKER_TAGS }}
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Supercharge your PHP experience with Docker images that are based off the official PHP images but are optimized to be run in production environments for Laravel and WordPress and more
 
-      # The summary job (service_summary.yml) merges these files into one table for the run.
+      # The smoke test, publish, and summary workflows all read these files.
       - name: Record image details
         env:
-          PUSHED: ${{ inputs.push-to-registry }}
+          PUBLISH: ${{ inputs.publish }}
         run: |
           mkdir -p image-details
-          CANONICAL_TAG=$(echo "$DOCKER_TAGS" | cut -d',' -f1)
-
-          MANIFEST='[]'
-          if [ "$PUSHED" = "true" ]; then
-            MANIFEST=$(docker manifest inspect -v "$CANONICAL_TAG") || echo "::warning title=Image size unavailable::Could not read the manifest for $CANONICAL_TAG"
+          SAVED=null
+          if [ "$PUBLISH" = "true" ]; then
+            SAVED="\"registry.depot.dev/$(jq -r .id depot.json):${{ github.run_id }}-${IMAGE_NAME}\""
           fi
-          SIZES=$(echo "$MANIFEST" | jq '
-            [ .[] | select(.Descriptor.platform.os == "linux")
-              | { key: (.Descriptor.platform.os + "/" + .Descriptor.platform.architecture),
-                  value: ([ (.SchemaV2Manifest // .OCIManifest).layers[].size ] | add) } ]
-            | from_entries')
-
           jq -n \
             --arg variation "${{ matrix.php_variation }}" \
             --arg php "${{ matrix.patch_version }}" \
             --arg os "${{ matrix.base_os }}" \
-            --arg tag "$CANONICAL_TAG" \
-            --argjson pushed "$PUSHED" \
-            --argjson sizes "$SIZES" \
-            --argjson baseline "${BASELINE_SIZES:-{\}}" \
-            '{variation: $variation, php: $php, os: $os, tag: $tag, pushed: $pushed, sizes: $sizes, baseline: $baseline}' \
-            | tee "image-details/${{ matrix.php_variation }}-${{ matrix.patch_version }}-${{ matrix.base_os }}.json"
+            --arg tags "$DOCKER_TAGS" \
+            --argjson saved "$SAVED" \
+            '{variation: $variation, php: $php, os: $os, tags: ($tags | split(",")), saved: $saved, published: false, sizes: {}}' \
+            | tee "image-details/${IMAGE_NAME}.json"
 
       - name: Upload image details
         uses: actions/upload-artifact@v7
         with:
-          name: image-details-${{ matrix.php_variation }}-${{ matrix.patch_version }}-${{ matrix.base_os }}
+          name: image-details-${{ env.IMAGE_NAME }}
           path: image-details/
           retention-days: 7

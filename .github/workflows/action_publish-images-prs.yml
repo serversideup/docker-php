@@ -39,7 +39,7 @@ jobs:
       ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
 
   build:
-    needs: setup
+    needs: [setup]
     name: ${{ matrix.variation }}
     strategy:
       fail-fast: false
@@ -47,9 +47,8 @@ jobs:
         variation: ${{ fromJson(needs.setup.outputs.variations) }}
     permissions:
       contents: read
-      packages: write
       id-token: write
-    uses: ./.github/workflows/service_docker-build-and-publish.yml
+    uses: ./.github/workflows/service_build-images.yml
     with:
       variation: ${{ matrix.variation }}
       matrix: ${{ needs.setup.outputs.matrix }}
@@ -57,10 +56,9 @@ jobs:
       registry-repositories: "docker.io/serversideup/php-dev"
       tag-prefix: ${{ inputs.pr_number || github.event.pull_request.number }}
       release-type: testing
-      authenticate_with_ghcr: false
-      # Only publish when the code comes from this repository or a maintainer asked for it.
-      # Pull requests from forks are built but never pushed.
-      push-to-registry: >-
+      # Only save and publish when the code comes from this repository or a maintainer asked for it.
+      # Pull requests from forks are built but never leave Depot's isolated builders.
+      publish: >-
         ${{
           github.event_name == 'workflow_dispatch' ||
           github.event.pull_request.head.repo.full_name == github.repository
@@ -73,11 +71,26 @@ jobs:
     uses: ./.github/workflows/service_smoke-test.yml
     permissions:
       contents: read
+      id-token: write
     with:
       ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
 
+  # Only images that passed the smoke tests reach a public registry.
+  publish:
+    needs: [build, smoke]
+    if: needs.build.result == 'success' && needs.smoke.result == 'success'
+    uses: ./.github/workflows/service_publish-images.yml
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    with:
+      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
+      authenticate_with_ghcr: false
+    secrets: inherit
+
   summary:
-    needs: [setup, build]
+    needs: [setup, build, smoke, publish]
     if: always() && needs.setup.result == 'success'
     uses: ./.github/workflows/service_summary.yml
     permissions:
@@ -87,7 +100,7 @@ jobs:
       ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
 
   pr-comment:
-    needs: [build, smoke, summary]
+    needs: [build, smoke, publish, summary]
     if: >-
       always() &&
       (
@@ -104,46 +117,53 @@ jobs:
       PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
       BUILD_RESULT: ${{ needs.build.result }}
       SMOKE_RESULT: ${{ needs.smoke.result }}
+      PUBLISH_RESULT: ${{ needs.publish.result }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       SUMMARY_MARKDOWN: ${{ needs.summary.outputs.markdown }}
     steps:
       - name: Post or update the image comment
         run: |
+          IMAGES_COUNT=$(printf '%s\n' "$SUMMARY_MARKDOWN" | sed -n 's/^## Images: \([0-9]* of [0-9]*\).*/\1/p')
           case "$BUILD_RESULT" in
-            success) HEADLINE="✅ PR images published" ;;
-            failure) HEADLINE="❌ PR image build failed" ;;
-            *)       HEADLINE="⚠️ PR image build ended with status: $BUILD_RESULT" ;;
+            success) BUILD_CELL="✅ ${IMAGES_COUNT:-All} images built" ;;
+            failure) BUILD_CELL="❌ Build failed${IMAGES_COUNT:+ ($IMAGES_COUNT images built)}" ;;
+            *)       BUILD_CELL="⚠️ Build $BUILD_RESULT" ;;
           esac
-
           case "$SMOKE_RESULT" in
-            success) SMOKE_LINE="✅ Smoke tests passed on amd64 and arm64" ;;
-            failure) SMOKE_LINE="❌ Smoke tests failed, see the run" ;;
-            *)       SMOKE_LINE="⏭️ Smoke tests $SMOKE_RESULT" ;;
+            success) SMOKE_CELL="✅ Passed on amd64 and arm64" ;;
+            failure) SMOKE_CELL="❌ Failed" ;;
+            *)       SMOKE_CELL="⏭️ Skipped" ;;
           esac
+          case "$PUBLISH_RESULT" in
+            success) PUBLISH_CELL="✅ Published to serversideup/php-dev" ;;
+            failure) PUBLISH_CELL="❌ Failed" ;;
+            *)       PUBLISH_CELL="⏭️ Not published" ;;
+          esac
+          TABLE=$(printf '%s\n' "$SUMMARY_MARKDOWN" | sed '1{/^## /d}' | sed '1{/^$/d}')
 
           cat > comment.md <<MARKDOWN
-          ### $HEADLINE
+          ### Images for PR #${PR_NUMBER}
 
-          [View the run]($RUN_URL)
+          | Build | Smoke test | Publish |
+          |---|---|---|
+          | $BUILD_CELL | $SMOKE_CELL | $PUBLISH_CELL |
 
-          $SMOKE_LINE
-
-          Images from this PR are published to \`serversideup/php-dev\` with the tag pattern \`${PR_NUMBER}-<php>-<variation>-<os>\`. For example:
+          Try it:
 
           \`\`\`bash
-          docker pull serversideup/php-dev:${PR_NUMBER}-8.4-fpm-nginx-alpine
+          docker run --rm -v "\$PWD:/var/www/html" -p 8080:8080 serversideup/php-dev:${PR_NUMBER}-8.4-fpm-nginx
           \`\`\`
 
-          [Browse all tags for this PR](https://hub.docker.com/r/serversideup/php-dev/tags?name=${PR_NUMBER}-)
+          Every image is on Docker Hub as \`serversideup/php-dev:${PR_NUMBER}-<php>-<variation>-<os>\`. [Browse all tags](https://hub.docker.com/r/serversideup/php-dev/tags?name=${PR_NUMBER}-) or [view the run]($RUN_URL).
 
           <details>
-          <summary>Every image with its size per architecture</summary>
+          <summary>All images with sizes</summary>
 
-          ${SUMMARY_MARKDOWN}
+          ${TABLE}
 
           </details>
 
-          _Updated automatically on every push to this PR._
+          <sub>Updated on every push to this PR.</sub>
           MARKDOWN
 
           gh pr comment "$PR_NUMBER" --edit-last --create-if-none --body-file comment.md
