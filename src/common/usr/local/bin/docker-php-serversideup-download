@@ -1,0 +1,23 @@
+#!/bin/sh
+set -oe
+
+###################################################
+# Usage: docker-php-serversideup-download <url> [output-file]
+###################################################
+# Downloads a file during the image build with retries. The whole build
+# matrix starts at the same moment, and GitHub, nginx.org, and other hosts
+# occasionally answer a burst of parallel requests with a 5xx or a dropped
+# connection. Writes to stdout when no output file is given.
+script_name="docker-php-serversideup-download"
+
+if [ -z "${1:-}" ]; then
+    echo "🛑 ERROR ($script_name): No URL was provided." >&2
+    exit 1
+fi
+
+url="$1"
+output="${2:--}"
+
+curl --fail --location --silent --show-error \
+    --retry 5 --retry-delay 3 --retry-all-errors --retry-max-time 120 \
+    --output "$output" "$url"

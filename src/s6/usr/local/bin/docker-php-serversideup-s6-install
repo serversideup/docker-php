@@ -25,7 +25,10 @@ esac
 
 untar() {
     echo "⏬ Downloading $1"
-    curl -L $1 -o - | tar Jxp -C $S6_DIR
+    tmp_file=$(mktemp)
+    docker-php-serversideup-download "$1" "$tmp_file"
+    tar Jxp -C "$S6_DIR" -f "$tmp_file"
+    rm -f "$tmp_file"
 }
 
 echo "⬇️ Downloading s6 overlay:${S6_ARCH}-${S6_VERSION} for ${SYS_ARCH}"
@@ -34,5 +37,5 @@ untar ${S6_SRC_URL}/${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.xz
 
 # Ensure "php-fpm-healthcheck" is installed
 echo "⬇️ Downloading php-fpm-healthcheck..."
-curl -o /usr/local/bin/php-fpm-healthcheck https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.6.0/php-fpm-healthcheck
+docker-php-serversideup-download https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.6.0/php-fpm-healthcheck /usr/local/bin/php-fpm-healthcheck
 chmod +x /usr/local/bin/php-fpm-healthcheck

@@ -45,6 +45,8 @@ docs/                # Nuxt 4 documentation site (see docs/AGENTS.md for docs-sp
 
 **There is exactly one Dockerfile per variation.** Each Dockerfile must work across all supported OS bases (Debian and Alpine). OS-specific logic is pushed into shared helper scripts (e.g., `docker-php-serversideup-dep-install-debian`, `docker-php-serversideup-dep-install-alpine`) rather than duplicating Dockerfiles. This keeps maintenance manageable across 8,000+ image tags.
 
+**Never call `curl` directly in a Dockerfile or build script.** Use `docker-php-serversideup-download <url> [output-file]` from `src/common/`, which retries with backoff. The whole matrix starts at once and unretried downloads fail on transient 5xx responses from GitHub and other hosts. Download archives to a file before extracting them so a retry never feeds a partial stream to `tar`.
+
 Each variation Dockerfile uses multi-stage builds:
 1. Shared assets are `COPY`ed from `src/common/`, `src/s6/`, `src/php-fpm.d/`, and `src/utilities-webservers/`
 2. Variation-specific configs live in `src/variations/<variation>/etc/`
