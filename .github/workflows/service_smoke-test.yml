@@ -33,7 +33,7 @@ jobs:
         run: |
           # The single-quoted program is jq; its $variables are not shell variables.
           # shellcheck disable=SC2016
-          MATRIX=$(find image-details -name '*.json' -print0 | xargs -0 -r jq -s '
+          MATRIX=$(find image-details -name '*.json' -print0 | xargs -0 -r jq -s -c '
             def version_key: gsub("-rc"; ".999") | split(".") | map(tonumber? // 0);
             def family: if (.os | startswith("alpine")) then "alpine" else "debian" end;
             [ .[] | select(.pushed == true) ]
