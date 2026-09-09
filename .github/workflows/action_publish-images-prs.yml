@@ -1,5 +1,5 @@
 name: Docker Publish (PR Images)
-run-name: ${{ github.event.pull_request.title || format('Manual build for PR #{0}', inputs.pr_number) }}
+run-name: "${{ github.event.pull_request.title || format('Manual build for PR #{0}', inputs.pr_number) }}"
 
 on:
   workflow_dispatch:
