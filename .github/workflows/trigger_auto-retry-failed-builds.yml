@@ -1,13 +1,14 @@
 name: Auto-retry failed image builds
 
-# Transient failures (php.net timeouts, a mirror blip, a base image not on Docker Hub yet)
-# used to need a maintainer to sign in and click "Re-run failed jobs". This does that once.
-# If the re-run fails too, the run stays red and a human takes over.
+# Transient failures (php.net timeouts, a mirror blip, a registry 502) used to need a
+# maintainer to sign in and click "Re-run failed jobs". This does that once, as long as
+# the failure looks transient. If the re-run fails too, the run stays red and a human takes over.
 on:
   workflow_run:
     workflows:
       - "Docker Publish (Production Images)"
       - "Docker Publish (Beta Images)"
+      - "Docker Publish (PR Images)"
     types: [completed]
 
 permissions: {}
@@ -18,7 +19,7 @@ jobs:
       github.event.workflow_run.conclusion == 'failure' &&
       github.event.workflow_run.run_attempt == 1
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
       actions: write
     env:
@@ -26,10 +27,36 @@ jobs:
       GH_REPO: ${{ github.repository }}
       RUN_ID: ${{ github.event.workflow_run.id }}
       RUN_URL: ${{ github.event.workflow_run.html_url }}
+      WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+      HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+      # More failures than this means the change itself is broken, not the infrastructure.
+      MAX_FAILED_JOBS: 5
     steps:
-      - name: Re-run the failed jobs once
+      - name: Decide whether a retry makes sense
+        id: check
         run: |
-          echo "Waiting two minutes before retrying $RUN_URL so transient upstream issues can settle."
+          echo "Waiting two minutes so transient upstream issues can settle."
           sleep 120
+
+          FAILED=$(gh run view "$RUN_ID" --json jobs --jq '[.jobs[] | select(.conclusion == "failure")] | length')
+          echo "Failed jobs in $RUN_URL: $FAILED"
+          if [ "$FAILED" -gt "$MAX_FAILED_JOBS" ]; then
+            echo "::notice title=Retry skipped::$FAILED jobs failed, which looks like a real problem rather than a transient one. No automatic retry."
+            echo "retry=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          LATEST=$(gh run list --workflow "$WORKFLOW_NAME" --branch "$HEAD_BRANCH" --limit 1 --json databaseId --jq '.[0].databaseId')
+          if [ "$LATEST" != "$RUN_ID" ]; then
+            echo "::notice title=Retry skipped::A newer run already exists for $HEAD_BRANCH, so this one is stale."
+            echo "retry=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "retry=true" >> "$GITHUB_OUTPUT"
+
+      - name: Re-run the failed jobs once
+        if: steps.check.outputs.retry == 'true'
+        run: |
           gh run rerun "$RUN_ID" --failed
           echo "::notice title=Retry started::Re-running failed jobs for $RUN_URL. If this attempt also fails, manual attention is needed."
