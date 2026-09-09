@@ -41,7 +41,7 @@ on:
         description: 'The git ref to checkout (branch, tag, or commit SHA)'
 
 jobs:
-  build:
+  images:
     name: ${{ matrix.patch_version }}-${{ matrix.base_os }}
     runs-on: depot-ubuntu-24.04
     timeout-minutes: 45

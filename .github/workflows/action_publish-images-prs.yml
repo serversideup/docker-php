@@ -40,7 +40,7 @@ jobs:
 
   build:
     needs: [setup]
-    name: ${{ matrix.variation }}
+    name: build ${{ matrix.variation }}
     strategy:
       fail-fast: false
       matrix:

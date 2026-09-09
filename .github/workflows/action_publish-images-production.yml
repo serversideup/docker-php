@@ -21,7 +21,7 @@ permissions: {}
 
 jobs:
   release:
-    name: release to build
+    name: resolve release
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -55,7 +55,7 @@ jobs:
 
   build:
     needs: [release, setup]
-    name: ${{ matrix.variation }}
+    name: build ${{ matrix.variation }}
     strategy:
       fail-fast: false
       matrix:

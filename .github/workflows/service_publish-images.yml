@@ -17,6 +17,7 @@ on:
 
 jobs:
   list:
+    name: plan
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -43,7 +44,7 @@ jobs:
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
           echo "$COUNT images to publish"
 
-  publish:
+  images:
     needs: list
     if: needs.list.outputs.count > 0
     name: ${{ matrix.variation }} ${{ matrix.php }}-${{ matrix.os }}

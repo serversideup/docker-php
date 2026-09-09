@@ -20,6 +20,7 @@ on:
 
 jobs:
   summary:
+    name: images
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:

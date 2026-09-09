@@ -57,6 +57,7 @@ jobs:
         run: docker run --rm -v "$PWD:/repo" -w /repo "hadolint/hadolint:${HADOLINT_VERSION}" hadolint src/variations/*/Dockerfile
 
   script-tests:
+    name: scripts
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
