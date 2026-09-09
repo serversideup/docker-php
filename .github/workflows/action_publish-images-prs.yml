@@ -67,8 +67,27 @@ jobs:
         }}
     secrets: inherit
 
+  smoke:
+    needs: [setup, build]
+    if: always() && needs.setup.result == 'success'
+    uses: ./.github/workflows/service_smoke-test.yml
+    permissions:
+      contents: read
+    with:
+      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
+
+  summary:
+    needs: [setup, build]
+    if: always() && needs.setup.result == 'success'
+    uses: ./.github/workflows/service_summary.yml
+    permissions:
+      contents: read
+    with:
+      matrix: ${{ needs.setup.outputs.matrix }}
+      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
+
   pr-comment:
-    needs: build
+    needs: [build, smoke, summary]
     if: >-
       always() &&
       (
@@ -84,7 +103,9 @@ jobs:
       GH_REPO: ${{ github.repository }}
       PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
       BUILD_RESULT: ${{ needs.build.result }}
+      SMOKE_RESULT: ${{ needs.smoke.result }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      SUMMARY_MARKDOWN: ${{ needs.summary.outputs.markdown }}
     steps:
       - name: Post or update the image comment
         run: |
@@ -97,7 +118,15 @@ jobs:
           cat > comment.md <<MARKDOWN
           ### $HEADLINE
 
+          case "$SMOKE_RESULT" in
+            success) SMOKE_LINE="✅ Smoke tests passed on amd64 and arm64" ;;
+            failure) SMOKE_LINE="❌ Smoke tests failed, see the run" ;;
+            *)       SMOKE_LINE="⏭️ Smoke tests $SMOKE_RESULT" ;;
+          esac
+
           [View the run]($RUN_URL)
+
+          $SMOKE_LINE
 
           Images from this PR are published to \`serversideup/php-dev\` with the tag pattern \`${PR_NUMBER}-<php>-<variation>-<os>\`. For example:
 
@@ -106,6 +135,13 @@ jobs:
           \`\`\`
 
           [Browse all tags for this PR](https://hub.docker.com/r/serversideup/php-dev/tags?name=${PR_NUMBER}-)
+
+          <details>
+          <summary>Every image with its size per architecture</summary>
+
+          ${SUMMARY_MARKDOWN}
+
+          </details>
 
           _Updated automatically on every push to this PR._
           MARKDOWN

@@ -67,3 +67,22 @@ jobs:
       tag-prefix: ''
       release-type: "latest"
     secrets: inherit
+
+  smoke:
+    needs: [release, setup, build]
+    if: always() && needs.setup.result == 'success'
+    uses: ./.github/workflows/service_smoke-test.yml
+    permissions:
+      contents: read
+    with:
+      ref: ${{ needs.release.outputs.tag }}
+
+  summary:
+    needs: [release, setup, build]
+    if: always() && needs.setup.result == 'success'
+    uses: ./.github/workflows/service_summary.yml
+    permissions:
+      contents: read
+    with:
+      matrix: ${{ needs.setup.outputs.matrix }}
+      ref: ${{ needs.release.outputs.tag }}
