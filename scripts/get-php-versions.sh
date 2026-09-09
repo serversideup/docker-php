@@ -41,7 +41,7 @@ check_dockerhub_php_version() {
     local os="${3:-}"
     
     local image_tag
-    if [ -n "$os" ] && [ "$os" != "bullseye" ] && [ "$os" != "bookworm" ]; then
+    if [ -n "$os" ] && [ "$os" != "bookworm" ]; then
         image_tag="${version}-${variant}-${os}"
     else
         image_tag="${version}-${variant}"

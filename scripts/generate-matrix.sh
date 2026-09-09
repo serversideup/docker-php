@@ -27,7 +27,7 @@ yq -o=json "$PHP_VERSIONS_FILE" | jq -c '
 
   def os_family_match($os_name; $supported):
     # Allow listing "alpine" to include any alpine3.xx base_os
-    # Exact matches like "bullseye", "bookworm", "trixie" must match exactly
+    # Exact matches like "bookworm", "trixie" must match exactly
     ($supported == $os_name) or ($supported == "alpine" and ($os_name | startswith("alpine")));
 
   def is_supported($variation; $os):
@@ -40,8 +40,8 @@ yq -o=json "$PHP_VERSIONS_FILE" | jq -c '
       | $root.php_versions[]
       | .minor_versions[] as $minor
       | select((($variation.excluded_minor_versions // []) | index($minor.minor)) | not)
-      | $minor.base_os[] as $os
-      | $minor.patch_versions[] as $patch
+      | ($minor.base_os // [])[] as $os
+      | ($minor.patch_versions // [])[] as $patch
       | select(is_supported($variation; $os))
       | {patch_version: $patch, base_os: $os.name, php_variation: $variation.name}
     ]
