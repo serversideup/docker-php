@@ -46,6 +46,21 @@ php_versions:
           - name: trixie
         patch_versions:
         #   - 8.5.8 # Pull latest from Official PHP source
+      # PHP 8.6 is blocked upstream: the official php:8.6-rc images no longer ship pecl/pear,
+      # and install-php-extensions does not support 8.6 yet (its pickle fallback is not 8.6
+      # compatible), so no PECL extension can be installed. Uncomment once that is resolved.
+      # https://github.com/serversideup/docker-php/issues/698
+      #
+      # - minor: "8.6-rc"
+      #   base_os:
+      #     - name: alpine3.23
+      #     - name: alpine3.24
+      #     - name: bookworm
+      #     - name: trixie
+      #   patch_versions:
+      #     - 8.6-rc
+      #   php_extension_overrides:
+      #     - redis=phpredis/phpredis@develop
 
 operating_systems:
   - family: alpine

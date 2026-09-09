@@ -43,7 +43,7 @@ yq -o=json "$PHP_VERSIONS_FILE" | jq -c '
       | ($minor.base_os // [])[] as $os
       | ($minor.patch_versions // [])[] as $patch
       | select(is_supported($variation; $os))
-      | {patch_version: $patch, base_os: $os.name, php_variation: $variation.name}
+      | {patch_version: $patch, base_os: $os.name, php_variation: $variation.name, php_extension_overrides: (($minor.php_extension_overrides // []) | join(" "))}
     ]
   | { include: ( . | sort_by(.patch_version | version_weight) | reverse ) }
 '

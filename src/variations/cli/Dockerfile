@@ -10,6 +10,7 @@ FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
 ARG DEPENDENCY_PACKAGES_ALPINE='shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (cli)" \
@@ -79,7 +80,7 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
     # Install default PHP extensions
-    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS}
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}"
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

@@ -396,7 +396,8 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
                         | map({
                             minor: .[0].minor,
                             base_os: (map(.base_os // []) | add),
-                            patch_versions: (map(.patch_versions // []) | flatten | unique | select(. != null))
+                            patch_versions: (map(.patch_versions // []) | flatten | unique | select(. != null)),
+                            php_extension_overrides: (map(.php_extension_overrides // []) | add | unique)
                         })
                     )
                 })

@@ -100,6 +100,7 @@ FROM ${BASE_IMAGE}
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi gettext shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin gettext-base procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
 ARG NGINX_VERSION='1.28.0-1'
 
@@ -217,7 +218,7 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE} ng
     chown -R www-data:www-data /var/cache/nginx/ && \
     \
     # Install default PHP extensions
-    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS} && \
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}" && \
     \
     # clear all php provided fpm configurations
     rm -rf /usr/local/etc/php-fpm.d/*.conf && \

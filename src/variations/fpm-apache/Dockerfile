@@ -25,6 +25,7 @@ FROM ${BASE_IMAGE}
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi apache2 shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin apache2 procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='mysqli opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (fpm-apache)" \
@@ -131,7 +132,7 @@ RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
     # Install default PHP extensions
-    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS} && \
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}" && \
     \
     # redirect logs to STDOUT and STERR
     ln -sf /dev/stdout /var/log/apache2/access.log && \

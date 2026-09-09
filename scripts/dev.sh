@@ -86,6 +86,14 @@ detect_platform() {
     esac
 }
 
+php_minor_version() {
+  if [[ "$1" == *-rc ]]; then
+    echo "$1"
+  else
+    echo "$1" | cut -d. -f1,2
+  fi
+}
+
 build_docker_image() {
   build_tag="${DOCKER_REPOSITORY}:${PHP_BUILD_PREFIX}${PHP_BUILD_VERSION}-${PHP_BUILD_VARIATION}-${PHP_BUILD_BASE_OS}"
   echo_color_message yellow "🐳 Building Docker Image: $build_tag"
@@ -103,6 +111,10 @@ build_docker_image() {
 
   if [ -n "$NGINX_VERSION" ] && [ "$PHP_BUILD_VARIATION" = "fpm-nginx" ]; then
     build_args+=(--build-arg "NGINX_VERSION=$NGINX_VERSION")
+  fi
+
+  if [ -n "$PHP_EXTENSION_OVERRIDES" ]; then
+    build_args+=(--build-arg "PHP_EXTENSION_OVERRIDES=$PHP_EXTENSION_OVERRIDES")
   fi
 
   docker buildx build \
@@ -195,6 +207,17 @@ check_vars \
   PHP_BUILD_VARIATION \
   PHP_BUILD_VERSION \
   PHP_BUILD_BASE_OS
+
+# Auto-resolve PHP extension source overrides for the minor version being built
+if [ -z "$PHP_EXTENSION_OVERRIDES" ]; then
+  PHP_EXTENSION_OVERRIDES=$(MINOR="$(php_minor_version "$PHP_BUILD_VERSION")" yq -r '
+    [.php_versions[].minor_versions[] | select(.minor == env(MINOR)) | .php_extension_overrides // [] | .[]] | join(" ")
+  ' "$BASE_PHP_VERSIONS_CONFIG_FILE")
+
+  if [ -n "$PHP_EXTENSION_OVERRIDES" ]; then
+    echo_color_message green "✅ Using PHP extension overrides '$PHP_EXTENSION_OVERRIDES' for PHP '$PHP_BUILD_VERSION'"
+  fi
+fi
 
 # Auto-resolve NGINX version for fpm-nginx if not provided
 if [ -z "$NGINX_VERSION" ] && [ "$PHP_BUILD_VARIATION" = "fpm-nginx" ]; then

@@ -10,6 +10,7 @@ FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (fpm)" \
@@ -94,7 +95,7 @@ RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
     chmod +x /usr/local/bin/php-fpm-healthcheck && \
     \
     # Install default PHP extensions
-    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS}
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}"
 
 # copy our fpm configurations
 COPY src/php-fpm.d/ /
