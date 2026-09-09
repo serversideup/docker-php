@@ -68,11 +68,13 @@ jobs:
           echo "$MATRIX_BY_VARIATION" | jq '.'
 
           {
-            echo "## Build matrix: $(echo "$FULL_MATRIX" | jq '.include | length') images"
+            echo "## Build matrix: $(echo "$FULL_MATRIX" | jq '.include | length') images across $(echo "$VARIATIONS" | jq 'length') variations"
             echo ""
-            echo "| Variation | PHP | Base OS |"
+            echo "| PHP | Resolved patch version | Base OS |"
             echo "|---|---|---|"
-            echo "$FULL_MATRIX" | jq -r '.include | sort_by(.php_variation)[] | "| \(.php_variation) | \(.patch_version) | \(.base_os) |"'
+            yq -o=json '${{ inputs.php-versions-file }}' | jq -r '
+              .php_versions[].minor_versions[]
+              | "| \(.minor) | \(.patch_versions | join(", ")) | \(.base_os | map(.name) | join(", ")) |"'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the php-versions.yml file

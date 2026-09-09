@@ -139,6 +139,20 @@ jobs:
           fi
           echo "nginx_arg=NGINX_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
+      # Used by the run summary to flag images that grew compared to what users pull today.
+      - name: Look up the current production image size
+        env:
+          BASELINE_TAG: ${{ matrix.patch_version }}-${{ matrix.php_variation }}-${{ matrix.base_os }}
+        run: |
+          RESPONSE=$(curl --silent --fail --retry 3 --retry-delay 2 --max-time 20 \
+            "https://hub.docker.com/v2/repositories/serversideup/php/tags/${BASELINE_TAG}") || RESPONSE='{}'
+          BASELINE_SIZES=$(echo "$RESPONSE" | jq -c '
+            [ (.images // [])[] | select(.os == "linux")
+              | { key: (.os + "/" + .architecture), value: .size } ]
+            | from_entries')
+          echo "Production ${BASELINE_TAG}: ${BASELINE_SIZES}"
+          echo "BASELINE_SIZES=${BASELINE_SIZES}" >> "$GITHUB_ENV"
+
       # Authentication: the Depot project ID comes from depot.json. Same-repo runs authenticate
       # through the Depot OIDC trust relationship (id-token: write). Pull requests from forks
       # have no OIDC token, so Depot falls back to its open-source pull request flow, which
@@ -162,13 +176,38 @@ jobs:
           tags: ${{ env.DOCKER_TAGS }}
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Supercharge your PHP experience with Docker images that are based off the official PHP images but are optimized to be run in production environments for Laravel and WordPress and more
 
-      - name: Summarize published tags
-        if: ${{ inputs.push-to-registry }}
+      # The summary job (service_summary.yml) merges these files into one table for the run.
+      - name: Record image details
+        env:
+          PUSHED: ${{ inputs.push-to-registry }}
         run: |
-          {
-            echo "### ${{ matrix.php_variation }} ${{ matrix.patch_version }} on ${{ matrix.base_os }}"
-            echo ""
-            echo '```bash'
-            echo "$DOCKER_TAGS" | tr ',' '\n' | sed 's/^/docker pull /'
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          mkdir -p image-details
+          CANONICAL_TAG=$(echo "$DOCKER_TAGS" | cut -d',' -f1)
+
+          MANIFEST='[]'
+          if [ "$PUSHED" = "true" ]; then
+            MANIFEST=$(docker manifest inspect -v "$CANONICAL_TAG") || echo "::warning title=Image size unavailable::Could not read the manifest for $CANONICAL_TAG"
+          fi
+          SIZES=$(echo "$MANIFEST" | jq '
+            [ .[] | select(.Descriptor.platform.os == "linux")
+              | { key: (.Descriptor.platform.os + "/" + .Descriptor.platform.architecture),
+                  value: ([ (.SchemaV2Manifest // .OCIManifest).layers[].size ] | add) } ]
+            | from_entries')
+
+          jq -n \
+            --arg variation "${{ matrix.php_variation }}" \
+            --arg php "${{ matrix.patch_version }}" \
+            --arg os "${{ matrix.base_os }}" \
+            --arg tag "$CANONICAL_TAG" \
+            --argjson pushed "$PUSHED" \
+            --argjson sizes "$SIZES" \
+            --argjson baseline "${BASELINE_SIZES:-{\}}" \
+            '{variation: $variation, php: $php, os: $os, tag: $tag, pushed: $pushed, sizes: $sizes, baseline: $baseline}' \
+            | tee "image-details/${{ matrix.php_variation }}-${{ matrix.patch_version }}-${{ matrix.base_os }}.json"
+
+      - name: Upload image details
+        uses: actions/upload-artifact@v7
+        with:
+          name: image-details-${{ matrix.php_variation }}-${{ matrix.patch_version }}-${{ matrix.base_os }}
+          path: image-details/
+          retention-days: 7
