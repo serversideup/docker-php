@@ -1,0 +1,81 @@
+name: Smoke Test
+
+# Pulls a representative slice of the images that were just published and runs
+# scripts/smoke-test.sh against each one on native amd64 and arm64 runners:
+# newest PHP version for every variation, on one Debian and one Alpine base.
+on:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        default: ${{ github.ref }}
+        description: 'The git ref to checkout (branch, tag, or commit SHA)'
+
+jobs:
+  select:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
+      count: ${{ steps.select.outputs.count }}
+    steps:
+      - name: Download image details from every build job
+        uses: actions/download-artifact@v8
+        with:
+          pattern: image-details-*
+          path: image-details
+          merge-multiple: true
+
+      - name: Pick the images to test
+        id: select
+        run: |
+          # The single-quoted program is jq; its $variables are not shell variables.
+          # shellcheck disable=SC2016
+          MATRIX=$(find image-details -name '*.json' -print0 | xargs -0 -r jq -s '
+            def version_key: gsub("-rc"; ".999") | split(".") | map(tonumber? // 0);
+            def family: if (.os | startswith("alpine")) then "alpine" else "debian" end;
+            [ .[] | select(.pushed == true) ]
+            | group_by(.variation)
+            | map(
+                (max_by(.php | version_key) | .php) as $newest
+                | map(select(.php == $newest))
+                | group_by(family)
+                | map(max_by(.os))
+              )
+            | flatten
+            | [ .[] | . as $image | ("ubuntu-24.04", "ubuntu-24.04-arm") as $runner
+                | { variation, php, os, tag,
+                    runner: $runner,
+                    arch: (if $runner == "ubuntu-24.04" then "amd64" else "arm64" end) } ]
+            | { include: . }')
+          MATRIX="${MATRIX:-{\"include\":[]\}}"
+          COUNT=$(echo "$MATRIX" | jq '.include | length')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Selected $COUNT image tests:"
+          echo "$MATRIX" | jq -r '.include[] | "  \(.variation) \(.php)-\(.os) on \(.arch)"'
+
+  test:
+    needs: select
+    if: needs.select.outputs.count > 0
+    name: ${{ matrix.variation }} ${{ matrix.php }}-${{ matrix.os }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.select.outputs.matrix) }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Pull the image
+        run: docker pull --quiet "${{ matrix.tag }}"
+
+      - name: Smoke test
+        run: bash scripts/smoke-test.sh "${{ matrix.tag }}" "${{ matrix.php }}"
