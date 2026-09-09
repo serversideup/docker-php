@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: smoke-test.sh <image> [expected-php-version]
+# Usage: test-image.sh <image> [expected-php-version]
 #
 # Runs a published or locally built image and checks the things a user would notice
 # first: it starts, it runs as an unprivileged user, PHP reports the expected version,
@@ -9,14 +9,14 @@ set -euo pipefail
 # Commands go through the image's own entrypoint so every entrypoint.d script runs.
 # The entrypoint prints a welcome banner first, so a command's own output is the last line.
 
-image="${1:?Usage: smoke-test.sh <image> [expected-php-version]}"
+image="${1:?Usage: test-image.sh <image> [expected-php-version]}"
 expected_php="${2:-}"
 health_timeout_seconds=90
 
 pass() { echo "✅ $1"; }
 fail() { echo "❌ $1" >&2; exit 1; }
 
-echo "🔎 Smoke testing $image"
+echo "🔎 Testing $image"
 
 php_version=$(docker run --rm "$image" php -r 'echo PHP_VERSION;' | tail -n1)
 if [ -n "$expected_php" ] && [ "$php_version" != "$expected_php" ]; then

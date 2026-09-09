@@ -73,20 +73,20 @@ jobs:
       release-type: "latest"
     secrets: inherit
 
-  smoke:
+  test:
     needs: [release, setup, build]
     if: always() && needs.setup.result == 'success'
-    uses: ./.github/workflows/service_smoke-test.yml
+    uses: ./.github/workflows/service_test-images.yml
     permissions:
       contents: read
       id-token: write
     with:
       ref: ${{ needs.release.outputs.tag }}
 
-  # Only images that passed the smoke tests reach a public registry.
+  # Only images that passed the image tests reach a public registry.
   publish:
-    needs: [release, build, smoke]
-    if: needs.build.result == 'success' && needs.smoke.result == 'success'
+    needs: [release, build, test]
+    if: needs.build.result == 'success' && needs.test.result == 'success'
     uses: ./.github/workflows/service_publish-images.yml
     permissions:
       contents: read
@@ -96,10 +96,10 @@ jobs:
       ref: ${{ needs.release.outputs.tag }}
     secrets: inherit
 
-  summary:
-    needs: [release, setup, build, smoke, publish]
+  report:
+    needs: [release, setup, build, test, publish]
     if: always() && needs.setup.result == 'success'
-    uses: ./.github/workflows/service_summary.yml
+    uses: ./.github/workflows/service_report.yml
     permissions:
       contents: read
     with:

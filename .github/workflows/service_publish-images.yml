@@ -1,6 +1,6 @@
 name: Publish Images
 
-# Phase 3 of 3: promote the exact images that passed the smoke tests from the Depot
+# Phase 3 of 3: promote the exact images that passed the image tests from the Depot
 # Registry to Docker Hub and GHCR. No rebuild happens here; docker buildx imagetools
 # copies each multi-platform image by digest and applies every tag in one step.
 on:
@@ -16,14 +16,14 @@ on:
         description: 'The git ref to checkout (branch, tag, or commit SHA)'
 
 jobs:
-  images:
+  list:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
     outputs:
-      matrix: ${{ steps.images.outputs.matrix }}
-      count: ${{ steps.images.outputs.count }}
+      matrix: ${{ steps.list.outputs.matrix }}
+      count: ${{ steps.list.outputs.count }}
     steps:
       - name: Download image details from every build job
         uses: actions/download-artifact@v8
@@ -33,7 +33,7 @@ jobs:
           merge-multiple: true
 
       - name: List the images saved for publishing
-        id: images
+        id: list
         run: |
           MATRIX=$(find image-details -name '*.json' -print0 | xargs -0 -r jq -s -c '
             { include: [ .[] | select(.saved != null) | { variation, php, os, saved, tags: (.tags | join(",")) } ] }')
@@ -44,8 +44,8 @@ jobs:
           echo "$COUNT images to publish"
 
   publish:
-    needs: images
-    if: needs.images.outputs.count > 0
+    needs: list
+    if: needs.list.outputs.count > 0
     name: ${{ matrix.variation }} ${{ matrix.php }}-${{ matrix.os }}
     runs-on: depot-ubuntu-24.04
     timeout-minutes: 20
@@ -55,7 +55,7 @@ jobs:
       id-token: write
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.images.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.list.outputs.matrix) }}
     env:
       IMAGE_NAME: ${{ matrix.variation }}-${{ matrix.php }}-${{ matrix.os }}
     steps:

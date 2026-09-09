@@ -2,7 +2,7 @@ name: Build Images
 
 # Phase 1 of 3: build every image for one variation. Nothing is pushed to a public
 # registry here. When publishing is requested, each image is saved to the Depot
-# Registry so the smoke tests can run against it and, if they pass,
+# Registry so the image tests can run against it and, if they pass,
 # service_publish-images.yml promotes the exact same image to Docker Hub and GHCR.
 on:
   workflow_call:
@@ -34,7 +34,7 @@ on:
       publish:
         type: boolean
         default: true
-        description: 'Save the images to the Depot Registry so they can be smoke tested and published. False for pull requests from forks.'
+        description: 'Save the images to the Depot Registry so they can be tested and published. False for pull requests from forks.'
       ref:
         type: string
         default: ${{ github.ref }}
@@ -147,7 +147,7 @@ jobs:
           tags: ${{ env.DOCKER_TAGS }}
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Supercharge your PHP experience with Docker images that are based off the official PHP images but are optimized to be run in production environments for Laravel and WordPress and more
 
-      # The smoke test, publish, and summary workflows all read these files.
+      # The test, publish, and report workflows all read these files.
       - name: Record image details
         env:
           PUBLISH: ${{ inputs.publish }}

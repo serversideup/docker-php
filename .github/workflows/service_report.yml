@@ -1,4 +1,4 @@
-name: Build Summary
+name: Report
 
 # Collects the image details every build job records and renders one table for the
 # whole run: each image with its compressed size per architecture and a pull command.
@@ -16,10 +16,10 @@ on:
     outputs:
       markdown:
         description: 'The rendered Markdown table'
-        value: ${{ jobs.images.outputs.markdown }}
+        value: ${{ jobs.summary.outputs.markdown }}
 
 jobs:
-  images:
+  summary:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:

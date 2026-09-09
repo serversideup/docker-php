@@ -69,20 +69,20 @@ jobs:
         }}
     secrets: inherit
 
-  smoke:
+  test:
     needs: [setup, build]
     if: always() && needs.setup.result == 'success'
-    uses: ./.github/workflows/service_smoke-test.yml
+    uses: ./.github/workflows/service_test-images.yml
     permissions:
       contents: read
       id-token: write
     with:
       ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
 
-  # Only images that passed the smoke tests reach a public registry.
+  # Only images that passed the image tests reach a public registry.
   publish:
-    needs: [build, smoke]
-    if: needs.build.result == 'success' && needs.smoke.result == 'success'
+    needs: [build, test]
+    if: needs.build.result == 'success' && needs.test.result == 'success'
     uses: ./.github/workflows/service_publish-images.yml
     permissions:
       contents: read
@@ -93,18 +93,18 @@ jobs:
       authenticate_with_ghcr: false
     secrets: inherit
 
-  summary:
-    needs: [setup, build, smoke, publish]
+  report:
+    needs: [setup, build, test, publish]
     if: always() && needs.setup.result == 'success'
-    uses: ./.github/workflows/service_summary.yml
+    uses: ./.github/workflows/service_report.yml
     permissions:
       contents: read
     with:
       matrix: ${{ needs.setup.outputs.matrix }}
       ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
 
-  pr-comment:
-    needs: [build, smoke, publish, summary]
+  comment:
+    needs: [build, test, publish, report]
     if: >-
       always() &&
       (
@@ -123,10 +123,10 @@ jobs:
       GH_REPO: ${{ github.repository }}
       PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
       BUILD_RESULT: ${{ needs.build.result }}
-      SMOKE_RESULT: ${{ needs.smoke.result }}
+      TEST_RESULT: ${{ needs.test.result }}
       PUBLISH_RESULT: ${{ needs.publish.result }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      SUMMARY_MARKDOWN: ${{ needs.summary.outputs.markdown }}
+      SUMMARY_MARKDOWN: ${{ needs.report.outputs.markdown }}
     steps:
       - name: Post or update the image comment
         run: |
@@ -136,10 +136,10 @@ jobs:
             failure) BUILD_CELL="❌ Build failed${IMAGES_COUNT:+ ($IMAGES_COUNT images built)}" ;;
             *)       BUILD_CELL="⚠️ Build $BUILD_RESULT" ;;
           esac
-          case "$SMOKE_RESULT" in
-            success) SMOKE_CELL="✅ Every image passed on amd64 and arm64" ;;
-            failure) SMOKE_CELL="❌ Failed" ;;
-            *)       SMOKE_CELL="⏭️ Skipped" ;;
+          case "$TEST_RESULT" in
+            success) TEST_CELL="✅ Every image passed on amd64 and arm64" ;;
+            failure) TEST_CELL="❌ Failed" ;;
+            *)       TEST_CELL="⏭️ Skipped" ;;
           esac
           case "$PUBLISH_RESULT" in
             success) PUBLISH_CELL="✅ Published to serversideup/php-dev" ;;
@@ -171,9 +171,9 @@ jobs:
           cat > comment.md <<MARKDOWN
           ### Images for PR #${PR_NUMBER}
 
-          | Build | Smoke test | Publish |
+          | Build | Test | Publish |
           |---|---|---|
-          | $BUILD_CELL | $SMOKE_CELL | $PUBLISH_CELL |
+          | $BUILD_CELL | $TEST_CELL | $PUBLISH_CELL |
 
           ${PULL_SECTION}
 
