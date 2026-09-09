@@ -8,6 +8,7 @@ on:
 env:
   ACTIONLINT_VERSION: 1.7.12
   SHELLCHECK_VERSION: v0.11.0
+  HADOLINT_VERSION: v2.15.1
 
 jobs:
   actionlint:
@@ -41,3 +42,15 @@ jobs:
             src/common/usr/local/bin/* \
             src/s6/usr/local/bin/* \
             $(find src -path '*entrypoint.d*' -name '*.sh')
+
+  hadolint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Lint Dockerfiles
+        run: docker run --rm -v "$PWD:/repo" -w /repo "hadolint/hadolint:${HADOLINT_VERSION}" hadolint src/variations/*/Dockerfile

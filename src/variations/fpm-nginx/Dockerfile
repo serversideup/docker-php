@@ -64,10 +64,10 @@ RUN \
         apk add --no-cache openssl curl ca-certificates && \
         \
         # Set up the APK repository for stable NGINX packages
-        printf "%s%s%s%s%s\n" \
+        printf "%s%s%s%s\n" \
             "@nginx " \
             "http://nginx.org/packages/alpine/v" \
-            "$(egrep -o '^[0-9]+\.[0-9]+' /etc/alpine-release)" \
+            "$(grep -Eo '^[0-9]+\.[0-9]+' /etc/alpine-release)" \
             "/main" \
             | tee -a /etc/apk/repositories && \
         \
