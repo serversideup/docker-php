@@ -72,6 +72,10 @@ if [ -n "$http_port" ]; then
     chmod 755 "$web_dir"
     echo '<?php echo "serversideup-php-ok:" . PHP_VERSION;' > "$web_dir/index.php"
     chmod 644 "$web_dir/index.php"
+    mkdir -p "$web_dir/storage"
+    chmod 755 "$web_dir/storage"
+    echo '<?php echo "storage-php-executed";' > "$web_dir/storage/uploaded.php"
+    chmod 644 "$web_dir/storage/uploaded.php"
     run_args+=(--publish "127.0.0.1::${http_port}" --volume "$web_dir:$web_root:ro")
 fi
 
@@ -120,3 +124,11 @@ if [ "$body" != "serversideup-php-ok:${php_version}" ]; then
     fail "Web server did not serve index.php on port ${http_port}. Response: ${body:-<empty>}"
 fi
 pass "Web server serves PHP on port ${http_port}"
+
+# Uploaded PHP files under /storage must never run, including through PATH_INFO
+# (/storage/file.php/anything), which Apache and FrankenPHP would otherwise execute.
+for path in /storage/uploaded.php /storage/uploaded.php/anything; do
+    response=$(curl --silent --max-time 5 --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:${host_port}${path}" || true)
+    [ "$response" = "403" ] || fail "Expected ${path} to return 403, got ${response:-<empty>}"
+done
+pass "Web server blocks PHP execution under /storage"
