@@ -14,5 +14,7 @@ fd00::/8 \
 2a02:fe80::/29 \
 208.109.0.0/22
 
+	# Walk the header right-to-left past trusted proxies instead of taking the first (client-supplied) entry
+	trusted_proxies_strict
 	client_ip_headers X-Forwarded-For
 }

@@ -67,6 +67,8 @@
 	redir @indexphp {re.indexphp.1} 301
 
 	php_server {
+		# FrankenPHP sets REMOTE_ADDR from the TCP peer, which ignores trusted_proxies
+		env REMOTE_ADDR {client_ip}
 		{$CADDY_PHP_SERVER_OPTIONS}
 	}
 	file_server
