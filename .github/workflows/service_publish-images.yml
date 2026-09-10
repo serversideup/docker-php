@@ -86,68 +86,86 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Every image in the variation is attempted even after one fails, so a run shows
-      # every image that could not be published at once.
+      # `depot push` handles one tag at a time, so images are pushed in parallel and each
+      # one's output is printed afterwards as its own log group. Every image is attempted
+      # even after one fails, so a run shows every image that could not be published at once.
       - name: Promote the tested images to every tag
         env:
           IMAGES: ${{ matrix.images }}
           VARIATION: ${{ matrix.variation }}
+          MAX_PARALLEL: 8
         run: |
           PROJECT=$(jq -r .id depot.json)
-          mkdir -p image-details
-          FAILED=()
+          mkdir -p image-details logs
 
-          while IFS=$'\t' read -r PHP OS SAVED BUILD_ID DIGEST TAGS; do
-            IMAGE_NAME="${VARIATION}-${PHP}-${OS}"
-            echo "::group::${IMAGE_NAME}"
-
-            TAG_ARGS=()
-            for tag in ${TAGS//,/ }; do
-              TAG_ARGS+=(--tag "$tag")
+          publish_image() {
+            local php="$1" os="$2" saved="$3" build_id="$4" digest="$5" tags="$6"
+            local image_name="${VARIATION}-${php}-${os}"
+            local tag tag_args=()
+            for tag in ${tags//,/ }; do
+              tag_args+=(--tag "$tag")
             done
-            echo "Pushing build $BUILD_ID to ${#TAG_ARGS[@]} tags"
-            if ! depot push --project "$PROJECT" --progress plain "${TAG_ARGS[@]}" "$BUILD_ID"; then
-              echo "::error title=Publish failed::${IMAGE_NAME} could not be pushed"
-              FAILED+=("$IMAGE_NAME")
-              echo "::endgroup::"
-              continue
+            echo "Pushing build $build_id to $(( ${#tag_args[@]} / 2 )) tags"
+            if ! depot push --project "$PROJECT" --progress plain "${tag_args[@]}" "$build_id"; then
+              echo "::error title=Publish failed::${image_name} could not be pushed"
+              return 1
             fi
 
             # What was published must be what was tested: the tested digest has to appear
             # in the published index (as the index itself or one of its manifests).
-            CANONICAL_TAG="${TAGS%%,*}"
-            INDEX=$(docker buildx imagetools inspect --raw "$CANONICAL_TAG")
-            PUBLISHED_DIGESTS="sha256:$(printf '%s' "$INDEX" | sha256sum | cut -d' ' -f1) $(echo "$INDEX" | jq -r '.manifests[]?.digest' | tr '\n' ' ')"
-            if [ -z "$DIGEST" ]; then
-              echo "::warning title=Digest not recorded::${IMAGE_NAME} was published without a digest check because the build did not record one."
-            elif [[ " $PUBLISHED_DIGESTS " != *" $DIGEST "* ]]; then
-              echo "::error title=Digest mismatch::${IMAGE_NAME} published as $PUBLISHED_DIGESTS but the tested image was $DIGEST"
-              FAILED+=("$IMAGE_NAME")
-              echo "::endgroup::"
-              continue
+            local canonical_tag="${tags%%,*}" index published_digests
+            index=$(docker buildx imagetools inspect --raw "$canonical_tag")
+            published_digests="sha256:$(printf '%s' "$index" | sha256sum | cut -d' ' -f1) $(echo "$index" | jq -r '.manifests[]?.digest' | tr '\n' ' ')"
+            if [ -z "$digest" ]; then
+              echo "::warning title=Digest not recorded::${image_name} was published without a digest check because the build did not record one."
+            elif [[ " $published_digests " != *" $digest "* ]]; then
+              echo "::error title=Digest mismatch::${image_name} published as $published_digests but the tested image was $digest"
+              return 1
             else
-              echo "Published digest matches the tested image ($DIGEST)"
+              echo "Published digest matches the tested image ($digest)"
             fi
 
-            MANIFEST=$(docker manifest inspect -v "$CANONICAL_TAG") || MANIFEST='[]'
-            SIZES=$(echo "$MANIFEST" | jq '
+            local manifest sizes
+            manifest=$(docker manifest inspect -v "$canonical_tag") || manifest='[]'
+            sizes=$(echo "$manifest" | jq '
               [ .[] | select(.Descriptor.platform.os == "linux")
                 | { key: (.Descriptor.platform.os + "/" + .Descriptor.platform.architecture),
                     value: ([ (.SchemaV2Manifest // .OCIManifest).layers[].size ] | add) } ]
               | from_entries')
             jq -n \
               --arg variation "$VARIATION" \
-              --arg php "$PHP" \
-              --arg os "$OS" \
-              --arg tags "$TAGS" \
-              --arg saved "$SAVED" \
-              --arg build_id "$BUILD_ID" \
-              --arg digest "$DIGEST" \
-              --argjson sizes "$SIZES" \
+              --arg php "$php" \
+              --arg os "$os" \
+              --arg tags "$tags" \
+              --arg saved "$saved" \
+              --arg build_id "$build_id" \
+              --arg digest "$digest" \
+              --argjson sizes "$sizes" \
               '{variation: $variation, php: $php, os: $os, tags: ($tags | split(",")), saved: $saved, build_id: $build_id, digest: $digest, published: true, sizes: $sizes}' \
-              | tee "image-details/${IMAGE_NAME}.published.json"
+              | tee "image-details/${image_name}.published.json"
+          }
+
+          NAMES=()
+          # An empty digest is written as "-" because bash collapses consecutive tabs.
+          while IFS=$'\t' read -r PHP OS SAVED BUILD_ID DIGEST TAGS; do
+            [ "$DIGEST" != "-" ] || DIGEST=""
+            IMAGE_NAME="${VARIATION}-${PHP}-${OS}"
+            NAMES+=("$IMAGE_NAME")
+            while [ "$(jobs -rp | wc -l)" -ge "$MAX_PARALLEL" ]; do sleep 1; done
+            (
+              publish_image "$PHP" "$OS" "$SAVED" "$BUILD_ID" "$DIGEST" "$TAGS" > "logs/${IMAGE_NAME}.log" 2>&1
+              echo $? > "logs/${IMAGE_NAME}.status"
+            ) &
+          done < <(echo "$IMAGES" | jq -r '.[] | [.php, .os, .saved, .build_id, (.digest | if . == "" then "-" else . end), (.tags | join(","))] | @tsv')
+          wait
+
+          FAILED=()
+          for IMAGE_NAME in "${NAMES[@]}"; do
+            echo "::group::${IMAGE_NAME}"
+            cat "logs/${IMAGE_NAME}.log"
             echo "::endgroup::"
-          done < <(echo "$IMAGES" | jq -r '.[] | [.php, .os, .saved, .build_id, .digest, (.tags | join(","))] | @tsv')
+            [ "$(cat "logs/${IMAGE_NAME}.status" 2>/dev/null)" = "0" ] || FAILED+=("$IMAGE_NAME")
+          done
 
           if [ "${#FAILED[@]}" -gt 0 ]; then
             echo "::error title=Publish failed::${FAILED[*]} were not published"

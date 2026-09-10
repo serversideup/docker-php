@@ -75,7 +75,7 @@ jobs:
           oidc: true
 
       - name: Login to the Depot Registry
-        run: docker login registry.depot.dev --username x-token --password-stdin <<< "$(depot pull-token)"
+        run: docker login registry.depot.dev --username x-token --password-stdin <<< "$(depot pull-token --project "$(jq -r .id depot.json)")"
 
       # Every image in the group is tested even after one fails, so a run shows every
       # broken image at once instead of one per attempt.
