@@ -87,22 +87,11 @@ jobs:
           FAILED=()
           while IFS=$'\t' read -r VARIATION SAVED; do
             echo "::group::${VARIATION} ${PHP}-${{ matrix.os }} ${{ matrix.arch }}"
-            if docker pull --quiet "$SAVED" && bash scripts/test-image.sh "$SAVED" "$PHP"; then
-              echo "| ✅ | $VARIATION |" >> results.md
-            else
-              echo "| ❌ | $VARIATION |" >> results.md
+            if ! { docker pull --quiet "$SAVED" && bash scripts/test-image.sh "$SAVED" "$PHP"; }; then
               FAILED+=("$VARIATION")
             fi
             echo "::endgroup::"
           done < <(echo "$IMAGES" | jq -r '.[] | [.variation, .saved] | @tsv')
-
-          {
-            echo "### ${PHP}-${{ matrix.os }} on ${{ matrix.arch }}"
-            echo ""
-            echo "| Result | Variation |"
-            echo "|---|---|"
-            cat results.md
-          } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "${#FAILED[@]}" -gt 0 ]; then
             echo "::error title=Image tests failed::${FAILED[*]} failed for ${PHP}-${{ matrix.os }} on ${{ matrix.arch }}"
