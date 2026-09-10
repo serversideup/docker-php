@@ -304,6 +304,8 @@ services:
 Automatic HTTPS requires a public domain name and ports 80/443 accessible from the internet for Let's Encrypt validation. For local development, use self-signed certificates with `SSL_MODE`.
 ::
 
+Need Let's Encrypt short-lived certificates or IP-address certificates? Set `CADDY_ACME_PROFILE: "shortlived"`. See [Short-lived & IP-address certificates](/docs/deployment-and-production/configuring-ssl#short-lived--ip-address-certificates) for the trade-offs and the `default_sni` setup for SNI-less access.
+
 ### SSL Modes for Development
 For local development, use the `SSL_MODE` environment variable:
 
@@ -339,6 +341,7 @@ The FrankenPHP variation supports extensive customization through environment va
 | `FRANKENPHP_CONFIG` | `""` | FrankenPHP-specific configuration (e.g., worker mode) |
 | `CADDY_SERVER_ROOT` | `/var/www/html/public` | Document root for the application |
 | `CADDY_AUTO_HTTPS` | `off` | Enable automatic HTTPS (`on`/`off`) |
+| `CADDY_ACME_PROFILE` | `off` | Let's Encrypt certificate profile: `off`, `shortlived`, `tlsserver`, or `classic` |
 | `CADDY_HTTP_PORT` | `8080` | HTTP port |
 | `CADDY_HTTPS_PORT` | `8443` | HTTPS port |
 | `CADDY_ADMIN` | `off` | Caddy admin API endpoint |
@@ -363,6 +366,8 @@ For a complete list of available environment variables, see the [Environment Var
 | `PHP_MEMORY_LIMIT` | `256M` | Maximum memory a script can use |
 | `PHP_MAX_EXECUTION_TIME` | `99` | Maximum time a script can run (seconds) |
 | `PHP_UPLOAD_MAX_FILE_SIZE` | `100M` | Maximum upload file size |
+| `PHP_FILE_UPLOADS` | `On` | Whether HTTP file uploads are allowed |
+| `PHP_MAX_FILE_UPLOADS` | `20` | Maximum number of files per request |
 | `PHP_POST_MAX_SIZE` | `100M` | Maximum POST request size |
 | `PHP_OPCACHE_ENABLE` | `0` | Enable OPcache (`0`/`1`) |
 | `PHP_OPCACHE_REVALIDATE_FREQ` | `2` | How often to check for file changes (seconds) |

@@ -10,6 +10,7 @@ FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
 ARG DEPENDENCY_PACKAGES_ALPINE='shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (cli)" \
@@ -29,11 +30,15 @@ ENV APP_BASE_DIR=/var/www/html \
     DISABLE_DEFAULT_CONFIG=false \
     LOG_OUTPUT_LEVEL=warn \
     PHP_DATE_TIMEZONE="UTC" \
+    PHP_DISABLE_FUNCTIONS="" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
     PHP_ERROR_LOG="/dev/stderr" \
     PHP_ERROR_REPORTING="22527" \
+    PHP_FILE_UPLOADS="On" \
+    PHP_HTML_ERRORS="On" \
     PHP_MAX_EXECUTION_TIME="99" \
+    PHP_MAX_FILE_UPLOADS="20" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MAX_INPUT_VARS="1000" \
     PHP_MEMORY_LIMIT="256M" \
@@ -50,7 +55,9 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
     PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
+    PHP_REALPATH_CACHE_SIZE="4096K" \
     PHP_REALPATH_CACHE_TTL="120" \
+    PHP_SESSION_COOKIE_HTTPONLY="On" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     PHP_ZEND_DETECT_UNICODE="" \
@@ -77,7 +84,7 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" &
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
     # Install default PHP extensions
-    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS}
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}"
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

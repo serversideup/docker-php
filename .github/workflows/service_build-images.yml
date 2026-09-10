@@ -1,0 +1,191 @@
+name: Build Images
+
+# Phase 1 of 3: build every image for one variation. Nothing is pushed to a public
+# registry here. When publishing is requested, each image is saved to the Depot
+# Registry so the image tests can run against it and, if they pass,
+# service_publish-images.yml promotes the exact same image to Docker Hub and GHCR.
+# When it is not (pull requests from forks), the amd64 image is loaded onto the
+# runner and tested right here instead, so a green build still means a tested image.
+on:
+  workflow_call:
+    inputs:
+      variation:
+        required: true
+        type: string
+        description: 'The PHP variation to build (example: cli, fpm, fpm-nginx).'
+      matrix:
+        required: true
+        type: string
+        description: 'Build matrix JSON keyed by variation, as produced by service_setup-matrix.yml.'
+      tag-prefix:
+        required: true
+        type: string
+        description: 'The prefix to use for the Docker image tags.'
+      php-versions-file:
+        type: string
+        default: 'scripts/conf/php-versions.yml'
+        description: 'The path to the PHP versions file.'
+      registry-repositories:
+        type: string
+        required: true
+        description: 'The Docker registry repositories the images will be published to. Separate multiple repositories with a comma (example: docker.io/serversideup/php,ghcr.io/serversideup/php)'
+      release-type:
+        type: string
+        default: 'testing'
+        description: 'The type of release to create. Options: testing, latest'
+      publish:
+        type: boolean
+        default: true
+        description: 'Save the images to the Depot Registry so they can be tested and published. False for pull requests from forks.'
+      ref:
+        type: string
+        default: ${{ github.ref }}
+        description: 'The git ref to checkout (branch, tag, or commit SHA)'
+
+jobs:
+  images:
+    name: ${{ matrix.patch_version }}-${{ matrix.base_os }}
+    runs-on: depot-ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(inputs.matrix)[inputs.variation] }}
+    env:
+      IMAGE_NAME: ${{ matrix.php_variation }}-${{ matrix.patch_version }}-${{ matrix.base_os }}
+
+    steps:
+      - name: Check out code.
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Download PHP Versions file
+        uses: actions/download-artifact@v8
+        with:
+          name: php-versions.yml
+          path: ./artifacts
+
+      - name: Move PHP Versions file
+        run: mv ./artifacts/php-versions.yml ${{ inputs.php-versions-file }}
+
+      - name: Set up Depot CLI
+        uses: depot/setup-action@v1
+
+      - name: "📦 Assemble the Docker Tags"
+        run: |
+          chmod +x ./scripts/assemble-docker-tags.sh
+          ./scripts/assemble-docker-tags.sh
+        env:
+          PHP_VERSIONS_FILE: "${{ inputs.php-versions-file }}"
+          PHP_BUILD_VERSION: ${{ matrix.patch_version }}
+          PHP_BUILD_VARIATION: ${{ matrix.php_variation }}
+          PHP_BUILD_BASE_OS: ${{ matrix.base_os }}
+          DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
+          DOCKER_REGISTRY_REPOSITORIES: ${{ inputs.registry-repositories }}
+          RELEASE_TYPE: ${{ inputs.release-type }}
+          GITHUB_RELEASE_TAG: ${{ github.ref_name }}
+          GITHUB_REF_TYPE: ${{ github.ref_type }}
+
+      - name: Set REPOSITORY_BUILD_VERSION
+        id: set_version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" || "${{ inputs.ref }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Building from a tag (release or scheduled task)
+            echo "🚀 Setting REPOSITORY_BUILD_VERSION to Tag + Run ID"
+            if [[ "${{ github.ref_type }}" == "tag" ]]; then
+              VERSION="${{ github.ref_name }}"
+            else
+              VERSION="${{ inputs.ref }}"
+            fi
+            echo "REPOSITORY_BUILD_VERSION=${VERSION}-${{ github.run_id }}" >> "$GITHUB_ENV"
+          else
+            # Regular git build (PR, branch push, etc). Read the SHA from the checkout so
+            # builds dispatched for a PR number report the PR's commit, not the dispatched branch.
+            echo "👨‍🔬 Setting REPOSITORY_BUILD_VERSION to Git SHA + Run ID"
+            SHORT_SHA=$(git rev-parse --short=7 HEAD)
+            echo "REPOSITORY_BUILD_VERSION=git-${SHORT_SHA}-${{ github.run_id }}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Compute NGINX build-arg (only for fpm-nginx)
+        id: compute_nginx
+        if: ${{ matrix.php_variation == 'fpm-nginx' }}
+        run: |
+          if command -v yq >/dev/null 2>&1; then
+            VERSION=$(yq -r '.operating_systems[].versions[] | select(.version == "${{ matrix.base_os }}") | .nginx_version' '${{ inputs.php-versions-file }}' | head -n1)
+          else
+            VERSION=$(awk -v key="${{ matrix.base_os }}" 'BEGIN{found=0} $1=="version:" && $2==key {found=1} found && $1=="nginx_version:" {print $2; exit}' "${{ inputs.php-versions-file }}")
+          fi
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Unable to determine NGINX version for OS ${{ matrix.base_os }}" 1>&2
+            exit 1
+          fi
+          echo "nginx_arg=NGINX_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # Authentication: the Depot project ID comes from depot.json. Same-repo runs authenticate
+      # through the Depot OIDC trust relationship (id-token: write). Pull requests from forks
+      # have no OIDC token, so Depot falls back to its open-source pull request flow, which
+      # builds on ephemeral builders without the project cache (https://depot.dev/blog/github-actions-oss-fork-builds).
+      # Those runs have no registry secrets either, so nothing is saved; the image is loaded
+      # onto the runner for the test step below instead.
+      - name: Build images
+        id: build
+        uses: depot/build-push-action@v1
+        with:
+          file: src/variations/${{ matrix.php_variation }}/Dockerfile
+          build-args: |
+            BASE_OS_VERSION=${{ matrix.base_os }}
+            PHP_VERSION=${{ matrix.patch_version }}
+            PHP_VARIATION=${{ matrix.php_variation }}
+            REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
+            PHP_EXTENSION_OVERRIDES=${{ matrix.php_extension_overrides }}
+            ${{ steps.compute_nginx.outputs.nginx_arg }}
+          platforms: |
+            linux/amd64
+            linux/arm64/v8
+          pull: true
+          push: false
+          save: ${{ inputs.publish }}
+          save-tags: ${{ github.run_id }}-${{ env.IMAGE_NAME }}
+          load: ${{ !inputs.publish }}
+          tags: ${{ env.DOCKER_TAGS }}
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Supercharge your PHP experience with Docker images that are based off the official PHP images but are optimized to be run in production environments for Laravel and WordPress and more
+
+      # Images that are not saved cannot go through the test phase, so they are tested here
+      # on the runner's own architecture (amd64). arm64 is covered when a maintainer
+      # dispatches the workflow for the pull request.
+      - name: Test the image (amd64)
+        if: ${{ !inputs.publish }}
+        run: bash scripts/test-image.sh "${DOCKER_TAGS%%,*}" "${{ matrix.patch_version }}"
+
+      # The test, publish, and report workflows all read these files.
+      - name: Record image details
+        env:
+          PUBLISH: ${{ inputs.publish }}
+          BUILD_ID: ${{ steps.build.outputs.build-id }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          mkdir -p image-details
+          SAVED=null
+          if [ "$PUBLISH" = "true" ]; then
+            SAVED="\"registry.depot.dev/$(jq -r .id depot.json):${{ github.run_id }}-${IMAGE_NAME}\""
+          fi
+          jq -n \
+            --arg variation "${{ matrix.php_variation }}" \
+            --arg php "${{ matrix.patch_version }}" \
+            --arg os "${{ matrix.base_os }}" \
+            --arg tags "$DOCKER_TAGS" \
+            --arg build_id "$BUILD_ID" \
+            --arg digest "$DIGEST" \
+            --argjson saved "$SAVED" \
+            '{variation: $variation, php: $php, os: $os, tags: ($tags | split(",")), saved: $saved, build_id: $build_id, digest: $digest, published: false, sizes: {}}' \
+            | tee "image-details/${IMAGE_NAME}.json"
+
+      - name: Upload image details
+        uses: actions/upload-artifact@v7
+        with:
+          name: image-details-${{ env.IMAGE_NAME }}
+          path: image-details/
+          retention-days: 7

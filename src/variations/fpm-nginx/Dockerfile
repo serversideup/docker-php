@@ -41,7 +41,7 @@ RUN \
         mkdir -p /root/.gnupg && \
         \
         # Import signing key
-        curl "$SIGNING_KEY_URL" | gpg --dearmor | tee "$SIGNING_KEY_OUTPUT_FILE" && \
+        docker-php-serversideup-download "$SIGNING_KEY_URL" | gpg --dearmor | tee "$SIGNING_KEY_OUTPUT_FILE" && \
         \
         # Verify signing key
         VALID_KEY=$(gpg --dry-run --quiet --no-keyring --import --import-options import-show "$SIGNING_KEY_OUTPUT_FILE" | grep "$SIGNING_FINGERPRINT") && \
@@ -64,15 +64,15 @@ RUN \
         apk add --no-cache openssl curl ca-certificates && \
         \
         # Set up the APK repository for stable NGINX packages
-        printf "%s%s%s%s%s\n" \
+        printf "%s%s%s%s\n" \
             "@nginx " \
             "http://nginx.org/packages/alpine/v" \
-            "$(egrep -o '^[0-9]+\.[0-9]+' /etc/alpine-release)" \
+            "$(grep -Eo '^[0-9]+\.[0-9]+' /etc/alpine-release)" \
             "/main" \
             | tee -a /etc/apk/repositories && \
         \
         # Download the NGINX APK RSA repository key
-        curl -o /tmp/nginx_signing.rsa.pub https://nginx.org/keys/nginx_signing.rsa.pub && \
+        docker-php-serversideup-download https://nginx.org/keys/nginx_signing.rsa.pub /tmp/nginx_signing.rsa.pub && \
         \
         # Verify the key by pinning the SHA-256 of the DER-encoded public key.
         # Allow multiple hashes (comma-separated) for rotation via build args.
@@ -100,6 +100,7 @@ FROM ${BASE_IMAGE}
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi gettext shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin gettext-base procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
 ARG NGINX_VERSION='1.28.0-1'
 
@@ -131,10 +132,12 @@ ENV APP_BASE_DIR=/var/www/html \
     NGINX_WEBROOT=/var/www/html/public \
     NGINX_CLIENT_MAX_BODY_SIZE="100M" \
     PHP_DATE_TIMEZONE="UTC" \
+    PHP_DISABLE_FUNCTIONS="" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
     PHP_ERROR_LOG="/dev/stderr" \
     PHP_ERROR_REPORTING="22527" \
+    PHP_FILE_UPLOADS="On" \
     PHP_FPM_PM_CONTROL=ondemand \
     PHP_FPM_PM_MAX_CHILDREN="20" \
     PHP_FPM_PM_MAX_REQUESTS="0" \
@@ -144,7 +147,9 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_FPM_PM_STATUS_PATH="/status" \
     PHP_FPM_POOL_NAME="www" \
     PHP_FPM_PROCESS_CONTROL_TIMEOUT="10s" \
+    PHP_HTML_ERRORS="On" \
     PHP_MAX_EXECUTION_TIME="99" \
+    PHP_MAX_FILE_UPLOADS="20" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MAX_INPUT_VARS="1000" \
     PHP_MEMORY_LIMIT="256M" \
@@ -161,7 +166,9 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
     PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
+    PHP_REALPATH_CACHE_SIZE="4096K" \
     PHP_REALPATH_CACHE_TTL="120" \
+    PHP_SESSION_COOKIE_HTTPONLY="On" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     PHP_ZEND_DETECT_UNICODE="" \
@@ -173,7 +180,8 @@ ENV APP_BASE_DIR=/var/www/html \
     SHOW_WELCOME_MESSAGE=true \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
-    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key
+    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key \
+    TRUSTED_PROXY=cloudflare
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -214,7 +222,7 @@ RUN docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE} ng
     chown -R www-data:www-data /var/cache/nginx/ && \
     \
     # Install default PHP extensions
-    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS} && \
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}" && \
     \
     # clear all php provided fpm configurations
     rm -rf /usr/local/etc/php-fpm.d/*.conf && \
