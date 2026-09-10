@@ -8,7 +8,9 @@ if [ "$SHOW_WELCOME_MESSAGE" = "false" ] || [ "$DISABLE_DEFAULT_CONFIG" = "true"
 fi
 
 # Get OPcache status
-PHP_OPCACHE_STATUS=$(php -r 'echo ini_get("opcache.enable");')
+read -r PHP_OPCACHE_STATUS PHP_OPCACHE_VALIDATE_TIMESTAMPS_STATUS <<EOF
+$(php -r 'echo ini_get("opcache.enable"), " ", ini_get("opcache.validate_timestamps");')
+EOF
 
 if [ "$PHP_OPCACHE_STATUS" = "1" ]; then
     PHP_OPCACHE_MESSAGE="✅ Enabled"
@@ -61,4 +63,6 @@ Brought to you by serversideup.net
 
 if [ "$PHP_OPCACHE_STATUS" = "0" ]; then
     echo "👉 [NOTICE]: Improve PHP performance by setting PHP_OPCACHE_ENABLE=1 (recommended for production)."
+elif [ "$PHP_OPCACHE_VALIDATE_TIMESTAMPS_STATUS" = "0" ]; then
+    echo "👉 [NOTICE]: OPcache is in production mode (PHP_OPCACHE_VALIDATE_TIMESTAMPS=0). PHP files are cached until the container restarts. Restart after deploying code, or set PHP_OPCACHE_VALIDATE_TIMESTAMPS=1 if your code is mounted as a volume. Learn more: https://serversideup.net/open-source/docker-php/docs/guide/php-opcache-tuning"
 fi
