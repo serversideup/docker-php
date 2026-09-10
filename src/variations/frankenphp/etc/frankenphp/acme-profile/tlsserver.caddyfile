@@ -1,0 +1,7 @@
+# Request Let's Encrypt's "tlsserver" certificate profile.
+#
+# Note: configuring cert_issuer pins issuance to Let's Encrypt only (this
+# drops the default ZeroSSL fallback).
+cert_issuer acme {
+	profile tlsserver
+}

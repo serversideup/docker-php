@@ -4,42 +4,16 @@ php_variations:
   - name: fpm
   - name: fpm-apache
     supported_os: # Open a discussion on serversideup/php if you want to see Alpine support for fpm-apache (https://github.com/serversideup/docker-php/discussions/66)
-      - bullseye
       - bookworm
       - trixie
   - name: fpm-nginx
   - name: frankenphp
     excluded_minor_versions:
-      - "7.4"
-      - "8.0"
-      - "8.1"
       - "8.2"
 
 php_versions:
-  - major: "7"
-    minor_versions:
-      - minor: "7.4"
-        base_os:
-          - name: alpine3.16
-          - name: bullseye
-        patch_versions:
-          - 7.4.33
   - major: "8"
     minor_versions:
-      - minor: "8.0"
-        base_os:
-          - name: alpine3.16
-          - name: bullseye
-        patch_versions:
-          - 8.0.30
-      - minor: "8.1"
-        base_os:
-          - name: alpine3.21
-          - name: alpine3.22
-          - name: bookworm
-          - name: trixie
-        patch_versions:
-          # - 8.1.34 # Pull latest from Official PHP source
       - minor: "8.2"
         base_os:
           - name: alpine3.23
@@ -72,58 +46,41 @@ php_versions:
           - name: trixie
         patch_versions:
         #   - 8.5.8 # Pull latest from Official PHP source
+      # PHP 8.6 is blocked upstream: the official php:8.6-rc images no longer ship pecl/pear,
+      # and install-php-extensions does not support 8.6 yet (its pickle fallback is not 8.6
+      # compatible), so no PECL extension can be installed. Uncomment once that is resolved.
+      # https://github.com/serversideup/docker-php/issues/698
+      #
+      # - minor: "8.6-rc"
+      #   base_os:
+      #     - name: alpine3.23
+      #     - name: alpine3.24
+      #     - name: bookworm
+      #     - name: trixie
+      #   patch_versions:
+      #     - 8.6-rc
+      #   php_extension_overrides:
+      #     - redis=phpredis/phpredis@develop
 
 operating_systems:
   - family: alpine
     versions:
-      - name: "Alpine 3.16"
-        version: alpine3.16
-        number: 3.16
-        nginx_version: 1.26.1-r2
-      - name: "Alpine 3.17"
-        version: alpine3.17
-        number: 3.17
-        nginx_version: 1.26.2-r1
-      - name: "Alpine 3.18"
-        version: alpine3.18
-        number: 3.18
-        nginx_version: 1.28.0-r1
-      - name: "Alpine 3.19"
-        version: alpine3.19
-        number: 3.19
-        nginx_version: 1.28.0-r1
-      - name: "Alpine 3.20"
-        version: alpine3.20
-        number: 3.20
-        nginx_version: 1.28.3-r1
-      - name: "Alpine 3.21"
-        version: alpine3.21
-        number: 3.21
-        nginx_version: 1.30.1-r1
-      - name: "Alpine 3.22"
-        version: alpine3.22
-        number: 3.22
-        nginx_version: 1.30.1-r1
       - name: "Alpine 3.23"
         version: alpine3.23
         number: 3.23
-        nginx_version: 1.30.1-r1
+        nginx_version: 1.30.4-r1
       - name: "Alpine 3.24"
         version: alpine3.24
         number: 3.24
-        nginx_version: 1.30.3-r1
+        nginx_version: 1.30.4-r1
   - family: debian
     default: true
     versions:
-      - name: "Debian Bullseye"
-        version: bullseye
-        number: 11
-        nginx_version: 1.30.1-1~bullseye
       - name: "Debian Bookworm"
         version: bookworm
         number: 12
-        nginx_version: 1.30.1-1~bookworm
+        nginx_version: 1.30.4-1~bookworm
       - name: "Debian Trixie"
         version: trixie
         number: 13
-        nginx_version: 1.30.1-1~trixie
+        nginx_version: 1.30.4-1~trixie

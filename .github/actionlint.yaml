@@ -1,0 +1,11 @@
+# Runner labels that are not GitHub-hosted, so actionlint recognizes them.
+# https://depot.dev/docs/github-actions/runner-types
+self-hosted-runner:
+  labels:
+    - depot-ubuntu-24.04
+    - depot-ubuntu-24.04-4
+    - depot-ubuntu-24.04-8
+    - depot-ubuntu-24.04-16
+    - depot-ubuntu-24.04-arm
+    - depot-ubuntu-24.04-arm-4
+    - depot-ubuntu-24.04-arm-8

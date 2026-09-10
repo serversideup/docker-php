@@ -2,7 +2,7 @@
 ARG BASE_OS_VERSION='trixie'
 ARG PHP_VERSION='8.5'
 ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
-ARG FRANKENPHP_VERSION='1.12.3'
+ARG FRANKENPHP_VERSION='1.12.7'
 ARG GOLANG_VERSION='1.26'
 
 ########################
@@ -27,7 +27,8 @@ RUN set -eux; \
 		/etc/frankenphp/ssl-mode \
         /etc/frankenphp/log-level \
         /etc/frankenphp/auto-https \
-        /etc/frankenphp/caddyfile.d; \
+        /etc/frankenphp/caddyfile.d \
+        /etc/frankenphp/caddyfile-global.d; \
     # Create default index.php
 	echo '<?php phpinfo();' > /var/www/html/public/index.php; \
     # Create symbolic links
@@ -67,13 +68,14 @@ RUN docker-php-serversideup-dep-install-alpine "$PHPIZE_DEPS ${BUILD_DEPENDENCY_
 
 # Install e-dant/watcher (necessary for file watching)
 WORKDIR /usr/local/src/watcher
-RUN curl -s https://api.github.com/repos/e-dant/watcher/releases/latest | \
-    grep tarball_url | \
-    awk '{ print $2 }' | \
-    sed 's/,$//' | \
-    sed 's/"//g' | \
-    xargs curl -L | \
-    tar xz --strip-components 1 && \
+RUN WATCHER_TARBALL_URL=$(docker-php-serversideup-download https://api.github.com/repos/e-dant/watcher/releases/latest | \
+        grep tarball_url | \
+        awk '{ print $2 }' | \
+        sed 's/,$//' | \
+        sed 's/"//g') && \
+    docker-php-serversideup-download "$WATCHER_TARBALL_URL" /tmp/watcher.tar.gz && \
+    tar xz --strip-components 1 -f /tmp/watcher.tar.gz && \
+    rm -f /tmp/watcher.tar.gz && \
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
     cmake --build build && \
     cmake --install build && \
@@ -113,6 +115,7 @@ FROM common AS final
 ARG DEPENDENCY_PACKAGES_ALPINE='shadow libstdc++'
 ARG DEPENDENCY_PACKAGES_DEBIAN='procps libstdc++6 zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
@@ -126,6 +129,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
     ENV APP_BASE_DIR=/var/www/html \
+    CADDY_ACME_PROFILE="off" \
     CADDY_ADMIN="off" \
     CADDY_AUTO_HTTPS="off" \
     CADDY_GLOBAL_OPTIONS="" \
@@ -150,7 +154,9 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
     PHP_ERROR_LOG="/dev/stderr" \
     PHP_ERROR_REPORTING="22527" \
+    PHP_FILE_UPLOADS="On" \
     PHP_MAX_EXECUTION_TIME="99" \
+    PHP_MAX_FILE_UPLOADS="20" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MAX_INPUT_VARS="1000" \
     PHP_MEMORY_LIMIT="256M" \
@@ -176,6 +182,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE="/etc/ssl/private/self-signed-web.crt" \
     SSL_PRIVATE_KEY_FILE="/etc/ssl/private/self-signed-web.key" \
+    TRUSTED_PROXY=cloudflare \
     XDG_CONFIG_HOME=/config \
     XDG_DATA_HOME=/data
 
@@ -209,7 +216,7 @@ RUN \
     # Install PHP Extension installer
     docker-php-serversideup-install-php-ext-installer; \
     # Install default PHP extensions
-    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS}; \
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}"; \
     # Ensure permissions are set for www-data
     docker-php-serversideup-set-file-permissions --owner www-data:www-data --service frankenphp
 
