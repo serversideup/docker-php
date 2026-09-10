@@ -68,13 +68,14 @@ RUN docker-php-serversideup-dep-install-alpine "$PHPIZE_DEPS ${BUILD_DEPENDENCY_
 
 # Install e-dant/watcher (necessary for file watching)
 WORKDIR /usr/local/src/watcher
-RUN curl -s https://api.github.com/repos/e-dant/watcher/releases/latest | \
-    grep tarball_url | \
-    awk '{ print $2 }' | \
-    sed 's/,$//' | \
-    sed 's/"//g' | \
-    xargs curl -L | \
-    tar xz --strip-components 1 && \
+RUN WATCHER_TARBALL_URL=$(docker-php-serversideup-download https://api.github.com/repos/e-dant/watcher/releases/latest | \
+        grep tarball_url | \
+        awk '{ print $2 }' | \
+        sed 's/,$//' | \
+        sed 's/"//g') && \
+    docker-php-serversideup-download "$WATCHER_TARBALL_URL" /tmp/watcher.tar.gz && \
+    tar xz --strip-components 1 -f /tmp/watcher.tar.gz && \
+    rm -f /tmp/watcher.tar.gz && \
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
     cmake --build build && \
     cmake --install build && \

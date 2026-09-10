@@ -41,7 +41,7 @@ RUN \
         mkdir -p /root/.gnupg && \
         \
         # Import signing key
-        curl "$SIGNING_KEY_URL" | gpg --dearmor | tee "$SIGNING_KEY_OUTPUT_FILE" && \
+        docker-php-serversideup-download "$SIGNING_KEY_URL" | gpg --dearmor | tee "$SIGNING_KEY_OUTPUT_FILE" && \
         \
         # Verify signing key
         VALID_KEY=$(gpg --dry-run --quiet --no-keyring --import --import-options import-show "$SIGNING_KEY_OUTPUT_FILE" | grep "$SIGNING_FINGERPRINT") && \
@@ -64,15 +64,15 @@ RUN \
         apk add --no-cache openssl curl ca-certificates && \
         \
         # Set up the APK repository for stable NGINX packages
-        printf "%s%s%s%s%s\n" \
+        printf "%s%s%s%s\n" \
             "@nginx " \
             "http://nginx.org/packages/alpine/v" \
-            "$(egrep -o '^[0-9]+\.[0-9]+' /etc/alpine-release)" \
+            "$(grep -Eo '^[0-9]+\.[0-9]+' /etc/alpine-release)" \
             "/main" \
             | tee -a /etc/apk/repositories && \
         \
         # Download the NGINX APK RSA repository key
-        curl -o /tmp/nginx_signing.rsa.pub https://nginx.org/keys/nginx_signing.rsa.pub && \
+        docker-php-serversideup-download https://nginx.org/keys/nginx_signing.rsa.pub /tmp/nginx_signing.rsa.pub && \
         \
         # Verify the key by pinning the SHA-256 of the DER-encoded public key.
         # Allow multiple hashes (comma-separated) for rotation via build args.

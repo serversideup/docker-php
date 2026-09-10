@@ -138,7 +138,8 @@ get_alpine_version() {
     local url="$1"
     local pattern="$2"
     
-    local version=$(curl -s "$url" | grep -o "$pattern" | sort -V | tail -1)
+    local version
+    version=$(curl -s "$url" | grep -o "$pattern" | sort -V | tail -1)
     if [[ -n "$version" ]]; then
         # Extract version number from package name (e.g., nginx-1.24.0-r7.apk -> 1.24.0-r7)
         echo "$version" | sed 's/nginx-\(.*\)\.apk/\1/'
@@ -150,7 +151,8 @@ get_alpine_version() {
 get_debian_version() {
     local url="$1"
     
-    local version=$(curl -s "$url" \
+    local version
+    version=$(curl -s "$url" \
         | awk 'BEGIN{RS=""; FS="\n"} { pkg=0; ver=""; for (i=1;i<=NF;i++){ if ($i ~ /^Package: nginx$/) pkg=1; if ($i ~ /^Version:/){ split($i,a,": *"); ver=a[2]; } } if (pkg && ver!="") print ver; }' \
         | sort -V | tail -1)
     if [[ -n "$version" ]]; then

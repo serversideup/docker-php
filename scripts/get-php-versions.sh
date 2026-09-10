@@ -8,7 +8,10 @@
 #
 # 🔍 DOCKERHUB VALIDATION & FALLBACK
 # By default, this script validates that each PHP version from php.net is actually available 
-# on DockerHub before including it in the final configuration. If a version is not available:
+# on DockerHub before including it in the final configuration. Every base image our variations
+# pull (cli, fpm, zts) is checked on every base OS configured for that minor version, because
+# DockerHub publishes those tags in batches and a build fails if any one is missing.
+# If a version is not available:
 # 1. The script attempts to fall back to the previous patch version (e.g., 8.3.24 -> 8.3.23)
 # 2. A GitHub Actions warning is displayed explaining the fallback
 # 3. If the fallback version is also unavailable, the script exits with an error
@@ -77,6 +80,31 @@ check_dockerhub_php_version() {
     return 1
 }
 
+# Check every official base image our variations pull for this version (cli, fpm, zts)
+# on every base OS configured for its minor version. One missing tag fails the check.
+check_dockerhub_base_images() {
+    local version="$1"
+    local minor variant os base_os_list
+    minor=$(echo "$version" | cut -d'.' -f1-2)
+
+    base_os_list=$(yq -r ".php_versions[].minor_versions[] | select(.minor == \"$minor\") | .base_os[].name" "$BASE_PHP_VERSIONS_CONFIG_FILE")
+    if [ -z "$base_os_list" ]; then
+        echo_color_message yellow "⚠️  No base OS configured for PHP $minor. Checking the default cli image only." >&2
+        check_dockerhub_php_version "$version" "cli"
+        return $?
+    fi
+
+    for variant in cli fpm zts; do
+        for os in $base_os_list; do
+            if ! check_dockerhub_php_version "$version" "$variant" "$os"; then
+                echo_color_message red "❌ Missing on DockerHub: php:${version}-${variant}-${os}" >&2
+                return 1
+            fi
+        done
+    done
+    return 0
+}
+
 # Get previous patch version (e.g., 8.3.24 -> 8.3.23)
 get_previous_patch_version() {
     local version="$1"
@@ -124,8 +152,8 @@ validate_php_version_with_fallback() {
     
     echo_color_message yellow "🔍 Checking PHP version $version on DockerHub..." >&2
     
-    # Check if the version exists on DockerHub (using cli variant as reference)
-    if check_dockerhub_php_version "$version" "cli"; then
+    # Check that every base image we build from exists on DockerHub
+    if check_dockerhub_base_images "$version"; then
         echo_color_message green "✅ PHP $version is available on DockerHub" >&2
         echo "$version"  # Output to stdout for capture
         return 0
@@ -138,7 +166,7 @@ validate_php_version_with_fallback() {
             fallback_attempted=true
             echo_color_message yellow "⚠️  Attempting fallback to PHP $fallback_version..." >&2
             
-            if check_dockerhub_php_version "$fallback_version" "cli"; then
+            if check_dockerhub_base_images "$fallback_version"; then
                 # Output GitHub Actions annotation without color formatting
                 github_actions_annotation "warning" "PHP Version Fallback" "PHP $original_version is not available on DockerHub. Falling back to PHP $fallback_version. This may indicate that DockerHub has not yet published the latest PHP release. Consider checking DockerHub availability before updating to newer versions."
                 echo_color_message green "✅ Fallback successful: Using PHP $fallback_version" >&2
