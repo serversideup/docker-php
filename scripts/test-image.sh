@@ -46,6 +46,17 @@ done
 [ -z "$missing_extensions" ] || fail "PHP extensions not loaded:$missing_extensions"
 pass "Extensions loaded: $expected_extensions"
 
+# PHP_* environment variables reach php.ini through ${VAR} substitution. Override a few
+# of the different value types (size, boolean, list) and confirm PHP sees them.
+ini_values=$(docker run --rm \
+    --env PHP_MEMORY_LIMIT=512M \
+    --env PHP_REALPATH_CACHE_SIZE=8M \
+    --env PHP_SESSION_COOKIE_HTTPONLY=0 \
+    --env PHP_DISABLE_FUNCTIONS=shell_exec \
+    "$image" php -r 'echo ini_get("memory_limit"), " ", ini_get("realpath_cache_size"), " ", ini_get("session.cookie_httponly"), " ", ini_get("disable_functions");' | tail -n1)
+[ "$ini_values" = "512M 8M 0 shell_exec" ] || fail "PHP_* environment variables did not apply to php.ini. Got: $ini_values"
+pass "Environment variables apply to php.ini"
+
 has_healthcheck=$(docker image inspect --format '{{if .Config.Healthcheck}}yes{{end}}' "$image")
 if [ -z "$has_healthcheck" ]; then
     pass "No HEALTHCHECK defined, skipping startup check"
