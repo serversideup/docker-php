@@ -72,7 +72,7 @@
 	file_server
 
 	import performance
-	import security 
+	import security
 
 	{$CADDY_SERVER_EXTRA_DIRECTIVES}
 }
@@ -115,7 +115,7 @@
 
 	# Block PHP execution in storage directory to prevent uploaded malicious PHP files from running
 	# Reference: Livewire arbitrary file upload (GHSA-29cq-5w36-x7w3)
-	@storage-php path_regexp ^/storage/.*\.php$
+	@storage-php path_regexp ^/storage/.*\.php(?:/|$)
 	respond @storage-php 403
 
 	# Block access to files that may expose sensitive information
