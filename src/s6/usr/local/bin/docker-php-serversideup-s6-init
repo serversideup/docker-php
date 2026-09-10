@@ -27,6 +27,17 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
+# Services are skipped when they are not part of the image (e.g. nginx on an Apache image)
+add_dependency() {
+  service="$1"
+  dependency="$2"
+
+  if [ -d "${S6_HOME}/s6-rc.d/${service}" ]; then
+    mkdir -p "${S6_HOME}/s6-rc.d/${service}/dependencies.d"
+    touch "${S6_HOME}/s6-rc.d/${service}/dependencies.d/${dependency}"
+  fi
+}
+
 for file in "$ENTRYPOINT_DIR"/*.sh; do
   [ -e "$file" ] || continue # Skip if no files match
   
@@ -47,6 +58,9 @@ for file in "$ENTRYPOINT_DIR"/*.sh; do
     # Place empty file in contents.d
     touch "${S6_HOME}/s6-rc.d/user/contents.d/${script_name}"
 
+    # S6 Overlay recommends every user service depend on "base" to prevent race conditions
+    add_dependency "$script_name" base
+
     # Ensure the ${S6_HOME}/scripts/ directory exists
     mkdir -p "${S6_HOME}/scripts"
 
@@ -65,10 +79,7 @@ for file in "$ENTRYPOINT_DIR"/*.sh; do
     
     # Check if the previous script is not the current script and set as dependency
     if [ "$previous_script_name" != "$script_name" ] && [ -n "$previous_script_name" ]; then
-      dependencies_file="${S6_HOME}/s6-rc.d/${script_name}/dependencies"
-      touch "$dependencies_file"
-      echo "$previous_script_name" >> "$dependencies_file"
-      chmod 644 "$dependencies_file"
+      add_dependency "$script_name" "$previous_script_name"
     fi
 
     # Set the previous file for the next loop
@@ -78,3 +89,9 @@ for file in "$ENTRYPOINT_DIR"/*.sh; do
   fi
 
 done
+
+# Long-running services must wait for the oneshots that write their config, otherwise
+# they race the oneshots when the container runs as root (see #689).
+add_dependency php-fpm 5-fpm-pool-user
+add_dependency nginx 10-init-webserver-config
+add_dependency apache2 10-init-webserver-config

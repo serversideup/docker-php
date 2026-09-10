@@ -224,8 +224,8 @@ help_menu() {
     echo
     echo "Options:"
     echo "  --variation <variation>         Set the PHP variation (e.g., apache, fpm)"
-    echo "  --os <os>                       Set the base OS (e.g., bullseye, bookworm, alpine)"
-    echo "  --patch-version <patch-version> Set the PHP patch version (e.g., 7.4.10)"
+    echo "  --os <os>                       Set the base OS (e.g., bookworm, trixie, alpine)"
+    echo "  --patch-version <patch-version> Set the PHP patch version (e.g., 8.4.25)"
     echo "  --github-release-tag <tag>      Set the GitHub release tag"
     echo "  --stable-release                Flag the tags for a stable release"
     echo
