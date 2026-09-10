@@ -4,14 +4,17 @@ set -euo pipefail
 # Usage: build-summary.sh <image-details-dir> [expected-matrix-json]
 #
 # Renders a Markdown table of the images built in a CI run from the JSON files that
-# each build job records (see service_docker-build-and-publish.yml). The optional
-# matrix JSON, keyed by variation as produced by service_setup-matrix.yml, is used to
-# list images that never reported back so a failed build is visible in the table.
+# each build job records (see service_build-images.yml) and each publish job adds
+# (see service_publish-images.yml). When both exist for an image, the published one
+# wins because it carries the sizes. The optional matrix JSON, keyed by variation as
+# produced by service_setup-matrix.yml, is used to list images that never reported
+# back so a failed build is visible in the table.
 
 details_dir="${1:?Usage: build-summary.sh <image-details-dir> [expected-matrix-json]}"
 expected_matrix="${2:-{\}}"
 
-built=$(find "$details_dir" -name '*.json' -print0 | xargs -0 -r jq -s '.')
+built=$(find "$details_dir" -name '*.json' -print0 | xargs -0 -r jq -s '
+  group_by([.variation, .php, .os]) | map((map(select(.published)) | first) // .[0])')
 built="${built:-[]}"
 
 expected=$(echo "$expected_matrix" | jq -c '[.[]? | .include[] | {variation: .php_variation, php: .patch_version, os: .base_os}]')

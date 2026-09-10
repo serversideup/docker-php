@@ -25,7 +25,8 @@ assert_contains() {
 image_details=$(mktemp -d)
 trap 'rm -rf "$image_details"' EXIT
 image() { echo "$1" > "$image_details/$2.json"; }
-image '{"variation":"cli","php":"8.5.10","os":"trixie","tags":["docker.io/serversideup/php-dev:700-8.5.10-cli-trixie"],"saved":"registry.depot.dev/proj:1-x","published":true,"sizes":{"linux/amd64":195090095,"linux/arm64":187352117}}' newest-debian
+image '{"variation":"cli","php":"8.5.10","os":"trixie","tags":["docker.io/serversideup/php-dev:700-8.5.10-cli-trixie"],"saved":"registry.depot.dev/proj:1-x","published":false,"sizes":{}}' newest-debian
+image '{"variation":"cli","php":"8.5.10","os":"trixie","tags":["docker.io/serversideup/php-dev:700-8.5.10-cli-trixie"],"saved":"registry.depot.dev/proj:1-x","published":true,"sizes":{"linux/amd64":195090095,"linux/arm64":187352117}}' newest-debian.published
 image '{"variation":"cli","php":"8.5.10","os":"alpine3.24","tags":["docker.io/serversideup/php-dev:700-8.5.10-cli-alpine3.24"],"saved":"registry.depot.dev/proj:1-x","published":true,"sizes":{"linux/amd64":50000000,"linux/arm64":49900000}}' newest-alpine
 image '{"variation":"cli","php":"8.5.10","os":"alpine3.23","tags":["docker.io/serversideup/php-dev:700-8.5.10-cli-alpine3.23"],"saved":"registry.depot.dev/proj:1-x","published":true,"sizes":{"linux/amd64":49900000,"linux/arm64":49800000}}' older-alpine
 image '{"variation":"cli","php":"8.4.25","os":"trixie","tags":["docker.io/serversideup/php-dev:700-8.4.25-cli-trixie"],"saved":"registry.depot.dev/proj:1-x","published":true,"sizes":{"linux/amd64":191100000,"linux/arm64":183700000}}' older-php
@@ -48,6 +49,7 @@ echo "build-summary.sh"
 summary=$(bash "$scripts_dir/build-summary.sh" "$image_details" "$matrix")
 assert_contains "$summary" "## Images: 6 of 7 built" "counts built images against the planned matrix"
 assert_contains "$summary" "| 195.1 MB | 187.4 MB |" "formats compressed sizes in MB with one decimal"
+assert_contains "$summary" "| cli | 8.5.10 | trixie | 195.1 MB | 187.4 MB | \`serversideup/php-dev:700-8.5.10-cli-trixie\` |" "prefers the published record when the build record also exists"
 assert_contains "$summary" "| 50.0 MB | 49.9 MB |" "keeps a trailing zero so columns line up"
 assert_contains "$summary" "| cli | 8.4.25 | bookworm |  |  | ❌ not built |" "lists images that never reported back"
 assert_contains "$summary" "| built, not published |" "marks images that were built but not promoted"

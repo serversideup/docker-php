@@ -2,7 +2,10 @@ name: Test Images
 
 # Phase 2 of 3: pull every image the build phase saved to the Depot Registry and run
 # scripts/test-image.sh against each one on native amd64 and arm64 runners.
-# Publishing only happens if this phase passes.
+# Images are grouped by PHP version and base OS so one job pulls the variations that
+# share the same base layers. The jobs run on Depot runners (Depot sponsors this
+# project), which pull from the Depot Registry inside Depot's own network and have
+# no shared concurrency cap. Publishing only happens if this phase passes.
 on:
   workflow_call:
     inputs:
@@ -29,26 +32,31 @@ jobs:
           path: image-details
           merge-multiple: true
 
-      - name: List every saved image on both architectures
+      - name: Group the saved images by PHP version and base OS, on both architectures
         id: list
         run: |
           MATRIX=$(find image-details -name '*.json' -print0 | xargs -0 -r jq -s -c '
-            { include: [ .[] | select(.saved != null)
-              | { variation, php, os, saved }
-                + ({ runner: "ubuntu-24.04", arch: "amd64" }, { runner: "ubuntu-24.04-arm", arch: "arm64" }) ] }')
+            [ .[] | select(.saved != null) ]
+            | group_by([.php, .os])
+            | map({ php: .[0].php, os: .[0].os, images: (sort_by(.variation) | map({variation, saved}) | tojson) })
+            | { include: [ .[]
+                + ({ runner: "depot-ubuntu-24.04", arch: "amd64" }, { runner: "depot-ubuntu-24.04-arm", arch: "arm64" }) ] }')
           MATRIX="${MATRIX:-{\"include\":[]\}}"
-          COUNT=$(echo "$MATRIX" | jq '.include | length')
+          COUNT=$(echo "$MATRIX" | jq '[.include[].images | fromjson | length] | add // 0')
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
-          echo "$COUNT image tests:"
-          echo "$MATRIX" | jq -r '.include[] | "  \(.variation) \(.php)-\(.os) on \(.arch)"'
+          if [ "$COUNT" = "0" ]; then
+            echo "::notice title=No saved images::Nothing was saved to the Depot Registry, so there is nothing to test here. Pull requests from forks are tested inside their build jobs."
+          fi
+          echo "$COUNT image tests in $(echo "$MATRIX" | jq '.include | length') jobs:"
+          echo "$MATRIX" | jq -r '.include[] | "  \(.php)-\(.os) on \(.arch): \(.images | fromjson | map(.variation) | join(", "))"'
 
   images:
     needs: list
     if: needs.list.outputs.count > 0
-    name: ${{ matrix.variation }} ${{ matrix.php }}-${{ matrix.os }} ${{ matrix.arch }}
+    name: ${{ matrix.php }}-${{ matrix.os }} ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 10
+    timeout-minutes: 20
     permissions:
       contents: read
       id-token: write
@@ -69,8 +77,34 @@ jobs:
       - name: Login to the Depot Registry
         run: docker login registry.depot.dev --username x-token --password-stdin <<< "$(depot pull-token)"
 
-      - name: Pull the image
-        run: docker pull --quiet "${{ matrix.saved }}"
+      # Every image in the group is tested even after one fails, so a run shows every
+      # broken image at once instead of one per attempt.
+      - name: Test every image in the group
+        env:
+          IMAGES: ${{ matrix.images }}
+          PHP: ${{ matrix.php }}
+        run: |
+          FAILED=()
+          while IFS=$'\t' read -r VARIATION SAVED; do
+            echo "::group::${VARIATION} ${PHP}-${{ matrix.os }} ${{ matrix.arch }}"
+            if docker pull --quiet "$SAVED" && bash scripts/test-image.sh "$SAVED" "$PHP"; then
+              echo "| ✅ | $VARIATION |" >> results.md
+            else
+              echo "| ❌ | $VARIATION |" >> results.md
+              FAILED+=("$VARIATION")
+            fi
+            echo "::endgroup::"
+          done < <(echo "$IMAGES" | jq -r '.[] | [.variation, .saved] | @tsv')
 
-      - name: Test the image
-        run: bash scripts/test-image.sh "${{ matrix.saved }}" "${{ matrix.php }}"
+          {
+            echo "### ${PHP}-${{ matrix.os }} on ${{ matrix.arch }}"
+            echo ""
+            echo "| Result | Variation |"
+            echo "|---|---|"
+            cat results.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${#FAILED[@]}" -gt 0 ]; then
+            echo "::error title=Image tests failed::${FAILED[*]} failed for ${PHP}-${{ matrix.os }} on ${{ matrix.arch }}"
+            exit 1
+          fi

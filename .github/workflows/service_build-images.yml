@@ -4,6 +4,8 @@ name: Build Images
 # registry here. When publishing is requested, each image is saved to the Depot
 # Registry so the image tests can run against it and, if they pass,
 # service_publish-images.yml promotes the exact same image to Docker Hub and GHCR.
+# When it is not (pull requests from forks), the amd64 image is loaded onto the
+# runner and tested right here instead, so a green build still means a tested image.
 on:
   workflow_call:
     inputs:
@@ -125,8 +127,11 @@ jobs:
       # Authentication: the Depot project ID comes from depot.json. Same-repo runs authenticate
       # through the Depot OIDC trust relationship (id-token: write). Pull requests from forks
       # have no OIDC token, so Depot falls back to its open-source pull request flow, which
-      # builds on isolated builders and cannot save or push.
+      # builds on ephemeral builders without the project cache (https://depot.dev/blog/github-actions-oss-fork-builds).
+      # Those runs have no registry secrets either, so nothing is saved; the image is loaded
+      # onto the runner for the test step below instead.
       - name: Build images
+        id: build
         uses: depot/build-push-action@v1
         with:
           file: src/variations/${{ matrix.php_variation }}/Dockerfile
@@ -144,13 +149,23 @@ jobs:
           push: false
           save: ${{ inputs.publish }}
           save-tags: ${{ github.run_id }}-${{ env.IMAGE_NAME }}
+          load: ${{ !inputs.publish }}
           tags: ${{ env.DOCKER_TAGS }}
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Supercharge your PHP experience with Docker images that are based off the official PHP images but are optimized to be run in production environments for Laravel and WordPress and more
+
+      # Images that are not saved cannot go through the test phase, so they are tested here
+      # on the runner's own architecture (amd64). arm64 is covered when a maintainer
+      # dispatches the workflow for the pull request.
+      - name: Test the image (amd64)
+        if: ${{ !inputs.publish }}
+        run: bash scripts/test-image.sh "${DOCKER_TAGS%%,*}" "${{ matrix.patch_version }}"
 
       # The test, publish, and report workflows all read these files.
       - name: Record image details
         env:
           PUBLISH: ${{ inputs.publish }}
+          BUILD_ID: ${{ steps.build.outputs.build-id }}
+          DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           mkdir -p image-details
           SAVED=null
@@ -162,8 +177,10 @@ jobs:
             --arg php "${{ matrix.patch_version }}" \
             --arg os "${{ matrix.base_os }}" \
             --arg tags "$DOCKER_TAGS" \
+            --arg build_id "$BUILD_ID" \
+            --arg digest "$DIGEST" \
             --argjson saved "$SAVED" \
-            '{variation: $variation, php: $php, os: $os, tags: ($tags | split(",")), saved: $saved, published: false, sizes: {}}' \
+            '{variation: $variation, php: $php, os: $os, tags: ($tags | split(",")), saved: $saved, build_id: $build_id, digest: $digest, published: false, sizes: {}}' \
             | tee "image-details/${IMAGE_NAME}.json"
 
       - name: Upload image details

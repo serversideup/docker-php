@@ -1,8 +1,10 @@
 name: Publish Images
 
 # Phase 3 of 3: promote the exact images that passed the image tests from the Depot
-# Registry to Docker Hub and GHCR. No rebuild happens here; docker buildx imagetools
-# copies each multi-platform image by digest and applies every tag in one step.
+# Registry to Docker Hub and GHCR. No rebuild happens here and no image bytes pass
+# through the runner: `depot push` copies each saved build to every tag server-side,
+# and the published digest is checked against the one the build recorded. Depot
+# sponsors this project, so its runners are used for the phases that do real work.
 on:
   workflow_call:
     inputs:
@@ -33,13 +35,15 @@ jobs:
           path: image-details
           merge-multiple: true
 
-      - name: List the images saved for publishing
+      - name: Group the saved images by variation
         id: list
         run: |
           MATRIX=$(find image-details -name '*.json' -print0 | xargs -0 -r jq -s -c '
-            { include: [ .[] | select(.saved != null) | { variation, php, os, saved, tags: (.tags | join(",")) } ] }')
+            [ .[] | select(.saved != null) ]
+            | group_by(.variation)
+            | { include: map({ variation: .[0].variation, images: (map({php, os, saved, build_id, digest, tags}) | tojson) }) }')
           MATRIX="${MATRIX:-{\"include\":[]\}}"
-          COUNT=$(echo "$MATRIX" | jq '.include | length')
+          COUNT=$(echo "$MATRIX" | jq '[.include[].images | fromjson | length] | add // 0')
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
           echo "$COUNT images to publish"
@@ -47,9 +51,9 @@ jobs:
   images:
     needs: list
     if: needs.list.outputs.count > 0
-    name: ${{ matrix.variation }} ${{ matrix.php }}-${{ matrix.os }}
+    name: ${{ matrix.variation }}
     runs-on: depot-ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -57,8 +61,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.list.outputs.matrix) }}
-    env:
-      IMAGE_NAME: ${{ matrix.variation }}-${{ matrix.php }}-${{ matrix.os }}
     steps:
       - name: Check out code
         uses: actions/checkout@v6
@@ -69,9 +71,6 @@ jobs:
         uses: depot/setup-action@v1
         with:
           oidc: true
-
-      - name: Login to the Depot Registry
-        run: docker login registry.depot.dev --username x-token --password-stdin <<< "$(depot pull-token)"
 
       - name: Login to DockerHub
         uses: docker/login-action@v4
@@ -87,45 +86,79 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Promote the tested image to every tag
+      # Every image in the variation is attempted even after one fails, so a run shows
+      # every image that could not be published at once.
+      - name: Promote the tested images to every tag
         env:
-          SAVED: ${{ matrix.saved }}
-          TAGS: ${{ matrix.tags }}
+          IMAGES: ${{ matrix.images }}
+          VARIATION: ${{ matrix.variation }}
         run: |
-          TAG_ARGS=()
-          for tag in ${TAGS//,/ }; do
-            TAG_ARGS+=(--tag "$tag")
-          done
-          echo "Promoting $SAVED to ${#TAG_ARGS[@]} tags"
-          docker buildx imagetools create "${TAG_ARGS[@]}" "$SAVED"
-
-      - name: Record the published image
-        env:
-          SAVED: ${{ matrix.saved }}
-          TAGS: ${{ matrix.tags }}
-        run: |
-          CANONICAL_TAG="${TAGS%%,*}"
-          MANIFEST=$(docker manifest inspect -v "$CANONICAL_TAG") || MANIFEST='[]'
-          SIZES=$(echo "$MANIFEST" | jq '
-            [ .[] | select(.Descriptor.platform.os == "linux")
-              | { key: (.Descriptor.platform.os + "/" + .Descriptor.platform.architecture),
-                  value: ([ (.SchemaV2Manifest // .OCIManifest).layers[].size ] | add) } ]
-            | from_entries')
+          PROJECT=$(jq -r .id depot.json)
           mkdir -p image-details
-          jq -n \
-            --arg variation "${{ matrix.variation }}" \
-            --arg php "${{ matrix.php }}" \
-            --arg os "${{ matrix.os }}" \
-            --arg tags "$TAGS" \
-            --arg saved "$SAVED" \
-            --argjson sizes "$SIZES" \
-            '{variation: $variation, php: $php, os: $os, tags: ($tags | split(",")), saved: $saved, published: true, sizes: $sizes}' \
-            | tee "image-details/${IMAGE_NAME}.json"
+          FAILED=()
 
-      - name: Update image details
+          while IFS=$'\t' read -r PHP OS SAVED BUILD_ID DIGEST TAGS; do
+            IMAGE_NAME="${VARIATION}-${PHP}-${OS}"
+            echo "::group::${IMAGE_NAME}"
+
+            TAG_ARGS=()
+            for tag in ${TAGS//,/ }; do
+              TAG_ARGS+=(--tag "$tag")
+            done
+            echo "Pushing build $BUILD_ID to ${#TAG_ARGS[@]} tags"
+            if ! depot push --project "$PROJECT" --progress plain "${TAG_ARGS[@]}" "$BUILD_ID"; then
+              echo "::error title=Publish failed::${IMAGE_NAME} could not be pushed"
+              FAILED+=("$IMAGE_NAME")
+              echo "::endgroup::"
+              continue
+            fi
+
+            # What was published must be what was tested: the tested digest has to appear
+            # in the published index (as the index itself or one of its manifests).
+            CANONICAL_TAG="${TAGS%%,*}"
+            INDEX=$(docker buildx imagetools inspect --raw "$CANONICAL_TAG")
+            PUBLISHED_DIGESTS="sha256:$(printf '%s' "$INDEX" | sha256sum | cut -d' ' -f1) $(echo "$INDEX" | jq -r '.manifests[]?.digest' | tr '\n' ' ')"
+            if [ -z "$DIGEST" ]; then
+              echo "::warning title=Digest not recorded::${IMAGE_NAME} was published without a digest check because the build did not record one."
+            elif [[ " $PUBLISHED_DIGESTS " != *" $DIGEST "* ]]; then
+              echo "::error title=Digest mismatch::${IMAGE_NAME} published as $PUBLISHED_DIGESTS but the tested image was $DIGEST"
+              FAILED+=("$IMAGE_NAME")
+              echo "::endgroup::"
+              continue
+            else
+              echo "Published digest matches the tested image ($DIGEST)"
+            fi
+
+            MANIFEST=$(docker manifest inspect -v "$CANONICAL_TAG") || MANIFEST='[]'
+            SIZES=$(echo "$MANIFEST" | jq '
+              [ .[] | select(.Descriptor.platform.os == "linux")
+                | { key: (.Descriptor.platform.os + "/" + .Descriptor.platform.architecture),
+                    value: ([ (.SchemaV2Manifest // .OCIManifest).layers[].size ] | add) } ]
+              | from_entries')
+            jq -n \
+              --arg variation "$VARIATION" \
+              --arg php "$PHP" \
+              --arg os "$OS" \
+              --arg tags "$TAGS" \
+              --arg saved "$SAVED" \
+              --arg build_id "$BUILD_ID" \
+              --arg digest "$DIGEST" \
+              --argjson sizes "$SIZES" \
+              '{variation: $variation, php: $php, os: $os, tags: ($tags | split(",")), saved: $saved, build_id: $build_id, digest: $digest, published: true, sizes: $sizes}' \
+              | tee "image-details/${IMAGE_NAME}.published.json"
+            echo "::endgroup::"
+          done < <(echo "$IMAGES" | jq -r '.[] | [.php, .os, .saved, .build_id, .digest, (.tags | join(","))] | @tsv')
+
+          if [ "${#FAILED[@]}" -gt 0 ]; then
+            echo "::error title=Publish failed::${FAILED[*]} were not published"
+            exit 1
+          fi
+
+      - name: Record the published images
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: image-details-${{ env.IMAGE_NAME }}
+          name: image-details-published-${{ matrix.variation }}
           path: image-details/
           retention-days: 7
-          overwrite: true
+          if-no-files-found: ignore
