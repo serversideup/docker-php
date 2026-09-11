@@ -63,5 +63,5 @@ Brought to you by serversideup.net
 if [ "$PHP_OPCACHE_STATUS" = "0" ]; then
     echo "👉 [NOTICE]: Improve PHP performance by setting PHP_OPCACHE_ENABLE=1 (recommended for production)."
 elif [ "$PHP_OPCACHE_VALIDATE_TIMESTAMPS_STATUS" = "0" ]; then
-    echo "👉 [NOTICE]: OPcache is in production mode. Code changes require a container restart. Learn more: https://serversideup.net/open-source/docker-php/docs/guide/php-opcache-tuning"
+    echo "👉 [NOTICE]: OPcache is enabled and PHP_OPCACHE_VALIDATE_TIMESTAMPS=0. Code changes require a container restart. Learn more: https://serversideup.net/open-source/docker-php/docs/guide/production-performance-tuning#php-opcache"
 fi
