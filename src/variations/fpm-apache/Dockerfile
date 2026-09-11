@@ -25,6 +25,7 @@ FROM ${BASE_IMAGE}
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi apache2 shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin apache2 procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='mysqli opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (fpm-apache)" \
@@ -57,10 +58,12 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     HEALTHCHECK_PATH="/healthcheck" \
     LOG_OUTPUT_LEVEL=warn \
     PHP_DATE_TIMEZONE="UTC" \
+    PHP_DISABLE_FUNCTIONS="" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
     PHP_ERROR_LOG="/dev/stderr" \
     PHP_ERROR_REPORTING="22527" \
+    PHP_FILE_UPLOADS="On" \
     PHP_FPM_PM_CONTROL=ondemand \
     PHP_FPM_PM_MAX_CHILDREN="20" \
     PHP_FPM_PM_MAX_REQUESTS="0" \
@@ -70,7 +73,9 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     PHP_FPM_PM_STATUS_PATH="/status" \
     PHP_FPM_POOL_NAME="www" \
     PHP_FPM_PROCESS_CONTROL_TIMEOUT="10s" \
+    PHP_HTML_ERRORS="On" \
     PHP_MAX_EXECUTION_TIME="99" \
+    PHP_MAX_FILE_UPLOADS="20" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MAX_INPUT_VARS="1000" \
     PHP_MEMORY_LIMIT="256M" \
@@ -87,7 +92,9 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
     PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
+    PHP_REALPATH_CACHE_SIZE="4096K" \
     PHP_REALPATH_CACHE_TTL="120" \
+    PHP_SESSION_COOKIE_HTTPONLY="On" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     PHP_ZEND_DETECT_UNICODE="" \
@@ -99,7 +106,8 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     SHOW_WELCOME_MESSAGE=true \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE=/etc/ssl/private/self-signed-web.crt \
-    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key
+    SSL_PRIVATE_KEY_FILE=/etc/ssl/private/self-signed-web.key \
+    TRUSTED_PROXY=cloudflare
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -128,7 +136,7 @@ RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
     \
     # Install default PHP extensions
-    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS} && \
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}" && \
     \
     # redirect logs to STDOUT and STERR
     ln -sf /dev/stdout /var/log/apache2/access.log && \

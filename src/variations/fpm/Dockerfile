@@ -10,6 +10,7 @@ FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
 ARG DEPENDENCY_PACKAGES_ALPINE='fcgi shadow'
 ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin procps zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (fpm)" \
@@ -29,10 +30,12 @@ ENV APP_BASE_DIR=/var/www/html \
     DISABLE_DEFAULT_CONFIG=false \
     LOG_OUTPUT_LEVEL=warn \
     PHP_DATE_TIMEZONE="UTC" \
+    PHP_DISABLE_FUNCTIONS="" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
     PHP_ERROR_LOG="/dev/stderr" \
     PHP_ERROR_REPORTING="22527" \
+    PHP_FILE_UPLOADS="On" \
     PHP_FPM_PM_CONTROL=dynamic \
     PHP_FPM_PM_MAX_CHILDREN="20" \
     PHP_FPM_PM_MAX_REQUESTS="0" \
@@ -42,7 +45,9 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_FPM_PM_STATUS_PATH="/status" \
     PHP_FPM_POOL_NAME="www" \
     PHP_FPM_PROCESS_CONTROL_TIMEOUT="10s" \
+    PHP_HTML_ERRORS="On" \
     PHP_MAX_EXECUTION_TIME="99" \
+    PHP_MAX_FILE_UPLOADS="20" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MAX_INPUT_VARS="1000" \
     PHP_MEMORY_LIMIT="256M" \
@@ -59,7 +64,9 @@ ENV APP_BASE_DIR=/var/www/html \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
     PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
+    PHP_REALPATH_CACHE_SIZE="4096K" \
     PHP_REALPATH_CACHE_TTL="120" \
+    PHP_SESSION_COOKIE_HTTPONLY="On" \
     PHP_SESSION_COOKIE_SECURE=Off \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     PHP_ZEND_DETECT_UNICODE="" \
@@ -88,11 +95,11 @@ RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
     \
     # Ensure "php-fpm-healthcheck" is installed
     echo "⬇️ Downloading php-fpm-healthcheck..." && \
-    curl -o /usr/local/bin/php-fpm-healthcheck https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.6.0/php-fpm-healthcheck && \
+    docker-php-serversideup-download https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.6.0/php-fpm-healthcheck /usr/local/bin/php-fpm-healthcheck && \
     chmod +x /usr/local/bin/php-fpm-healthcheck && \
     \
     # Install default PHP extensions
-    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS}
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}"
 
 # copy our fpm configurations
 COPY src/php-fpm.d/ /

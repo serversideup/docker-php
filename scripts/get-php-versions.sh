@@ -8,7 +8,10 @@
 #
 # 🔍 DOCKERHUB VALIDATION & FALLBACK
 # By default, this script validates that each PHP version from php.net is actually available 
-# on DockerHub before including it in the final configuration. If a version is not available:
+# on DockerHub before including it in the final configuration. Every base image our variations
+# pull (cli, fpm, zts) is checked on every base OS configured for that minor version, because
+# DockerHub publishes those tags in batches and a build fails if any one is missing.
+# If a version is not available:
 # 1. The script attempts to fall back to the previous patch version (e.g., 8.3.24 -> 8.3.23)
 # 2. A GitHub Actions warning is displayed explaining the fallback
 # 3. If the fallback version is also unavailable, the script exits with an error
@@ -41,7 +44,7 @@ check_dockerhub_php_version() {
     local os="${3:-}"
     
     local image_tag
-    if [ -n "$os" ] && [ "$os" != "bullseye" ] && [ "$os" != "bookworm" ]; then
+    if [ -n "$os" ] && [ "$os" != "bookworm" ]; then
         image_tag="${version}-${variant}-${os}"
     else
         image_tag="${version}-${variant}"
@@ -75,6 +78,31 @@ check_dockerhub_php_version() {
     # If we get here, all retries failed
     echo_color_message red "❌ Failed to check DockerHub after $max_retries attempts for $image_tag"
     return 1
+}
+
+# Check every official base image our variations pull for this version (cli, fpm, zts)
+# on every base OS configured for its minor version. One missing tag fails the check.
+check_dockerhub_base_images() {
+    local version="$1"
+    local minor variant os base_os_list
+    minor=$(echo "$version" | cut -d'.' -f1-2)
+
+    base_os_list=$(yq -r ".php_versions[].minor_versions[] | select(.minor == \"$minor\") | .base_os[].name" "$BASE_PHP_VERSIONS_CONFIG_FILE")
+    if [ -z "$base_os_list" ]; then
+        echo_color_message yellow "⚠️  No base OS configured for PHP $minor. Checking the default cli image only." >&2
+        check_dockerhub_php_version "$version" "cli"
+        return $?
+    fi
+
+    for variant in cli fpm zts; do
+        for os in $base_os_list; do
+            if ! check_dockerhub_php_version "$version" "$variant" "$os"; then
+                echo_color_message red "❌ Missing on DockerHub: php:${version}-${variant}-${os}" >&2
+                return 1
+            fi
+        done
+    done
+    return 0
 }
 
 # Get previous patch version (e.g., 8.3.24 -> 8.3.23)
@@ -124,8 +152,8 @@ validate_php_version_with_fallback() {
     
     echo_color_message yellow "🔍 Checking PHP version $version on DockerHub..." >&2
     
-    # Check if the version exists on DockerHub (using cli variant as reference)
-    if check_dockerhub_php_version "$version" "cli"; then
+    # Check that every base image we build from exists on DockerHub
+    if check_dockerhub_base_images "$version"; then
         echo_color_message green "✅ PHP $version is available on DockerHub" >&2
         echo "$version"  # Output to stdout for capture
         return 0
@@ -138,7 +166,7 @@ validate_php_version_with_fallback() {
             fallback_attempted=true
             echo_color_message yellow "⚠️  Attempting fallback to PHP $fallback_version..." >&2
             
-            if check_dockerhub_php_version "$fallback_version" "cli"; then
+            if check_dockerhub_base_images "$fallback_version"; then
                 # Output GitHub Actions annotation without color formatting
                 github_actions_annotation "warning" "PHP Version Fallback" "PHP $original_version is not available on DockerHub. Falling back to PHP $fallback_version. This may indicate that DockerHub has not yet published the latest PHP release. Consider checking DockerHub availability before updating to newer versions."
                 echo_color_message green "✅ Fallback successful: Using PHP $fallback_version" >&2
@@ -237,8 +265,54 @@ function echo_color_message (){
 
 if [ "$SKIP_DOWNLOAD" = false ]; then
     echo_color_message yellow "⚡️ Getting PHP Versions from $PHP_VERSIONS_ACTIVE_JSON_FEED"
-    # Fetch the JSON from the PHP website
-    php_net_version_json=$(curl -s $PHP_VERSIONS_ACTIVE_JSON_FEED)
+
+    # Fetch the JSON from the PHP website with retry logic and validation
+    max_retries=3
+    retry_count=0
+    php_net_version_json=""
+
+    while [ $retry_count -lt $max_retries ]; do
+        http_code=$(curl -s -o /tmp/php_versions_response.json -w "%{http_code}" --max-time 30 --connect-timeout 10 -A "serversideup-docker-php/1.0 (https://github.com/serversideup/docker-php)" "$PHP_VERSIONS_ACTIVE_JSON_FEED")
+
+        if [ "$http_code" = "200" ]; then
+            php_net_version_json=$(cat /tmp/php_versions_response.json)
+            rm -f /tmp/php_versions_response.json
+
+            # Validate that the response is actually JSON
+            if echo "$php_net_version_json" | jq empty 2>/dev/null; then
+                break
+            else
+                echo_color_message red "❌ Response from php.net returned HTTP $http_code but body is not valid JSON."
+                echo_color_message red "--- Response Body (first 500 chars) ---"
+                echo "$php_net_version_json" | head -c 500
+                echo ""
+                echo_color_message red "--- End Response Body ---"
+                php_net_version_json=""
+            fi
+        else
+            echo_color_message red "❌ Failed to fetch PHP versions from php.net (HTTP $http_code)"
+            if [ -f /tmp/php_versions_response.json ]; then
+                echo_color_message red "--- Response Body (first 500 chars) ---"
+                head -c 500 /tmp/php_versions_response.json
+                echo ""
+                echo_color_message red "--- End Response Body ---"
+                rm -f /tmp/php_versions_response.json
+            fi
+        fi
+
+        retry_count=$((retry_count + 1))
+        if [ $retry_count -lt $max_retries ]; then
+            wait_time=$((retry_count * 5))
+            echo_color_message yellow "⚠️  Retrying in ${wait_time}s... (attempt $((retry_count + 1))/$max_retries)"
+            sleep "$wait_time"
+        fi
+    done
+
+    if [ -z "$php_net_version_json" ]; then
+        echo_color_message red "❌ Failed to fetch valid JSON from $PHP_VERSIONS_ACTIVE_JSON_FEED after $max_retries attempts"
+        echo "::error title=PHP Version Fetch Failed::Failed to get valid JSON from php.net after $max_retries attempts. The server may be returning a Cloudflare challenge, rate limiting, or experiencing an outage. Check the response body logged above for details."
+        exit 1
+    fi
 
     # Parse the fetched JSON data and optionally validate PHP versions on DockerHub
     if [ "$SKIP_DOCKERHUB_VALIDATION" = true ]; then
@@ -350,7 +424,8 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
                         | map({
                             minor: .[0].minor,
                             base_os: (map(.base_os // []) | add),
-                            patch_versions: (map(.patch_versions // []) | flatten | unique | select(. != null))
+                            patch_versions: (map(.patch_versions // []) | flatten | unique | select(. != null)),
+                            php_extension_overrides: (map(.php_extension_overrides // []) | add | unique)
                         })
                     )
                 })

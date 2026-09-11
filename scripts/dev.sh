@@ -71,7 +71,8 @@ check_vars() {
 }
 
 detect_platform() {
-    local arch=$(uname -m)
+    local arch
+    arch=$(uname -m)
     case $arch in
         x86_64)
             echo "linux/amd64"
@@ -84,6 +85,14 @@ detect_platform() {
             exit 1
             ;;
     esac
+}
+
+php_minor_version() {
+  if [[ "$1" == *-rc ]]; then
+    echo "$1"
+  else
+    echo "$1" | cut -d. -f1,2
+  fi
 }
 
 build_docker_image() {
@@ -103,6 +112,10 @@ build_docker_image() {
 
   if [ -n "$NGINX_VERSION" ] && [ "$PHP_BUILD_VARIATION" = "fpm-nginx" ]; then
     build_args+=(--build-arg "NGINX_VERSION=$NGINX_VERSION")
+  fi
+
+  if [ -n "$PHP_EXTENSION_OVERRIDES" ]; then
+    build_args+=(--build-arg "PHP_EXTENSION_OVERRIDES=$PHP_EXTENSION_OVERRIDES")
   fi
 
   docker buildx build \
@@ -131,8 +144,8 @@ help_menu() {
     echo
     echo "Options:"
     echo "  --variation <variation>   Set the PHP variation (e.g., apache, fpm)"
-    echo "  --version <version>       Set the PHP version (e.g., 7.4, 8.0)"
-    echo "  --os <os>                 Set the base OS (e.g., bullseye, bookworm, alpine)"
+    echo "  --version <version>       Set the PHP version (e.g., 8.4, 8.5)"
+    echo "  --os <os>                 Set the base OS (e.g., bookworm, trixie, alpine)"
     echo "  --prefix <prefix>         Set the prefix for the Docker image (e.g., beta)"
     echo "  --registry <registry>     Set a custom registry (e.g., localhost:5000)"
     echo "  --platform <platform>     Set the platform (default: detected from system architecture)"
@@ -195,6 +208,17 @@ check_vars \
   PHP_BUILD_VARIATION \
   PHP_BUILD_VERSION \
   PHP_BUILD_BASE_OS
+
+# Auto-resolve PHP extension source overrides for the minor version being built
+if [ -z "$PHP_EXTENSION_OVERRIDES" ]; then
+  PHP_EXTENSION_OVERRIDES=$(MINOR="$(php_minor_version "$PHP_BUILD_VERSION")" yq -r '
+    [.php_versions[].minor_versions[] | select(.minor == env(MINOR)) | .php_extension_overrides // [] | .[]] | join(" ")
+  ' "$BASE_PHP_VERSIONS_CONFIG_FILE")
+
+  if [ -n "$PHP_EXTENSION_OVERRIDES" ]; then
+    echo_color_message green "✅ Using PHP extension overrides '$PHP_EXTENSION_OVERRIDES' for PHP '$PHP_BUILD_VERSION'"
+  fi
+fi
 
 # Auto-resolve NGINX version for fpm-nginx if not provided
 if [ -z "$NGINX_VERSION" ] && [ "$PHP_BUILD_VARIATION" = "fpm-nginx" ]; then
