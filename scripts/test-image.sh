@@ -48,14 +48,23 @@ pass "Extensions loaded: $expected_extensions"
 
 # PHP_* environment variables reach php.ini through ${VAR} substitution. Override a few
 # of the different value types (size, boolean, list) and confirm PHP sees them.
+# OPcache is enabled so the CLI SAPI also allocates the shared cache with the tuned defaults.
 ini_values=$(docker run --rm \
     --env PHP_MEMORY_LIMIT=512M \
     --env PHP_REALPATH_CACHE_SIZE=8M \
     --env PHP_SESSION_COOKIE_HTTPONLY=0 \
     --env PHP_DISABLE_FUNCTIONS=shell_exec \
-    "$image" php -r 'echo ini_get("memory_limit"), " ", ini_get("realpath_cache_size"), " ", ini_get("session.cookie_httponly"), " ", ini_get("disable_functions");' | tail -n1)
-[ "$ini_values" = "512M 8M 0 shell_exec" ] || fail "PHP_* environment variables did not apply to php.ini. Got: $ini_values"
+    --env PHP_OPCACHE_ENABLE=1 \
+    --env PHP_OPCACHE_FORCE_RESTART_TIMEOUT=60 \
+    "$image" php -r 'echo ini_get("memory_limit"), " ", ini_get("realpath_cache_size"), " ", ini_get("session.cookie_httponly"), " ", ini_get("disable_functions"), " ", ini_get("opcache.force_restart_timeout");' | tail -n1)
+[ "$ini_values" = "512M 8M 0 shell_exec 60" ] || fail "PHP_* environment variables did not apply to php.ini. Got: $ini_values"
 pass "Environment variables apply to php.ini"
+
+# PHP_OPCACHE_ENABLE_CLI turns OPcache off for the CLI SAPI while opcache.enable stays on for the web server.
+cli_opcache=$(docker run --rm --env PHP_OPCACHE_ENABLE=1 --env PHP_OPCACHE_ENABLE_CLI=0 \
+    "$image" php -r 'echo function_exists("opcache_get_status") && opcache_get_status(false) !== false ? "on" : "off";' | tail -n1)
+[ "$cli_opcache" = "off" ] || fail "PHP_OPCACHE_ENABLE_CLI=0 did not disable OPcache for the CLI. Got: $cli_opcache"
+pass "PHP_OPCACHE_ENABLE_CLI disables the CLI cache"
 
 has_healthcheck=$(docker image inspect --format '{{if .Config.Healthcheck}}yes{{end}}' "$image")
 if [ -z "$has_healthcheck" ]; then
@@ -76,7 +85,9 @@ for pair in NGINX_HTTP_PORT:NGINX_WEBROOT APACHE_HTTP_PORT:APACHE_DOCUMENT_ROOT 
     fi
 done
 
-run_args=(--detach --rm)
+# Web images run with OPcache enabled so the health check and the served page
+# cover the FPM and FrankenPHP SAPIs starting with the tuned defaults.
+run_args=(--detach --rm --env PHP_OPCACHE_ENABLE=1)
 if [ -n "$http_port" ]; then
     # The container runs unprivileged, so the mounted document root must be world readable.
     web_dir=$(mktemp -d)

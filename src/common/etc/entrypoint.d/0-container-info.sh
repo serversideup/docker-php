@@ -9,6 +9,7 @@ fi
 
 # Get OPcache status
 PHP_OPCACHE_STATUS=$(php -r 'echo ini_get("opcache.enable");')
+PHP_OPCACHE_VALIDATE_TIMESTAMPS_STATUS=$(php -r 'echo ini_get("opcache.validate_timestamps");')
 
 if [ "$PHP_OPCACHE_STATUS" = "1" ]; then
     PHP_OPCACHE_MESSAGE="✅ Enabled"
@@ -61,4 +62,6 @@ Brought to you by serversideup.net
 
 if [ "$PHP_OPCACHE_STATUS" = "0" ]; then
     echo "👉 [NOTICE]: Improve PHP performance by setting PHP_OPCACHE_ENABLE=1 (recommended for production)."
+elif [ "$PHP_OPCACHE_VALIDATE_TIMESTAMPS_STATUS" = "0" ]; then
+    echo "👉 [NOTICE]: OPcache is enabled and PHP_OPCACHE_VALIDATE_TIMESTAMPS=0. Code changes require a container restart. Learn more: https://serversideup.net/docker-php/performance/"
 fi
