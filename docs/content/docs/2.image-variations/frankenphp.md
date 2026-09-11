@@ -370,8 +370,8 @@ For a complete list of available environment variables, see the [Environment Var
 | `PHP_MAX_FILE_UPLOADS` | `20` | Maximum number of files per request |
 | `PHP_POST_MAX_SIZE` | `100M` | Maximum POST request size |
 | `PHP_OPCACHE_ENABLE` | `0` | Enable OPcache (`0`/`1`) |
-| `PHP_OPCACHE_REVALIDATE_FREQ` | `2` | How often to check for file changes (seconds) |
-| `PHP_OPCACHE_VALIDATE_TIMESTAMPS` | `1` | Whether to validate timestamps (`0`/`1`) |
+| `PHP_OPCACHE_REVALIDATE_FREQ` | `2` | How often to check for file changes (seconds), only when timestamps are validated |
+| `PHP_OPCACHE_VALIDATE_TIMESTAMPS` | `0` | Whether to check files for changes (`0`/`1`). Set to `1` when mounting code as a volume with OPcache enabled |
 
 ## Caddy Configuration
 FrankenPHP uses Caddy's configuration format (Caddyfile) instead of NGINX configuration.
