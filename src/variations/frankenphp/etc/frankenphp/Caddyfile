@@ -15,6 +15,8 @@
 
 	frankenphp {
 		{$FRANKENPHP_CONFIG}
+		{$CADDY_SERVER_WORKER_DIRECTIVE}
+		{$CADDY_SERVER_WATCH_DIRECTIVES}
 	}
 
 	import trusted-proxy/{$TRUSTED_PROXY:cloudflare}.caddyfile
