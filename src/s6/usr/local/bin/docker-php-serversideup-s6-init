@@ -5,9 +5,16 @@ set -e
 # Usage: docker-php-serversideup-s6-init
 ###############################################
 # This script is used to take scripts from "/etc/entrypoint.d" and move them
-# to the S6 Overlay structure.
+# to the S6 Overlay structure. Every script becomes an s6-rc "oneshot" that runs
+# in the same order the entrypoint would have run it, and the long-running
+# services only start once the last oneshot has finished.
+#
+# Layout reference: https://github.com/just-containers/s6-overlay#writing-a-service-script
+# Service definition format: https://skarnet.org/software/s6-rc/s6-rc-compile.html#source
 
 S6_HOME="/etc/s6-overlay"
+S6_SCRIPTS_DIR="${S6_HOME}/scripts"
+S6_USER_BUNDLE_DIR="${S6_RUNTIME_BUNDLEDIR:-${S6_HOME}/user-bundles.d}/user"
 ENTRYPOINT_DIR="/etc/entrypoint.d"
 
 # Sanity checks
@@ -18,6 +25,12 @@ fi
 
 if [ ! -d "$S6_HOME" ]; then
     echo "Error: S6_HOME directory ($S6_HOME) not found"
+    exit 1
+fi
+
+# S6 Overlay v3.2.3.2 moved the "user" bundle from s6-rc.d to user-bundles.d
+if [ ! -d "${S6_USER_BUNDLE_DIR}/contents.d" ]; then
+    echo "Error: S6 Overlay user bundle (${S6_USER_BUNDLE_DIR}/contents.d) not found"
     exit 1
 fi
 
@@ -38,60 +51,52 @@ add_dependency() {
   fi
 }
 
-for file in "$ENTRYPOINT_DIR"/*.sh; do
-  [ -e "$file" ] || continue # Skip if no files match
-  
-  # Get the base name of the file
+mkdir -p "$S6_SCRIPTS_DIR"
+previous_script_name=""
+
+# The entrypoint runs the scripts sequentially in version-sort order, so each
+# oneshot depends on the one before it to keep that order under S6
+while IFS= read -r file; do
+  [ -n "$file" ] || continue
+
   script_name=$(basename "$file" .sh)
+  service_dir="${S6_HOME}/s6-rc.d/${script_name}"
 
-  # Proceed only if the script does not exist
-  if [ ! -e "${S6_HOME}/scripts/${script_name}" ]; then
-    # Create the service directory for that file
-    mkdir -p "${S6_HOME}/s6-rc.d/${script_name}"
-    
-    # Set service type to "oneshot"
-    echo "oneshot" > "${S6_HOME}/s6-rc.d/${script_name}/type"
+  if [ -e "${S6_SCRIPTS_DIR}/${script_name}" ]; then
+    echo "Skipping ${script_name} because it already exists at ${S6_SCRIPTS_DIR}/${script_name}"
+  else
+    mkdir -p "$service_dir"
+    echo "oneshot" > "${service_dir}/type"
+    echo "${S6_SCRIPTS_DIR}/${script_name}" > "${service_dir}/up"
 
-    # Set the "up" script
-    echo "${S6_HOME}/scripts/${script_name}" > "${S6_HOME}/s6-rc.d/${script_name}/up"
-
-    # Place empty file in contents.d
-    touch "${S6_HOME}/s6-rc.d/user/contents.d/${script_name}"
+    # Add the service to the "user" bundle so S6 Overlay starts it at container boot
+    touch "${S6_USER_BUNDLE_DIR}/contents.d/${script_name}"
 
     # S6 Overlay recommends every user service depend on "base" to prevent race conditions
     add_dependency "$script_name" base
 
-    # Ensure the ${S6_HOME}/scripts/ directory exists
-    mkdir -p "${S6_HOME}/scripts"
-
-    # Move the script to the S6 Overlay scripts directory
-    mv "${file}" "${S6_HOME}/scripts/${script_name}"
-
-    # Ensure the script has the correct file header for S6
-    sed -i '1s%^#!/bin/sh$%#!/command/with-contenv sh%' "${S6_HOME}/scripts/${script_name}"
-
-    # Find the script that should be the dependency based on alphabetical order
-    previous_script_name=$(find "${S6_HOME}/s6-rc.d/" -maxdepth 1 -type d -name '[0-9]*' | \
-                    sort -V | \
-                    grep -B1 "${script_name}" | \
-                    head -n 1 | \
-                    xargs basename)
-    
-    # Check if the previous script is not the current script and set as dependency
-    if [ "$previous_script_name" != "$script_name" ] && [ -n "$previous_script_name" ]; then
+    if [ -n "$previous_script_name" ]; then
       add_dependency "$script_name" "$previous_script_name"
     fi
 
-    # Set the previous file for the next loop
-    previous_script_name="$script_name"
-  else
-    echo "Skipping ${script_name} because it already exists at ${S6_HOME}/scripts/${script_name}"
+    # The entrypoint sourced the script, but s6-rc executes it, so it must be executable
+    mv "$file" "${S6_SCRIPTS_DIR}/${script_name}"
+    chmod +x "${S6_SCRIPTS_DIR}/${script_name}"
+
+    # Ensure the script has the correct file header for S6
+    sed -i '1s%^#!/bin/sh$%#!/command/with-contenv sh%' "${S6_SCRIPTS_DIR}/${script_name}"
   fi
 
-done
+  previous_script_name="$script_name"
+done <<SCRIPTS
+$(find "$ENTRYPOINT_DIR" -maxdepth 1 -type f -name '*.sh' | sort -V)
+SCRIPTS
 
-# Long-running services must wait for the oneshots that write their config, otherwise
-# they race the oneshots when the container runs as root (see #689).
-add_dependency php-fpm 5-fpm-pool-user
-add_dependency nginx 10-init-webserver-config
-add_dependency apache2 10-init-webserver-config
+# The entrypoint finished every script before starting the CMD, so the long-running
+# services wait for the last oneshot. Otherwise they race the oneshots that write
+# their config when the container runs as root (see #689).
+if [ -n "$previous_script_name" ]; then
+  add_dependency php-fpm "$previous_script_name"
+  add_dependency nginx "$previous_script_name"
+  add_dependency apache2 "$previous_script_name"
+fi
