@@ -103,10 +103,12 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
         --output /usr/local/bin/frankenphp \
         --with github.com/dunglas/frankenphp=./ \
         --with github.com/dunglas/frankenphp/caddy=./caddy/ \
-        --with github.com/dunglas/caddy-cbrotli \
+        # Plugin versions must match caddy/go.mod at the pinned FRANKENPHP_VERSION tag,
+        # otherwise xcaddy resolves the latest release, which may need a newer Go
+        --with github.com/dunglas/caddy-cbrotli@v1.0.1 \
         # Mercure and Vulcain are included in the official build, but feel free to remove them
-        --with github.com/dunglas/mercure/caddy \
-        --with github.com/dunglas/vulcain/caddy
+        --with github.com/dunglas/mercure/caddy@v0.24.2 \
+        --with github.com/dunglas/vulcain/caddy@v1.4.2
 
 ####################
 # FrankenPHP Final
