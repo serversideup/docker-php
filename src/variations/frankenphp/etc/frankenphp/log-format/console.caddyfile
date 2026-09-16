@@ -1,0 +1,7 @@
+# Human-readable lines with colored levels, even when the output is not a terminal
+format filter {
+	wrap console
+	request>uri query {
+		replace authorization REDACTED
+	}
+}

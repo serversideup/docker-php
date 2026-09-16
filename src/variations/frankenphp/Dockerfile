@@ -128,6 +128,9 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
+    # LARAVEL_OCTANE is intentionally not declared. The Caddyfile imports
+    # laravel-octane/*/{$LARAVEL_OCTANE:0}.caddyfile and Caddy only applies the
+    # default when the variable is unset, so declaring it (even as "") breaks startup.
     ENV APP_BASE_DIR=/var/www/html \
     CADDY_ACME_PROFILE="off" \
     CADDY_ADMIN="off" \
@@ -137,8 +140,8 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     CADDY_HTTPS_PORT="8443" \
     CADDY_HTTP_SERVER_ADDRESS="http://" \
     CADDY_HTTPS_SERVER_ADDRESS="https://" \
-    CADDY_LOG_FORMAT="console" \
-    CADDY_LOG_OUTPUT="stdout" \
+    CADDY_LOG_FORMAT="auto" \
+    CADDY_LOG_OUTPUT="stderr" \
     CADDY_PHP_SERVER_OPTIONS="" \
     CADDY_SERVER_EXTRA_DIRECTIVES="" \
     CADDY_SERVER_ROOT="/var/www/html/public" \

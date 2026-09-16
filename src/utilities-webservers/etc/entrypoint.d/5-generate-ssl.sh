@@ -9,7 +9,14 @@ if [ "$DISABLE_DEFAULT_CONFIG" = "true" ]; then
     exit 0
 fi
 
-if [ "$SERVERSIDEUP_DEFAULT_COMMAND" != "true" ]; then
+# FrankenPHP may be started by another command (like Laravel Octane), so SSL_MODE
+# decides whether the key pair is needed there instead of the default command check
+frankenphp_needs_ssl="false"
+if [ -d "/etc/frankenphp/" ] && [ "${SSL_MODE:-off}" != "off" ]; then
+    frankenphp_needs_ssl="true"
+fi
+
+if [ "$SERVERSIDEUP_DEFAULT_COMMAND" != "true" ] && [ "$frankenphp_needs_ssl" != "true" ]; then
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
         echo "👉 $script_name: SERVERSIDEUP_DEFAULT_COMMAND is not true, so we won't generate a self-signed SSL key pair."
     fi
