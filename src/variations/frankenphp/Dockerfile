@@ -103,10 +103,12 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
         --output /usr/local/bin/frankenphp \
         --with github.com/dunglas/frankenphp=./ \
         --with github.com/dunglas/frankenphp/caddy=./caddy/ \
-        --with github.com/dunglas/caddy-cbrotli \
+        # Plugin versions must match caddy/go.mod at the pinned FRANKENPHP_VERSION tag,
+        # otherwise xcaddy resolves the latest release, which may need a newer Go
+        --with github.com/dunglas/caddy-cbrotli@v1.0.1 \
         # Mercure and Vulcain are included in the official build, but feel free to remove them
-        --with github.com/dunglas/mercure/caddy \
-        --with github.com/dunglas/vulcain/caddy
+        --with github.com/dunglas/mercure/caddy@v0.24.2 \
+        --with github.com/dunglas/vulcain/caddy@v1.4.2
 
 ####################
 # FrankenPHP Final
@@ -128,6 +130,9 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
+    # LARAVEL_OCTANE is intentionally not declared. The Caddyfile imports
+    # laravel-octane/*/{$LARAVEL_OCTANE:0}.caddyfile and Caddy only applies the
+    # default when the variable is unset, so declaring it (even as "") breaks startup.
     ENV APP_BASE_DIR=/var/www/html \
     CADDY_ACME_PROFILE="off" \
     CADDY_ADMIN="off" \
@@ -137,8 +142,8 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     CADDY_HTTPS_PORT="8443" \
     CADDY_HTTP_SERVER_ADDRESS="http://" \
     CADDY_HTTPS_SERVER_ADDRESS="https://" \
-    CADDY_LOG_FORMAT="console" \
-    CADDY_LOG_OUTPUT="stdout" \
+    CADDY_LOG_FORMAT="auto" \
+    CADDY_LOG_OUTPUT="stderr" \
     CADDY_PHP_SERVER_OPTIONS="" \
     CADDY_SERVER_EXTRA_DIRECTIVES="" \
     CADDY_SERVER_ROOT="/var/www/html/public" \

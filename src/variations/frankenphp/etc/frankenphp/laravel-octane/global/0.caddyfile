@@ -1,0 +1,3 @@
+admin {$CADDY_ADMIN:off}
+
+{$CADDY_GLOBAL_OPTIONS}

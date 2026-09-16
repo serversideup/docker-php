@@ -2,8 +2,6 @@
 # Global Caddy configuration
 ########################################################
 {
-	admin {$CADDY_ADMIN:off}
-
 	import auto-https/{$CADDY_AUTO_HTTPS:off}.caddyfile
 
 	http_port {$CADDY_HTTP_PORT:8080}
@@ -15,6 +13,7 @@
 
 	frankenphp {
 		{$FRANKENPHP_CONFIG}
+		import laravel-octane/frankenphp/{$LARAVEL_OCTANE:0}.caddyfile
 	}
 
 	import trusted-proxy/{$TRUSTED_PROXY:cloudflare}.caddyfile
@@ -25,7 +24,9 @@
 	# Add additional Caddy configuration files from the caddyfile-global.d directory
 	import caddyfile-global.d/*.caddyfile
 
-	{$CADDY_GLOBAL_OPTIONS}
+	# Laravel Octane sets LARAVEL_OCTANE=1 when it starts FrankenPHP, which switches
+	# the admin API, worker, and index file to what Octane expects
+	import laravel-octane/global/{$LARAVEL_OCTANE:0}.caddyfile
 }
 
 ########################################################
@@ -69,6 +70,7 @@
 	php_server {
 		# FrankenPHP sets REMOTE_ADDR from the TCP peer, which ignores trusted_proxies
 		env REMOTE_ADDR {client_ip}
+		import laravel-octane/php-server/{$LARAVEL_OCTANE:0}.caddyfile
 		{$CADDY_PHP_SERVER_OPTIONS}
 	}
 	file_server
