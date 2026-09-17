@@ -144,8 +144,8 @@ help_menu() {
     echo
     echo "Options:"
     echo "  --variation <variation>   Set the PHP variation (e.g., apache, fpm)"
-    echo "  --version <version>       Set the PHP version (e.g., 8.4, 8.5)"
-    echo "  --os <os>                 Set the base OS (e.g., bookworm, trixie, alpine)"
+    echo "  --version <version>       Set the PHP version (e.g., 8.4, 8.5, or a pinned patch like 8.1.34)"
+    echo "  --os <os>                 Set the base OS (e.g., bookworm, trixie, alpine3.24)"
     echo "  --prefix <prefix>         Set the prefix for the Docker image (e.g., beta)"
     echo "  --registry <registry>     Set a custom registry (e.g., localhost:5000)"
     echo "  --platform <platform>     Set the platform (default: detected from system architecture)"

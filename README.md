@@ -97,7 +97,7 @@ serversideup/php:{{version}}-{{variation-name}}
 > [!NOTE]  
 > All images are available on [**Docker Hub**](https://hub.docker.com/r/serversideup/php/) and [**GitHub Packages**](https://github.com/serversideup/docker-php/pkgs/container/php).
 
-We support **PHP 8.2 through 8.5** with both **Debian** and **Alpine** base images.
+We support **PHP 8.2 through 8.5** with both **Debian** and **Alpine** base images. PHP 8.1 is end of life but still built while its base operating systems receive security updates. See our [security policy](SECURITY.md#component-lifecycle-references) for the rule.
 
 [Learn More About Choosing an Image →](https://serversideup.net/open-source/docker-php/docs/getting-started/choosing-an-image)
 
