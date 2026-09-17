@@ -9,6 +9,10 @@ set -e
 # in the same order the entrypoint would have run it, and the long-running
 # services only start once the last oneshot has finished.
 #
+# The script can run again in an image built on one that already ran it. New
+# scripts are ordered with the ones converted earlier, and a script with the
+# same name replaces the earlier one, the same way a COPY would in the entrypoint.d flow.
+#
 # Layout reference: https://github.com/just-containers/s6-overlay#writing-a-service-script
 # Service definition format: https://skarnet.org/software/s6-rc/s6-rc-compile.html#source
 
@@ -52,10 +56,8 @@ add_dependency() {
 }
 
 mkdir -p "$S6_SCRIPTS_DIR"
-previous_script_name=""
 
-# The entrypoint runs the scripts sequentially in version-sort order, so each
-# oneshot depends on the one before it to keep that order under S6
+# Register every entrypoint script as a oneshot and move it into place
 while IFS= read -r file; do
   [ -n "$file" ] || continue
 
@@ -63,7 +65,7 @@ while IFS= read -r file; do
   service_dir="${S6_HOME}/s6-rc.d/${script_name}"
 
   if [ -e "${S6_SCRIPTS_DIR}/${script_name}" ]; then
-    echo "Skipping ${script_name} because it already exists at ${S6_SCRIPTS_DIR}/${script_name}"
+    echo "Replacing ${script_name} with ${file}"
   else
     mkdir -p "$service_dir"
     echo "oneshot" > "${service_dir}/type"
@@ -74,22 +76,37 @@ while IFS= read -r file; do
 
     # S6 Overlay recommends every user service depend on "base" to prevent race conditions
     add_dependency "$script_name" base
+  fi
 
-    if [ -n "$previous_script_name" ]; then
-      add_dependency "$script_name" "$previous_script_name"
-    fi
+  # The entrypoint sourced the script, but s6-rc executes it, so it must be executable
+  mv "$file" "${S6_SCRIPTS_DIR}/${script_name}"
+  chmod +x "${S6_SCRIPTS_DIR}/${script_name}"
 
-    # The entrypoint sourced the script, but s6-rc executes it, so it must be executable
-    mv "$file" "${S6_SCRIPTS_DIR}/${script_name}"
-    chmod +x "${S6_SCRIPTS_DIR}/${script_name}"
+  # Ensure the script has the correct file header for S6
+  sed -i '1s%^#!/bin/sh$%#!/command/with-contenv sh%' "${S6_SCRIPTS_DIR}/${script_name}"
+done <<SCRIPTS
+$(find "$ENTRYPOINT_DIR" -maxdepth 1 -type f -name '*.sh' | sort -V)
+SCRIPTS
 
-    # Ensure the script has the correct file header for S6
-    sed -i '1s%^#!/bin/sh$%#!/command/with-contenv sh%' "${S6_SCRIPTS_DIR}/${script_name}"
+# The entrypoint runs the scripts sequentially in version-sort order, so each
+# oneshot depends on the one before it to keep that order under S6. The chain
+# covers every converted script, including ones from an earlier run, so a
+# later run slots its scripts into the existing order.
+previous_script_name=""
+
+while IFS= read -r file; do
+  [ -n "$file" ] || continue
+
+  script_name=$(basename "$file")
+  [ -d "${S6_HOME}/s6-rc.d/${script_name}" ] || continue
+
+  if [ -n "$previous_script_name" ]; then
+    add_dependency "$script_name" "$previous_script_name"
   fi
 
   previous_script_name="$script_name"
 done <<SCRIPTS
-$(find "$ENTRYPOINT_DIR" -maxdepth 1 -type f -name '*.sh' | sort -V)
+$(find "$S6_SCRIPTS_DIR" -maxdepth 1 -type f | sort -V)
 SCRIPTS
 
 # The entrypoint finished every script before starting the CMD, so the long-running
