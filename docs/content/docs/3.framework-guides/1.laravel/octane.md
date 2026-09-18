@@ -6,7 +6,7 @@ title: Octane
 ---
 
 ::lead-p
-Laravel Octane supercharges your application's performance by keeping it loaded in memory and serving requests at incredible speeds. The FrankenPHP variation of our images provides native Octane support with worker mode built-in.
+Laravel Octane supercharges your application's performance by keeping it loaded in memory and serving requests at incredible speeds. The FrankenPHP variation of our images provides native Octane support with worker mode built in, and you can run Octane's other servers from our CLI image.
 ::
 
 ## What is Laravel Octane?
@@ -19,11 +19,35 @@ Bootstrap → Handle Request → Teardown → Repeat for every request
 **With Octane:**
 Bootstrap once → Handle unlimited requests
 
-::tip
-FrankenPHP is Laravel's recommended application server for Octane and is included natively in our images. No additional installation required.
+## Choosing an Octane Server
+
+Octane runs on four different application servers. One of them is built into our images, and the rest need some assembly:
+
+| Server | How to run it with our images | What you get |
+|--------|-------------------------------|--------------|
+| **FrankenPHP** | Built into the [`frankenphp`](/docs/image-variations/frankenphp) variation | Nothing to install. Worker mode, our production Caddyfile, and every `CADDY_*` variable work out of the box. |
+| **Swoole** | [`cli`](/docs/image-variations/cli) + `install-php-extensions swoole` | Octane's concurrent tasks, ticks, cache driver, and tables. You supply the HTTP hardening yourself. |
+| **Open Swoole** | [`cli`](/docs/image-variations/cli) + `install-php-extensions openswoole` | A fork of Swoole with the same Octane feature set. |
+| **RoadRunner** | [`cli`](/docs/image-variations/cli) + `spiral/roadrunner-cli` | A Go binary with its own `.rr.yaml` configuration. |
+
+We recommend FrankenPHP for almost everyone. It is the only server where the image does the hard part for you: the Caddyfile we ship handles asset caching, security headers, trusted proxies, SSL, the health check endpoint, and log redaction, and it switches itself into worker mode when Octane starts it. Everywhere else, those concerns become your job.
+
+::warning
+Octane **replaces** PHP-FPM, so you cannot run it inside the `fpm`, `fpm-nginx`, or `fpm-apache` variations. The NGINX and Apache in those images are PHP-FPM front ends, not reverse proxies. If you want Octane without FrankenPHP, start from the `cli` image instead. See [Running Octane Without FrankenPHP](#running-octane-without-frankenphp).
 ::
 
-## Quick Start
+::tip
+There is one genuinely good reason to choose Swoole over FrankenPHP: four Octane features only exist there.
+
+- [Concurrent tasks](https://laravel.com/docs/13.x/octane#concurrent-tasks){target="_blank"} via `Octane::concurrently()`
+- [Ticks and intervals](https://laravel.com/docs/13.x/octane#ticks-and-intervals){target="_blank"} for running a callback every N seconds
+- [The Octane cache driver](https://laravel.com/docs/13.x/octane#the-octane-cache){target="_blank"}, backed by Swoole tables
+- [Tables](https://laravel.com/docs/13.x/octane#tables){target="_blank"} for sharing data between workers
+
+If you need any of these, Swoole is the right call. If you don't, FrankenPHP will serve you better.
+::
+
+## Quick Start with FrankenPHP
 Let's use this example project to get started.
 
 ::warning{to="https://serversideup.net/open-source/spin/docs" target="_blank"}
@@ -186,6 +210,231 @@ See the [Octane 2.14.0 release notes](https://github.com/laravel/octane/releases
 ::
 
 Octane sets `APP_PUBLIC_PATH` to your application's public directory, but our Caddyfile looks for `frankenphp-worker.php` in `CADDY_SERVER_ROOT` instead. This keeps the worker script and the document root in the same place. If you changed `APP_BASE_DIR`, set `CADDY_SERVER_ROOT` to match, just like classic mode.
+
+## Running Octane Without FrankenPHP
+
+Swoole, Open Swoole, and RoadRunner all run from the [`cli`](/docs/image-variations/cli) image. It already ships what Octane needs on the PHP side: the `pcntl` extension, Composer, `install-php-extensions`, our entrypoint scripts (including the [Laravel automations](/docs/framework-guides/laravel/automations)), and an unprivileged `www-data` user.
+
+What it does not ship is a web server, and that is the whole tradeoff. Read [What You Give Up](#what-you-give-up) first.
+
+### What You Give Up
+
+Our `frankenphp` variation hardens your application in the Caddyfile that ships inside the image. Swoole has no equivalent: its HTTP server is the PHP process itself, configured from your application's `config/octane.php`, with no place to express caching rules, header policies, or path matching. RoadRunner has a configuration file, but nothing in our images populates it for you.
+
+Here is what moves from the image back onto your plate:
+
+| Protection | `frankenphp` variation | `cli` + Swoole or RoadRunner | Where it has to live instead |
+|------------|:---------------------:|:---------------------------:|------------------------------|
+| Blocking `.env`, `.git/`, `*.bak`, `*.log`, `*.sql`, `*.ini`, and dotfiles | ✅ | ❌ | Reverse proxy |
+| `Cache-Control: immutable` on static assets | ✅ | ❌ | Reverse proxy |
+| `Access-Control-Allow-Origin` on fonts | ✅ | ❌ | Reverse proxy |
+| `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` | ✅ | ❌ | Laravel middleware or reverse proxy |
+| Removing the `Server` and `X-Powered-By` headers | ✅ | ❌ | Reverse proxy |
+| Trusted proxies via `TRUSTED_PROXY` | ✅ | ❌ | Laravel's `TrustProxies` middleware |
+| `SSL_MODE`, automatic HTTPS, and ACME certificates | ✅ | ❌ | Reverse proxy |
+| The `/healthcheck` endpoint and `HEALTHCHECK_PATH` | ✅ | ❌ | A Laravel route, or `healthcheck-octane` |
+| Access logs with the `authorization` parameter redacted | ✅ | ❌ | Reverse proxy |
+
+::warning
+The first row is the one that bites, and the two servers fail differently.
+
+**Swoole** serves every non-PHP file in your public directory exactly as it finds it, with no blocklist. A `.env`, a `.git` directory, a database dump, or a stray `*.bak` is handed to anyone who asks, with a `200` and the file's full contents. It does refuse `.php` files, so an uploaded PHP file returns `404` instead of running.
+
+**RoadRunner** is worse out of the box. Octane starts it with `http.static.dir` pointed at your public directory and no forbidden extensions, so it serves *everything*, including `.php` files as `text/plain` source. See [Locking down RoadRunner's static files](#locking-down-roadrunners-static-files) for the fix.
+
+Our Caddyfile answers `403` for all of these. Put a reverse proxy in front of Octane in production.
+::
+
+Everything below the HTTP layer still works exactly as it does everywhere else. All of the `PHP_*` environment variables, the `AUTORUN_*` [Laravel automations](/docs/framework-guides/laravel/automations), the unprivileged user, and the file permission handling are part of the `cli` image, not the web server.
+
+### Running Octane on Swoole
+
+Swoole is a PHP extension, so install it in your own `Dockerfile`:
+
+```dockerfile [Dockerfile]
+FROM serversideup/php:8.5-cli
+
+USER root
+RUN install-php-extensions swoole
+USER www-data
+```
+
+For Open Swoole, use `install-php-extensions openswoole` instead. Everything else is identical.
+
+Install Octane and point it at Swoole:
+
+```bash [Terminal]
+docker compose run php composer require laravel/octane
+docker compose run php php artisan octane:install --server=swoole
+```
+
+Then start it from your compose file:
+
+```yml [compose.yml]{10}
+services:
+  php:
+    build:
+      context: .
+    ports:
+      - "80:8000"
+    volumes:
+      - .:/var/www/html/
+    # --host=0.0.0.0 is required so the port is reachable outside the container
+    command: ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8000"]
+    healthcheck:
+      test: ["CMD", "healthcheck-octane"]
+      start_period: 10s
+```
+
+::warning
+`--host=0.0.0.0` is not optional in a container. Octane binds to `127.0.0.1` by default, which is only reachable from inside the container, so Docker's published port answers nothing without it.
+::
+
+Port `8000` is Octane's default and is above `1024`, so the unprivileged `www-data` user can bind it without any changes.
+
+### Running Octane on RoadRunner
+
+RoadRunner needs the `sockets` extension, which is not in the `cli` image, plus the RoadRunner binary itself:
+
+```dockerfile [Dockerfile]
+FROM serversideup/php:8.5-cli
+
+USER root
+RUN install-php-extensions sockets
+
+# Install the RoadRunner binary. TARGETARCH is provided by BuildKit,
+# so this works on both amd64 and arm64.
+ARG TARGETARCH
+ARG ROADRUNNER_VERSION=2025.1.15
+RUN docker-php-serversideup-download \
+      "https://github.com/roadrunner-server/roadrunner/releases/download/v${ROADRUNNER_VERSION}/roadrunner-${ROADRUNNER_VERSION}-linux-${TARGETARCH}.tar.gz" \
+      /tmp/roadrunner.tar.gz && \
+    tar -xzf /tmp/roadrunner.tar.gz -C /tmp && \
+    mv "/tmp/roadrunner-${ROADRUNNER_VERSION}-linux-${TARGETARCH}/rr" /usr/local/bin/rr && \
+    chmod +x /usr/local/bin/rr && \
+    rm -rf /tmp/roadrunner*
+
+USER www-data
+```
+
+::warning
+Laravel's documentation tells you to install `spiral/roadrunner-cli` and run `./vendor/bin/rr get-binary`. That package requires `symfony/console` version 7 or below, and Laravel 13 ships version 8, so Composer cannot install it. `php artisan octane:install --server=roadrunner` also fails, because it shells out to `./vendor/bin/rr`.
+
+Install the binary yourself as shown above, and skip `octane:install` for RoadRunner. Set `OCTANE_SERVER=roadrunner` in your `.env` file instead.
+::
+
+Then add the PHP side and start the server:
+
+```bash [Terminal]
+docker compose run php composer require laravel/octane spiral/roadrunner-http
+```
+
+```yml [compose.yml]{9,10}
+services:
+  php:
+    build:
+      context: .
+    ports:
+      - "80:8000"
+    volumes:
+      - .:/var/www/html/
+    # --rr-config points RoadRunner at the hardened config below
+    command: ["php", "artisan", "octane:start", "--server=roadrunner", "--host=0.0.0.0", "--port=8000", "--rpc-port=6001", "--rr-config=/var/www/html/.rr.yaml"]
+    healthcheck:
+      test: ["CMD", "healthcheck-octane"]
+      start_period: 10s
+```
+
+#### Locking Down RoadRunner's Static Files
+
+Octane starts RoadRunner with `http.static.dir` pointed at your public directory and no forbidden extensions. RoadRunner will happily return your `.env` file, and it serves `.php` files as plain text rather than refusing them. Create a `.rr.yaml` in your project root and pass it with `--rr-config`:
+
+```yml [.rr.yaml]
+version: "3"
+
+http:
+  static:
+    # RoadRunner serves everything in the public directory by default,
+    # including .php files as plain text. Refuse these outright.
+    forbid: [".php", ".env", ".bak", ".log", ".sql", ".ini", ".git"]
+```
+
+With this file in place, `/.env`, `/uploaded.php`, and `/config.bak` all return `404`, while your real assets keep working. This is the RoadRunner equivalent of the rules our Caddyfile applies for you, and it is still narrower than what a reverse proxy gives you.
+
+### Serving Static Assets and TLS
+
+Laravel recommends running Octane behind NGINX or Apache in production so the web server can serve your static assets and terminate TLS. That reverse proxy is also where the protections from [What You Give Up](#what-you-give-up) belong.
+
+```yml [compose.yml]
+services:
+  php:
+    build:
+      context: .
+    volumes:
+      - .:/var/www/html/
+    # --host=0.0.0.0 is required so the port is reachable outside the container
+    command: ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8000"]
+
+  web:
+    image: nginx:1.29-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/html/:ro
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+```
+
+Laravel publishes a reference NGINX configuration for this setup. Point `proxy_pass` at `http://php:8000` instead of `http://127.0.0.1:8000`, since Octane runs in a separate container here.
+
+:u-button{to="https://laravel.com/docs/13.x/octane#serving-your-application-via-nginx" target="_blank" label="View Laravel's NGINX configuration" aria-label="Laravel NGINX configuration for Octane" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
+
+::warning
+Do not reach for `fpm-nginx` as the proxy image. The NGINX in that variation is configured to pass requests to PHP-FPM over FastCGI, not to proxy them to an Octane server. Use a plain `nginx` image with your own configuration.
+::
+
+### Checking the Server Status
+
+There is no `/healthcheck` endpoint here, because that endpoint lives in our Caddyfile. Your options are to define a health check route in your Laravel application, or to use the `healthcheck-octane` command that ships in every one of our images:
+
+```yml [compose.yml]
+services:
+  php:
+    # ...
+    healthcheck:
+      test: ["CMD", "healthcheck-octane"]
+      start_period: 10s
+```
+
+It runs [`php artisan octane:status`](https://laravel.com/docs/13.x/octane#checking-the-server-status){target="_blank"}, which inspects the server Octane started, whichever server that is.
+
+### OPcache and PHP Settings
+
+All of the `PHP_*` environment variables work the same way they do in every other variation. One detail is different: Octane on Swoole or RoadRunner is a CLI process, so OPcache follows `PHP_OPCACHE_ENABLE_CLI` rather than `PHP_OPCACHE_ENABLE`.
+
+::tip
+`PHP_OPCACHE_ENABLE_CLI` already defaults to `1` in the `cli` image, so OPcache is on. See [Production Performance Tuning](/docs/guide/production-performance-tuning) for the rest of the settings worth reviewing.
+::
+
+### Watching for File Changes
+
+The `--watch` flag needs [Node](https://nodejs.org){target="_blank"} and [Chokidar](https://github.com/paulmillr/chokidar){target="_blank"} when you are not using FrankenPHP:
+
+```bash [Terminal]
+npm install --save-dev chokidar
+```
+
+Neither Node nor Chokidar ships in the `cli` image, so add them to your development image if you want this. FrankenPHP's built-in file watcher is specific to the `frankenphp` variation.
+
+### Swoole-Only Octane Features
+
+These are the features that make Swoole worth the extra work. None of them are available on FrankenPHP or RoadRunner:
+
+- **[Concurrent tasks](https://laravel.com/docs/13.x/octane#concurrent-tasks){target="_blank"}** run operations in parallel with `Octane::concurrently()`, using Swoole's task workers. Set how many with `--task-workers` on `octane:start`.
+- **[Ticks and intervals](https://laravel.com/docs/13.x/octane#ticks-and-intervals){target="_blank"}** invoke a callback every N seconds without a cron entry.
+- **[The Octane cache driver](https://laravel.com/docs/13.x/octane#the-octane-cache){target="_blank"}** stores data in shared memory at extremely high throughput. The data is flushed whenever the server restarts, so treat it as a cache and nothing more.
+- **[Tables](https://laravel.com/docs/13.x/octane#tables){target="_blank"}** share arbitrary structured data between all workers, with the same restart caveat.
 
 ## Things to Watch Out For
 Since Octane is a whole different way of running Laravel compared to traditional PHP-FPM, there are a few things to watch out for.

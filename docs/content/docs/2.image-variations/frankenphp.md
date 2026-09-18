@@ -37,9 +37,11 @@ Use the FrankenPHP variation when you need to:
 | Worker Mode | ✅ Yes | ❌ No | ❌ No |
 | Automatic HTTPS | ✅ Yes | ❌ No | ❌ No |
 | HTTP/3 Support | ✅ Yes | ❌ No | ❌ No |
-| Laravel Octane | ✅ Native support | ⚠️ Use Swoole | ⚠️ Use Swoole |
+| Laravel Octane | ✅ Native support | ❌ Not supported | ❌ Not supported |
 | .htaccess Support | ❌ No | ❌ No | ✅ Yes |
 | Maturity | ⚠️ New | ✅ Mature | ✅ Mature |
+
+Octane replaces PHP-FPM, so it cannot run inside the FPM variations at all. The NGINX and Apache in those images are PHP-FPM front ends, not reverse proxies. If you want Octane without FrankenPHP, run Octane's Swoole or RoadRunner server from our [CLI](/docs/image-variations/cli) image instead. See [Running Octane Without FrankenPHP](/docs/framework-guides/laravel/octane#running-octane-without-frankenphp).
 
 ::tip
 FrankenPHP is the newest variation and represents the future of PHP application servers. If you're starting a new project and can commit to modern practices, this is the variation to choose.
