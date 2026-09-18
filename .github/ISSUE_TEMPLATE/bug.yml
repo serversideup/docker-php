@@ -29,7 +29,7 @@ body:
   - type: textarea
     attributes:
       label: Affected Docker Images
-      description: "Which images does this issue happen in? (for example: `serversideup/php:8.1-cli`, `serversideup/php:8.1-fpm`, etc). You can also run Run `docker inspect --format='{{json .Config.Labels}}' <<image>>` to get additional information."
+      description: "Which images does this issue happen in? (for example: `serversideup/php:8.4-cli`, `serversideup/php:8.4-fpm`, etc). You can also run Run `docker inspect --format='{{json .Config.Labels}}' <<image>>` to get additional information."
     validations:
       required: true
   - type: textarea

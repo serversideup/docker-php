@@ -1,0 +1,182 @@
+name: Publish Images
+
+# Phase 3 of 3: promote the exact images that passed the image tests from the Depot
+# Registry to Docker Hub and GHCR. No rebuild happens here and no image bytes pass
+# through the runner: `depot push` copies each saved build to every tag server-side,
+# and the published digest is checked against the one the build recorded. Depot
+# sponsors this project, so its runners are used for the phases that do real work.
+on:
+  workflow_call:
+    inputs:
+      authenticate_with_ghcr:
+        default: true
+        type: boolean
+        description: 'Whether to log in to GitHub Container Registry.'
+      ref:
+        type: string
+        default: ${{ github.ref }}
+        description: 'The git ref to checkout (branch, tag, or commit SHA)'
+
+jobs:
+  list:
+    name: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+      count: ${{ steps.list.outputs.count }}
+    steps:
+      - name: Download image details from every build job
+        uses: actions/download-artifact@v8
+        with:
+          pattern: image-details-*
+          path: image-details
+          merge-multiple: true
+
+      - name: Group the saved images by variation
+        id: list
+        run: |
+          MATRIX=$(find image-details -name '*.json' -print0 | xargs -0 -r jq -s -c '
+            [ .[] | select(.saved != null) ]
+            | group_by(.variation)
+            | { include: map({ variation: .[0].variation, images: (map({php, os, saved, build_id, digest, tags}) | tojson) }) }')
+          MATRIX="${MATRIX:-{\"include\":[]\}}"
+          COUNT=$(echo "$MATRIX" | jq '[.include[].images | fromjson | length] | add // 0')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "$COUNT images to publish"
+
+  images:
+    needs: list
+    if: needs.list.outputs.count > 0
+    name: ${{ matrix.variation }}
+    runs-on: depot-ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.list.outputs.matrix) }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Depot CLI
+        uses: depot/setup-action@v1
+        with:
+          oidc: true
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        if: ${{ inputs.authenticate_with_ghcr }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # `depot push` handles one tag at a time, so images are pushed in parallel and each
+      # one's output is printed afterwards as its own log group. Every image is attempted
+      # even after one fails, so a run shows every image that could not be published at once.
+      - name: Promote the tested images to every tag
+        env:
+          IMAGES: ${{ matrix.images }}
+          VARIATION: ${{ matrix.variation }}
+          MAX_PARALLEL: 8
+        run: |
+          PROJECT=$(jq -r .id depot.json)
+          mkdir -p image-details logs
+
+          publish_image() {
+            local php="$1" os="$2" saved="$3" build_id="$4" digest="$5" tags="$6"
+            local image_name="${VARIATION}-${php}-${os}"
+            local tag tag_args=()
+            for tag in ${tags//,/ }; do
+              tag_args+=(--tag "$tag")
+            done
+            echo "Pushing build $build_id to $(( ${#tag_args[@]} / 2 )) tags"
+            if ! depot push --project "$PROJECT" --progress plain "${tag_args[@]}" "$build_id"; then
+              echo "::error title=Publish failed::${image_name} could not be pushed"
+              return 1
+            fi
+
+            # What was published must be what was tested: the tested digest has to appear
+            # in the published index (as the index itself or one of its manifests).
+            local canonical_tag="${tags%%,*}" index published_digests
+            index=$(docker buildx imagetools inspect --raw "$canonical_tag")
+            published_digests="sha256:$(printf '%s' "$index" | sha256sum | cut -d' ' -f1) $(echo "$index" | jq -r '.manifests[]?.digest' | tr '\n' ' ')"
+            if [ -z "$digest" ]; then
+              echo "::warning title=Digest not recorded::${image_name} was published without a digest check because the build did not record one."
+            elif [[ " $published_digests " != *" $digest "* ]]; then
+              echo "::error title=Digest mismatch::${image_name} published as $published_digests but the tested image was $digest"
+              return 1
+            else
+              echo "Published digest matches the tested image ($digest)"
+            fi
+
+            local manifest sizes
+            manifest=$(docker manifest inspect -v "$canonical_tag") || manifest='[]'
+            sizes=$(echo "$manifest" | jq '
+              [ .[] | select(.Descriptor.platform.os == "linux")
+                | { key: (.Descriptor.platform.os + "/" + .Descriptor.platform.architecture),
+                    value: ([ (.SchemaV2Manifest // .OCIManifest).layers[].size ] | add) } ]
+              | from_entries')
+            jq -n \
+              --arg variation "$VARIATION" \
+              --arg php "$php" \
+              --arg os "$os" \
+              --arg tags "$tags" \
+              --arg saved "$saved" \
+              --arg build_id "$build_id" \
+              --arg digest "$digest" \
+              --argjson sizes "$sizes" \
+              '{variation: $variation, php: $php, os: $os, tags: ($tags | split(",")), saved: $saved, build_id: $build_id, digest: $digest, published: true, sizes: $sizes}' \
+              | tee "image-details/${image_name}.published.json"
+          }
+
+          NAMES=()
+          # An empty digest is written as "-" because bash collapses consecutive tabs.
+          while IFS=$'\t' read -r PHP OS SAVED BUILD_ID DIGEST TAGS; do
+            [ "$DIGEST" != "-" ] || DIGEST=""
+            IMAGE_NAME="${VARIATION}-${PHP}-${OS}"
+            NAMES+=("$IMAGE_NAME")
+            while [ "$(jobs -rp | wc -l)" -ge "$MAX_PARALLEL" ]; do sleep 1; done
+            (
+              publish_image "$PHP" "$OS" "$SAVED" "$BUILD_ID" "$DIGEST" "$TAGS" > "logs/${IMAGE_NAME}.log" 2>&1
+              echo $? > "logs/${IMAGE_NAME}.status"
+            ) &
+          done < <(echo "$IMAGES" | jq -r '.[] | [.php, .os, .saved, .build_id, (.digest | if . == "" then "-" else . end), (.tags | join(","))] | @tsv')
+          wait
+
+          FAILED=()
+          for IMAGE_NAME in "${NAMES[@]}"; do
+            echo "::group::${IMAGE_NAME}"
+            cat "logs/${IMAGE_NAME}.log"
+            echo "::endgroup::"
+            [ "$(cat "logs/${IMAGE_NAME}.status" 2>/dev/null)" = "0" ] || FAILED+=("$IMAGE_NAME")
+          done
+
+          if [ "${#FAILED[@]}" -gt 0 ]; then
+            echo "::error title=Publish failed::${FAILED[*]} were not published"
+            exit 1
+          fi
+
+      - name: Record the published images
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: image-details-published-${{ matrix.variation }}
+          path: image-details/
+          retention-days: 7
+          if-no-files-found: ignore

@@ -1,0 +1,84 @@
+name: Setup Build Matrix
+
+on:
+  workflow_call:
+    inputs:
+      php-versions-file:
+        type: string
+        default: 'scripts/conf/php-versions.yml'
+        description: 'The path to the PHP versions file.'
+      ref:
+        type: string
+        default: ${{ github.ref }}
+        description: 'The git ref to checkout (branch, tag, or commit SHA)'
+    outputs:
+      matrix:
+        description: 'Build matrix JSON keyed by variation, e.g. {"cli": {"include": [...]}, "fpm": {...}}'
+        value: ${{ jobs.matrix.outputs.matrix }}
+      variations:
+        description: 'JSON array of variation names, e.g. ["cli","fpm"]'
+        value: ${{ jobs.matrix.outputs.variations }}
+
+jobs:
+  matrix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      variations: ${{ steps.matrix.outputs.variations }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Prepare PHP versions for the matrix. 😎
+        run: |
+          chmod +x ./scripts/get-php-versions.sh
+          ./scripts/get-php-versions.sh
+        env:
+          SKIP_DOWNLOAD: false
+
+      - name: Ensure our PHP Versions file exists.
+        run: |
+          if [ ! -f "${{ inputs.php-versions-file }}" ]; then
+            echo "::error::PHP Versions file does not exist at ${{ inputs.php-versions-file }}"
+            exit 1
+          fi
+          cat "${{ inputs.php-versions-file }}"
+
+      - name: Assemble PHP versions into the matrix. 😎
+        id: matrix
+        run: |
+          FULL_MATRIX=$(bash ./scripts/generate-matrix.sh '${{ inputs.php-versions-file }}')
+
+          # Group the matrix by variation so each variation becomes its own job group in the GitHub UI.
+          MATRIX_BY_VARIATION=$(echo "$FULL_MATRIX" | jq -c '
+            .include
+            | group_by(.php_variation)
+            | map({ key: .[0].php_variation, value: { include: . } })
+            | from_entries
+          ')
+          VARIATIONS=$(echo "$MATRIX_BY_VARIATION" | jq -c 'keys')
+
+          echo "matrix=${MATRIX_BY_VARIATION}" >> "$GITHUB_OUTPUT"
+          echo "variations=${VARIATIONS}" >> "$GITHUB_OUTPUT"
+          echo "$MATRIX_BY_VARIATION" | jq '.'
+
+          {
+            echo "## Build matrix: $(echo "$FULL_MATRIX" | jq '.include | length') images across $(echo "$VARIATIONS" | jq 'length') variations"
+            echo ""
+            echo "| PHP | Resolved patch version | Base OS |"
+            echo "|---|---|---|"
+            yq -o=json '${{ inputs.php-versions-file }}' | jq -r '
+              .php_versions[].minor_versions[]
+              | "| \(.minor) | \(.patch_versions | join(", ")) | \(.base_os | map(.name) | join(", ")) |"'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the php-versions.yml file
+        uses: actions/upload-artifact@v7
+        with:
+          name: php-versions.yml
+          path: ${{ inputs.php-versions-file }}

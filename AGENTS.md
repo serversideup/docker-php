@@ -1,23 +1,138 @@
-You are a highly skilled PHP system administrator tasked with maintaining open source PHP Docker images for Laravel applications. Your goal is to assist in creating production-ready Docker images that follow best practices for security, performance, and developer experience using the guidelines below. 
+# AI Agent Guidelines
 
-1. Skills you posses deep knowledge and best practices of:
-  - Docker
-  - PHP
-  - Laravel
-  - GitHub Actions
-  - Shell scripting
-  - S6 Overlay
-  - Nginx
-  - Apache
-  - PHP-FPM
+This project maintains open source PHP Docker images (`serversideup/php`) for Laravel and other PHP applications. Images are published to Docker Hub and GitHub Packages. These images build on top of the official PHP Docker images with production-grade defaults, security hardening, and a superior developer experience through environment-variable-driven configuration. See `docs/content/docs/1.getting-started/4.these-images-vs-others.md` for the full philosophy.
 
-2. Development Guidelines:
-  
-  - Follow the best practices for security, performance, and developer experience.
-  - Write clean, maintainable and technically accurate code.
-  - All entrypoint scripts for the Docker images must be POSIX compliant and able to be executed with /bin/sh.
-  - Any /bin/sh scripts must be compatible with Debian and Alpine Linux.
-  - For any /bin/bash scripts, these should work with MacOS, Linux, and WSL2.
-  - Never use an approach you're not confident about. If you're unsure about something, ask for clarity.
-  
-This project is open source and the code is available on GitHub, so be sure to follow best practices to make it easy for others to understand, modify, and contribute to the project.
+## Project Structure
+
+```
+src/
+  variations/        # One Dockerfile per image variation (cli, fpm, fpm-apache, fpm-nginx, frankenphp)
+  common/            # Shared scripts and configs copied into ALL variations
+    usr/local/bin/   # Entrypoint and helper scripts (POSIX /bin/sh)
+    etc/entrypoint.d/# Numbered priority entrypoint scripts (00-*, 50-*, etc.)
+  s6/                # Shared S6 Overlay service definitions and install script
+  php-fpm.d/         # Shared PHP-FPM pool configuration templates
+  utilities-webservers/ # Shared web server entrypoint utilities (SSL, etc.)
+scripts/             # Build tooling (Bash, not POSIX)
+  dev.sh             # Local image builds
+  conf/              # PHP version matrix and base config (YAML)
+  generate-matrix.sh # Generates CI build matrix from YAML config
+  assemble-docker-tags.sh
+docs/                # Nuxt 4 documentation site (see docs/AGENTS.md for docs-specific guidelines)
+.github/workflows/   # CI/CD with GitHub Actions + Depot for multi-arch builds
+```
+
+## Shell Script Rules
+
+**IMPORTANT:** There are two distinct shell environments in this project. Getting this wrong breaks images.
+
+- **`src/` scripts** (entrypoint, healthcheck, helper scripts): MUST be POSIX-compliant `/bin/sh`. These run inside Docker containers on both **Debian** and **Alpine** Linux. No bashisms (`[[ ]]`, arrays, `local -n`, process substitution, etc.).
+- **`scripts/` directory** (build tooling): Bash (`/bin/bash`). Must work on macOS, Linux, and WSL2.
+
+### Common gotchas
+- Alpine uses BusyBox `sh`, not `bash`. Commands like `readlink -f`, `sed -i` (without backup extension), and `which` behave differently.
+- Use `command -v` instead of `which` in POSIX scripts.
+- Use `$(...)` not backticks for command substitution.
+- Test OS detection with `[ -f /etc/alpine-release ]` (Alpine) or `[ -f /etc/debian_version ]` (Debian).
+
+## Naming Conventions
+
+- Container scripts in `src/common/usr/local/bin/` follow the prefix pattern: `docker-php-serversideup-*` (e.g., `docker-php-serversideup-entrypoint`, `docker-php-serversideup-set-file-permissions`).
+- Healthcheck scripts use: `healthcheck-*` (e.g., `healthcheck-horizon`, `healthcheck-queue`).
+- Entrypoint.d scripts use numbered prefixes for execution order: `0-container-info.sh`, `1-log-output-level.sh`, `50-laravel-automations.sh`.
+
+## Image Architecture
+
+**There is exactly one Dockerfile per variation.** Each Dockerfile must work across all supported OS bases (Debian and Alpine). OS-specific logic is pushed into shared helper scripts (e.g., `docker-php-serversideup-dep-install-debian`, `docker-php-serversideup-dep-install-alpine`) rather than duplicating Dockerfiles. This keeps maintenance manageable across 8,000+ image tags.
+
+**Never call `curl` directly in a Dockerfile or build script.** Use `docker-php-serversideup-download <url> [output-file]` from `src/common/`, which retries with backoff. The whole matrix starts at once and unretried downloads fail on transient 5xx responses from GitHub and other hosts. Download archives to a file before extracting them so a retry never feeds a partial stream to `tar`.
+
+Services register with s6-overlay by adding an empty file to `etc/s6-overlay/user-bundles.d/user/contents.d/` (s6-overlay 3.2.3+ layout). The older `s6-rc.d/user/contents.d/` location makes rc.init try to write to `/etc` at startup, which fails as the unprivileged user and leaves the container unhealthy.
+
+Each variation Dockerfile uses multi-stage builds:
+1. Shared assets are `COPY`ed from `src/common/`, `src/s6/`, `src/php-fpm.d/`, and `src/utilities-webservers/`
+2. Variation-specific configs live in `src/variations/<variation>/etc/`
+3. The build context is the **project root** (not `src/`), so COPY paths are relative to root: `COPY --chmod=755 src/common/ /`
+
+### Build args used across Dockerfiles
+- `PHP_VERSION`, `BASE_OS_VERSION`, `PHP_VARIATION` -- set by CI matrix or `scripts/dev.sh`
+- `NGINX_VERSION` -- resolved per-OS from `scripts/conf/php-versions-base-config.yml`
+- `REPOSITORY_BUILD_VERSION` -- image version label
+
+### Variations
+| Variation | Web Server | Process Manager | S6 Overlay |
+|-----------|-----------|----------------|------------|
+| cli | None | None | No |
+| fpm | None | PHP-FPM | No |
+| fpm-apache | Apache | PHP-FPM | Yes |
+| fpm-nginx | NGINX | PHP-FPM | Yes |
+| frankenphp | Caddy (FrankenPHP) | Built-in | No |
+
+## Building Locally
+There is a helper script in the `scripts/` directory that will build the image locally. If you attempt to build the image and Docker is not running, tell the user to start Docker Desktop or ensure that the Docker daemon is running before trying again.
+
+```sh
+# Requires: Docker with buildx, yq (for fpm-nginx NGINX version resolution)
+scripts/dev.sh --variation fpm-nginx --version 8.4 --os bookworm
+
+# Other examples
+scripts/dev.sh --variation cli --version 8.5 --os alpine3.22
+scripts/dev.sh --variation fpm-nginx --version 8.4 --os bookworm --no-cache
+scripts/dev.sh --variation frankenphp --version 8.5 --os bookworm --push
+```
+
+## PHP Version Pipeline
+
+PHP versions are NOT hardcoded. The pipeline works like this:
+1. `scripts/get-php-versions.sh` fetches the latest active PHP releases from `https://www.php.net/releases/active.php`
+2. It validates each version actually exists on DockerHub (with automatic fallback to previous patch if not yet published)
+3. The fetched versions are merged with the base config (`scripts/conf/php-versions-base-config.yml`) which defines OS bases, variations, and NGINX versions
+4. The merged result is written to `scripts/conf/php-versions.yml` -- this is the source of truth for CI builds
+5. `scripts/generate-matrix.sh` reads the final YAML and produces the GitHub Actions matrix JSON
+
+When modifying the version pipeline, the base config (`php-versions-base-config.yml`) is the file you edit. Never edit `php-versions.yml` directly -- it's generated.
+
+## CI/CD
+
+- Builds run via GitHub Actions using **Depot** (`depot/build-push-action`) for multi-arch (`linux/amd64` + `linux/arm64/v8`). Depot builds both architectures natively on its own builders; the GitHub runner only orchestrates, so runner size and architecture do not affect build speed.
+- Publishing is three phases, each a reusable workflow the callers (`action_publish-images-*.yml`) chain: `service_setup-matrix.yml` generates the matrix once; `service_build-images.yml` builds one variation and saves every image to the Depot Registry (nothing public yet), recording the Depot build ID and digest; `service_test-images.yml` pulls the saved images on native amd64 and arm64 Depot runners (Depot sponsors the project, so they are free here and have no concurrency cap), one job per PHP version and base OS so the variations that share base layers share one pull, and runs `scripts/test-image.sh` against each; `service_publish-images.yml` promotes the tested builds with `depot push`, which copies the saved image to every Docker Hub and GHCR tag server-side (no image bytes touch the runner), one job per variation, and fails if the published digest is not the tested one. `service_report.yml` renders the run table last. Jobs render as `build cli / 8.4.25-bookworm`, `test / 8.4.25-bookworm arm64`, `publish / cli`.
+- A broken image can never reach a public tag: what users pull is byte-for-byte what the tests ran. Publishing is all or nothing: if any image fails to build or fails its test, no image from that run is published, including on the weekly rebuilds. Saved images live in the Depot Registry until the project's retention setting removes them.
+- The build matrix is generated from the PHP version pipeline described above.
+- Image tags follow the pattern: `serversideup/php:{version}-{variation}` (Debian default) or `serversideup/php:{version}-{variation}-{os}` (Alpine/specific OS).
+- Depot authentication: the project ID lives in `depot.json` (not a secret). Same-repo runs authenticate through a Depot OIDC trust relationship (`id-token: write`). Pull requests from forks have no OIDC token, so Depot falls back to its open-source pull request flow (https://depot.dev/blog/github-actions-oss-fork-builds): the full matrix builds on ephemeral builders without the project cache, nothing is saved, and each build job loads its amd64 image onto the runner and runs `scripts/test-image.sh` there instead, so the build check still means a tested image. A maintainer publishes a fork's images to `serversideup/php-dev`, and gets the arm64 tests, by running the "Docker Publish (PR Images)" workflow manually with the PR number.
+- The CI helper script `scripts/build-summary.sh` is checked by `scripts/tests/run.sh`, a single file of plain assertions over sample images. Run it after changing the script and add an assertion when you add behavior. Keep jq programs explicit with parentheses: `a + b as $x | ...` parses differently across jq versions, and runners ship an older jq than most laptops.
+- Every PR run starts with `service_lint.yml` (script tests, actionlint for workflows, hadolint for `src/variations/*/Dockerfile` with project decisions recorded in `.hadolint.yaml`, ShellCheck at warning severity for `scripts/*.sh`, `src/common/usr/local/bin/*`, `src/s6/usr/local/bin/*`, and `entrypoint.d/*.sh`) before any image builds. New linters go there. The local commands are in the contributing docs.
+- `scripts/test-image.sh` checks that an image starts, runs as an unprivileged user, reports the expected PHP version, loads the default extensions, reaches a healthy HEALTHCHECK, and (for images with a web server) serves a mounted `index.php` through NGINX, Apache, or Caddy. Run it locally against any image before opening a PR that touches startup behavior. Keep the checks generic across variations: it detects the web server from the image's `*_HTTP_PORT` environment variables rather than the image name.
+- Every build job records its image details (tags, Depot Registry reference, build ID, digest) as an `image-details-*` artifact; the publish job adds a `.published.json` record with the compressed size per architecture. `service_report.yml` merges them with `scripts/build-summary.sh` (the published record wins) into one table on the run summary and in the PR comment.
+- `fail-fast` is off, so one failed image never cancels the others. `trigger_auto-retry-failed-builds.yml` re-runs the failed jobs of a production, beta, or PR run once when only a few jobs failed and no newer run exists. If that also fails, or too many jobs failed to look transient, it opens a `ci-failure` issue assigned to the maintainer with the failed jobs, their first error annotation, the log tail, and a link to re-run. Only production and beta runs open issues; PR runs have the PR comment. GitHub's own failure emails do not cover this case reliably: scheduled runs notify whoever last edited the cron line, and re-run attempts are triggered by the Actions bot.
+
+## Verification
+
+There is no automated test suite for image logic. To verify changes:
+1. Build the affected variation locally with `scripts/dev.sh`
+2. Run the built image and confirm the change works: `docker run --rm -it serversideup/php:8.4-fpm-nginx-bookworm sh`
+3. For entrypoint script changes, test on both Debian and Alpine builds
+4. Run `shellcheck` on any modified shell scripts when available
+
+## Key Design Decisions
+
+- **Unprivileged by default**: Images run as `www-data`, not root. Web servers listen on `8080`/`8443` (unprivileged ports).
+- **Lightweight images**: Only install dependencies that are truly necessary. See `docs/content/docs/1.getting-started/6.default-configurations.md` for what's included and why. When adding packages or extensions, justify the inclusion and keep image size minimal.
+- **Environment-variable-driven**: All PHP/FPM/web server configuration is controlled via env vars -- no config file editing at runtime.
+- **S6 Overlay** manages multiple processes in web server variations (FPM + web server).
+- **Laravel automations** (migrations, caching, etc.) are opt-in via `AUTORUN_ENABLED`.
+- **SSL support** is built-in with `SSL_MODE` (off/full) and self-signed cert generation.
+- **One Dockerfile per variation**: OS-specific logic belongs in helper scripts, not Dockerfile conditionals or duplicate files.
+
+## Documentation
+
+The documentation and marketing site lives in `docs/` and has its own `docs/AGENTS.md` with guidelines specific to the Nuxt 4 content site. When working in `docs/`, follow that file instead of this one.
+
+## Reference
+
+When you need details beyond what's in this file, read these local sources rather than guessing:
+
+- **Environment variables** (the canonical reference for ALL env vars, their defaults, and which variations they apply to): `docs/content/docs/8.reference/1.environment-variable-specification.md`
+- **Default configurations** (what packages, extensions, and settings ship with each image): `docs/content/docs/1.getting-started/6.default-configurations.md`
+- **All documentation**: `docs/content/docs/` contains the full docs in markdown. Browse this directory for guides on image variations, framework integrations, deployment, customization, and troubleshooting. There is also a dedicated `docs/AGENTS.md` file for the documentation site itself
+- **LLM-optimized docs** (for AI tools that can fetch URLs): https://serversideup.net/open-source/docker-php/llms.txt and https://serversideup.net/open-source/docker-php/llms-full.txt to view the latest stable versions of the documentation.

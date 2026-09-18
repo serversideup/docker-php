@@ -5,9 +5,20 @@ set -e
 # Usage: docker-php-serversideup-s6-init
 ###############################################
 # This script is used to take scripts from "/etc/entrypoint.d" and move them
-# to the S6 Overlay structure.
+# to the S6 Overlay structure. Every script becomes an s6-rc "oneshot" that runs
+# in the same order the entrypoint would have run it, and the long-running
+# services only start once the last oneshot has finished.
+#
+# The script can run again in an image built on one that already ran it. New
+# scripts are ordered with the ones converted earlier, and a script with the
+# same name replaces the earlier one, the same way a COPY would in the entrypoint.d flow.
+#
+# Layout reference: https://github.com/just-containers/s6-overlay#writing-a-service-script
+# Service definition format: https://skarnet.org/software/s6-rc/s6-rc-compile.html#source
 
 S6_HOME="/etc/s6-overlay"
+S6_SCRIPTS_DIR="${S6_HOME}/scripts"
+S6_USER_BUNDLE_DIR="${S6_RUNTIME_BUNDLEDIR:-${S6_HOME}/user-bundles.d}/user"
 ENTRYPOINT_DIR="/etc/entrypoint.d"
 
 # Sanity checks
@@ -21,60 +32,88 @@ if [ ! -d "$S6_HOME" ]; then
     exit 1
 fi
 
+# S6 Overlay v3.2.3.2 moved the "user" bundle from s6-rc.d to user-bundles.d
+if [ ! -d "${S6_USER_BUNDLE_DIR}/contents.d" ]; then
+    echo "Error: S6 Overlay user bundle (${S6_USER_BUNDLE_DIR}/contents.d) not found"
+    exit 1
+fi
+
 # Check for root privileges
 if [ "$(id -u)" -ne 0 ]; then
     echo "$(basename "$0"): This script must be run as root within the container. Be sure to set \"USER root\" in your Dockerfile before running this script."
     exit 1
 fi
 
-for file in "$ENTRYPOINT_DIR"/*.sh; do
-  [ -e "$file" ] || continue # Skip if no files match
-  
-  # Get the base name of the file
+# Services are skipped when they are not part of the image (e.g. nginx on an Apache image)
+add_dependency() {
+  service="$1"
+  dependency="$2"
+
+  if [ -d "${S6_HOME}/s6-rc.d/${service}" ]; then
+    mkdir -p "${S6_HOME}/s6-rc.d/${service}/dependencies.d"
+    touch "${S6_HOME}/s6-rc.d/${service}/dependencies.d/${dependency}"
+  fi
+}
+
+mkdir -p "$S6_SCRIPTS_DIR"
+
+# Register every entrypoint script as a oneshot and move it into place
+while IFS= read -r file; do
+  [ -n "$file" ] || continue
+
   script_name=$(basename "$file" .sh)
+  service_dir="${S6_HOME}/s6-rc.d/${script_name}"
 
-  # Proceed only if the script does not exist
-  if [ ! -e "${S6_HOME}/scripts/${script_name}" ]; then
-    # Create the service directory for that file
-    mkdir -p "${S6_HOME}/s6-rc.d/${script_name}"
-    
-    # Set service type to "oneshot"
-    echo "oneshot" > "${S6_HOME}/s6-rc.d/${script_name}/type"
-
-    # Set the "up" script
-    echo "${S6_HOME}/scripts/${script_name}" > "${S6_HOME}/s6-rc.d/${script_name}/up"
-
-    # Place empty file in contents.d
-    touch "${S6_HOME}/s6-rc.d/user/contents.d/${script_name}"
-
-    # Ensure the ${S6_HOME}/scripts/ directory exists
-    mkdir -p "${S6_HOME}/scripts"
-
-    # Move the script to the S6 Overlay scripts directory
-    mv "${file}" "${S6_HOME}/scripts/${script_name}"
-
-    # Ensure the script has the correct file header for S6
-    sed -i '1s%^#!/bin/sh$%#!/command/with-contenv sh%' "${S6_HOME}/scripts/${script_name}"
-
-    # Find the script that should be the dependency based on alphabetical order
-    previous_script_name=$(find "${S6_HOME}/s6-rc.d/" -maxdepth 1 -type d -name '[0-9]*' | \
-                    sort -V | \
-                    grep -B1 "${script_name}" | \
-                    head -n 1 | \
-                    xargs basename)
-    
-    # Check if the previous script is not the current script and set as dependency
-    if [ "$previous_script_name" != "$script_name" ] && [ -n "$previous_script_name" ]; then
-      dependencies_file="${S6_HOME}/s6-rc.d/${script_name}/dependencies"
-      touch "$dependencies_file"
-      echo "$previous_script_name" >> "$dependencies_file"
-      chmod 644 "$dependencies_file"
-    fi
-
-    # Set the previous file for the next loop
-    previous_script_name="$script_name"
+  if [ -e "${S6_SCRIPTS_DIR}/${script_name}" ]; then
+    echo "Replacing ${script_name} with ${file}"
   else
-    echo "Skipping ${script_name} because it already exists at ${S6_HOME}/scripts/${script_name}"
+    mkdir -p "$service_dir"
+    echo "oneshot" > "${service_dir}/type"
+    echo "${S6_SCRIPTS_DIR}/${script_name}" > "${service_dir}/up"
+
+    # Add the service to the "user" bundle so S6 Overlay starts it at container boot
+    touch "${S6_USER_BUNDLE_DIR}/contents.d/${script_name}"
+
+    # S6 Overlay recommends every user service depend on "base" to prevent race conditions
+    add_dependency "$script_name" base
   fi
 
-done
+  # The entrypoint sourced the script, but s6-rc executes it, so it must be executable
+  mv "$file" "${S6_SCRIPTS_DIR}/${script_name}"
+  chmod +x "${S6_SCRIPTS_DIR}/${script_name}"
+
+  # Ensure the script has the correct file header for S6
+  sed -i '1s%^#!/bin/sh$%#!/command/with-contenv sh%' "${S6_SCRIPTS_DIR}/${script_name}"
+done <<SCRIPTS
+$(find "$ENTRYPOINT_DIR" -maxdepth 1 -type f -name '*.sh' | sort -V)
+SCRIPTS
+
+# The entrypoint runs the scripts sequentially in version-sort order, so each
+# oneshot depends on the one before it to keep that order under S6. The chain
+# covers every converted script, including ones from an earlier run, so a
+# later run slots its scripts into the existing order.
+previous_script_name=""
+
+while IFS= read -r file; do
+  [ -n "$file" ] || continue
+
+  script_name=$(basename "$file")
+  [ -d "${S6_HOME}/s6-rc.d/${script_name}" ] || continue
+
+  if [ -n "$previous_script_name" ]; then
+    add_dependency "$script_name" "$previous_script_name"
+  fi
+
+  previous_script_name="$script_name"
+done <<SCRIPTS
+$(find "$S6_SCRIPTS_DIR" -maxdepth 1 -type f | sort -V)
+SCRIPTS
+
+# The entrypoint finished every script before starting the CMD, so the long-running
+# services wait for the last oneshot. Otherwise they race the oneshots that write
+# their config when the container runs as root (see #689).
+if [ -n "$previous_script_name" ]; then
+  add_dependency php-fpm "$previous_script_name"
+  add_dependency nginx "$previous_script_name"
+  add_dependency apache2 "$previous_script_name"
+fi
