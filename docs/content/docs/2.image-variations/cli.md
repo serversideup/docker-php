@@ -14,10 +14,13 @@ Use the CLI variation when you need to:
 
 - Run Composer for dependency management
 - Execute one-off PHP scripts
+- Run queue workers, the scheduler, or Horizon
+- Run Laravel Octane on Swoole, Open Swoole, or RoadRunner
 - Need a very small image size
 
 #### Perfect for
 - Running PHP locally without needing to install PHP on your host system.
+- Serving a Laravel Octane application when you do not want [FrankenPHP](/docs/image-variations/frankenphp). See [Running Octane Without FrankenPHP](/docs/framework-guides/laravel/octane#running-octane-without-frankenphp).
 
 #### What's Inside
 

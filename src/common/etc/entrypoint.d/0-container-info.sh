@@ -1,7 +1,7 @@
 #!/bin/sh
-if [ "$SHOW_WELCOME_MESSAGE" = "false" ] || [ "$LOG_OUTPUT_LEVEL" = "off" ] || [ "$DISABLE_DEFAULT_CONFIG" = "true" ]; then
+if [ "$SHOW_WELCOME_MESSAGE" = "false" ] || [ "$DISABLE_DEFAULT_CONFIG" = "true" ]; then
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ]; then
-        echo "👉 $0: Container info was display was skipped."
+        echo "👉 $0: Container info display was skipped."
     fi
     # Skip the rest of the script
     exit 0
@@ -9,6 +9,7 @@ fi
 
 # Get OPcache status
 PHP_OPCACHE_STATUS=$(php -r 'echo ini_get("opcache.enable");')
+PHP_OPCACHE_VALIDATE_TIMESTAMPS_STATUS=$(php -r 'echo ini_get("opcache.validate_timestamps");')
 
 if [ "$PHP_OPCACHE_STATUS" = "1" ]; then
     PHP_OPCACHE_MESSAGE="✅ Enabled"
@@ -55,9 +56,12 @@ Brought to you by serversideup.net
 • Upload Limit:  '"$UPLOAD_LIMIT"'
 
 🔄 Runtime
-• Docker CMD:     '"$DOCKER_CMD"'
+• Automations:   '"$AUTORUN_ENABLED"'
+• Docker CMD:    '"$DOCKER_CMD"'
 '
 
 if [ "$PHP_OPCACHE_STATUS" = "0" ]; then
     echo "👉 [NOTICE]: Improve PHP performance by setting PHP_OPCACHE_ENABLE=1 (recommended for production)."
+elif [ "$PHP_OPCACHE_VALIDATE_TIMESTAMPS_STATUS" = "0" ]; then
+    echo "👉 [NOTICE]: OPcache is enabled and PHP_OPCACHE_VALIDATE_TIMESTAMPS=0. Code changes require a container restart. Learn more: https://serversideup.net/docker-php/performance/"
 fi

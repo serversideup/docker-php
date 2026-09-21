@@ -1,0 +1,151 @@
+name: Auto-retry failed image builds
+
+# Transient failures (php.net timeouts, a mirror blip, a registry 502) used to need a
+# maintainer to sign in and click "Re-run failed jobs". This does that once, as long as
+# the failure looks transient. When a run is still red after that, or was never worth
+# retrying, it opens an issue for a human. Pull request runs skip the issue because the
+# PR comment already carries the result.
+on:
+  workflow_run:
+    workflows:
+      - "Docker Publish (Production Images)"
+      - "Docker Publish (Beta Images)"
+      - "Docker Publish (PR Images)"
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  triage:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
+      RUN_URL: ${{ github.event.workflow_run.html_url }}
+      RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+      RUN_TITLE: ${{ github.event.workflow_run.display_title }}
+      WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+      WORKFLOW_PATH: ${{ github.event.workflow_run.path }}
+      TRIGGER: ${{ github.event.workflow_run.event }}
+      HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+      ASSIGNEE: jaydrogers
+      ISSUE_LABEL: ci-failure
+      # More failures than this means the change itself is broken, not the infrastructure.
+      MAX_FAILED_JOBS: 10
+    steps:
+      - name: Decide whether a retry makes sense
+        id: check
+        run: |
+          if [ "$RUN_ATTEMPT" = "1" ]; then
+            echo "Waiting two minutes so transient upstream issues can settle."
+            sleep 120
+          fi
+
+          LATEST=$(gh run list --workflow "$WORKFLOW_NAME" --branch "$HEAD_BRANCH" --limit 1 --json databaseId --jq '.[0].databaseId')
+          if [ "$LATEST" != "$RUN_ID" ]; then
+            echo "::notice title=Skipped::A newer run already exists for $HEAD_BRANCH, so this one is stale."
+            echo "action=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          FAILED=$(gh run view "$RUN_ID" --json jobs --jq '[.jobs[] | select(.conclusion == "failure")] | length')
+          echo "Failed jobs in $RUN_URL (attempt $RUN_ATTEMPT): $FAILED"
+
+          if [ "$RUN_ATTEMPT" = "1" ] && [ "$FAILED" -le "$MAX_FAILED_JOBS" ]; then
+            echo "action=retry" >> "$GITHUB_OUTPUT"
+            echo "reason=" >> "$GITHUB_OUTPUT"
+          elif [ "$RUN_ATTEMPT" = "1" ]; then
+            echo "action=issue" >> "$GITHUB_OUTPUT"
+            echo "reason=$FAILED jobs failed, more than the $MAX_FAILED_JOBS that looks like a transient problem, so it was not retried." >> "$GITHUB_OUTPUT"
+          else
+            echo "action=issue" >> "$GITHUB_OUTPUT"
+            echo "reason=The failed jobs were already re-run once automatically and failed again." >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Re-run the failed jobs once
+        if: steps.check.outputs.action == 'retry'
+        run: |
+          gh run rerun "$RUN_ID" --failed
+          echo "::notice title=Retry started::Re-running failed jobs for $RUN_URL. If this attempt also fails, an issue is opened."
+
+      - name: Open an issue for a human
+        if: steps.check.outputs.action == 'issue' && !contains(env.WORKFLOW_NAME, 'PR Images')
+        env:
+          REASON: ${{ steps.check.outputs.reason }}
+          MAX_DETAILED_JOBS: 8
+          LOG_LINES: 25
+        run: |
+          JOBS=$(gh run view "$RUN_ID" --json jobs --jq '.jobs')
+          TOTAL=$(echo "$JOBS" | jq 'length')
+          FAILED_JOBS=$(echo "$JOBS" | jq -c '[.[] | select(.conclusion == "failure")
+            | { id: .databaseId, name, url, step: ((.steps[]? | select(.conclusion == "failure") | .name) // "-") }]')
+          FAILED=$(echo "$FAILED_JOBS" | jq 'length')
+          WORKFLOW_URL="https://github.com/${GH_REPO}/actions/workflows/$(basename "$WORKFLOW_PATH")"
+          SHORT_SHA="${HEAD_SHA:0:7}"
+
+          # The first failure annotation of a job is usually the one-line cause.
+          annotation() {
+            gh api "repos/${GH_REPO}/check-runs/$1/annotations" \
+              --jq '[.[] | select(.annotation_level == "failure")][0] | if . == null then "" elif (.title // "") != "" then "\(.title): \(.message)" else .message end' 2>/dev/null \
+              | head -c 300 | tr '\n|' '  '
+          }
+
+          # gh prefixes every log line with the job, the step, and a timestamp.
+          log_tail() {
+            gh run view "$RUN_ID" --job "$1" --log-failed 2>/dev/null \
+              | sed -E 's/^[^\t]*\t[^\t]*\t[0-9T:.Z-]+ ?//' \
+              | grep -v -E '^\s*$|^##\[(group|endgroup)\]' | tail -n "$LOG_LINES"
+          }
+
+          {
+            echo "**[Re-run failed jobs]($RUN_URL)** · [Run summary]($RUN_URL#summary) · [Workflow history]($WORKFLOW_URL) · attempt $RUN_ATTEMPT"
+            echo ""
+            echo "$FAILED of $TOTAL jobs failed on \`$HEAD_BRANCH\` at [\`$SHORT_SHA\`](https://github.com/${GH_REPO}/commit/${HEAD_SHA}), triggered by \`$TRIGGER\`. $REASON"
+            echo ""
+            echo "### Failed jobs"
+            echo ""
+            echo "| Job | Step | Error |"
+            echo "|---|---|---|"
+            echo "$FAILED_JOBS" | jq -r '.[] | [.id, .name, .url, .step] | @tsv' | while IFS=$'\t' read -r ID NAME URL STEP; do
+              ERROR=$(annotation "$ID")
+              echo "| [$NAME]($URL) | $STEP | ${ERROR:-see logs} |"
+            done
+            echo ""
+            echo "### Error output"
+            echo ""
+            echo "$FAILED_JOBS" | jq -r ".[:${MAX_DETAILED_JOBS}][] | [.id, .name, .step] | @tsv" | while IFS=$'\t' read -r ID NAME STEP; do
+              echo "<details><summary><b>$NAME</b> · $STEP</summary>"
+              echo ""
+              echo '```text'
+              log_tail "$ID" || echo "No log output captured."
+              echo '```'
+              echo "</details>"
+              echo ""
+            done
+            if [ "$FAILED" -gt "$MAX_DETAILED_JOBS" ]; then
+              echo "Only the first $MAX_DETAILED_JOBS jobs are shown. The rest are in the [run]($RUN_URL)."
+              echo ""
+            fi
+            echo "<sub>Nothing from this run was published. Re-run the failed jobs from the run page, or with <code>gh run rerun $RUN_ID --failed</code>. Close this issue once the run is green.</sub>"
+          } > issue.md
+
+          gh label create "$ISSUE_LABEL" --description "A publish run needs a human" --color B60205 --force
+          TITLE="$RUN_TITLE: $FAILED of $TOTAL jobs failed"
+          # shellcheck disable=SC2016 # $title is a jq variable
+          EXISTING=$(gh issue list --label "$ISSUE_LABEL" --state open --search "\"$RUN_TITLE\" in:title" --json number,title \
+            --jq --arg title "$RUN_TITLE" '[.[] | select(.title | startswith($title))][0].number')
+          if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
+            gh issue comment "$EXISTING" --body-file issue.md
+            gh issue edit "$EXISTING" --title "$TITLE"
+            echo "::notice title=Issue updated::Added the latest failure to issue #$EXISTING"
+          else
+            NEW_URL=$(gh issue create --title "$TITLE" --body-file issue.md --label "$ISSUE_LABEL" --assignee "$ASSIGNEE")
+            echo "::notice title=Issue opened::$NEW_URL"
+          fi

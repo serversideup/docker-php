@@ -1,0 +1,46 @@
+#!/bin/sh
+set -oe
+
+###################################################
+# Usage: docker-php-serversideup-install-php-extensions [extensions] [overrides]
+###################################################
+# This script installs PHP extensions with "install-php-extensions", optionally
+# swapping an extension for a different source. Overrides are space separated
+# "name=source" pairs, where source is any value install-php-extensions accepts
+# (for example "redis=phpredis/phpredis@develop").
+
+script_name="docker-php-serversideup-install-php-extensions"
+
+extensions="${1:-}"
+overrides="${2:-}"
+
+if [ -z "$extensions" ]; then
+    echo "ℹ️ INFO ($script_name): No extensions were passed. Continuing..."
+    exit 0
+fi
+
+############
+# Functions
+############
+resolve_extension_source() {
+    resolved_extension="$1"
+    for override in $overrides; do
+        if [ "${override%%=*}" = "$1" ]; then
+            resolved_extension="${override#*=}"
+        fi
+    done
+    echo "$resolved_extension"
+}
+
+############
+# Main
+############
+resolved_extensions=""
+for extension in $extensions; do
+    resolved_extensions="$resolved_extensions $(resolve_extension_source "$extension")"
+done
+
+echo "🤖 Installing PHP extensions:$resolved_extensions"
+install-php-extensions $resolved_extensions
+
+echo "⚡️ Completed installation of PHP extensions:$resolved_extensions"

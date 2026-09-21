@@ -1,0 +1,54 @@
+name: Report
+
+# Collects the image details every build job records and renders one table for the
+# whole run: each image with its compressed size per architecture and a pull command.
+on:
+  workflow_call:
+    inputs:
+      matrix:
+        type: string
+        default: '{}'
+        description: 'Build matrix JSON keyed by variation, used to list images that did not build.'
+      ref:
+        type: string
+        default: ${{ github.ref }}
+        description: 'The git ref to checkout (branch, tag, or commit SHA)'
+    outputs:
+      markdown:
+        description: 'The rendered Markdown table'
+        value: ${{ jobs.summary.outputs.markdown }}
+
+jobs:
+  summary:
+    name: images
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      markdown: ${{ steps.render.outputs.markdown }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Download image details from every build job
+        uses: actions/download-artifact@v8
+        with:
+          pattern: image-details-*
+          path: image-details
+          merge-multiple: true
+
+      - name: Render the summary table
+        id: render
+        env:
+          MATRIX: ${{ inputs.matrix }}
+        run: |
+          bash scripts/build-summary.sh image-details "$MATRIX" > summary.md
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "markdown<<SUMMARY_EOF"
+            cat summary.md
+            echo "SUMMARY_EOF"
+          } >> "$GITHUB_OUTPUT"

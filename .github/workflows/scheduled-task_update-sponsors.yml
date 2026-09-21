@@ -5,6 +5,8 @@ on:
     - cron: 30 15 * * 0
 jobs:
   deploy:
+    # Forks inherit the cron schedule. Their weekly rebuilds always fail and email whoever last edited the schedule upstream.
+    if: github.event_name != 'schedule' || github.repository == 'serversideup/docker-php'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout 🛎️
@@ -16,7 +18,7 @@ jobs:
           organization: true
           minimum: 4900
           maximum: 5100
-          fallback: 'No bronze sponsors yet. <a href="https://github.com/sponsors/serversideup">Become a sponsor →</a>'
+          fallback: 'No bronze sponsors yet. <a href="https://serversideup.net/sponsor/">Become a sponsor →</a>'
           token: ${{ secrets.SPONSORS_README_ACTION_PERSONAL_ACCESS_TOKEN }}
           marker: 'bronze'
           template: '<a href="https://github.com/{{{ login }}}"><img src="https://github.com/{{{ login }}}.png" width="40px" alt="{{{ login }}}" /></a>&nbsp;&nbsp;'
@@ -27,7 +29,7 @@ jobs:
         with:
           organization: true
           maximum: 500
-          fallback: '<p align="center"><a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-empty-state.png" alt="Sponsors"></a></p>'
+          fallback: '<p align="center"><a href="https://serversideup.net/sponsor/"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-empty-state.png" alt="Sponsors"></a></p>'
           token: ${{ secrets.SPONSORS_README_ACTION_PERSONAL_ACCESS_TOKEN }}
           marker: 'supporters'
           template: '<a href="https://github.com/{{{ login }}}"><img src="https://github.com/{{{ login }}}.png" width="40px" alt="{{{ login }}}" /></a>&nbsp;&nbsp;'

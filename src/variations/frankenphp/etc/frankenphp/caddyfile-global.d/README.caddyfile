@@ -1,0 +1,7 @@
+# Add your own .caddyfile files to this directory. They are imported inside the
+# global options block of /etc/frankenphp/Caddyfile.
+# Use caddyfile.d/ for site-level configuration instead.
+#
+# This file only exists so the import glob matches something. Caddy logs
+# "No files matching import glob pattern" on every start when a directory
+# like this one is empty.

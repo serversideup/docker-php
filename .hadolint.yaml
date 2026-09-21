@@ -1,0 +1,11 @@
+# hadolint configuration for src/variations/*/Dockerfile
+# Each ignored rule is a deliberate project decision, not an oversight.
+ignored:
+  - DL3008 # apt packages are intentionally unpinned: weekly rebuilds pick up security updates
+  - DL3018 # apk packages are intentionally unpinned for the same reason
+  - DL3015 # --no-install-recommends is handled inside docker-php-serversideup-dep-install-debian
+  - DL4006 # pipefail is unavailable in the Alpine /bin/sh these RUN steps must also support
+  - DL3064 # false positive: build args named *_KEY_* hold public signing key URLs and fingerprints
+  - DL3066 # USER www-data by name is intentional; the entrypoint remaps the UID at runtime
+  - DL3059 # consecutive RUN steps are kept separate on purpose for cache granularity
+  - DL3025 # shell-form CMD is intentional so the entrypoint can expand environment variables
