@@ -147,8 +147,8 @@ We compile FrankenPHP from source, which allows us to support multiple operating
 **Available platforms:**
 - Debian Bookworm (12)
 - Debian Trixie (13)
-- Alpine 3.21
-- Alpine 3.22
+- Alpine 3.23
+- Alpine 3.24
 
 This gives you the freedom to choose the base OS that best fits your infrastructure and security requirements.
 
