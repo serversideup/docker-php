@@ -21,6 +21,8 @@ permissions: {}
 
 jobs:
   release:
+    # Forks inherit the cron schedule. Their weekly rebuilds always fail and email whoever last edited the schedule upstream.
+    if: github.event_name != 'schedule' || github.repository == 'serversideup/docker-php'
     name: resolve release
     runs-on: ubuntu-24.04
     timeout-minutes: 5

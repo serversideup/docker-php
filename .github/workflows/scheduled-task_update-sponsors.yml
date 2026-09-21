@@ -5,6 +5,8 @@ on:
     - cron: 30 15 * * 0
 jobs:
   deploy:
+    # Forks inherit the cron schedule. Their weekly rebuilds always fail and email whoever last edited the schedule upstream.
+    if: github.event_name != 'schedule' || github.repository == 'serversideup/docker-php'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout 🛎️
