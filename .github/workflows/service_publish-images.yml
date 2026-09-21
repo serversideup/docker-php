@@ -53,7 +53,7 @@ jobs:
     if: needs.list.outputs.count > 0
     name: ${{ matrix.variation }}
     runs-on: depot-ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
@@ -89,11 +89,17 @@ jobs:
       # `depot push` handles one tag at a time, so images are pushed in parallel and each
       # one's output is printed afterwards as its own log group. Every image is attempted
       # even after one fails, so a run shows every image that could not be published at once.
+      #
+      # Every variation's job starts pushing in the same second, and GHCR allows 2,000
+      # requests a minute per token. Eight pushes per job were enough to get every job rate
+      # limited (v5.0.0-beta1), and `depot push` does not retry a 429, so the parallelism
+      # is kept low and a failed push is retried with a growing pause.
       - name: Promote the tested images to every tag
         env:
           IMAGES: ${{ matrix.images }}
           VARIATION: ${{ matrix.variation }}
-          MAX_PARALLEL: 8
+          MAX_PARALLEL: 2
+          PUSH_ATTEMPTS: 5
         run: |
           PROJECT=$(jq -r .id depot.json)
           mkdir -p image-details logs
@@ -106,10 +112,17 @@ jobs:
               tag_args+=(--tag "$tag")
             done
             echo "Pushing build $build_id to $(( ${#tag_args[@]} / 2 )) tags"
-            if ! depot push --project "$PROJECT" --progress plain "${tag_args[@]}" "$build_id"; then
-              echo "::error title=Publish failed::${image_name} could not be pushed"
-              return 1
-            fi
+            local attempt=1
+            until depot push --project "$PROJECT" --progress plain "${tag_args[@]}" "$build_id"; do
+              if [ "$attempt" -ge "$PUSH_ATTEMPTS" ]; then
+                echo "::error title=Publish failed::${image_name} could not be pushed after ${PUSH_ATTEMPTS} attempts"
+                return 1
+              fi
+              local pause=$(( 15 * attempt + RANDOM % 15 ))
+              echo "Push attempt ${attempt} of ${PUSH_ATTEMPTS} failed, retrying in ${pause}s"
+              sleep "$pause"
+              attempt=$(( attempt + 1 ))
+            done
 
             # What was published must be what was tested: the tested digest has to appear
             # in the published index (as the index itself or one of its manifests).
