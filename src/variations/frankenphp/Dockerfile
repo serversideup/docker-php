@@ -113,6 +113,11 @@ FROM common AS final
 ARG DEPENDENCY_PACKAGES_ALPINE='shadow libstdc++'
 ARG DEPENDENCY_PACKAGES_DEBIAN='procps libstdc++6 zip'
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+# Extensions that require PHP 8.0+. Only installed on PHP 8.x images.
+ARG DEPENDENCY_PHP_EXTENSIONS_PHP8='opentelemetry'
+# ARGs declared before the first FROM are global and are not available inside a
+# build stage. Re-declare PHP_VERSION here so it can be used below.
+ARG PHP_VERSION
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
@@ -166,6 +171,10 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     PHP_OPCACHE_SAVE_COMMENTS="1" \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
     PHP_OPEN_BASEDIR="" \
+    PHP_OPENTELEMETRY_ALLOW_STACK_EXTENSION="Off" \
+    PHP_OPENTELEMETRY_ATTR_HOOKS_ENABLED="Off" \
+    PHP_OPENTELEMETRY_DISPLAY_WARNINGS="Off" \
+    PHP_OPENTELEMETRY_VALIDATE_HOOK_FUNCTIONS="On" \
     PHP_POST_MAX_SIZE="100M" \
     PHP_REALPATH_CACHE_TTL="120" \
     PHP_SESSION_COOKIE_SECURE=false \
@@ -210,6 +219,10 @@ RUN \
     docker-php-serversideup-install-php-ext-installer; \
     # Install default PHP extensions
     install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS}; \
+    # Install extensions that require PHP 8.0+ (skipped on PHP 7.4)
+    case "${PHP_VERSION}" in \
+        8.*) install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS_PHP8} ;; \
+    esac; \
     # Ensure permissions are set for www-data
     docker-php-serversideup-set-file-permissions --owner www-data:www-data --service frankenphp
 
