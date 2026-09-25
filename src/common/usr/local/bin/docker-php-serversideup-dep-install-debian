@@ -3,6 +3,14 @@ set -oe
 
 ###################################################
 # Usage: docker-php-serversideup-dep-install-debian [debian-packages]
+#
+# Packages may be passed as separate arguments, comma-delimited, or both:
+#
+#     docker-php-serversideup-dep-install-debian git, zip
+#
+#     docker-php-serversideup-dep-install-debian \
+#         git \
+#         zip
 ###################################################
 # This script installs debian packages that are passed to it
 
@@ -28,8 +36,10 @@ fi
 ############
 # Functions
 ############
+# Accepts any mix of space-separated arguments and comma-delimited lists
+# (e.g. "pkg1, pkg2" or "pkg1 pkg2" or "pkg1 \ pkg2" across lines in a Dockerfile)
 convert_comma_delimited_to_space_separated() {
-    echo $1 | tr ',' ' '
+    printf '%s\n' "$*" | tr ',' ' ' | tr -s ' '
 }
 
 ############
