@@ -38,16 +38,28 @@ fi
 # Accepts any mix of space-separated arguments and comma-delimited lists
 # (e.g. "pkg1, pkg2" or "pkg1 pkg2" or "pkg1 \ pkg2" across lines in a Dockerfile)
 convert_comma_delimited_to_space_separated() {
-    printf '%s\n' "$*" | tr ',' ' ' | tr -s ' '
+    printf '%s\n' "$*" | tr ',' ' '
 }
 
 ############
 # Main
 ############
-DEP_PACKAGES=$(convert_comma_delimited_to_space_separated "$@")
+# Re-split into one argument per package. Globbing is disabled so a package
+# name such as "php*" is never expanded against files in the working directory.
+set -f
+set -- $(convert_comma_delimited_to_space_separated "$@")
+set +f
+
+if [ $# -eq 0 ]; then
+    echo "ℹ️ INFO ($script_name): No packages were found in the arguments. Continuing..."
+    exit 0
+fi
+
+# "$*" joins the packages with single spaces for display
+DEP_PACKAGES="$*"
 echo "🤖 Installing: $DEP_PACKAGES"
-apk update 
-apk add --no-cache $DEP_PACKAGES
+apk update
+apk add --no-cache "$@"
 
 
 echo "🧼 Cleaning up installation of: $DEP_PACKAGES"
