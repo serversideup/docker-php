@@ -26,7 +26,7 @@ os_config() {
     yq -r '.operating_systems[] | .family as $f | .versions[] | "\(.version)|\($f)|\(.name)"' "$config_file" \
     | while IFS='|' read -r version family name; do
         if [[ "$family" == "alpine" ]]; then
-            # version comes as alpineX.Y (e.g., alpine3.20)
+            # version comes as alpineX.Y (e.g., alpine3.24)
             key="$version"
             alpine_num_version="${version#alpine}"
             url="http://nginx.org/packages/alpine/v${alpine_num_version}/main/x86_64/"
@@ -59,7 +59,7 @@ help_menu() {
     echo
     echo "Examples:"
     echo "  $0                    # Show all operating systems"
-    echo "  $0 --os alpine3.20    # Show only Alpine 3.20"
+    echo "  $0 --os alpine3.24    # Show only Alpine 3.24"
     echo "  $0 --os bookworm      # Show only Debian Bookworm"
 }
 
@@ -138,7 +138,8 @@ get_alpine_version() {
     local url="$1"
     local pattern="$2"
     
-    local version=$(curl -s "$url" | grep -o "$pattern" | sort -V | tail -1)
+    local version
+    version=$(curl -s "$url" | grep -o "$pattern" | sort -V | tail -1)
     if [[ -n "$version" ]]; then
         # Extract version number from package name (e.g., nginx-1.24.0-r7.apk -> 1.24.0-r7)
         echo "$version" | sed 's/nginx-\(.*\)\.apk/\1/'
@@ -150,7 +151,8 @@ get_alpine_version() {
 get_debian_version() {
     local url="$1"
     
-    local version=$(curl -s "$url" \
+    local version
+    version=$(curl -s "$url" \
         | awk 'BEGIN{RS=""; FS="\n"} { pkg=0; ver=""; for (i=1;i<=NF;i++){ if ($i ~ /^Package: nginx$/) pkg=1; if ($i ~ /^Version:/){ split($i,a,": *"); ver=a[2]; } } if (pkg && ver!="") print ver; }' \
         | sort -V | tail -1)
     if [[ -n "$version" ]]; then
@@ -175,7 +177,7 @@ compute_nginx_version() {
 }
 
 update_config_nginx_version() {
-    local version_key="$1"   # e.g., alpine3.20 or bookworm
+    local version_key="$1"   # e.g., alpine3.24 or bookworm
     local new_nginx_version="$2"
 
     if [[ -z "$new_nginx_version" || "$new_nginx_version" == "Unable to fetch" ]]; then

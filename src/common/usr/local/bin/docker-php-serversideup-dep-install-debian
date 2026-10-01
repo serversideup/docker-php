@@ -6,7 +6,7 @@ set -oe
 ###################################################
 # This script installs debian packages that are passed to it
 
-DEBIAN_FRONTEND=noninteractive
+export DEBIAN_FRONTEND=noninteractive
 script_name="docker-php-serversideup-dep-install-debian"
 
 ############
@@ -37,8 +37,8 @@ convert_comma_delimited_to_space_separated() {
 ############
 DEP_PACKAGES=$(convert_comma_delimited_to_space_separated "$@")
 echo "🤖 Installing: $DEP_PACKAGES"
-apt-get update
-apt-get install -y $DEP_PACKAGES
+apt-get -o Acquire::Retries=3 update
+apt-get -o Acquire::Retries=3 install -y $DEP_PACKAGES
 
 
 echo "🧼 Cleaning up installation of: $DEP_PACKAGES"

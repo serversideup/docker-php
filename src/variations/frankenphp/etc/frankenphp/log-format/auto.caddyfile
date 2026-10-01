@@ -1,0 +1,9 @@
+# No "wrap" here on purpose: Caddy picks console on an interactive terminal and
+# json everywhere else, which is the default of the official FrankenPHP image.
+# Mercure subscribers pass their JWT as ?authorization=, so redact it. Caddy
+# nests the URI under "request", which is why the field is request>uri.
+format filter {
+	request>uri query {
+		replace authorization REDACTED
+	}
+}
