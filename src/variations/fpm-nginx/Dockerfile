@@ -97,8 +97,15 @@ RUN \
 # FPM-NGINX: Main Image
 ##########
 FROM ${BASE_IMAGE}
-ARG DEPENDENCY_PACKAGES_ALPINE='fcgi gettext shadow'
-ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin gettext-base procps zip'
+ARG DEPENDENCY_PACKAGES_ALPINE="\
+    fcgi \
+    gettext \
+    shadow"
+ARG DEPENDENCY_PACKAGES_DEBIAN="\
+    gettext-base \
+    libfcgi-bin \
+    procps \
+    zip"
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'

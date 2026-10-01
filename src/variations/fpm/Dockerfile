@@ -7,8 +7,13 @@ ARG PHP_VARIATION='fpm'
 ##########
 FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
 
-ARG DEPENDENCY_PACKAGES_ALPINE='fcgi shadow'
-ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin procps zip'
+ARG DEPENDENCY_PACKAGES_ALPINE="\
+    fcgi \
+    shadow"
+ARG DEPENDENCY_PACKAGES_DEBIAN="\
+    libfcgi-bin \
+    procps \
+    zip"
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'

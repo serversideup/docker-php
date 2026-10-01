@@ -22,8 +22,15 @@ RUN docker-php-serversideup-s6-install
 # FPM-APACHE: Main Image
 ##########
 FROM ${BASE_IMAGE}
-ARG DEPENDENCY_PACKAGES_ALPINE='fcgi apache2 shadow'
-ARG DEPENDENCY_PACKAGES_DEBIAN='libfcgi-bin apache2 procps zip'
+ARG DEPENDENCY_PACKAGES_ALPINE="\
+    apache2 \
+    fcgi \
+    shadow"
+ARG DEPENDENCY_PACKAGES_DEBIAN="\
+    apache2 \
+    libfcgi-bin \
+    procps \
+    zip"
 ARG DEPENDENCY_PHP_EXTENSIONS='mysqli opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'

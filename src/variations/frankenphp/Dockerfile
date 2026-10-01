@@ -52,8 +52,42 @@ FROM golang:${GOLANG_VERSION} AS golang-image
 FROM common AS frankenphp-build
 ARG FRANKENPHP_VERSION
 ARG GOLANG_VERSION
-ARG BUILD_DEPENDENCY_PACKAGES_ALPINE='argon2-dev bash brotli-dev ca-certificates coreutils curl-dev git gnu-libiconv-dev libcap libsodium-dev cmake libstdc++ libxml2-dev linux-headers mailcap oniguruma-dev openssl-dev readline-dev sqlite-dev upx'
-ARG BUILD_DEPENDENCY_PACKAGES_DEBIAN='cmake git libargon2-dev libbrotli-dev libcap2-bin libcurl4-openssl-dev libonig-dev libreadline-dev libsodium-dev libsqlite3-dev libssl-dev libxml2-dev mailcap zlib1g-dev'
+ARG BUILD_DEPENDENCY_PACKAGES_ALPINE="\
+    argon2-dev \
+    bash \
+    brotli-dev \
+    ca-certificates \
+    cmake \
+    coreutils \
+    curl-dev \
+    git \
+    gnu-libiconv-dev \
+    libcap \
+    libsodium-dev \
+    libstdc++ \
+    libxml2-dev \
+    linux-headers \
+    mailcap \
+    oniguruma-dev \
+    openssl-dev \
+    readline-dev \
+    sqlite-dev \
+    upx"
+ARG BUILD_DEPENDENCY_PACKAGES_DEBIAN="\
+    cmake \
+    git \
+    libargon2-dev \
+    libbrotli-dev \
+    libcap2-bin \
+    libcurl4-openssl-dev \
+    libonig-dev \
+    libreadline-dev \
+    libsodium-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    libxml2-dev \
+    mailcap \
+    zlib1g-dev"
 
 COPY --from=golang-image /usr/local/go /usr/local/go
 ENV PATH="/usr/local/go/bin:${PATH}"
@@ -114,8 +148,13 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
 # FrankenPHP Final
 ####################
 FROM common AS final
-ARG DEPENDENCY_PACKAGES_ALPINE='shadow libstdc++'
-ARG DEPENDENCY_PACKAGES_DEBIAN='procps libstdc++6 zip'
+ARG DEPENDENCY_PACKAGES_ALPINE="\
+    libstdc++ \
+    shadow"
+ARG DEPENDENCY_PACKAGES_DEBIAN="\
+    libstdc++6 \
+    procps \
+    zip"
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
