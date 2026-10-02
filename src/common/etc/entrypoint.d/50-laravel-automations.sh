@@ -11,7 +11,8 @@ script_name="laravel-automations"
 : "${AUTORUN_DEBUG:=false}"
 : "${AUTORUN_LARAVEL_SKIP_IF_NOT_FOUND:=false}"
 
-# Set default values for storage link
+# Set default values for storage
+: "${AUTORUN_LARAVEL_STORAGE_INIT:=false}"
 : "${AUTORUN_LARAVEL_STORAGE_LINK:=true}"
 
 # Set default values for optimizations
@@ -163,6 +164,33 @@ artisan_storage_link() {
             return 1
         fi
     fi
+}
+
+laravel_storage_init() {
+    echo "🚀 Initializing Laravel storage structure and permissions in $APP_BASE_DIR"
+    for dir in \
+        bootstrap/cache \
+        storage/app/private \
+        storage/app/public \
+        storage/framework/cache \
+        storage/framework/sessions \
+        storage/framework/testing \
+        storage/framework/views \
+        storage/logs \
+        storage/pail; do
+        if [ ! -d "$APP_BASE_DIR/$dir" ] && ! mkdir_error=$(mkdir -p "$APP_BASE_DIR/$dir" 2>&1); then
+            echo "❌ $script_name: Unable to create directory: $APP_BASE_DIR/$dir"
+            echo "   $mkdir_error"
+            return 1
+        fi
+
+        # Only the owner can change permissions, so directories owned by another user are skipped rather than failing startup
+        if ! chmod ug+rwx "$APP_BASE_DIR/$dir" 2>/dev/null; then
+            echo "ℹ️ Unable to update permissions on $APP_BASE_DIR/$dir, skipping"
+        fi
+    done
+
+    return 0
 }
 
 artisan_optimize() {
@@ -443,6 +471,11 @@ wait_for_database_connection() {
 ############################################################################
 
 if laravel_is_installed; then
+    # Runs first because Artisan fails to boot without bootstrap/cache
+    if [ "$AUTORUN_LARAVEL_STORAGE_INIT" = "true" ]; then
+        laravel_storage_init
+    fi
+
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ] || [ "$AUTORUN_DEBUG" = "true" ]; then
         echo "Laravel detected: v$(get_laravel_version)"
         echo "Automation settings:"
