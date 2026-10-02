@@ -180,7 +180,7 @@ laravel_storage_init() {
         storage/pail; do
         if [ ! -d "$APP_BASE_DIR/$dir" ] && ! mkdir_error=$(mkdir -p "$APP_BASE_DIR/$dir" 2>&1); then
             echo "❌ $script_name: Unable to create directory: $APP_BASE_DIR/$dir"
-            echo "   $mkdir_error"
+            debug_log "$mkdir_error"
             return 1
         fi
 
