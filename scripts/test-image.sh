@@ -85,9 +85,17 @@ for pair in NGINX_HTTP_PORT:NGINX_WEBROOT APACHE_HTTP_PORT:APACHE_DOCUMENT_ROOT 
     fi
 done
 
+# The same images serve TLS on their HTTPS port once SSL_MODE is on, which is the only
+# way to reach them over HTTP/2.
+https_port=""
+for variable in NGINX_HTTPS_PORT APACHE_HTTPS_PORT CADDY_HTTPS_PORT; do
+    https_port=$(image_env "$variable")
+    [ -z "$https_port" ] || break
+done
+
 # Web images run with OPcache enabled so the health check and the served page
 # cover the FPM and FrankenPHP SAPIs starting with the tuned defaults.
-run_args=(--detach --rm --env PHP_OPCACHE_ENABLE=1)
+run_args=(--detach --env PHP_OPCACHE_ENABLE=1)
 if [ -n "$http_port" ]; then
     # The container runs unprivileged, so the mounted document root must be world readable.
     web_dir=$(mktemp -d)
@@ -98,7 +106,18 @@ if [ -n "$http_port" ]; then
     chmod 755 "$web_dir/storage"
     echo '<?php echo "storage-php-executed";' > "$web_dir/storage/uploaded.php"
     chmod 644 "$web_dir/storage/uploaded.php"
+    # Symfony's Response::send() calls fastcgi_finish_request() and Laravel keeps running
+    # terminate callbacks after it, so the web server has to survive a request that finishes
+    # before PHP does.
+    cat > "$web_dir/finish-request.php" <<'PHP'
+<?php
+echo "finish-request-ok:" . PHP_VERSION;
+fastcgi_finish_request();
+usleep(50000);
+PHP
+    chmod 644 "$web_dir/finish-request.php"
     run_args+=(--publish "127.0.0.1::${http_port}" --volume "$web_dir:$web_root:ro")
+    [ -z "$https_port" ] || run_args+=(--publish "127.0.0.1::${https_port}")
 fi
 
 containers=()
@@ -136,6 +155,7 @@ start_container() {
         fail "Container did not become healthy within ${health_timeout_seconds}s (status: $status)"
     fi
     [ -z "$http_port" ] || host_port=$(docker port "$container" "$http_port" | head -n1 | sed 's/.*://')
+    [ -z "$https_port" ] || https_host_port=$(docker port "$container" "$https_port" | head -n1 | sed 's/.*://')
 }
 
 # Retries until the response body matches, since the web server may still be warming up.
@@ -177,6 +197,32 @@ expect_authorization_redacted() {
     fail "Access log does not redact the authorization query parameter"
 }
 
+# PHP carrying on after fastcgi_finish_request() has to leave the server able to take the
+# next request. Caddy 2.11.6 segfaulted the whole FrankenPHP process here, but only over
+# HTTP/2, so both protocol versions are worth checking.
+expect_work_after_finish_request() {
+    for protocol in --http1.1 --http2; do
+        body=""
+        for _ in $(seq 1 "$http_timeout_seconds"); do
+            body=$(curl --silent --insecure "$protocol" --max-time 5 "https://127.0.0.1:${https_host_port}/finish-request.php" 2>/dev/null || true)
+            [ "$body" = "finish-request-ok:${php_version}" ] && break
+            sleep 1
+        done
+        if [ "$body" != "finish-request-ok:${php_version}" ]; then
+            dump_container_state "$container"
+            fail "Web server did not serve /finish-request.php over ${protocol#--}. Response: ${body:-<empty>}"
+        fi
+
+        # The crash lands after the response, so give the process a moment to fall over.
+        sleep 2
+        status=$(docker inspect --format '{{.State.Status}}' "$container" 2>/dev/null || echo gone)
+        if [ "$status" != "running" ]; then
+            dump_container_state "$container"
+            fail "Web server stopped after a ${protocol#--} request finished before PHP did (status: $status)"
+        fi
+    done
+}
+
 # A detached container has no terminal, so Caddy's default format is json and its default
 # stream is stderr. Octane depends on both: it only relays stderr and only parses JSON.
 expect_json_logs_on_stderr() {
@@ -201,6 +247,19 @@ pass "Web server serves PHP on port ${http_port}"
 
 expect_storage_blocked
 pass "Web server blocks PHP execution under /storage"
+
+# HTTP/2 needs TLS, so this runs against its own container with SSL_MODE=full, which
+# generates a self-signed certificate and stops serving the plain HTTP port. The checks
+# after it still expect the container the rest of the suite has been using.
+if [ -n "$https_port" ]; then
+    default_container="$container"
+    default_host_port="$host_port"
+    start_container --env SSL_MODE=full
+    expect_work_after_finish_request
+    pass "Web server survives a request that finishes before PHP does, over HTTP/1.1 and HTTP/2"
+    container="$default_container"
+    host_port="$default_host_port"
+fi
 
 # The rest applies to FrankenPHP only: Caddy's log defaults and Laravel Octane.
 [ -n "$(image_env CADDY_HTTP_PORT)" ] || exit 0
