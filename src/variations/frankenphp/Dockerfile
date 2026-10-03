@@ -3,6 +3,7 @@ ARG BASE_OS_VERSION='trixie'
 ARG PHP_VERSION='8.5'
 ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
 ARG FRANKENPHP_VERSION='1.12.7'
+ARG CADDY_VERSION='v2.11.4'
 ARG GOLANG_VERSION='1.26'
 
 ########################
@@ -51,6 +52,7 @@ FROM golang:${GOLANG_VERSION} AS golang-image
 ####################
 FROM common AS frankenphp-build
 ARG FRANKENPHP_VERSION
+ARG CADDY_VERSION
 ARG GOLANG_VERSION
 ARG BUILD_DEPENDENCY_PACKAGES_ALPINE="\
     argon2-dev \
@@ -133,12 +135,13 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
     XCADDY_GO_BUILD_FLAGS="-ldflags='-w -s' -tags=nobadger,nomysql,nopgx" \
     CGO_CFLAGS="-DFRANKENPHP_VERSION=${FRANKENPHP_VERSION} $(php-config --includes) $ADDITIONAL_BUILD_FLAGS" \
     CGO_LDFLAGS="$(php-config --ldflags) $(php-config --libs)" \
-    xcaddy build \
+    # CADDY_VERSION and the plugin versions must match caddy/go.mod at the pinned
+    # FRANKENPHP_VERSION tag, otherwise xcaddy resolves the latest release, which
+    # may need a newer Go or ship a regression upstream never tested against
+    xcaddy build "${CADDY_VERSION}" \
         --output /usr/local/bin/frankenphp \
         --with github.com/dunglas/frankenphp=./ \
         --with github.com/dunglas/frankenphp/caddy=./caddy/ \
-        # Plugin versions must match caddy/go.mod at the pinned FRANKENPHP_VERSION tag,
-        # otherwise xcaddy resolves the latest release, which may need a newer Go
         --with github.com/dunglas/caddy-cbrotli@v1.0.1 \
         # Mercure and Vulcain are included in the official build, but feel free to remove them
         --with github.com/dunglas/mercure/caddy@v0.24.2 \
