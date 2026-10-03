@@ -15,7 +15,7 @@ absolute_redirect off;
 # Healthcheck: Set /healthcheck to be the static health check URL
 location /healthcheck {
     access_log off;
-    
+
     # set max 5 seconds for healthcheck
     fastcgi_read_timeout 5s;
 
@@ -32,8 +32,13 @@ location / {
 
 # Block PHP execution in storage directory to prevent uploaded malicious PHP files from running
 # Reference: Livewire arbitrary file upload (GHSA-29cq-5w36-x7w3)
-location ~* ^/storage/.*\.php$ {
+location ~* ^/storage/.*\.php(?:/|$) {
     deny all;
+}
+
+# Redirect /index.php/... to /... to prevent SEO duplicate content
+location ~ ^/index\.php(/.+)$ {
+    return 301 $1$is_args$args;
 }
 
 # Pass "*.php" files to PHP-FPM
@@ -42,10 +47,13 @@ location ~ \.php$ {
     fastcgi_index  index.php;
     fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
     include        fastcgi_params;
-    fastcgi_buffers $NGINX_FASTCGI_BUFFERS; 
+    fastcgi_buffers $NGINX_FASTCGI_BUFFERS;
     fastcgi_buffer_size $NGINX_FASTCGI_BUFFER_SIZE;
     fastcgi_read_timeout $PHP_MAX_EXECUTION_TIME;
 }
+
+# trusted proxy configuration
+include /etc/nginx/trusted-proxy/${TRUSTED_PROXY}.conf;
 
 # additional config
 include /etc/nginx/server-opts.d/*.conf;

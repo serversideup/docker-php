@@ -1,0 +1,7 @@
+# One JSON object per line, even when the output is a terminal
+format filter {
+	wrap json
+	request>uri query {
+		replace authorization REDACTED
+	}
+}

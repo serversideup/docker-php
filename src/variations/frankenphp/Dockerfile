@@ -2,7 +2,8 @@
 ARG BASE_OS_VERSION='trixie'
 ARG PHP_VERSION='8.5'
 ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
-ARG FRANKENPHP_VERSION='1.12.6'
+ARG FRANKENPHP_VERSION='1.12.7'
+ARG CADDY_VERSION='v2.11.4'
 ARG GOLANG_VERSION='1.26'
 
 ########################
@@ -27,7 +28,8 @@ RUN set -eux; \
 		/etc/frankenphp/ssl-mode \
         /etc/frankenphp/log-level \
         /etc/frankenphp/auto-https \
-        /etc/frankenphp/caddyfile.d; \
+        /etc/frankenphp/caddyfile.d \
+        /etc/frankenphp/caddyfile-global.d; \
     # Create default index.php
 	echo '<?php phpinfo();' > /var/www/html/public/index.php; \
     # Create symbolic links
@@ -50,9 +52,44 @@ FROM golang:${GOLANG_VERSION} AS golang-image
 ####################
 FROM common AS frankenphp-build
 ARG FRANKENPHP_VERSION
+ARG CADDY_VERSION
 ARG GOLANG_VERSION
-ARG BUILD_DEPENDENCY_PACKAGES_ALPINE='argon2-dev bash brotli-dev ca-certificates coreutils curl-dev git gnu-libiconv-dev libcap libsodium-dev cmake libstdc++ libxml2-dev linux-headers mailcap oniguruma-dev openssl-dev readline-dev sqlite-dev upx'
-ARG BUILD_DEPENDENCY_PACKAGES_DEBIAN='cmake git libargon2-dev libbrotli-dev libcap2-bin libcurl4-openssl-dev libonig-dev libreadline-dev libsodium-dev libsqlite3-dev libssl-dev libxml2-dev mailcap zlib1g-dev'
+ARG BUILD_DEPENDENCY_PACKAGES_ALPINE="\
+    argon2-dev \
+    bash \
+    brotli-dev \
+    ca-certificates \
+    cmake \
+    coreutils \
+    curl-dev \
+    git \
+    gnu-libiconv-dev \
+    libcap \
+    libsodium-dev \
+    libstdc++ \
+    libxml2-dev \
+    linux-headers \
+    mailcap \
+    oniguruma-dev \
+    openssl-dev \
+    readline-dev \
+    sqlite-dev \
+    upx"
+ARG BUILD_DEPENDENCY_PACKAGES_DEBIAN="\
+    cmake \
+    git \
+    libargon2-dev \
+    libbrotli-dev \
+    libcap2-bin \
+    libcurl4-openssl-dev \
+    libonig-dev \
+    libreadline-dev \
+    libsodium-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    libxml2-dev \
+    mailcap \
+    zlib1g-dev"
 
 COPY --from=golang-image /usr/local/go /usr/local/go
 ENV PATH="/usr/local/go/bin:${PATH}"
@@ -67,13 +104,14 @@ RUN docker-php-serversideup-dep-install-alpine "$PHPIZE_DEPS ${BUILD_DEPENDENCY_
 
 # Install e-dant/watcher (necessary for file watching)
 WORKDIR /usr/local/src/watcher
-RUN curl -s https://api.github.com/repos/e-dant/watcher/releases/latest | \
-    grep tarball_url | \
-    awk '{ print $2 }' | \
-    sed 's/,$//' | \
-    sed 's/"//g' | \
-    xargs curl -L | \
-    tar xz --strip-components 1 && \
+RUN WATCHER_TARBALL_URL=$(docker-php-serversideup-download https://api.github.com/repos/e-dant/watcher/releases/latest | \
+        grep tarball_url | \
+        awk '{ print $2 }' | \
+        sed 's/,$//' | \
+        sed 's/"//g') && \
+    docker-php-serversideup-download "$WATCHER_TARBALL_URL" /tmp/watcher.tar.gz && \
+    tar xz --strip-components 1 -f /tmp/watcher.tar.gz && \
+    rm -f /tmp/watcher.tar.gz && \
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
     cmake --build build && \
     cmake --install build && \
@@ -97,22 +135,31 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
     XCADDY_GO_BUILD_FLAGS="-ldflags='-w -s' -tags=nobadger,nomysql,nopgx" \
     CGO_CFLAGS="-DFRANKENPHP_VERSION=${FRANKENPHP_VERSION} $(php-config --includes) $ADDITIONAL_BUILD_FLAGS" \
     CGO_LDFLAGS="$(php-config --ldflags) $(php-config --libs)" \
-    xcaddy build \
+    # CADDY_VERSION and the plugin versions must match caddy/go.mod at the pinned
+    # FRANKENPHP_VERSION tag, otherwise xcaddy resolves the latest release, which
+    # may need a newer Go or ship a regression upstream never tested against
+    xcaddy build "${CADDY_VERSION}" \
         --output /usr/local/bin/frankenphp \
         --with github.com/dunglas/frankenphp=./ \
         --with github.com/dunglas/frankenphp/caddy=./caddy/ \
-        --with github.com/dunglas/caddy-cbrotli \
+        --with github.com/dunglas/caddy-cbrotli@v1.0.1 \
         # Mercure and Vulcain are included in the official build, but feel free to remove them
-        --with github.com/dunglas/mercure/caddy \
-        --with github.com/dunglas/vulcain/caddy
+        --with github.com/dunglas/mercure/caddy@v0.24.2 \
+        --with github.com/dunglas/vulcain/caddy@v1.4.2
 
 ####################
 # FrankenPHP Final
 ####################
 FROM common AS final
-ARG DEPENDENCY_PACKAGES_ALPINE='shadow libstdc++'
-ARG DEPENDENCY_PACKAGES_DEBIAN='procps libstdc++6 zip'
+ARG DEPENDENCY_PACKAGES_ALPINE="\
+    libstdc++ \
+    shadow"
+ARG DEPENDENCY_PACKAGES_DEBIAN="\
+    libstdc++6 \
+    procps \
+    zip"
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG PHP_EXTENSION_OVERRIDES=''
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
@@ -125,7 +172,11 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     org.opencontainers.image.version="${REPOSITORY_BUILD_VERSION}" \
     org.opencontainers.image.licenses="GPL-3.0-or-later"
 
+    # LARAVEL_OCTANE is intentionally not declared. The Caddyfile imports
+    # laravel-octane/*/{$LARAVEL_OCTANE:0}.caddyfile and Caddy only applies the
+    # default when the variable is unset, so declaring it (even as "") breaks startup.
     ENV APP_BASE_DIR=/var/www/html \
+    CADDY_ACME_PROFILE="off" \
     CADDY_ADMIN="off" \
     CADDY_AUTO_HTTPS="off" \
     CADDY_GLOBAL_OPTIONS="" \
@@ -133,8 +184,8 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     CADDY_HTTPS_PORT="8443" \
     CADDY_HTTP_SERVER_ADDRESS="http://" \
     CADDY_HTTPS_SERVER_ADDRESS="https://" \
-    CADDY_LOG_FORMAT="console" \
-    CADDY_LOG_OUTPUT="stdout" \
+    CADDY_LOG_FORMAT="auto" \
+    CADDY_LOG_OUTPUT="stderr" \
     CADDY_PHP_SERVER_OPTIONS="" \
     CADDY_SERVER_EXTRA_DIRECTIVES="" \
     CADDY_SERVER_ROOT="/var/www/html/public" \
@@ -142,32 +193,41 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     COMPOSER_HOME=/composer \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
-    FRANKEN_PHP_CONFIG="" \
+    FRANKENPHP_CONFIG="" \
     LOG_OUTPUT_LEVEL=info \
     HEALTHCHECK_PATH="/healthcheck" \
     PHP_DATE_TIMEZONE="UTC" \
+    PHP_DISABLE_FUNCTIONS="" \
     PHP_DISPLAY_ERRORS=Off \
     PHP_DISPLAY_STARTUP_ERRORS=Off \
     PHP_ERROR_LOG="/dev/stderr" \
     PHP_ERROR_REPORTING="22527" \
+    PHP_FILE_UPLOADS="On" \
+    PHP_HTML_ERRORS="On" \
     PHP_MAX_EXECUTION_TIME="99" \
+    PHP_MAX_FILE_UPLOADS="20" \
     PHP_MAX_INPUT_TIME="-1" \
     PHP_MAX_INPUT_VARS="1000" \
     PHP_MEMORY_LIMIT="256M" \
     PHP_OPCACHE_ENABLE="0" \
+    PHP_OPCACHE_ENABLE_CLI="1" \
     PHP_OPCACHE_ENABLE_FILE_OVERRIDE="0" \
     PHP_OPCACHE_FORCE_RESTART_TIMEOUT="180" \
-    PHP_OPCACHE_INTERNED_STRINGS_BUFFER="8" \
+    PHP_OPCACHE_INTERNED_STRINGS_BUFFER="32" \
     PHP_OPCACHE_JIT="off" \
     PHP_OPCACHE_JIT_BUFFER_SIZE="0" \
-    PHP_OPCACHE_MAX_ACCELERATED_FILES="10000" \
-    PHP_OPCACHE_MEMORY_CONSUMPTION="128" \
+    PHP_OPCACHE_MAX_ACCELERATED_FILES="32531" \
+    PHP_OPCACHE_MEMORY_CONSUMPTION="256" \
+    PHP_OPCACHE_PRELOAD="" \
+    PHP_OPCACHE_PRELOAD_USER="" \
     PHP_OPCACHE_REVALIDATE_FREQ="2" \
     PHP_OPCACHE_SAVE_COMMENTS="1" \
-    PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
+    PHP_OPCACHE_VALIDATE_TIMESTAMPS="0" \
     PHP_OPEN_BASEDIR="" \
     PHP_POST_MAX_SIZE="100M" \
-    PHP_REALPATH_CACHE_TTL="120" \
+    PHP_REALPATH_CACHE_SIZE="4096K" \
+    PHP_REALPATH_CACHE_TTL="600" \
+    PHP_SESSION_COOKIE_HTTPONLY="On" \
     PHP_SESSION_COOKIE_SECURE=false \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     PHP_ZEND_DETECT_UNICODE="" \
@@ -176,6 +236,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     SSL_MODE=off \
     SSL_CERTIFICATE_FILE="/etc/ssl/private/self-signed-web.crt" \
     SSL_PRIVATE_KEY_FILE="/etc/ssl/private/self-signed-web.key" \
+    TRUSTED_PROXY=cloudflare \
     XDG_CONFIG_HOME=/config \
     XDG_DATA_HOME=/data
 
@@ -209,7 +270,7 @@ RUN \
     # Install PHP Extension installer
     docker-php-serversideup-install-php-ext-installer; \
     # Install default PHP extensions
-    install-php-extensions ${DEPENDENCY_PHP_EXTENSIONS}; \
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}"; \
     # Ensure permissions are set for www-data
     docker-php-serversideup-set-file-permissions --owner www-data:www-data --service frankenphp
 

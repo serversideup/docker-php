@@ -1,7 +1,7 @@
 # Healthcheck - HTTP: Redirect to HTTPS
 http://localhost:{$CADDY_HTTP_PORT:8080} {
 	@healthcheck {
-		remote_ip 127.0.0.1/8 ::1
+		remote_ip 127.0.0.0/8 ::1
 		path /healthcheck # Caddy healthcheck endpoint
 		path {$HEALTHCHECK_PATH:/healthcheck} # Custom healthcheck endpoint
 	}

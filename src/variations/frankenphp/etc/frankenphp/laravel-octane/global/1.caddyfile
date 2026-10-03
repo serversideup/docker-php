@@ -1,0 +1,7 @@
+# octane:status, octane:reload, and octane:stop call the Caddy admin API on the
+# host and port Octane passes in, so CADDY_ADMIN does not apply here
+admin {$CADDY_SERVER_ADMIN_HOST:localhost}:{$CADDY_SERVER_ADMIN_PORT:2019}
+
+# CADDY_GLOBAL_OPTIONS is intentionally not used here. Octane sets it to
+# "auto_https disable_redirects" for its own Caddyfile, which would override
+# CADDY_AUTO_HTTPS. Use caddyfile-global.d/ for additional global options.

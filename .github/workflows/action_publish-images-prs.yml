@@ -1,32 +1,190 @@
 name: Docker Publish (PR Images)
+run-name: "${{ github.event.pull_request.title || format('Manual build for PR #{0}', inputs.pr_number) }}"
 
 on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: 'PR number to build (leave empty for manual branch build)'
-        required: false
+        description: 'PR number to build and publish to serversideup/php-dev (use this for pull requests from forks)'
+        required: true
         type: string
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
       - src/**
       - .github/workflows/action_publish-images-**
-      - .github/workflows/service_docker-**
+      - .github/workflows/service_**
       - scripts/**
+      - depot.json
+
+# A new push to the same PR cancels the run that is still building the previous commit.
+concurrency:
+  group: pr-images-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+permissions: {}
 
 jobs:
-  build-dev-images:
-    uses: ./.github/workflows/service_docker-build-and-publish.yml
+  lint:
+    uses: ./.github/workflows/service_lint.yml
+    permissions:
+      contents: read
+
+  setup:
+    needs: lint
+    uses: ./.github/workflows/service_setup-matrix.yml
+    permissions:
+      contents: read
     with:
+      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
+
+  build:
+    needs: [setup]
+    name: build ${{ matrix.variation }}
+    strategy:
+      fail-fast: false
+      matrix:
+        variation: ${{ fromJson(needs.setup.outputs.variations) }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/service_build-images.yml
+    with:
+      variation: ${{ matrix.variation }}
+      matrix: ${{ needs.setup.outputs.matrix }}
+      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
       registry-repositories: "docker.io/serversideup/php-dev"
-      # Use PR number from input if provided, otherwise use the PR event number
       tag-prefix: ${{ inputs.pr_number || github.event.pull_request.number }}
       release-type: testing
-      authenticate_with_ghcr: false
-      push-to-registry: >-
-        ${{ 
+      # Only save and publish when the code comes from this repository or a maintainer asked for it.
+      # Pull requests from forks are built but never leave Depot's isolated builders. Dependabot
+      # runs have no access to the registry secrets, so they are treated the same way.
+      publish: >-
+        ${{
           github.event_name == 'workflow_dispatch' ||
-          (github.event_name == 'pull_request' && github.event.pull_request.head.repo.owner.type == 'Organization')
+          (
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            github.actor != 'dependabot[bot]'
+          )
         }}
     secrets: inherit
+
+  test:
+    needs: [setup, build]
+    if: always() && needs.setup.result == 'success'
+    uses: ./.github/workflows/service_test-images.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
+
+  # Only images that passed the image tests reach a public registry.
+  publish:
+    needs: [build, test]
+    if: needs.build.result == 'success' && needs.test.result == 'success'
+    uses: ./.github/workflows/service_publish-images.yml
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    with:
+      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
+      authenticate_with_ghcr: false
+    secrets: inherit
+
+  report:
+    needs: [setup, build, test, publish]
+    if: always() && needs.setup.result == 'success'
+    uses: ./.github/workflows/service_report.yml
+    permissions:
+      contents: read
+    with:
+      matrix: ${{ needs.setup.outputs.matrix }}
+      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
+
+  comment:
+    needs: [build, test, publish, report]
+    if: >-
+      always() &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          github.actor != 'dependabot[bot]'
+        )
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+      BUILD_RESULT: ${{ needs.build.result }}
+      TEST_RESULT: ${{ needs.test.result }}
+      PUBLISH_RESULT: ${{ needs.publish.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      SUMMARY_MARKDOWN: ${{ needs.report.outputs.markdown }}
+    steps:
+      - name: Post or update the image comment
+        run: |
+          IMAGES_COUNT=$(printf '%s\n' "$SUMMARY_MARKDOWN" | sed -n 's/^## Images: \([0-9]* of [0-9]*\).*/\1/p')
+          case "$BUILD_RESULT" in
+            success) BUILD_CELL="✅ ${IMAGES_COUNT:-All} images built" ;;
+            failure) BUILD_CELL="❌ Build failed${IMAGES_COUNT:+ ($IMAGES_COUNT images built)}" ;;
+            *)       BUILD_CELL="⚠️ Build $BUILD_RESULT" ;;
+          esac
+          case "$TEST_RESULT" in
+            success) TEST_CELL="✅ Every image passed on amd64 and arm64" ;;
+            failure) TEST_CELL="❌ Failed" ;;
+            *)       TEST_CELL="⏭️ Skipped" ;;
+          esac
+          case "$PUBLISH_RESULT" in
+            success) PUBLISH_CELL="✅ Published to serversideup/php-dev" ;;
+            failure) PUBLISH_CELL="❌ Failed" ;;
+            *)       PUBLISH_CELL="⏭️ Not published" ;;
+          esac
+          TABLE=$(printf '%s\n' "$SUMMARY_MARKDOWN" | sed '1{/^## /d}' | sed '1{/^$/d}')
+
+          # The example uses the newest stable PHP minor that has a published fpm-nginx image.
+          # Table columns: | Variation | PHP | Base OS | amd64 | arm64 | Image |
+          EXAMPLE_MINOR=$(printf '%s\n' "$SUMMARY_MARKDOWN" | awk -F' *\\| *' '
+            $2 == "fpm-nginx" && $3 ~ /^[0-9]+\.[0-9]+\.[0-9]+$/ && $7 ~ /^`/ { sub(/\.[0-9]+$/, "", $3); print $3; exit }')
+
+          if [ "$PUBLISH_RESULT" = "success" ] && [ -n "$EXAMPLE_MINOR" ]; then
+            PULL_SECTION=$(cat <<MARKDOWN
+          Try it:
+
+          \`\`\`bash
+          docker run --rm -v "\$PWD:/var/www/html" -p 8080:8080 serversideup/php-dev:${PR_NUMBER}-${EXAMPLE_MINOR}-fpm-nginx
+          \`\`\`
+
+          Every image is on Docker Hub as \`serversideup/php-dev:${PR_NUMBER}-<php>-<variation>-<os>\`. [Browse all tags](https://hub.docker.com/r/serversideup/php-dev/tags?name=${PR_NUMBER}-) or [view the run]($RUN_URL).
+          MARKDOWN
+            )
+          else
+            PULL_SECTION="No images were published from this run. [View the run]($RUN_URL) for details."
+          fi
+
+          cat > comment.md <<MARKDOWN
+          ### Images for PR #${PR_NUMBER}
+
+          | Build | Test | Publish |
+          |---|---|---|
+          | $BUILD_CELL | $TEST_CELL | $PUBLISH_CELL |
+
+          ${PULL_SECTION}
+
+          <details>
+          <summary>All images with sizes</summary>
+
+          ${TABLE}
+
+          </details>
+
+          <sub>Updated on every push to this PR.</sub>
+          MARKDOWN
+
+          gh pr comment "$PR_NUMBER" --edit-last --create-if-none --body-file comment.md
