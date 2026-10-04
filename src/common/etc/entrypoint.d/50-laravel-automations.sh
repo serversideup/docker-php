@@ -31,9 +31,6 @@ script_name="laravel-automations"
 : "${AUTORUN_LARAVEL_MIGRATION_SKIP_DB_CHECK:=false}"
 : "${AUTORUN_LARAVEL_MIGRATION_TIMEOUT:=30}"
 
-# Set default values for Laravel version
-INSTALLED_LARAVEL_VERSION=""
-
 ############################################################################
 # Sanity Checks
 ############################################################################
@@ -84,7 +81,7 @@ artisan_migrate() {
             isolation_enabled="true"
             debug_log "Isolation mode enabled (Laravel version check passed)"
         else
-            echo "⚠️ $script_name: Isolated migrations require Laravel v9.38.0 or above. Detected version: $(get_laravel_version)"
+            echo "⚠️ $script_name: Isolated migrations require Laravel v9.38.0 or above. Detected version: $(get_laravel_version 2>/dev/null || echo unknown)"
             echo "   Continuing without isolation mode..."
         fi
     fi
@@ -260,36 +257,18 @@ convert_comma_delimited_to_space_separated() {
 }
 
 get_laravel_version() {
-    # Return cached version if already set
-    if [ -n "$INSTALLED_LARAVEL_VERSION" ]; then
-        debug_log "Using cached Laravel version: $INSTALLED_LARAVEL_VERSION"
-        echo "$INSTALLED_LARAVEL_VERSION"
-        return 0
-    fi
+    # Laravel declares its version in the framework source in `src/Illuminate/Foundation/Application.php`.
+    # For example, in Laravel 13.34.0, the version is declared as: const VERSION = '13.34.0';
+    # Using `artisan --version` prints this same constant, but bootstraps the application to do it.
+    # A simple grep and cut can extract this version string without booting the entire application.
+    laravel_application_file="$APP_BASE_DIR/vendor/laravel/framework/src/Illuminate/Foundation/Application.php"
+    laravel_version=$(grep -F "const VERSION" "$laravel_application_file" 2>/dev/null | cut -s -d "'" -f 2)
 
-    debug_log "Detecting Laravel version..."
-    
-    # Capture artisan output
-    if ! artisan_version_output=$(php "$APP_BASE_DIR/artisan" --version 2>/dev/null); then
-        echo "❌ $script_name: Failed to execute artisan command" >&2
+    if [ -z "$laravel_version" ]; then
+        echo "❌ $script_name: Could not read the Laravel version from $laravel_application_file" >&2
         return 1
     fi
-    
-    debug_log "Raw artisan output: $artisan_version_output"
-    
-    # Extract version number using sed (POSIX compliant)
-    laravel_version=$(echo "$artisan_version_output" | sed -e 's/^Laravel Framework \([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*$/\1/')
-    
-    # Validate that we got a version number (POSIX compliant regex)
-    if echo "$laravel_version" | grep '^[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null 2>&1; then
-        INSTALLED_LARAVEL_VERSION="$laravel_version"
-        debug_log "Detected Laravel version: $laravel_version"
-        echo "$laravel_version"
-        return 0
-    else
-        echo "❌ $script_name: Failed to determine Laravel version from: $artisan_version_output" >&2
-        return 1
-    fi
+    echo "$laravel_version"
 }
 
 laravel_is_installed() {
@@ -312,11 +291,8 @@ laravel_version_is_at_least() {
         return 1
     fi
 
-    current_version=$(get_laravel_version)
-    if [ $? -ne 0 ]; then
-        echo "❌ $script_name: Failed to get Laravel version" >&2
-        return 1
-    fi
+    # get_laravel_version prints its own error when it can't read the version
+    current_version=$(get_laravel_version) || return 1
 
     # Extract version components using cut (POSIX compliant)
     cur_major=$(echo "$current_version" | cut -d. -f1)
@@ -444,7 +420,9 @@ wait_for_database_connection() {
 
 if laravel_is_installed; then
     if [ "$LOG_OUTPUT_LEVEL" = "debug" ] || [ "$AUTORUN_DEBUG" = "true" ]; then
-        echo "Laravel detected: v$(get_laravel_version)"
+        if laravel_version=$(get_laravel_version); then
+            echo "Laravel detected: v$laravel_version"
+        fi
         echo "Automation settings:"
         echo "--------------------------------"
         # Dynamically display all AUTORUN_* environment variables
