@@ -2,9 +2,8 @@
 ARG BASE_OS_VERSION='trixie'
 ARG PHP_VERSION='8.5'
 ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
-ARG FRANKENPHP_VERSION='1.12.7'
-ARG CADDY_VERSION='v2.11.4'
-ARG GOLANG_VERSION='1.26'
+ARG FRANKENPHP_VERSION='1.13.0'
+ARG GOLANG_VERSION='1.27'
 
 ########################
 # Common
@@ -52,7 +51,6 @@ FROM golang:${GOLANG_VERSION} AS golang-image
 ####################
 FROM common AS frankenphp-build
 ARG FRANKENPHP_VERSION
-ARG CADDY_VERSION
 ARG GOLANG_VERSION
 ARG BUILD_DEPENDENCY_PACKAGES_ALPINE="\
     argon2-dev \
@@ -95,9 +93,6 @@ COPY --from=golang-image /usr/local/go /usr/local/go
 ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOTOOLCHAIN="local"
 
-# Copy xcaddy in the builder image
-COPY --from=caddy:builder /usr/bin/xcaddy /usr/bin/xcaddy
-
 # Install dependencies & Download FrankenPHP
 RUN docker-php-serversideup-dep-install-alpine "$PHPIZE_DEPS ${BUILD_DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${BUILD_DEPENDENCY_PACKAGES_DEBIAN}"
@@ -119,33 +114,31 @@ RUN WATCHER_TARBALL_URL=$(docker-php-serversideup-download https://api.github.co
         ldconfig; \
     fi
 
-# Download and build FrankenPHP
+# Build FrankenPHP the way the official images do. go install takes every module
+# version from caddy/go.sum and applies the PGO profile in caddy/frankenphp,
+# while xcaddy resolves the latest Caddy release at build time (see #712)
 WORKDIR /go/src/app
 ENV GOBIN=/usr/local/bin
 
+RUN git clone --depth 1 --branch "v${FRANKENPHP_VERSION}" \
+    https://github.com/php/frankenphp.git .
+
+WORKDIR /go/src/app/caddy/frankenphp
 RUN if cat /etc/os-release | grep -q 'debian'; then \
-        export ADDITIONAL_BUILD_FLAGS=''; \
+        export ADDITIONAL_LDFLAGS=''; \
     elif cat /etc/os-release | grep -q 'alpine'; then \
-        export ADDITIONAL_BUILD_FLAGS="-extldflags '-Wl,-z,stack-size=0x80000'"; \
+        export ADDITIONAL_LDFLAGS="-extldflags '-Wl,-z,stack-size=0x80000'"; \
     fi; \
-    git clone --depth 1 --branch v${FRANKENPHP_VERSION} \
-    https://github.com/php/frankenphp.git .; \
     CGO_ENABLED=1 \
-    XCADDY_SETCAP=1 \
-    XCADDY_GO_BUILD_FLAGS="-ldflags='-w -s' -tags=nobadger,nomysql,nopgx" \
-    CGO_CFLAGS="-DFRANKENPHP_VERSION=${FRANKENPHP_VERSION} $(php-config --includes) $ADDITIONAL_BUILD_FLAGS" \
-    CGO_LDFLAGS="$(php-config --ldflags) $(php-config --libs)" \
-    # CADDY_VERSION and the plugin versions must match caddy/go.mod at the pinned
-    # FRANKENPHP_VERSION tag, otherwise xcaddy resolves the latest release, which
-    # may need a newer Go or ship a regression upstream never tested against
-    xcaddy build "${CADDY_VERSION}" \
-        --output /usr/local/bin/frankenphp \
-        --with github.com/dunglas/frankenphp=./ \
-        --with github.com/dunglas/frankenphp/caddy=./caddy/ \
-        --with github.com/dunglas/caddy-cbrotli@v1.0.1 \
-        # Mercure and Vulcain are included in the official build, but feel free to remove them
-        --with github.com/dunglas/mercure/caddy@v0.24.2 \
-        --with github.com/dunglas/vulcain/caddy@v1.4.2
+    CGO_CFLAGS="-DFRANKENPHP_VERSION=v${FRANKENPHP_VERSION} ${PHP_CFLAGS}" \
+    CGO_CPPFLAGS="${PHP_CPPFLAGS}" \
+    CGO_LDFLAGS="-L/usr/local/lib -lssl -lcrypto -lreadline -largon2 -lcurl -lonig -lz ${PHP_LDFLAGS}" \
+    ../../go.sh install \
+        -ldflags "-w -s ${ADDITIONAL_LDFLAGS} -X 'github.com/caddyserver/caddy/v2.CustomVersion=FrankenPHP v${FRANKENPHP_VERSION} PHP ${PHP_VERSION} Caddy' -X 'github.com/caddyserver/caddy/v2.CustomBinaryName=frankenphp' -X 'github.com/caddyserver/caddy/v2/modules/caddyhttp.ServerHeader=FrankenPHP Caddy'" \
+        -buildvcs=true && \
+    setcap cap_net_bind_service=+ep /usr/local/bin/frankenphp && \
+    frankenphp version && \
+    frankenphp build-info
 
 ####################
 # FrankenPHP Final

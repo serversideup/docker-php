@@ -163,7 +163,7 @@ Octane also decides the log level. It sets `CADDY_SERVER_LOG_LEVEL` to `INFO` wh
 If you want request logs in production, pass `--log-level=INFO` to `octane:start`. You get one JSON object per request on `stderr`, ready for your log collector.
 ::
 
-The request log redacts the `authorization` query parameter, so the JWT that [Mercure subscribers pass in the URL](https://mercure.rocks/spec#authorization){target="_blank"} never lands in your logs. This is the same filter that [FrankenPHP's own Caddyfile](https://github.com/php/frankenphp/blob/main/caddy/frankenphp/Caddyfile){target="_blank"} recommends.
+The request log redacts the `authorization` query parameter, so the JWT that Mercure 0.x subscribers pass in the URL never lands in your logs. This is the same filter that [FrankenPHP's own Caddyfile](https://github.com/php/frankenphp/blob/main/caddy/frankenphp/Caddyfile){target="_blank"} recommends.
 
 ## PHP Settings Still Apply
 Octane does not change how PHP loads its configuration. FrankenPHP reads the same `php.ini` files from `/usr/local/etc/php/conf.d/` in every mode, so all of the `PHP_*` environment variables (like `PHP_MEMORY_LIMIT` and `PHP_OPCACHE_ENABLE`) work exactly as they do in classic mode. Any custom `.ini` files you mount into that directory apply as well.
