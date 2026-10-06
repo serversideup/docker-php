@@ -344,7 +344,7 @@ The format follows Caddy's default as well. Caddy [writes human-readable `consol
 - `CADDY_LOG_FORMAT=console` if you read logs by eye with `docker compose logs` or `docker service logs` and want the colored, human-readable lines whether or not a terminal is attached.
 - `CADDY_LOG_FORMAT=json` if a container runs with a terminal attached but you still want structured logs.
 
-In both formats the request log redacts the `authorization` query parameter, so the JWT that [Mercure subscribers pass in the URL](https://mercure.rocks/spec#authorization){target="_blank"} never lands in your logs. This is the same filter that [FrankenPHP's own Caddyfile](https://github.com/php/frankenphp/blob/main/caddy/frankenphp/Caddyfile){target="_blank"} recommends.
+In both formats the request log redacts the `authorization` query parameter, so the JWT that Mercure 0.x subscribers pass in the URL never lands in your logs. This is the same filter that [FrankenPHP's own Caddyfile](https://github.com/php/frankenphp/blob/main/caddy/frankenphp/Caddyfile){target="_blank"} recommends.
 
 ::warning
 Laravel Octane only relays FrankenPHP's `stderr` and only understands JSON, so leave `CADDY_LOG_OUTPUT` and `CADDY_LOG_FORMAT` at their defaults when you run Octane. See [Logging with Octane](/docs/framework-guides/laravel/octane#logging).
