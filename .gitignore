@@ -6,3 +6,4 @@ node_modules
 php-versions.yml
 *.tmp
 /docs/_OLD_
+.playwright-mcp

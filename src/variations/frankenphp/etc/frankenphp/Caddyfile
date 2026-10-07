@@ -67,6 +67,8 @@
 	@indexphp path_regexp indexphp ^/index\.php(/.+)$
 	redir @indexphp {re.indexphp.1} 301
 
+	import mercure/{$MERCURE_ENABLED:false}.caddyfile
+
 	php_server {
 		# FrankenPHP sets REMOTE_ADDR from the TCP peer, which ignores trusted_proxies
 		env REMOTE_ADDR {client_ip}

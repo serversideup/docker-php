@@ -352,6 +352,49 @@ Laravel Octane only relays FrankenPHP's `stderr` and only understands JSON, so l
 
 Control the verbosity with `LOG_OUTPUT_LEVEL`. It defaults to `info` for FrankenPHP so request logs are included. Set it to `warn` to log problems only.
 
+## Mercure
+[Mercure](https://mercure.rocks){target="_blank"} pushes real-time updates from your app to the browser. FrankenPHP has a Mercure hub built in, and you turn it on with environment variables instead of editing a Caddyfile. The hub answers at `/.well-known/mercure` on the same ports as your app, in classic mode and with Laravel Octane.
+
+```yml [compose.yml]
+services:
+  php:
+    image: serversideup/php:8.5-frankenphp
+    ports:
+      - "80:8080"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      MERCURE_ENABLED: "true"
+      MERCURE_TRUSTED_ISSUERS: "https://example.com"
+      MERCURE_PUBLISHER_JWT_KEY: "${MERCURE_JWT_SECRET}"
+      MERCURE_SUBSCRIBER_JWT_KEY: "${MERCURE_JWT_SECRET}"
+```
+
+Docker Compose reads `MERCURE_JWT_SECRET` from your `.env` file. Generate a secret with `openssl rand -base64 32`.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MERCURE_ENABLED` | `false` | Set to `true` to turn on the Mercure hub |
+| `MERCURE_TRUSTED_ISSUERS` | `https://localhost` | The `iss` claim your tokens carry, usually your app's URL. The hub rejects tokens from any other issuer |
+| `MERCURE_PUBLISHER_JWT_KEY` | | Shared secret or PEM public key that verifies publisher tokens. Required when the hub is on |
+| `MERCURE_PUBLISHER_JWT_ALG` | `HS256` | Algorithm for the publisher key. A PEM key needs an asymmetric algorithm such as `RS256` |
+| `MERCURE_SUBSCRIBER_JWT_KEY` | | Shared secret or PEM public key that verifies subscriber tokens. Required when the hub is on |
+| `MERCURE_SUBSCRIBER_JWT_ALG` | `HS256` | Algorithm for the subscriber key |
+| `MERCURE_EXTRA_DIRECTIVES` | `""` | More [Mercure directives](https://mercure.rocks/docs/deployment/configuration){target="_blank"}, one per line |
+
+The hub only accepts subscribers with a valid token. Use `MERCURE_EXTRA_DIRECTIVES` to allow anonymous subscribers to public updates or to set CORS origins:
+
+```yml [compose.yml]
+    environment:
+      MERCURE_EXTRA_DIRECTIVES: |
+        anonymous
+        cors_origins https://example.com
+```
+
+::note
+FrankenPHP 1.13 includes Mercure 1.0, which expects [OAuth 2.0 access tokens](https://github.com/dunglas/mercure/blob/v1.0.3/docs/UPGRADE.md#migrate-your-tokens){target="_blank"} with `iss`, `aud`, and `exp` claims. If your app or library still signs Mercure 0.x tokens, set `MERCURE_EXTRA_DIRECTIVES: "protocol_version_compatibility 8"` while you migrate. Compatibility mode relaxes token checks, so remove it once your tokens are updated.
+::
+
 ## Environment Variables
 The FrankenPHP variation supports extensive customization through environment variables.
 

@@ -190,7 +190,7 @@ Octane passes its command line options to FrankenPHP through environment variabl
 The `max_execution_time` setting in `config/octane.php` works as [documented by Laravel](https://laravel.com/docs/13.x/octane#specifying-the-max-execution-time){target="_blank"}, because Octane passes it to the worker script rather than to the Caddyfile.
 
 Octane also sets `CADDY_GLOBAL_OPTIONS` and `CADDY_SERVER_EXTRA_DIRECTIVES` for its own use, so any value you set for those variables is replaced when Octane starts FrankenPHP:
-- `CADDY_SERVER_EXTRA_DIRECTIVES` carries the Mercure settings from `config/octane.php`, so Mercure works as [documented by FrankenPHP](https://frankenphp.dev/docs/laravel/#mercure-support){target="_blank"}.
+- `CADDY_SERVER_EXTRA_DIRECTIVES` carries the `mercure` array from `config/octane.php`. Use the `MERCURE_*` variables instead. See [Mercure](#mercure).
 - `CADDY_GLOBAL_OPTIONS` is not applied in Octane mode, because Octane sets it to `auto_https disable_redirects`, which would conflict with `CADDY_AUTO_HTTPS`. If you need additional global options, mount a `.caddyfile` into `/etc/frankenphp/caddyfile-global.d/`.
 
 Octane's own Caddyfile asks for JSON logs through `CADDY_SERVER_LOGGER`. Our Caddyfile does not read that variable, because Caddy already writes JSON when Octane starts it. See [Logging](#logging).
@@ -210,6 +210,11 @@ See the [Octane 2.14.0 release notes](https://github.com/laravel/octane/releases
 ::
 
 Octane sets `APP_PUBLIC_PATH` to your application's public directory, but our Caddyfile looks for `frankenphp-worker.php` in `CADDY_SERVER_ROOT` instead. This keeps the worker script and the document root in the same place. If you changed `APP_BASE_DIR`, set `CADDY_SERVER_ROOT` to match, just like classic mode.
+
+## Mercure
+Turn on FrankenPHP's Mercure hub with the `MERCURE_*` environment variables, the same as classic mode, and leave the `mercure` array out of `config/octane.php`. [Read how to set up Mercure →](/docs/image-variations/frankenphp#mercure)
+
+[FrankenPHP's Laravel docs](https://frankenphp.dev/docs/laravel/#mercure-support){target="_blank"} configure the hub through that array instead. Octane passes it to our Caddyfile in `CADDY_SERVER_EXTRA_DIRECTIVES`, which lands in every site block. With `SSL_MODE=mixed` or `full` your app is served from more than one site block, so the array creates more than one hub, and Mercure 1.0 refuses to start with more than one unnamed hub. The environment variables name the hub, so every site shares it.
 
 ## Running Octane Without FrankenPHP
 
