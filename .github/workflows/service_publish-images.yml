@@ -63,7 +63,7 @@ jobs:
       matrix: ${{ fromJson(needs.list.outputs.matrix) }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref }}
 

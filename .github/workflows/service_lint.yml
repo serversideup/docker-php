@@ -18,7 +18,7 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Lint GitHub Actions workflows
         run: docker run --rm -v "$PWD:/repo" -w /repo "rhysd/actionlint:${ACTIONLINT_VERSION}" -color
@@ -30,7 +30,7 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Lint shell scripts
         run: |
@@ -51,7 +51,7 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Lint Dockerfiles
         run: docker run --rm -v "$PWD:/repo" -w /repo "hadolint/hadolint:${HADOLINT_VERSION}" hadolint src/variations/*/Dockerfile
@@ -64,7 +64,7 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Runs on a real runner on purpose: tool versions here (jq, yq) are what the
       # publish workflows use, and they differ from laptops.
