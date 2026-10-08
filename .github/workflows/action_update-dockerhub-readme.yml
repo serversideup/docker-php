@@ -14,12 +14,12 @@ jobs:
     name: Push README to Docker Hub
     steps:
       - name: git checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: main
 
       - name: push README to Dockerhub
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKER_HUB_README_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_README_PASSWORD }}
