@@ -65,7 +65,7 @@
               :links="[{
                 label: 'Become a Sponsor',
                 icon: 'i-lucide-heart',
-                to: 'https://github.com/sponsors/serversideup',
+                to: 'https://serversideup.net/sponsor/',
                 target: '_blank'
               }]"
             />

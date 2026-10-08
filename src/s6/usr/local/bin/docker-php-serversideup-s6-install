@@ -9,9 +9,10 @@ set -oue
 # Be sure to set the S6_SRC_URL, S6_SRC_DEP, and S6_DIR
 # environment variables before running this script.
 
-S6_VERSION=v3.2.1.0
+S6_VERSION=v3.2.3.2
 mkdir -p $S6_DIR
-export SYS_ARCH=$(uname -m)
+SYS_ARCH=$(uname -m)
+export SYS_ARCH
 case "$SYS_ARCH" in
     aarch64 ) export S6_ARCH='aarch64' ;;
     arm64   ) export S6_ARCH='aarch64' ;;
@@ -25,7 +26,10 @@ esac
 
 untar() {
     echo "⏬ Downloading $1"
-    curl -L $1 -o - | tar Jxp -C $S6_DIR
+    tmp_file=$(mktemp)
+    docker-php-serversideup-download "$1" "$tmp_file"
+    tar Jxp -C "$S6_DIR" -f "$tmp_file"
+    rm -f "$tmp_file"
 }
 
 echo "⬇️ Downloading s6 overlay:${S6_ARCH}-${S6_VERSION} for ${SYS_ARCH}"
@@ -34,5 +38,5 @@ untar ${S6_SRC_URL}/${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.xz
 
 # Ensure "php-fpm-healthcheck" is installed
 echo "⬇️ Downloading php-fpm-healthcheck..."
-curl -o /usr/local/bin/php-fpm-healthcheck https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.6.0/php-fpm-healthcheck
+docker-php-serversideup-download https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.6.0/php-fpm-healthcheck /usr/local/bin/php-fpm-healthcheck
 chmod +x /usr/local/bin/php-fpm-healthcheck

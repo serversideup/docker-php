@@ -1,0 +1,9 @@
+# Same worker definition as Octane's own Caddyfile. Octane fills in the
+# directives from --workers and --watch. The worker lives in CADDY_SERVER_ROOT
+# so it always matches the "root" directive, even when Octane is not the
+# process that started FrankenPHP.
+worker {
+	file "{$CADDY_SERVER_ROOT:/var/www/html/public}/frankenphp-worker.php"
+	{$CADDY_SERVER_WORKER_DIRECTIVE}
+	{$CADDY_SERVER_WATCH_DIRECTIVES}
+}

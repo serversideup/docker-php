@@ -1,0 +1,16 @@
+# SSL_MODE=mixed and full serve the app from more than one site, and Mercure
+# refuses to start with more than one unnamed hub. Naming the hub "default",
+# the name Mercure gives an unnamed hub, lets every site share it while health
+# checks and metrics stay the same as a stock Mercure setup.
+mercure {
+	name default
+	issuer {$MERCURE_TRUSTED_ISSUERS:https://localhost} {
+		publisher {
+			jwt {env.MERCURE_PUBLISHER_JWT_KEY} {$MERCURE_PUBLISHER_JWT_ALG:HS256}
+		}
+		subscriber {
+			jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {$MERCURE_SUBSCRIBER_JWT_ALG:HS256}
+		}
+	}
+	{$MERCURE_EXTRA_DIRECTIVES}
+}

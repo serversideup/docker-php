@@ -37,9 +37,11 @@ Use the FrankenPHP variation when you need to:
 | Worker Mode | ✅ Yes | ❌ No | ❌ No |
 | Automatic HTTPS | ✅ Yes | ❌ No | ❌ No |
 | HTTP/3 Support | ✅ Yes | ❌ No | ❌ No |
-| Laravel Octane | ✅ Native support | ⚠️ Use Swoole | ⚠️ Use Swoole |
+| Laravel Octane | ✅ Native support | ❌ Not supported | ❌ Not supported |
 | .htaccess Support | ❌ No | ❌ No | ✅ Yes |
 | Maturity | ⚠️ New | ✅ Mature | ✅ Mature |
+
+Octane replaces PHP-FPM, so it cannot run inside the FPM variations at all. The NGINX and Apache in those images are PHP-FPM front ends, not reverse proxies. If you want Octane without FrankenPHP, run Octane's Swoole or RoadRunner server from our [CLI](/docs/image-variations/cli) image instead. See [Running Octane Without FrankenPHP](/docs/framework-guides/laravel/octane#running-octane-without-frankenphp).
 
 ::tip
 FrankenPHP is the newest variation and represents the future of PHP application servers. If you're starting a new project and can commit to modern practices, this is the variation to choose.
@@ -145,8 +147,8 @@ We compile FrankenPHP from source, which allows us to support multiple operating
 **Available platforms:**
 - Debian Bookworm (12)
 - Debian Trixie (13)
-- Alpine 3.21
-- Alpine 3.22
+- Alpine 3.23
+- Alpine 3.24
 
 This gives you the freedom to choose the base OS that best fits your infrastructure and security requirements.
 
@@ -261,7 +263,7 @@ The FrankenPHP variation uses ports 8080 and 8443 (instead of 80 and 443) to all
 ::
 
 ### Laravel Octane
-Laravel Octane natively supports FrankenPHP. Use our guide below to learn more.
+Laravel Octane natively supports FrankenPHP. Pass `--caddyfile=/etc/frankenphp/Caddyfile` to `octane:start` and our Caddyfile switches into worker mode while keeping the same production configuration as classic mode. Use our guide below to learn more.
 
 :u-button{to="/docs/framework-guides/laravel/octane" label="Learn more about Laravel Octane" aria-label="Learn more about Laravel Octane" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
 
@@ -304,6 +306,8 @@ services:
 Automatic HTTPS requires a public domain name and ports 80/443 accessible from the internet for Let's Encrypt validation. For local development, use self-signed certificates with `SSL_MODE`.
 ::
 
+Need Let's Encrypt short-lived certificates or IP-address certificates? Set `CADDY_ACME_PROFILE: "shortlived"`. See [Short-lived & IP-address certificates](/docs/deployment-and-production/configuring-ssl#short-lived--ip-address-certificates) for the trade-offs and the `default_sni` setup for SNI-less access.
+
 ### SSL Modes for Development
 For local development, use the `SSL_MODE` environment variable:
 
@@ -329,6 +333,68 @@ Learn more about SSL modes in the [Configuring SSL](/docs/deployment-and-product
 
 :u-button{to="/docs/deployment-and-production/configuring-ssl" label="Learn more about SSL modes" aria-label="Learn more about SSL modes" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
 
+## Logging
+FrankenPHP is built on Caddy, and Caddy handles logs differently from NGINX and Apache. Caddy does have an [access log](https://caddyserver.com/docs/caddyfile/directives/log){target="_blank"}, but it is a named logger that shares the same [structured format](https://caddyserver.com/docs/logging){target="_blank"} and default output as Caddy's runtime log. Every entry carries its own level: requests are logged at `INFO` and problems at `ERROR`.
+
+Because both logs share one format and one default output, the FrankenPHP variation sends everything to `stderr`. That is [Caddy's default](https://caddyserver.com/docs/caddyfile/directives/log#output){target="_blank"}, it is what the official FrankenPHP image does, and it is what Laravel Octane expects. Our NGINX and Apache variations keep the traditional split of access logs on `stdout` and error logs on `stderr`, because that is what the official images for those servers do. [Read how we approach logging across all variations →](/docs/getting-started/default-configurations#logging)
+
+`docker logs`, Docker Compose, and Kubernetes capture both streams, so nothing changes in day-to-day use.
+
+The format follows Caddy's default as well. Caddy [writes human-readable `console` lines when `stderr` is an interactive terminal and JSON otherwise](https://caddyserver.com/docs/caddyfile/directives/log#format){target="_blank"}. A container started by Docker Compose, Docker Swarm, or Kubernetes has no terminal, so it gets one JSON object per line. That is what log collectors expect, and every entry carries a `level` field your log pipeline can map to a severity instead of guessing from the stream (for example, [GKE tags `stderr` as `ERROR`](https://docs.cloud.google.com/kubernetes-engine/docs/concepts/about-logs){target="_blank"} unless it can read a severity). `docker run -it` and `tty: true` give you the console lines instead. Set `CADDY_LOG_FORMAT` if you want the same format everywhere:
+- `CADDY_LOG_FORMAT=console` if you read logs by eye with `docker compose logs` or `docker service logs` and want the colored, human-readable lines whether or not a terminal is attached.
+- `CADDY_LOG_FORMAT=json` if a container runs with a terminal attached but you still want structured logs.
+
+In both formats the request log redacts the `authorization` query parameter, so the JWT that Mercure 0.x subscribers pass in the URL never lands in your logs. This is the same filter that [FrankenPHP's own Caddyfile](https://github.com/php/frankenphp/blob/main/caddy/frankenphp/Caddyfile){target="_blank"} recommends.
+
+::warning
+Laravel Octane only relays FrankenPHP's `stderr` and only understands JSON, so leave `CADDY_LOG_OUTPUT` and `CADDY_LOG_FORMAT` at their defaults when you run Octane. See [Logging with Octane](/docs/framework-guides/laravel/octane#logging).
+::
+
+Control the verbosity with `LOG_OUTPUT_LEVEL`. It defaults to `info` for FrankenPHP so request logs are included. Set it to `warn` to log problems only.
+
+## Mercure
+[Mercure](https://mercure.rocks){target="_blank"} pushes real-time updates from your app to the browser. FrankenPHP has a Mercure hub built in, and you turn it on with environment variables instead of editing a Caddyfile. The hub answers at `/.well-known/mercure` on the same ports as your app, in classic mode and with Laravel Octane.
+
+```yml [compose.yml]
+services:
+  php:
+    image: serversideup/php:8.5-frankenphp
+    ports:
+      - "80:8080"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      MERCURE_ENABLED: "true"
+      MERCURE_TRUSTED_ISSUERS: "https://example.com"
+      MERCURE_PUBLISHER_JWT_KEY: "${MERCURE_JWT_SECRET}"
+      MERCURE_SUBSCRIBER_JWT_KEY: "${MERCURE_JWT_SECRET}"
+```
+
+Docker Compose reads `MERCURE_JWT_SECRET` from your `.env` file. Generate a secret with `openssl rand -base64 32`.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MERCURE_ENABLED` | `false` | Set to `true` to turn on the Mercure hub |
+| `MERCURE_TRUSTED_ISSUERS` | `https://localhost` | The `iss` claim your tokens carry, usually your app's URL. The hub rejects tokens from any other issuer |
+| `MERCURE_PUBLISHER_JWT_KEY` | | Shared secret or PEM public key that verifies publisher tokens. Required when the hub is on |
+| `MERCURE_PUBLISHER_JWT_ALG` | `HS256` | Algorithm for the publisher key. A PEM key needs an asymmetric algorithm such as `RS256` |
+| `MERCURE_SUBSCRIBER_JWT_KEY` | | Shared secret or PEM public key that verifies subscriber tokens. Required when the hub is on |
+| `MERCURE_SUBSCRIBER_JWT_ALG` | `HS256` | Algorithm for the subscriber key |
+| `MERCURE_EXTRA_DIRECTIVES` | `""` | More [Mercure directives](https://mercure.rocks/docs/deployment/configuration){target="_blank"}, one per line |
+
+The hub only accepts subscribers with a valid token. Use `MERCURE_EXTRA_DIRECTIVES` to allow anonymous subscribers to public updates or to set CORS origins:
+
+```yml [compose.yml]
+    environment:
+      MERCURE_EXTRA_DIRECTIVES: |
+        anonymous
+        cors_origins https://example.com
+```
+
+::note
+FrankenPHP 1.13 includes Mercure 1.0, which expects [OAuth 2.0 access tokens](https://github.com/dunglas/mercure/blob/v1.0.3/docs/UPGRADE.md#migrate-your-tokens){target="_blank"} with `iss`, `aud`, and `exp` claims. If your app or library still signs Mercure 0.x tokens, set `MERCURE_EXTRA_DIRECTIVES: "protocol_version_compatibility 8"` while you migrate. Compatibility mode relaxes token checks, so remove it once your tokens are updated.
+::
+
 ## Environment Variables
 The FrankenPHP variation supports extensive customization through environment variables.
 
@@ -339,11 +405,12 @@ The FrankenPHP variation supports extensive customization through environment va
 | `FRANKENPHP_CONFIG` | `""` | FrankenPHP-specific configuration (e.g., worker mode) |
 | `CADDY_SERVER_ROOT` | `/var/www/html/public` | Document root for the application |
 | `CADDY_AUTO_HTTPS` | `off` | Enable automatic HTTPS (`on`/`off`) |
+| `CADDY_ACME_PROFILE` | `off` | Let's Encrypt certificate profile: `off`, `shortlived`, `tlsserver`, or `classic` |
 | `CADDY_HTTP_PORT` | `8080` | HTTP port |
 | `CADDY_HTTPS_PORT` | `8443` | HTTPS port |
 | `CADDY_ADMIN` | `off` | Caddy admin API endpoint |
-| `CADDY_LOG_FORMAT` | `console` | Log format (`console`/`json`) |
-| `CADDY_LOG_OUTPUT` | `stdout` | Log output destination |
+| `CADDY_LOG_FORMAT` | `auto` | Log format: `auto` (Caddy's default, `console` on a terminal and `json` otherwise), `console`, or `json` |
+| `CADDY_LOG_OUTPUT` | `stderr` | Log output destination |
 | `CADDY_GLOBAL_OPTIONS` | `""` | Additional Caddy global options |
 | `CADDY_SERVER_EXTRA_DIRECTIVES` | `""` | Additional Caddy server directives |
 | `SSL_MODE` | `off` | SSL mode: `off`, `mixed`, or `full` |
@@ -363,36 +430,109 @@ For a complete list of available environment variables, see the [Environment Var
 | `PHP_MEMORY_LIMIT` | `256M` | Maximum memory a script can use |
 | `PHP_MAX_EXECUTION_TIME` | `99` | Maximum time a script can run (seconds) |
 | `PHP_UPLOAD_MAX_FILE_SIZE` | `100M` | Maximum upload file size |
+| `PHP_FILE_UPLOADS` | `On` | Whether HTTP file uploads are allowed |
+| `PHP_MAX_FILE_UPLOADS` | `20` | Maximum number of files per request |
 | `PHP_POST_MAX_SIZE` | `100M` | Maximum POST request size |
 | `PHP_OPCACHE_ENABLE` | `0` | Enable OPcache (`0`/`1`) |
-| `PHP_OPCACHE_REVALIDATE_FREQ` | `2` | How often to check for file changes (seconds) |
-| `PHP_OPCACHE_VALIDATE_TIMESTAMPS` | `1` | Whether to validate timestamps (`0`/`1`) |
+| `PHP_OPCACHE_REVALIDATE_FREQ` | `2` | How often to check for file changes (seconds), only when timestamps are validated |
+| `PHP_OPCACHE_VALIDATE_TIMESTAMPS` | `0` | Whether to check files for changes (`0`/`1`). Set to `1` when mounting code as a volume with OPcache enabled |
 
 ## Caddy Configuration
 FrankenPHP uses Caddy's configuration format (Caddyfile) instead of NGINX configuration.
 
-### Adding Custom Options
-There are a few areas where you can use environment variables to customize your Caddy configuration:
+### Adding your own Caddyfile rules
+Most changes only need one of the [environment variables](#frankenphpcaddy-configuration) above, such as `CADDY_SERVER_ROOT`, `SSL_MODE`, or the port settings. When you need a rule the variables don't cover, add raw Caddyfile config at the level where it belongs:
 
-| Variable | Description | Official Documentation |
-|----------|-------------|-------------|
-| `CADDY_GLOBAL_OPTIONS` | Global Caddy options | [Caddy Global Options](https://caddyserver.com/docs/caddyfile/options){target="_blank"} |
-| `CADDY_SERVER_EXTRA_DIRECTIVES` | Server-specific Caddy directives | [Caddy Server Directives](https://caddyserver.com/docs/caddyfile/directives){target="_blank"} |
-| `CADDY_PHP_SERVER_OPTIONS` | PHP-specific Caddy directives (site-specific) | [FrankenPHP PHP Server Options](https://frankenphp.dev/docs/config/#caddyfile-config){target="_blank"} |
-| `FRANKENPHP_CONFIG` | FrankenPHP-specific configuration (global) | [FrankenPHP Configuration](https://frankenphp.dev/docs/config/#caddyfile-config){target="_blank"} |
+| Level | What goes here | Environment variable | Folder |
+|-------|----------------|----------------------|--------|
+| Global | [Global options](https://caddyserver.com/docs/caddyfile/options){target="_blank"}, including Caddy's `servers` option | `CADDY_GLOBAL_OPTIONS` | `/etc/frankenphp/caddyfile-global.d/` |
+| Server | [Directives](https://caddyserver.com/docs/caddyfile/directives){target="_blank"} for your app, like `header`, `redir`, and request matchers | `CADDY_SERVER_EXTRA_DIRECTIVES` | `/etc/frankenphp/caddyfile-server.d/` |
+| New sites | Extra site blocks, like a second domain or a reverse proxy | None | `/etc/frankenphp/caddyfile.d/` |
 
+Every `.caddyfile` file in a folder is imported at that level. Use the environment variables for a quick one-liner and the folders for anything longer. The folders also work with [Laravel Octane](/docs/framework-guides/laravel/octane#octane-options), which replaces `CADDY_GLOBAL_OPTIONS` and `CADDY_SERVER_EXTRA_DIRECTIVES` with its own values.
+
+Two more variables cover FrankenPHP itself:
+
+| Variable | What goes here | Official Documentation |
+|----------|----------------|------------------------|
+| `FRANKENPHP_CONFIG` | Options inside the global `frankenphp` block, like `num_threads` | [FrankenPHP Configuration](https://frankenphp.dev/docs/config/#caddyfile-config){target="_blank"} |
+| `CADDY_PHP_SERVER_OPTIONS` | Options inside your app's `php_server` block | [FrankenPHP PHP Server Options](https://frankenphp.dev/docs/config/#caddyfile-config){target="_blank"} |
+
+This is where each one lands in `/etc/frankenphp/Caddyfile`:
+
+```txt [/etc/frankenphp/Caddyfile]
+{
+    frankenphp {
+        FRANKENPHP_CONFIG
+    }
+    CADDY_GLOBAL_OPTIONS
+    caddyfile-global.d/*.caddyfile
+}
+
+your app's site (one per listener that SSL_MODE creates) {
+    php_server {
+        CADDY_PHP_SERVER_OPTIONS
+    }
+    CADDY_SERVER_EXTRA_DIRECTIVES
+    caddyfile-server.d/*.caddyfile
+}
+
+caddyfile.d/*.caddyfile
+```
+
+#### Add rules to your app
+Put directives for your app in `caddyfile-server.d/`. This example gives one JavaScript file a short cache, overriding the year-long cache the image sets for static assets:
+
+```caddyfile [embed-cache.caddyfile]
+@embed path /embed.js
+header @embed >Cache-Control "public, max-age=3600"
+```
+
+Mount the file in development, or copy it into your image for production:
+
+::code-group
 ```yml [compose.yml]
 services:
   php:
     image: serversideup/php:8.5-frankenphp
-    environment:
-      CADDY_SERVER_EXTRA_DIRECTIVES: |
-        # Add custom headers
-        header {
-          X-Custom-Header "My Value"
-          -Server
-        }
+    volumes:
+      - ./embed-cache.caddyfile:/etc/frankenphp/caddyfile-server.d/embed-cache.caddyfile
 ```
+
+```dockerfile [Dockerfile]
+FROM serversideup/php:8.5-frankenphp
+COPY embed-cache.caddyfile /etc/frankenphp/caddyfile-server.d/
+```
+::
+
+Rules in `caddyfile-server.d/` apply on every listener `SSL_MODE` creates. With `SSL_MODE=mixed`, that includes plain HTTP, so match on `protocol https` for anything that only belongs on HTTPS.
+
+::warning
+Docker's health check goes through your app's site too. Leave the health check path out of any rule that matches every request, like `basic_auth` or `redir`, or the container will be marked unhealthy:
+
+```caddyfile [basic-auth.caddyfile]
+@protected not path /healthcheck {$HEALTHCHECK_PATH:/healthcheck}
+basic_auth @protected {
+    admin $2a$14$KbVXTcgF3ZrK76FfvPLFj.kXOV/PH5pkAk.o53ct8bGdsl6yai9eC
+}
+```
+
+Generate the password hash with `docker run --rm -it serversideup/php:8.5-frankenphp frankenphp hash-password`.
+::
+
+#### Add another site
+Files in `caddyfile.d/` sit at the top level of the Caddyfile, outside your app's site. Use them for a whole new site block:
+
+```caddyfile [docs-proxy.caddyfile]
+http://docs.example.com:{$CADDY_HTTP_PORT:8080} {
+    reverse_proxy docs:3000
+}
+```
+
+Rules for your app don't work here. The `embed-cache.caddyfile` example above fails in this folder with "request matchers may not be defined globally", so put rules like that in `caddyfile-server.d/` instead.
+
+#### Replace the whole Caddyfile
+If you need a completely different setup, copy your own file over `/etc/frankenphp/Caddyfile`. You then own everything the image's Caddyfile does, including SSL modes, security headers, and the health check endpoint, so reach for the folders first.
 
 ## Further Customization
 If you need to customize the container further, reference the docs below:

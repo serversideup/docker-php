@@ -1,0 +1,12 @@
+# Request Let's Encrypt's "shortlived" certificate profile (~6-day certs).
+#
+# Note: configuring cert_issuer pins issuance to Let's Encrypt only (this
+# drops the default ZeroSSL fallback). Short-lived certs renew roughly every
+# 2 days, so the container needs reliable egress to the ACME CA.
+#
+# The shortlived profile is also required for IP-address certificates. For
+# raw-IP / SNI-less access, also set a default SNI via CADDY_GLOBAL_OPTIONS,
+# e.g. CADDY_GLOBAL_OPTIONS="default_sni {$APP_DOMAIN}".
+cert_issuer acme {
+	profile shortlived
+}

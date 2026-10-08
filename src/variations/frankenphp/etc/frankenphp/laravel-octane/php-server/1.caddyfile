@@ -1,0 +1,4 @@
+# Route requests to the Octane worker script instead of index.php.
+# Octane's own Caddyfile also sets resolve_root_symlink, which FrankenPHP enables by default.
+index frankenphp-worker.php
+try_files {path} frankenphp-worker.php
