@@ -440,28 +440,99 @@ For a complete list of available environment variables, see the [Environment Var
 ## Caddy Configuration
 FrankenPHP uses Caddy's configuration format (Caddyfile) instead of NGINX configuration.
 
-### Adding Custom Options
-There are a few areas where you can use environment variables to customize your Caddy configuration:
+### Adding your own Caddyfile rules
+Most changes only need one of the [environment variables](#frankenphpcaddy-configuration) above, such as `CADDY_SERVER_ROOT`, `SSL_MODE`, or the port settings. When you need a rule the variables don't cover, add raw Caddyfile config at the level where it belongs:
 
-| Variable | Description | Official Documentation |
-|----------|-------------|-------------|
-| `CADDY_GLOBAL_OPTIONS` | Global Caddy options | [Caddy Global Options](https://caddyserver.com/docs/caddyfile/options){target="_blank"} |
-| `CADDY_SERVER_EXTRA_DIRECTIVES` | Server-specific Caddy directives | [Caddy Server Directives](https://caddyserver.com/docs/caddyfile/directives){target="_blank"} |
-| `CADDY_PHP_SERVER_OPTIONS` | PHP-specific Caddy directives (site-specific) | [FrankenPHP PHP Server Options](https://frankenphp.dev/docs/config/#caddyfile-config){target="_blank"} |
-| `FRANKENPHP_CONFIG` | FrankenPHP-specific configuration (global) | [FrankenPHP Configuration](https://frankenphp.dev/docs/config/#caddyfile-config){target="_blank"} |
+| Level | What goes here | Environment variable | Folder |
+|-------|----------------|----------------------|--------|
+| Global | [Global options](https://caddyserver.com/docs/caddyfile/options){target="_blank"}, including Caddy's `servers` option | `CADDY_GLOBAL_OPTIONS` | `/etc/frankenphp/caddyfile-global.d/` |
+| Server | [Directives](https://caddyserver.com/docs/caddyfile/directives){target="_blank"} for your app, like `header`, `redir`, and request matchers | `CADDY_SERVER_EXTRA_DIRECTIVES` | `/etc/frankenphp/caddyfile-server.d/` |
+| New sites | Extra site blocks, like a second domain or a reverse proxy | None | `/etc/frankenphp/caddyfile.d/` |
 
+Every `.caddyfile` file in a folder is imported at that level. Use the environment variables for a quick one-liner and the folders for anything longer. The folders also work with [Laravel Octane](/docs/framework-guides/laravel/octane#octane-options), which replaces `CADDY_GLOBAL_OPTIONS` and `CADDY_SERVER_EXTRA_DIRECTIVES` with its own values.
+
+Two more variables cover FrankenPHP itself:
+
+| Variable | What goes here | Official Documentation |
+|----------|----------------|------------------------|
+| `FRANKENPHP_CONFIG` | Options inside the global `frankenphp` block, like `num_threads` | [FrankenPHP Configuration](https://frankenphp.dev/docs/config/#caddyfile-config){target="_blank"} |
+| `CADDY_PHP_SERVER_OPTIONS` | Options inside your app's `php_server` block | [FrankenPHP PHP Server Options](https://frankenphp.dev/docs/config/#caddyfile-config){target="_blank"} |
+
+This is where each one lands in `/etc/frankenphp/Caddyfile`:
+
+```txt [/etc/frankenphp/Caddyfile]
+{
+    frankenphp {
+        FRANKENPHP_CONFIG
+    }
+    CADDY_GLOBAL_OPTIONS
+    caddyfile-global.d/*.caddyfile
+}
+
+your app's site (one per listener that SSL_MODE creates) {
+    php_server {
+        CADDY_PHP_SERVER_OPTIONS
+    }
+    CADDY_SERVER_EXTRA_DIRECTIVES
+    caddyfile-server.d/*.caddyfile
+}
+
+caddyfile.d/*.caddyfile
+```
+
+#### Add rules to your app
+Put directives for your app in `caddyfile-server.d/`. This example gives one JavaScript file a short cache, overriding the year-long cache the image sets for static assets:
+
+```caddyfile [embed-cache.caddyfile]
+@embed path /embed.js
+header @embed >Cache-Control "public, max-age=3600"
+```
+
+Mount the file in development, or copy it into your image for production:
+
+::code-group
 ```yml [compose.yml]
 services:
   php:
     image: serversideup/php:8.5-frankenphp
-    environment:
-      CADDY_SERVER_EXTRA_DIRECTIVES: |
-        # Add custom headers
-        header {
-          X-Custom-Header "My Value"
-          -Server
-        }
+    volumes:
+      - ./embed-cache.caddyfile:/etc/frankenphp/caddyfile-server.d/embed-cache.caddyfile
 ```
+
+```dockerfile [Dockerfile]
+FROM serversideup/php:8.5-frankenphp
+COPY embed-cache.caddyfile /etc/frankenphp/caddyfile-server.d/
+```
+::
+
+Rules in `caddyfile-server.d/` apply on every listener `SSL_MODE` creates. With `SSL_MODE=mixed`, that includes plain HTTP, so match on `protocol https` for anything that only belongs on HTTPS.
+
+::warning
+Docker's health check goes through your app's site too. Leave the health check path out of any rule that matches every request, like `basic_auth` or `redir`, or the container will be marked unhealthy:
+
+```caddyfile [basic-auth.caddyfile]
+@protected not path /healthcheck {$HEALTHCHECK_PATH:/healthcheck}
+basic_auth @protected {
+    admin $2a$14$KbVXTcgF3ZrK76FfvPLFj.kXOV/PH5pkAk.o53ct8bGdsl6yai9eC
+}
+```
+
+Generate the password hash with `docker run --rm -it serversideup/php:8.5-frankenphp frankenphp hash-password`.
+::
+
+#### Add another site
+Files in `caddyfile.d/` sit at the top level of the Caddyfile, outside your app's site. Use them for a whole new site block:
+
+```caddyfile [docs-proxy.caddyfile]
+http://docs.example.com:{$CADDY_HTTP_PORT:8080} {
+    reverse_proxy docs:3000
+}
+```
+
+Rules for your app don't work here. The `embed-cache.caddyfile` example above fails in this folder with "request matchers may not be defined globally", so put rules like that in `caddyfile-server.d/` instead.
+
+#### Replace the whole Caddyfile
+If you need a completely different setup, copy your own file over `/etc/frankenphp/Caddyfile`. You then own everything the image's Caddyfile does, including SSL modes, security headers, and the health check endpoint, so reach for the folders first.
 
 ## Further Customization
 If you need to customize the container further, reference the docs below:

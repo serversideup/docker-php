@@ -28,7 +28,8 @@ RUN set -eux; \
         /etc/frankenphp/log-level \
         /etc/frankenphp/auto-https \
         /etc/frankenphp/caddyfile.d \
-        /etc/frankenphp/caddyfile-global.d; \
+        /etc/frankenphp/caddyfile-global.d \
+        /etc/frankenphp/caddyfile-server.d; \
     # Create default index.php
 	echo '<?php phpinfo();' > /var/www/html/public/index.php; \
     # Create symbolic links

@@ -81,6 +81,9 @@
 	import security
 
 	{$CADDY_SERVER_EXTRA_DIRECTIVES}
+
+	# Add additional Caddy configuration files from the caddyfile-server.d directory
+	import caddyfile-server.d/*.caddyfile
 }
 
 (performance) {

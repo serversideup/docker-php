@@ -190,7 +190,7 @@ Octane passes its command line options to FrankenPHP through environment variabl
 The `max_execution_time` setting in `config/octane.php` works as [documented by Laravel](https://laravel.com/docs/13.x/octane#specifying-the-max-execution-time){target="_blank"}, because Octane passes it to the worker script rather than to the Caddyfile.
 
 Octane also sets `CADDY_GLOBAL_OPTIONS` and `CADDY_SERVER_EXTRA_DIRECTIVES` for its own use, so any value you set for those variables is replaced when Octane starts FrankenPHP:
-- `CADDY_SERVER_EXTRA_DIRECTIVES` carries the `mercure` array from `config/octane.php`. Use the `MERCURE_*` variables instead. See [Mercure](#mercure).
+- `CADDY_SERVER_EXTRA_DIRECTIVES` carries the `mercure` array from `config/octane.php`. Use the `MERCURE_*` variables instead. See [Mercure](#mercure). For your own directives, like headers or redirects, mount a `.caddyfile` into `/etc/frankenphp/caddyfile-server.d/`. See [Adding your own Caddyfile rules](/docs/image-variations/frankenphp#adding-your-own-caddyfile-rules).
 - `CADDY_GLOBAL_OPTIONS` is not applied in Octane mode, because Octane sets it to `auto_https disable_redirects`, which would conflict with `CADDY_AUTO_HTTPS`. If you need additional global options, mount a `.caddyfile` into `/etc/frankenphp/caddyfile-global.d/`.
 
 Octane's own Caddyfile asks for JSON logs through `CADDY_SERVER_LOGGER`. Our Caddyfile does not read that variable, because Caddy already writes JSON when Octane starts it. See [Logging](#logging).
