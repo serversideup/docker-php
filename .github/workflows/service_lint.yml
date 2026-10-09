@@ -42,6 +42,7 @@ jobs:
             scripts/tests/*.sh \
             src/common/usr/local/bin/* \
             src/s6/usr/local/bin/* \
+            .oss-scanner/run-variation \
             $(find src -path '*entrypoint.d*' -name '*.sh')
 
   hadolint:
@@ -54,7 +55,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Lint Dockerfiles
-        run: docker run --rm -v "$PWD:/repo" -w /repo "hadolint/hadolint:${HADOLINT_VERSION}" hadolint src/variations/*/Dockerfile
+        run: docker run --rm -v "$PWD:/repo" -w /repo "hadolint/hadolint:${HADOLINT_VERSION}" hadolint src/variations/*/Dockerfile .oss-scanner/Dockerfile
 
   script-tests:
     name: scripts

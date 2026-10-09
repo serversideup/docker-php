@@ -1,0 +1,74 @@
+#!/bin/sh
+set -eu
+
+###################################################
+# Usage: run-variation VARIATION [KEY=VALUE]... [COMMAND [ARG]...]
+###################################################
+# Starts a variation from /variations the way `docker run` would: as www-data,
+# with that image's environment, through its entrypoint, as PID 1 of a new
+# namespace. The scanner has no Docker, but its container is privileged, so
+# namespaces and chroot work. Run it as root.
+script_name="run-variation"
+
+usage() {
+    echo "Usage: $script_name VARIATION [KEY=VALUE]... [COMMAND [ARG]...]"
+    echo "Variations: $(ls /variations | tr '\n' ' ')"
+    echo "KEY=VALUE overrides the image's environment, like docker run -e."
+    echo "With no COMMAND, the image's default command starts."
+}
+
+if [ $# -eq 0 ] || [ ! -d "/variations/$1" ]; then
+    usage
+    exit 1
+fi
+root="/variations/$1"
+shift
+
+# shellcheck disable=SC2016
+start_in_image='
+    . /etc/oss-scanner.env
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            *=*) export "$1"; shift ;;
+            *) break ;;
+        esac
+    done
+    if [ $# -eq 0 ]; then
+        if command -v frankenphp >/dev/null 2>&1; then
+            set -- frankenphp run --config /etc/frankenphp/Caddyfile --adapter caddyfile
+        else
+            set -- /init
+        fi
+    fi
+    cd "$APP_BASE_DIR"
+    # PHP-FPM reopens /proc/self/fd/2, which fails as www-data on a root-owned pipe.
+    # Docker hands containers pipes the user owns; a FIFO made here does the same.
+    output=$(mktemp -u)
+    mkfifo "$output"
+    cat "$output" &
+    exec docker-php-serversideup-entrypoint "$@" > "$output" 2>&1
+'
+
+# shellcheck disable=SC2016
+unshare --pid --fork --kill-child --mount-proc="$root/proc" /bin/sh -c '
+    root="$1" start_in_image="$2"
+    shift 2
+    mount --rbind /dev "$root/dev"
+    mount --rbind /sys "$root/sys"
+    for file in hosts hostname resolv.conf; do
+        [ -e "$root/etc/$file" ] || : > "$root/etc/$file"
+        mount --bind "/etc/$file" "$root/etc/$file"
+    done
+    exec chroot --userspec=www-data:www-data "$root" /usr/bin/env -i /bin/sh -c "$start_in_image" sh "$@"
+' sh "$root" "$start_in_image" "$@" &
+namespace=$!
+
+# unshare ignores INT and TERM, so pass them to the variation's PID 1, as docker stop would.
+trap 'pkill -TERM -P "$namespace"' INT TERM
+status=0
+wait "$namespace" || status=$?
+if kill -0 "$namespace" 2>/dev/null; then
+    status=0
+    wait "$namespace" || status=$?
+fi
+exit "$status"
