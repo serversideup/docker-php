@@ -80,23 +80,23 @@ operating_systems:
       - name: "Alpine 3.22"
         version: alpine3.22
         number: 3.22
-        nginx_version: 1.30.5-r1
+        nginx_version: 1.30.6-r1
       - name: "Alpine 3.23"
         version: alpine3.23
         number: 3.23
-        nginx_version: 1.30.5-r1
+        nginx_version: 1.30.6-r1
       - name: "Alpine 3.24"
         version: alpine3.24
         number: 3.24
-        nginx_version: 1.30.5-r1
+        nginx_version: 1.30.6-r1
   - family: debian
     default: true
     versions:
       - name: "Debian Bookworm"
         version: bookworm
         number: 12
-        nginx_version: 1.30.5-1~bookworm
+        nginx_version: 1.30.6-1~bookworm
       - name: "Debian Trixie"
         version: trixie
         number: 13
-        nginx_version: 1.30.5-1~trixie
+        nginx_version: 1.30.6-1~trixie
