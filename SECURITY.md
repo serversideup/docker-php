@@ -4,7 +4,7 @@
 
 ## Reporting a vulnerability
 
-For anything in scope below, please use **[GitHub's private vulnerability reporting](https://github.com/serversideup/docker-php/security/advisories/new)** to open a confidential report. Please include:
+For anything in scope below, please use **[GitHub's private vulnerability reporting](https://github.com/serversideup/docker-php/security/advisories/new)** to open a confidential report. If you can't use GitHub, email `security@serversideup.net` instead. Please include:
 
 - The affected image tag and digest (e.g. `serversideup/php:8.4-fpm-nginx@sha256:…`)
 - Steps to reproduce and the impact
@@ -28,7 +28,7 @@ Vulnerabilities in software we package but do not maintain belong with the upstr
 
 | Component | Where to report |
 | --- | --- |
-| PHP itself | [The PHP project](https://www.php.net/) (security mailing list: `security@php.net`) |
+| PHP itself | [The PHP project](https://github.com/php/php-src/security) |
 | NGINX | [NGINX security advisories](https://nginx.org/en/security_advisories.html) |
 | Apache HTTP Server | [Apache HTTPD security](https://httpd.apache.org/security_report.html) |
 | Composer | [composer/composer on GitHub](https://github.com/composer/composer/security) |
