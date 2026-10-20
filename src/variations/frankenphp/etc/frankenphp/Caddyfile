@@ -45,7 +45,9 @@
 (php-app-common) {
 	root * {$CADDY_SERVER_ROOT:/var/www/html/public}
 
-	encode zstd br gzip
+	# Compressed SSE streams cost memory per subscriber and enable BREACH-style attacks.
+	@compressible not path /.well-known/mercure
+	encode @compressible zstd br gzip
 
 	# Match serversideup/php log levels to Caddy address log levels
 	import log-level/address/{$LOG_OUTPUT_LEVEL:info}.caddyfile
