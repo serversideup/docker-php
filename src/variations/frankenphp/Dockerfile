@@ -2,7 +2,7 @@
 ARG BASE_OS_VERSION='trixie'
 ARG PHP_VERSION='8.5'
 ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
-ARG FRANKENPHP_VERSION='1.13.0'
+ARG FRANKENPHP_VERSION='1.13.1'
 ARG GOLANG_VERSION='1.27'
 
 ########################
@@ -243,8 +243,8 @@ COPY --from=frankenphp-build /usr/local/lib/libwatcher* /usr/local/lib/
 COPY src/variations/frankenphp/etc/frankenphp/ /etc/frankenphp/
 
 RUN \
-    docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}"; \
-    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"; \
+    docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
+    docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}" && \
     # Fix for the file watcher on arm
     if cat /etc/os-release | grep -q 'alpine'; then \
         ldconfig /usr/local/lib; \
@@ -253,7 +253,7 @@ RUN \
     else \
         echo "Unsupported OS"; \
         exit 1; \
-    fi; \
+    fi && \
     # Make composer cache directory
     mkdir -p "${COMPOSER_HOME}" && \
     chown -R www-data:www-data "${COMPOSER_HOME}" && \
@@ -262,9 +262,9 @@ RUN \
     echo "${REPOSITORY_BUILD_VERSION}" > /etc/serversideup-php-version && \
     \
     # Install PHP Extension installer
-    docker-php-serversideup-install-php-ext-installer; \
+    docker-php-serversideup-install-php-ext-installer && \
     # Install default PHP extensions
-    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}"; \
+    docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}" && \
     # Ensure permissions are set for www-data
     docker-php-serversideup-set-file-permissions --owner www-data:www-data --service frankenphp
 
