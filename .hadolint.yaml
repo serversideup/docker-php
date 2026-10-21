@@ -1,4 +1,4 @@
-# hadolint configuration for src/variations/*/Dockerfile
+# hadolint configuration for src/base/Dockerfile, src/variations/*/Dockerfile, and .oss-scanner/Dockerfile
 # Each ignored rule is a deliberate project decision, not an oversight.
 ignored:
   - DL3008 # apt packages are intentionally unpinned: weekly rebuilds pick up security updates

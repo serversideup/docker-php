@@ -55,7 +55,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Lint Dockerfiles
-        run: docker run --rm -v "$PWD:/repo" -w /repo "hadolint/hadolint:${HADOLINT_VERSION}" hadolint src/variations/*/Dockerfile .oss-scanner/Dockerfile
+        run: docker run --rm -v "$PWD:/repo" -w /repo "hadolint/hadolint:${HADOLINT_VERSION}" hadolint src/base/Dockerfile src/variations/*/Dockerfile .oss-scanner/Dockerfile
 
   script-tests:
     name: scripts

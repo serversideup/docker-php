@@ -12,6 +12,10 @@ php_variations:
       - "8.1"
       - "8.2"
 
+# gpg_keys are the release managers who sign each minor's tarballs, from
+# https://www.php.net/gpg-keys.php (the same table docker-library/php keeps). The
+# base image (src/base/Dockerfile) refuses a tarball whose signature does not
+# verify against one of them.
 php_versions:
   - major: "8"
     minor_versions:
@@ -24,6 +28,10 @@ php_versions:
           - name: alpine3.22
           - name: bookworm
           - name: trixie
+        gpg_keys:
+          - 528995BFEDFBA7191D46839EF9BA0ADA31CBD89E # patrickallaert
+          - 39B641343D8C104B2B146DC3F9C39DC0B9698544 # ramsey
+          - F1F692238FBC1666E5A5CCD4199F9DFEF6FFBAFD # krakjoe
         patch_versions:
           - 8.1.34
       - minor: "8.2"
@@ -32,6 +40,10 @@ php_versions:
           - name: alpine3.24
           - name: bookworm
           - name: trixie
+        gpg_keys:
+          - 39B641343D8C104B2B146DC3F9C39DC0B9698544 # ramsey
+          - E60913E4DF209907D8E30D96659A97C9CF2A795A # sergey
+          - 1198C0117593497A5EC5C199286AF1F9897469DC # pierrick
         patch_versions:
         #   - 8.2.32 # Pull latest from Official PHP source
       - minor: "8.3"
@@ -40,6 +52,10 @@ php_versions:
           - name: alpine3.24
           - name: bookworm
           - name: trixie
+        gpg_keys:
+          - 1198C0117593497A5EC5C199286AF1F9897469DC # pierrick
+          - C28D937575603EB4ABB725861C0779DC5C0A9DE4 # bukka
+          - AFD8691FDAEDF03BDF6E460563F15A9B715376CA # ericmann
         patch_versions:
           # - 8.3.32 # Pull latest from Official PHP source
       - minor: "8.4"
@@ -48,6 +64,10 @@ php_versions:
           - name: alpine3.24
           - name: bookworm
           - name: trixie
+        gpg_keys:
+          - AFD8691FDAEDF03BDF6E460563F15A9B715376CA # ericmann
+          - 9D7F99A0CB8F05C8A6958D6256A97AF7600A39A6 # calvinb
+          - 0616E93D95AF471243E26761770426E17EBBB3DD # saki
         patch_versions:
         #   - 8.4.23 # Pull latest from Official PHP source
       - minor: "8.5"
@@ -56,6 +76,10 @@ php_versions:
           - name: alpine3.24
           - name: bookworm
           - name: trixie
+        gpg_keys:
+          - 1198C0117593497A5EC5C199286AF1F9897469DC # pierrick
+          - 49D9AF6BC72A80D6691719C8AA23F5BE9C7097D4 # edorian
+          - D95C03BC702BE9515344AE3374E44BC9067701A5 # daniels
         patch_versions:
         #   - 8.5.8 # Pull latest from Official PHP source
       # PHP 8.6 is blocked upstream: the official php:8.6-rc images no longer ship pecl/pear,
@@ -73,21 +97,29 @@ php_versions:
       #     - 8.6-rc
       #   php_extension_overrides:
       #     - redis=phpredis/phpredis@develop
+      #   gpg_keys:
+      #     - D95C03BC702BE9515344AE3374E44BC9067701A5 # daniels
+      #     - 016895DE9A475111D537A6E69134FF30BC5A99B5 # mbeccati
+      #     - 5CFF17B64DC1C244F5D0EAC3E43535E2EB19010E # svpernova09
 
+# base_image is what src/base/Dockerfile builds PHP on for that OS.
 operating_systems:
   - family: alpine
     versions:
       - name: "Alpine 3.22"
         version: alpine3.22
         number: 3.22
+        base_image: alpine:3.22
         nginx_version: 1.30.6-r1
       - name: "Alpine 3.23"
         version: alpine3.23
         number: 3.23
+        base_image: alpine:3.23
         nginx_version: 1.30.6-r1
       - name: "Alpine 3.24"
         version: alpine3.24
         number: 3.24
+        base_image: alpine:3.24
         nginx_version: 1.30.6-r1
   - family: debian
     default: true
@@ -95,8 +127,10 @@ operating_systems:
       - name: "Debian Bookworm"
         version: bookworm
         number: 12
+        base_image: debian:bookworm-slim
         nginx_version: 1.30.6-1~bookworm
       - name: "Debian Trixie"
         version: trixie
         number: 13
+        base_image: debian:trixie-slim
         nginx_version: 1.30.6-1~trixie
