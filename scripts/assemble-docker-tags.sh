@@ -83,40 +83,28 @@ check_vars() {
 
 add_docker_tag() {
 # Function: add_docker_tag
-# Description: Appends Docker tags to the DOCKER_TAGS variable and prints each tag.
+# Description: Appends the release tag for a suffix to the DOCKER_TAGS variable and prints it.
+# This v4 maintenance branch publishes release tags only (e.g. 8.4-fpm-nginx-v4.5.2), so v4
+# backports never overwrite the floating tags that v5 owns.
 #
 # Parameters:
 #   docker_tag_suffix - The suffix to be appended to the Docker image name as part of the tag.
   docker_tag_suffix=$1
 
-  for image_name in "${DOCKER_REGISTRY_REPOSITORIES[@]}"; do
+  if [[ -z "$GITHUB_RELEASE_TAG" || "$GITHUB_REF_TYPE" != "tag" || "$docker_tag_suffix" == "latest" ]]; then
+    return 0
+  fi
 
-    # Append a dash to tags that have a suffix
-    if [[ -n "$DOCKER_TAG_PREFIX" && "$docker_tag_suffix" != "$DOCKER_TAG_PREFIX" ]]; then
-      prefix_tag="$DOCKER_TAG_PREFIX-"
-    else
-      prefix_tag=""
-    fi
-    
-    tag_name="$image_name:$prefix_tag$docker_tag_suffix"    
+  for image_name in "${DOCKER_REGISTRY_REPOSITORIES[@]}"; do
+    release_tag_name="$image_name:$docker_tag_suffix-$GITHUB_RELEASE_TAG"
 
     if [[ -z "$DOCKER_TAGS" ]]; then
-      # Do not prefix with comma
-      DOCKER_TAGS+="$tag_name"
+      DOCKER_TAGS+="$release_tag_name"
     else
-      # Add a comma to separate the tags
-      DOCKER_TAGS+=",$tag_name"
-    fi
-
-    # Trim commas for a better output
-    echo_color_message blue "🐳 Set tag: ${tag_name//,}  "
-
-    if [[ -n "$GITHUB_RELEASE_TAG" && "$GITHUB_REF_TYPE" == "tag" && "$docker_tag_suffix" != "latest"  ]]; then
-      release_tag_name="$image_name:$docker_tag_suffix-$GITHUB_RELEASE_TAG"
       DOCKER_TAGS+=",$release_tag_name"
-      echo_color_message blue "🐳 Set tag: $release_tag_name"
     fi
 
+    echo_color_message blue "🐳 Set tag: $release_tag_name"
   done
 }
 
@@ -509,6 +497,11 @@ if is_latest_stable_patch_within_build_minor; then
       fi
     fi
   fi
+fi
+
+if [[ -z "$DOCKER_TAGS" ]]; then
+  echo_color_message red "🛑 ERROR: No tags to publish. v4 publishes release tags only, so run this from a v4 release tag (--github-release-tag v4.x.x)."
+  exit 1
 fi
 
 echo_color_message green "🚀 Summary of Docker Tags Being Shipped: $DOCKER_TAGS"
