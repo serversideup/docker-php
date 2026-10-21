@@ -1,6 +1,6 @@
 #!/bin/bash
 ###################################################
-# Usage: get-php-versions.sh [--skip-download] [--skip-dockerhub-validation] [--input PATH] [--output PATH]
+# Usage: get-php-versions.sh [--skip-download] [--skip-dockerhub-validation] [--no-fallback] [--input PATH] [--output PATH]
 ###################################################
 # This file takes the official latest PHP releases from php.net merges them with our
 # "base php configuration". These files get merged into a final file called "php-versions.yml"
@@ -10,7 +10,8 @@
 # By default, this script validates that each PHP version from php.net is actually available 
 # on DockerHub before including it in the final configuration. Every base image our variations
 # pull (cli, fpm, zts) is checked on every base OS configured for that minor version, because
-# DockerHub publishes those tags in batches and a build fails if any one is missing.
+# DockerHub publishes those tags in batches and a build fails if any one is missing. A tag only
+# counts once it has both linux/amd64 and linux/arm64 images, since DockerHub creates tags empty.
 # If a version is not available:
 # 1. The script attempts to fall back to the previous patch version (e.g., 8.3.24 -> 8.3.23)
 # 2. A GitHub Actions warning is displayed explaining the fallback
@@ -25,6 +26,7 @@
 # 👉 OPTIONS
 # --skip-download: Skip downloading from php.net and use existing base config
 # --skip-dockerhub-validation: Skip DockerHub validation (useful for testing/development)
+# --no-fallback: Fail instead of falling back to the previous patch version (use before a security release)
 # --input: Input file path (defaults to scripts/conf/php-versions-base-config.yml)
 # --output: Output file path (defaults to scripts/conf/php-versions.yml)
 
@@ -43,29 +45,44 @@ check_dockerhub_php_version() {
     local variant="${2:-cli}"
     local os="${3:-}"
     
+    # Our Dockerfiles always pull the OS-suffixed tag. The unsuffixed tag follows
+    # DockerHub's default OS, which is not necessarily the one we build on.
     local image_tag
-    if [ -n "$os" ] && [ "$os" != "bookworm" ]; then
+    if [ -n "$os" ]; then
         image_tag="${version}-${variant}-${os}"
     else
         image_tag="${version}-${variant}"
     fi
-    
+
     # Use Docker Hub API v2 to check if the tag exists with timeout and retry
-    local response
+    local response body platform
     local max_retries=3
     local retry_count=0
-    
+
     while [ $retry_count -lt $max_retries ]; do
+        body=$(mktemp)
         response=$(curl -s --max-time 10 --connect-timeout 5 \
-            -o /dev/null -w "%{http_code}" \
+            -o "$body" -w "%{http_code}" \
             "https://registry.hub.docker.com/v2/repositories/library/php/tags/${image_tag}/")
-        
+
         # Check if we got a valid HTTP response
         if [ "$response" = "200" ]; then
-            return 0  # Version exists
+            # DockerHub creates the tag before any architecture is pushed to it, so a tag
+            # can exist with no images yet. We build for amd64 and arm64, so both must be there.
+            for platform in amd64 arm64; do
+                if ! jq -e --arg arch "$platform" 'any(.images[]?; .os == "linux" and .architecture == $arch)' "$body" > /dev/null; then
+                    echo_color_message red "❌ php:${image_tag} exists but has no linux/${platform} image yet" >&2
+                    rm -f "$body"
+                    return 1
+                fi
+            done
+            rm -f "$body"
+            return 0  # Version exists for every platform we build
         elif [ "$response" = "404" ]; then
+            rm -f "$body"
             return 1  # Version definitely does not exist
         else
+            rm -f "$body"
             # Network error or other issue, retry
             retry_count=$((retry_count + 1))
             if [ $retry_count -lt $max_retries ]; then
@@ -136,10 +153,10 @@ function github_actions_annotation() {
     # Add to step summary for better visibility
     case "$type" in
         warning)
-            echo "⚠️ **Warning: ${title}** - ${message}" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Warning: ${title}** - ${message}" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
             ;;
         error)
-            echo "❌ **Error: ${title}** - ${message}" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Error: ${title}** - ${message}" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
             ;;
     esac
 }
@@ -162,7 +179,10 @@ validate_php_version_with_fallback() {
         
         # Try to get previous patch version
         local fallback_version
-        if fallback_version=$(get_previous_patch_version "$version"); then
+        if [ "$NO_FALLBACK" = true ]; then
+            github_actions_annotation "error" "PHP Version Unavailable" "PHP $original_version is not available on DockerHub and --no-fallback is set."
+            return 1
+        elif fallback_version=$(get_previous_patch_version "$version"); then
             fallback_attempted=true
             echo_color_message yellow "⚠️  Attempting fallback to PHP $fallback_version..." >&2
             
@@ -193,10 +213,12 @@ validate_php_version_with_fallback() {
 
 SKIP_DOWNLOAD="${SKIP_DOWNLOAD:-false}"
 SKIP_DOCKERHUB_VALIDATION="${SKIP_DOCKERHUB_VALIDATION:-false}"
+NO_FALLBACK="${NO_FALLBACK:-false}"
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --skip-download) SKIP_DOWNLOAD=true ;;
         --skip-dockerhub-validation) SKIP_DOCKERHUB_VALIDATION=true ;;
+        --no-fallback) NO_FALLBACK=true ;;
         --input)
             if [ -z "$2" ]; then
                 echo "Error: --input requires a file path."
