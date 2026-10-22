@@ -55,8 +55,21 @@ jobs:
     with:
       ref: ${{ needs.release.outputs.tag }}
 
-  build:
+  # PHP compiled from php.net, so a release never waits for Docker Hub.
+  base:
     needs: [release, setup]
+    uses: ./.github/workflows/service_build-base-images.yml
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    with:
+      matrix: ${{ needs.setup.outputs.matrix }}
+      image-prefix: "ghcr.io/serversideup/php-base:"
+      ref: ${{ needs.release.outputs.tag }}
+
+  build:
+    needs: [release, setup, base]
     name: build ${{ matrix.variation }}
     strategy:
       fail-fast: false
@@ -65,12 +78,14 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      packages: read
     uses: ./.github/workflows/service_build-images.yml
     with:
       variation: ${{ matrix.variation }}
       matrix: ${{ needs.setup.outputs.matrix }}
       ref: ${{ needs.release.outputs.tag }}
       registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
+      base-images: ${{ needs.base.outputs.base-images }}
       tag-prefix: "beta"
       release-type: "testing"
       # Only the prerelease that fired this gets release tags. Rebuilds refresh the beta floating tags.

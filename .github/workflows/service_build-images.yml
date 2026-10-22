@@ -49,6 +49,10 @@ on:
         type: boolean
         default: true
         description: 'Publish floating tags like 8.4-fpm-nginx. False for a release older than the newest one, so a backport never moves them.'
+      base-images:
+        type: string
+        default: '{}'
+        description: 'JSON map of "<php>-<sapi>-<os>" to the serversideup/php-base image to build on, from service_build-base-images.yml. Empty builds on the official images (pull requests from forks).'
 
 jobs:
   images:
@@ -58,6 +62,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      packages: read
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(inputs.matrix)[inputs.variation] }}
@@ -116,6 +121,44 @@ jobs:
             echo "REPOSITORY_BUILD_VERSION=git-${SHORT_SHA}-${{ github.run_id }}" >> "$GITHUB_ENV"
           fi
 
+      # Fork pull requests can't build base images, so they build on the official ones.
+      - name: Resolve the PHP base image
+        id: base_image
+        env:
+          BASE_IMAGES: ${{ inputs.base-images }}
+          KEY: ${{ matrix.patch_version }}-${{ matrix.base_sapi }}-${{ matrix.base_os }}
+          FROM_SOURCE: ${{ matrix.php_from_source && inputs.publish }}
+        run: |
+          if [ "$FROM_SOURCE" != "true" ]; then
+            echo "Building on the official php:${KEY} image"
+            exit 0
+          fi
+          BASE_IMAGE=$(jq -r --arg key "$KEY" '.[$key] // empty' <<< "$BASE_IMAGES")
+          if [ -z "$BASE_IMAGE" ]; then
+            echo "::error title=No base image::service_build-base-images.yml did not plan a php-base image for ${KEY}."
+            exit 1
+          fi
+          echo "Building on $BASE_IMAGE"
+          {
+            echo "arg=BASE_IMAGE=$BASE_IMAGE"
+            echo "image=$BASE_IMAGE"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Login to GitHub Container Registry
+        if: ${{ startsWith(steps.base_image.outputs.image, 'ghcr.io/') }}
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to DockerHub
+        if: ${{ startsWith(steps.base_image.outputs.image, 'docker.io/') }}
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
       - name: Compute NGINX build-arg (only for fpm-nginx)
         id: compute_nginx
         if: ${{ matrix.php_variation == 'fpm-nginx' }}
@@ -148,6 +191,7 @@ jobs:
             PHP_VARIATION=${{ matrix.php_variation }}
             REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
             PHP_EXTENSION_OVERRIDES=${{ matrix.php_extension_overrides }}
+            ${{ steps.base_image.outputs.arg }}
             ${{ steps.compute_nginx.outputs.nginx_arg }}
           platforms: |
             linux/amd64

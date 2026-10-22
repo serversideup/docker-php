@@ -1,0 +1,249 @@
+name: Build PHP Base Images
+
+# Runs before the image builds. Compiles serversideup/php-base (PHP from the php.net
+# tarball, see scripts/generate-php-base.sh) for every PHP version, SAPI, and OS in the
+# matrix that doesn't have one yet, so a PHP release never waits on Docker Hub.
+# Each image's tag ends in a hash of everything that goes into it (scripts/plan-php-base-images.sh),
+# so only new PHP releases, template changes, and OS updates compile anything. Like the
+# images built on top, each one is saved to the Depot Registry, tested on amd64 and arm64,
+# and only then pushed to GHCR.
+on:
+  workflow_call:
+    inputs:
+      matrix:
+        required: true
+        type: string
+        description: 'Build matrix JSON keyed by variation, as produced by service_setup-matrix.yml.'
+      image-prefix:
+        required: true
+        type: string
+        description: 'Image name and tag prefix for the base images (example: ghcr.io/serversideup/php-base:). Pull requests use serversideup/php-dev, so their code can never replace an image a release builds on.'
+      ref:
+        type: string
+        default: ${{ github.ref }}
+        description: 'The git ref to checkout (branch, tag, or commit SHA)'
+    outputs:
+      base-images:
+        description: 'JSON map of "<php>-<sapi>-<os>" to the base image to build on, e.g. {"8.4.27-fpm-trixie": "ghcr.io/serversideup/php-base:8.4.27-fpm-trixie-<hash>"}'
+        value: ${{ jobs.plan.outputs.base-images }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      base-images: ${{ steps.plan.outputs.base-images }}
+      missing: ${{ steps.plan.outputs.missing }}
+      tests: ${{ steps.plan.outputs.tests }}
+      count: ${{ steps.plan.outputs.count }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Install gawk
+        run: command -v gawk || { sudo apt-get update && sudo apt-get install -y gawk; }
+
+      - name: Login to GitHub Container Registry
+        if: startsWith(inputs.image-prefix, 'ghcr.io/')
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to DockerHub
+        if: startsWith(inputs.image-prefix, 'docker.io/')
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Find the base images that still have to be compiled
+        id: plan
+        env:
+          MATRIX: ${{ inputs.matrix }}
+          IMAGE_PREFIX: ${{ inputs.image-prefix }}
+        run: |
+          echo "$MATRIX" > matrix.json
+          PLAN=$(bash scripts/plan-php-base-images.sh matrix.json "$IMAGE_PREFIX")
+          COUNT=$(jq 'map(select(.exists | not)) | length' <<< "$PLAN")
+          {
+            echo "base-images=$(jq -c 'map({key, value: .image}) | from_entries' <<< "$PLAN")"
+            echo "missing=$(jq -c '{include: map(select(.exists | not))}' <<< "$PLAN")"
+            echo "tests=$(jq -c '{include: [ .[] | select(.exists | not)
+              | . + ({runner: "depot-ubuntu-24.04", arch: "amd64"}, {runner: "depot-ubuntu-24.04-arm", arch: "arm64"}) ]}' <<< "$PLAN")"
+            echo "count=$COUNT"
+          } >> "$GITHUB_OUTPUT"
+          echo "### PHP base images: $COUNT of $(jq length <<< "$PLAN") to compile" >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.count > 0
+    name: build ${{ matrix.key }}
+    runs-on: depot-ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.missing) }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Install gawk
+        run: command -v gawk || { sudo apt-get update && sudo apt-get install -y gawk; }
+
+      - name: Render the Dockerfile
+        id: render
+        run: |
+          read -r _ _ _ CONTEXT_DIR < <(bash scripts/generate-php-base.sh --version "${{ matrix.php }}" --os "${{ matrix.os }}" --sapi "${{ matrix.sapi }}")
+          echo "context=$CONTEXT_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Depot CLI
+        uses: depot/setup-action@v1
+
+      - name: Build the base image
+        id: build
+        uses: depot/build-push-action@v1
+        with:
+          context: ${{ steps.render.outputs.context }}
+          platforms: |
+            linux/amd64
+            linux/arm64/v8
+          pull: true
+          push: false
+          save: true
+          save-tags: ${{ github.run_id }}-php-base-${{ matrix.key }}
+          tags: ${{ matrix.image }}
+
+      - name: Record the build
+        run: |
+          mkdir -p php-base-details
+          jq -n --arg key "${{ matrix.key }}" --arg image "${{ matrix.image }}" --arg build_id "${{ steps.build.outputs.build-id }}" --arg digest "${{ steps.build.outputs.digest }}" \
+            '{key: $key, image: $image, build_id: $build_id, digest: $digest}' | tee "php-base-details/${{ matrix.key }}.json"
+
+      - name: Upload the build record
+        uses: actions/upload-artifact@v7
+        with:
+          name: php-base-details-${{ matrix.key }}
+          path: php-base-details/
+          retention-days: 7
+
+  test:
+    needs: [plan, build]
+    name: test ${{ matrix.key }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.tests) }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Depot CLI
+        uses: depot/setup-action@v1
+        with:
+          oidc: true
+
+      - name: Login to the Depot Registry
+        run: docker login registry.depot.dev --username x-token --password-stdin <<< "$(depot pull-token --project "$(jq -r .id depot.json)")"
+
+      # On release day the official image for this patch may not exist yet, so the
+      # comparison falls back to the newest one Docker Hub has for the same minor.
+      - name: Test the base image
+        env:
+          PHP: ${{ matrix.php }}
+          SAPI: ${{ matrix.sapi }}
+          OS: ${{ matrix.os }}
+          KEY: ${{ matrix.key }}
+        run: |
+          SAVED="registry.depot.dev/$(jq -r .id depot.json):${{ github.run_id }}-php-base-${KEY}"
+          docker pull --quiet "$SAVED"
+          OFFICIAL="php:${PHP}-${SAPI}-${OS}"
+          docker manifest inspect "$OFFICIAL" > /dev/null 2>&1 || OFFICIAL="php:${PHP%.*}-${SAPI}-${OS}"
+          bash scripts/test-base-image.sh "$SAVED" "$SAPI" "$OFFICIAL"
+
+  # Only base images that passed their tests reach GHCR, and only from here can the image
+  # builds use them. `depot push` copies each tested build server-side.
+  publish:
+    needs: [plan, build, test]
+    runs-on: depot-ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Download the build records
+        uses: actions/download-artifact@v8
+        with:
+          pattern: php-base-details-*
+          path: php-base-details
+          merge-multiple: true
+
+      - name: Set up Depot CLI
+        uses: depot/setup-action@v1
+        with:
+          oidc: true
+
+      - name: Login to GitHub Container Registry
+        if: startsWith(inputs.image-prefix, 'ghcr.io/')
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to DockerHub
+        if: startsWith(inputs.image-prefix, 'docker.io/')
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Push the tested base images
+        run: |
+          PROJECT=$(jq -r .id depot.json)
+          FAILED=()
+          while IFS=$'\t' read -r KEY IMAGE BUILD_ID DIGEST; do
+            echo "::group::${KEY}"
+            if depot push --project "$PROJECT" --progress plain --tag "$IMAGE" "$BUILD_ID"; then
+              # What was pushed must be what was tested: the index itself or one of its manifests.
+              INDEX=$(docker buildx imagetools inspect --raw "$IMAGE")
+              PUSHED="sha256:$(printf '%s' "$INDEX" | sha256sum | cut -d' ' -f1) $(jq -r '.manifests[]?.digest' <<< "$INDEX" | tr '\n' ' ')"
+              if [[ " $PUSHED " == *" $DIGEST "* ]]; then
+                echo "Pushed $IMAGE ($DIGEST)"
+              else
+                echo "::error title=Digest mismatch::$IMAGE is $PUSHED but the tested build was $DIGEST"
+                FAILED+=("$KEY")
+              fi
+            else
+              FAILED+=("$KEY")
+            fi
+            echo "::endgroup::"
+          done < <(jq -r '[.key, .image, .build_id, .digest] | @tsv' php-base-details/*.json)
+
+          if [ "${#FAILED[@]}" -gt 0 ]; then
+            echo "::error title=Base image push failed::${FAILED[*]} were not pushed, or GHCR has a different digest than the tested build"
+            exit 1
+          fi

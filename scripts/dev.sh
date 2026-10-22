@@ -96,17 +96,9 @@ php_minor_version() {
   fi
 }
 
-base_image_sapi() {
-  case "$PHP_BUILD_VARIATION" in
-    cli) echo "cli" ;;
-    frankenphp) echo "zts" ;;
-    *) echo "fpm" ;;
-  esac
-}
-
 build_php_base_image() {
   local sapi base_line version context_dir
-  sapi=$(base_image_sapi)
+  sapi=$(VARIATION="$PHP_BUILD_VARIATION" yq -r '.php_variations[] | select(.name == env(VARIATION)) | .base_sapi' "$BASE_PHP_VERSIONS_CONFIG_FILE")
   base_line=$("$SCRIPT_DIR/generate-php-base.sh" --version "$PHP_BUILD_VERSION" --os "$PHP_BUILD_BASE_OS" --sapi "$sapi")
   read -r version _ _ context_dir <<< "$base_line"
   BASE_IMAGE="serversideup/php-base:${version}-${sapi}-${PHP_BUILD_BASE_OS}"
