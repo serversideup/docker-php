@@ -7,6 +7,7 @@ This project maintains open source PHP Docker images (`serversideup/php`) for La
 ```
 src/
   variations/        # One Dockerfile per image variation (cli, fpm, fpm-apache, fpm-nginx, frankenphp)
+  base/              # serversideup/php-base: PHP compiled from php.net with docker-library's vendored template
   common/            # Shared scripts and configs copied into ALL variations
     usr/local/bin/   # Entrypoint and helper scripts (POSIX /bin/sh)
     etc/entrypoint.d/# Numbered priority entrypoint scripts (00-*, 50-*, etc.)
@@ -54,8 +55,12 @@ Each variation Dockerfile uses multi-stage builds:
 2. Variation-specific configs live in `src/variations/<variation>/etc/`
 3. The build context is the **project root** (not `src/`), so COPY paths are relative to root: `COPY --chmod=755 src/common/ /`
 
+### PHP base image
+Every variation builds `FROM ${BASE_IMAGE}`, which defaults to the official `php:` image. `serversideup/php-base` is the same image compiled by us from the php.net tarball, so a PHP release can ship without waiting for Docker Hub. `scripts/generate-php-base.sh` renders it with docker-library's own template and renderer, vendored unchanged in `src/base/upstream/` (see `src/base/UPSTREAM`). Every change we make to the rendered Dockerfiles lives in that script's `patch_dockerfile`. Keep that list short, because each patch is a difference from the official image. Signing keys come from `src/base/keys/`, never a keyserver. `scripts/test-base-image.sh <image> <sapi> <official-image>` runs docker-library's tests and checks parity with the official image. The base SAPI is `cli` for cli, `zts` for frankenphp, and `fpm` for the rest. PHP 8.1 is not in upstream's template, so it stays on the official `php:8.1.34` images.
+
 ### Build args used across Dockerfiles
 - `PHP_VERSION`, `BASE_OS_VERSION`, `PHP_VARIATION` -- set by CI matrix or `scripts/dev.sh`
+- `BASE_IMAGE` -- the PHP base image (default: the official `php:` image; `scripts/dev.sh --php-from-source` builds and uses `serversideup/php-base`)
 - `NGINX_VERSION` -- resolved per-OS from `scripts/conf/php-versions-base-config.yml`
 - `REPOSITORY_BUILD_VERSION` -- image version label
 
@@ -78,6 +83,7 @@ scripts/dev.sh --variation fpm-nginx --version 8.4 --os bookworm
 # Other examples
 scripts/dev.sh --variation cli --version 8.5 --os alpine3.22
 scripts/dev.sh --variation fpm-nginx --version 8.4 --os bookworm --no-cache
+scripts/dev.sh --variation fpm-nginx --version 8.4 --os trixie --php-from-source  # also needs curl, jq, gawk
 scripts/dev.sh --variation frankenphp --version 8.5 --os bookworm --push
 ```
 

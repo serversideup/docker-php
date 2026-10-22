@@ -1,0 +1,28 @@
+serversideup/php-base compiles PHP with docker-library's own template, so it stays
+a drop-in for the official "php" image.
+
+Vendored without changes:
+
+  upstream/        https://github.com/docker-library/php at 5ec2a6a0dad498e89a91a39454dbb52e98ce2bdb (MIT, upstream/LICENSE)
+                   Dockerfile-linux.template, apply-templates.sh, docker-php-entrypoint,
+                   docker-php-ext-configure, docker-php-ext-enable, docker-php-ext-install,
+                   docker-php-source
+  upstream/bashbrew/jq-template.awk
+                   https://github.com/docker-library/bashbrew at 9f6a35772ac863a0241f147c820354e4008edf38 (Apache 2.0, upstream/bashbrew/LICENSE),
+                   the commit apply-templates.sh pins
+
+Our changes to the rendered Dockerfiles are all in patch_dockerfile in
+scripts/generate-php-base.sh, and the script fails if one stops applying.
+
+keys/ holds the release managers' public keys, one file per fingerprint listed in
+the template's GPG_KEYS, exported from https://www.php.net/distributions/php-keyring.gpg.
+
+Updating, when upstream adds a PHP minor or an Alpine version (rarely urgent):
+
+  1. Copy the files above from the new docker-library/php commit and update the commit here.
+     If apply-templates.sh pins a new bashbrew commit, update jq-template.awk too.
+  2. For any new fingerprint in GPG_KEYS, add keys/<FINGERPRINT>.asc:
+       gpg --import php-keyring.gpg && gpg --armor --export-options export-minimal --export <FINGERPRINT>
+  3. Run scripts/generate-php-base.sh, then diff a rendered Dockerfile against the same
+     one in docker-library/php. Only the patch_dockerfile changes should differ.
+  4. Build and run scripts/test-base-image.sh against the official image.
