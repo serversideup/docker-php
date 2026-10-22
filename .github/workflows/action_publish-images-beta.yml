@@ -73,6 +73,8 @@ jobs:
       registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
       tag-prefix: "beta"
       release-type: "testing"
+      # Only the prerelease that fired this gets release tags. Rebuilds refresh the beta floating tags.
+      release-tag: ${{ github.event_name == 'release' && needs.release.outputs.tag || '' }}
     secrets: inherit
 
   test:

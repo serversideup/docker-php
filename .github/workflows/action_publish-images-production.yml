@@ -1,19 +1,23 @@
 name: Docker Publish (Production Images)
 run-name: >-
   Production images (${{
-    github.event.release.tag_name ||
+    (github.ref_type == 'tag' && github.ref_name) ||
     (github.event_name == 'schedule' && 'weekly rebuild') ||
     'manual rebuild'
   }})
 
+# Releasing: write the notes as a draft release (optional), then push the version tag from the
+# branch to release. The images are built, tested, and published before the release is, because
+# publishing a release locks its tag. If the build fails, delete the tag, fix it, and push it again.
 on:
   workflow_dispatch:
-  release:
-    types: [released]
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
   schedule:
     - cron: '0 8 * * 2'
 
-# A release event and the weekly rebuild must not publish the same tags at the same time.
+# A release and the weekly rebuild must not publish the same tags at the same time.
 concurrency:
   group: production-images
 
@@ -27,25 +31,72 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
-      contents: read
+      contents: write
     outputs:
-      tag: ${{ steps.release.outputs.tag }}
+      ref: ${{ steps.release.outputs.ref }}
+      release-tag: ${{ steps.release.outputs.release-tag }}
+      floating-tags: ${{ steps.release.outputs.floating-tags }}
+      publish-release: ${{ steps.release.outputs.publish-release }}
     steps:
-      # A release event builds the release that fired it. Scheduled and manual runs rebuild the latest release.
       - name: Find the release to build
         id: release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          PUSHED_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         run: |
-          TAG="${RELEASE_TAG:-$(gh release view --json tagName --jq .tagName)}"
-          if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
-            echo "::error title=No release found::Could not find a published release to build."
-            exit 1
+          # GitHub's "Latest" label can't decide this: a pushed release isn't published yet.
+          published_releases() {
+            gh release list --exclude-drafts --exclude-pre-releases --limit 100 --json tagName --jq '.[].tagName' \
+              | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$'
+          }
+
+          if [ -z "$PUSHED_TAG" ]; then
+            TAG=$(published_releases | sort -V | tail -n1)
+            if [ -z "$TAG" ]; then
+              echo "::error title=No release found::Could not find a published release to build."
+              exit 1
+            fi
+            echo "Rebuilding release $TAG"
+            {
+              echo "ref=$TAG"
+              echo "release-tag="
+              echo "floating-tags=true"
+              echo "publish-release=false"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
           fi
-          echo "Building release $TAG"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          SORTED=$( (published_releases; echo "$PUSHED_TAG") | sort -uV)
+          NEWEST=$(echo "$SORTED" | tail -n1)
+          PREVIOUS=$(echo "$SORTED" | grep -B1 -xF "$PUSHED_TAG" | grep -vxF "$PUSHED_TAG" || true)
+
+          # Publishing a release in the GitHub UI also pushes its tag. Its images still get built.
+          if published_releases | grep -xF "$PUSHED_TAG" > /dev/null; then
+            echo "::warning title=Release already published::$PUSHED_TAG was published before its images were built, so its tag is locked even if this build fails. Next time, push the tag instead."
+            PUBLISH_RELEASE=false
+          elif gh release view "$PUSHED_TAG" > /dev/null 2>&1; then
+            echo "Using the draft release notes for $PUSHED_TAG"
+            PUBLISH_RELEASE=true
+          else
+            gh release create "$PUSHED_TAG" --draft --verify-tag --title "$PUSHED_TAG" --generate-notes ${PREVIOUS:+--notes-start-tag "$PREVIOUS"}
+            echo "Created a draft release for $PUSHED_TAG with generated notes"
+            PUBLISH_RELEASE=true
+          fi
+
+          if [ "$NEWEST" = "$PUSHED_TAG" ]; then
+            echo "Releasing $PUSHED_TAG as the newest release"
+            FLOATING=true
+          else
+            echo "Releasing $PUSHED_TAG with release tags only, because $NEWEST is newer"
+            FLOATING=false
+          fi
+          {
+            echo "ref=$PUSHED_TAG"
+            echo "release-tag=$PUSHED_TAG"
+            echo "floating-tags=$FLOATING"
+            echo "publish-release=$PUBLISH_RELEASE"
+          } >> "$GITHUB_OUTPUT"
 
   setup:
     needs: release
@@ -53,7 +104,7 @@ jobs:
     permissions:
       contents: read
     with:
-      ref: ${{ needs.release.outputs.tag }}
+      ref: ${{ needs.release.outputs.ref }}
 
   build:
     needs: [release, setup]
@@ -69,10 +120,12 @@ jobs:
     with:
       variation: ${{ matrix.variation }}
       matrix: ${{ needs.setup.outputs.matrix }}
-      ref: ${{ needs.release.outputs.tag }}
+      ref: ${{ needs.release.outputs.ref }}
       registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
       tag-prefix: ''
       release-type: "latest"
+      release-tag: ${{ needs.release.outputs.release-tag }}
+      floating-tags: ${{ needs.release.outputs.floating-tags == 'true' }}
     secrets: inherit
 
   test:
@@ -83,7 +136,7 @@ jobs:
       contents: read
       id-token: write
     with:
-      ref: ${{ needs.release.outputs.tag }}
+      ref: ${{ needs.release.outputs.ref }}
 
   # Only images that passed the image tests reach a public registry.
   publish:
@@ -95,8 +148,26 @@ jobs:
       packages: write
       id-token: write
     with:
-      ref: ${{ needs.release.outputs.tag }}
+      ref: ${{ needs.release.outputs.ref }}
     secrets: inherit
+
+  # Publishing the release locks its tag, so it waits until every image is live.
+  finalize:
+    needs: [release, publish]
+    if: needs.release.outputs.publish-release == 'true'
+    name: publish release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Publish the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.release.outputs.release-tag }}
+          LATEST: ${{ needs.release.outputs.floating-tags }}
+        run: gh release edit "$VERSION" --draft=false --latest="$LATEST"
 
   report:
     needs: [release, setup, build, test, publish]
@@ -106,4 +177,4 @@ jobs:
       contents: read
     with:
       matrix: ${{ needs.setup.outputs.matrix }}
-      ref: ${{ needs.release.outputs.tag }}
+      ref: ${{ needs.release.outputs.ref }}

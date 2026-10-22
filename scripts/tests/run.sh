@@ -55,6 +55,55 @@ assert_contains "$summary" "| cli | 8.4.25 | bookworm |  |  | ❌ not built |" "
 assert_contains "$summary" "| built, not published |" "marks images that were built but not promoted"
 assert_contains "$summary" '`serversideup/php-dev:700-8.5.10-cli-trixie`' "shows the image reference without the registry prefix"
 
+php_versions_file="$image_details/php-versions.yml"
+cat > "$php_versions_file" <<'EOF'
+php_variations:
+  - name: cli
+    default: true
+php_versions:
+  - major: "8"
+    minor_versions:
+      - minor: "8.4"
+        base_os: [{name: trixie}]
+        patch_versions: [8.4.27]
+      - minor: "8.5"
+        base_os: [{name: trixie}]
+        patch_versions: [8.5.12]
+operating_systems:
+  - family: debian
+    default: true
+    versions:
+      - {name: "Debian Trixie", version: trixie, number: 13}
+EOF
+tags() {
+    PHP_VERSIONS_FILE="$php_versions_file" DOCKER_REGISTRY_REPOSITORIES="docker.io/serversideup/php" \
+        bash "$scripts_dir/assemble-docker-tags.sh" --variation cli --os trixie --patch-version 8.5.12 --stable-release "$@" 2>&1 \
+        | sed -n 's/.*Summary of Docker Tags Being Shipped: //p'
+}
+
+echo
+echo "assemble-docker-tags.sh"
+release_tags=$(tags --github-release-tag v5.1.0)
+assert_contains ",$release_tags," ",docker.io/serversideup/php:8.5-cli," "a release publishes floating tags"
+assert_contains ",$release_tags," ",docker.io/serversideup/php:8.5-cli-v5.1.0," "a release publishes its release tags"
+assert_contains ",$release_tags," ",docker.io/serversideup/php:latest," "the newest release moves latest"
+backport_tags=$(tags --github-release-tag v5.0.3 --release-tags-only)
+assert_contains ",$backport_tags," ",docker.io/serversideup/php:8.5-cli-v5.0.3," "a backport publishes its release tags"
+floating_tags=$(tr ',' '\n' <<< "$backport_tags" | grep -v -- '-v5\.0\.3$' || true)
+if [ -n "$floating_tags" ]; then
+    echo "❌ a backport publishes no floating tags"
+    echo "   got: $floating_tags"
+    failures=$((failures + 1))
+else
+    echo "✅ a backport publishes no floating tags"
+fi
+if tags --release-tags-only > /dev/null; then
+    echo "❌ refuses to run with floating tags off and no release tag"
+    failures=$((failures + 1))
+else
+    echo "✅ refuses to run with floating tags off and no release tag"
+fi
+
 echo
 if [ "$failures" -gt 0 ]; then
     echo "$failures check(s) failed" >&2
