@@ -4,6 +4,7 @@ ARG PHP_VERSION='8.5'
 ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
 ARG FRANKENPHP_VERSION='1.13.1'
 ARG GOLANG_VERSION='1.27'
+ARG WATCHER_VERSION='0.14.5'
 
 ########################
 # Common
@@ -53,6 +54,7 @@ FROM golang:${GOLANG_VERSION} AS golang-image
 FROM common AS frankenphp-build
 ARG FRANKENPHP_VERSION
 ARG GOLANG_VERSION
+ARG WATCHER_VERSION
 ARG BUILD_DEPENDENCY_PACKAGES_ALPINE="\
     argon2-dev \
     bash \
@@ -100,12 +102,7 @@ RUN docker-php-serversideup-dep-install-alpine "$PHPIZE_DEPS ${BUILD_DEPENDENCY_
 
 # Install e-dant/watcher (necessary for file watching)
 WORKDIR /usr/local/src/watcher
-RUN WATCHER_TARBALL_URL=$(docker-php-serversideup-download https://api.github.com/repos/e-dant/watcher/releases/latest | \
-        grep tarball_url | \
-        awk '{ print $2 }' | \
-        sed 's/,$//' | \
-        sed 's/"//g') && \
-    docker-php-serversideup-download "$WATCHER_TARBALL_URL" /tmp/watcher.tar.gz && \
+RUN docker-php-serversideup-download "https://github.com/e-dant/watcher/archive/refs/tags/${WATCHER_VERSION}.tar.gz" /tmp/watcher.tar.gz && \
     tar xz --strip-components 1 -f /tmp/watcher.tar.gz && \
     rm -f /tmp/watcher.tar.gz && \
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
