@@ -212,7 +212,7 @@ check_vars \
 # Auto-resolve PHP extension source overrides for the minor version being built
 if [ -z "$PHP_EXTENSION_OVERRIDES" ]; then
   PHP_EXTENSION_OVERRIDES=$(MINOR="$(php_minor_version "$PHP_BUILD_VERSION")" yq -r '
-    [.php_versions[].minor_versions[] | select(.minor == env(MINOR)) | .php_extension_overrides // [] | .[]] | join(" ")
+    [(.php_extension_overrides // [] | .[]), (.php_versions[].minor_versions[] | select(.minor == env(MINOR)) | .php_extension_overrides // [] | .[])] | join(" ")
   ' "$BASE_PHP_VERSIONS_CONFIG_FILE")
 
   if [ -n "$PHP_EXTENSION_OVERRIDES" ]; then

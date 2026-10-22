@@ -435,6 +435,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
     merged_json=$(jq -s '
         {
             php_variations: (.[1].php_variations // []),
+            php_extension_overrides: (.[1].php_extension_overrides // []),
             php_versions: (
                 .[0].php_versions + .[1].php_versions
                 | group_by(.major)

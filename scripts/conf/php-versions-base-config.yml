@@ -12,6 +12,12 @@ php_variations:
       - "8.1"
       - "8.2"
 
+# Applied to every PHP version before any minor's own overrides. redis is built from GitHub
+# instead of PECL, which went down during the October 2026 security release. Both commits are
+# pinned: phpredis 6.3.0, and the liblzf submodule commit that phpredis 6.3.0 points to.
+php_extension_overrides:
+  - redis=phpredis/phpredis@df4fab2de7fc327c54c94a13af2b9542e4fbd720+liblzf=nemequ/liblzf@fb25820c3c0aeafd127956ae6c115063b47e459a
+
 php_versions:
   - major: "8"
     minor_versions:

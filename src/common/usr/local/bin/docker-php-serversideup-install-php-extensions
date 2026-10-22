@@ -8,6 +8,11 @@ set -oe
 # swapping an extension for a different source. Overrides are space separated
 # "name=source" pairs, where source is any value install-php-extensions accepts
 # (for example "redis=phpredis/phpredis@develop").
+#
+# GitHub's source tarballs leave out git submodules, so a GitHub source can list
+# them after a "+" as "path=owner/repo@ref" (for example
+# "redis=phpredis/phpredis@<commit>+liblzf=nemequ/liblzf@<commit>"). Each one is
+# downloaded into that path and the assembled directory is installed instead.
 
 script_name="docker-php-serversideup-install-php-extensions"
 
@@ -29,18 +34,44 @@ resolve_extension_source() {
             resolved_extension="${override#*=}"
         fi
     done
-    echo "$resolved_extension"
+}
+
+# Sets assembled_source_dir. Not called in a subshell, because the download helper's "set -o" prints to stdout.
+assemble_github_source() {
+    assembled_source_dir=$(mktemp -d)
+    for part in $(printf '%s' "$1" | tr '+' ' '); do
+        case "$part" in
+            *=*) target_dir="$assembled_source_dir/${part%%=*}" repository="${part#*=}" ;;
+            *) target_dir="$assembled_source_dir" repository="$part" ;;
+        esac
+        mkdir -p "$target_dir"
+        docker-php-serversideup-download "https://codeload.github.com/${repository%@*}/tar.gz/${repository#*@}" "$assembled_source_dir.tar.gz"
+        tar -xzf "$assembled_source_dir.tar.gz" --strip-components 1 -C "$target_dir"
+        rm -f "$assembled_source_dir.tar.gz"
+    done
+    assembled_source_dirs="$assembled_source_dirs $assembled_source_dir"
 }
 
 ############
 # Main
 ############
 resolved_extensions=""
+assembled_source_dirs=""
 for extension in $extensions; do
-    resolved_extensions="$resolved_extensions $(resolve_extension_source "$extension")"
+    resolve_extension_source "$extension"
+    case "$resolved_extension" in
+        *+*)
+            echo "📦 Assembling $extension from $resolved_extension"
+            assemble_github_source "$resolved_extension"
+            resolved_extension="$assembled_source_dir"
+            ;;
+    esac
+    resolved_extensions="$resolved_extensions $resolved_extension"
 done
 
 echo "🤖 Installing PHP extensions:$resolved_extensions"
 install-php-extensions $resolved_extensions
+
+rm -rf $assembled_source_dirs
 
 echo "⚡️ Completed installation of PHP extensions:$resolved_extensions"
