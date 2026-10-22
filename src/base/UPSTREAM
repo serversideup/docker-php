@@ -17,6 +17,10 @@ scripts/generate-php-base.sh, and the script fails if one stops applying.
 keys/ holds the release managers' public keys, one file per fingerprint listed in
 the template's GPG_KEYS, exported from https://www.php.net/distributions/php-keyring.gpg.
 
+"Check Upstream PHP Images" (.github/workflows/scheduled-task_check-upstream-php.yml) runs
+scripts/check-upstream-php.sh every Monday and opens an upstream-php issue when these files
+change upstream, or when our newest base images stop matching the official ones.
+
 Updating, when upstream adds a PHP minor or an Alpine version (rarely urgent):
 
   1. Copy the files above from the new docker-library/php commit and update the commit here.
