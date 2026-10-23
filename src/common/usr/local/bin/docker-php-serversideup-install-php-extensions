@@ -1,5 +1,5 @@
 #!/bin/sh
-set -oe
+set -e
 
 ###################################################
 # Usage: docker-php-serversideup-install-php-extensions [extensions] [overrides]

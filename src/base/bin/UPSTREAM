@@ -1,0 +1,20 @@
+These scripts are copied verbatim from docker-library/php and are covered by
+../LICENSE-docker-library-php (MIT). Do not edit them here; update them from
+upstream so the base images keep the same behavior as the official php images.
+
+Repository: https://github.com/docker-library/php
+Commit:     5ec2a6a0dad498e89a91a39454dbb52e98ce2bdb (2026-10-21)
+
+Files:
+  docker-php-entrypoint
+  docker-php-ext-configure
+  docker-php-ext-enable
+  docker-php-ext-install
+  docker-php-source
+
+To update:
+  git clone https://github.com/docker-library/php /tmp/docker-library-php
+  for f in docker-php-entrypoint docker-php-ext-configure docker-php-ext-enable docker-php-ext-install docker-php-source; do
+    cp /tmp/docker-library-php/$f src/base/bin/$f
+  done
+  git -C /tmp/docker-library-php log -1 --format='%H (%cs)'   # record it above

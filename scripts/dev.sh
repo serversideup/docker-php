@@ -24,7 +24,9 @@ PHP_BUILD_VERSION=""
 PHP_BUILD_VARIATION=""
 PHP_BUILD_BASE_OS=""
 PHP_BUILD_PREFIX=""
+PHP_BUILD_SAPI=""
 DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php"}"
+PHP_BASE_REPOSITORY="${PHP_BASE_REPOSITORY:-"serversideup/php-base"}"
 DOCKER_ADDITIONAL_BUILD_ARGS=()
 PUSH_TO_REGISTRY=false
 PLATFORM=""
@@ -126,7 +128,44 @@ build_docker_image() {
     --file "$PROJECT_ROOT_DIR/src/variations/$PHP_BUILD_VARIATION/Dockerfile" \
     "$PROJECT_ROOT_DIR"
   echo_color_message green "✅ Docker Image Built: $build_tag"
-  
+  push_docker_image "$build_tag"
+}
+
+build_base_image() {
+  build_tag="${PHP_BASE_REPOSITORY}:${PHP_BUILD_PREFIX}${PHP_BUILD_VERSION}-${PHP_BUILD_SAPI}-${PHP_BUILD_BASE_OS}"
+
+  local base_image source
+  base_image=$(BASE_OS="$PHP_BUILD_BASE_OS" yq -r '.operating_systems[].versions[] | select(.version == env(BASE_OS)) | .base_image // ""' "$BASE_PHP_VERSIONS_CONFIG_FILE")
+  if [ -z "$base_image" ]; then
+    echo_color_message red "❌ No base_image for OS '$PHP_BUILD_BASE_OS' in $BASE_PHP_VERSIONS_CONFIG_FILE"
+    exit 1
+  fi
+  source=$("$SCRIPT_DIR/get-php-source.sh" --config "$BASE_PHP_VERSIONS_CONFIG_FILE" "$PHP_BUILD_VERSION")
+  echo_color_message yellow "🐳 Building PHP $(jq -r '.php_version' <<< "$source") from source on $base_image: $build_tag"
+
+  if [ -z "$PLATFORM" ]; then
+      PLATFORM=$(detect_platform)
+  fi
+
+  docker buildx build \
+    ${DOCKER_ADDITIONAL_BUILD_ARGS[@]+"${DOCKER_ADDITIONAL_BUILD_ARGS[@]}"} \
+    --platform "$PLATFORM" \
+    --build-arg BASE_IMAGE="$base_image" \
+    --build-arg PHP_SAPI="$PHP_BUILD_SAPI" \
+    --build-arg PHP_VERSION="$(jq -r '.php_version' <<< "$source")" \
+    --build-arg PHP_URL="$(jq -r '.url' <<< "$source")" \
+    --build-arg PHP_ASC_URL="$(jq -r '.asc_url' <<< "$source")" \
+    --build-arg PHP_SHA256="$(jq -r '.sha256' <<< "$source")" \
+    --build-arg GPG_KEYS="$(jq -r '.gpg_keys' <<< "$source")" \
+    --tag "$build_tag" \
+    --file "$PROJECT_ROOT_DIR/src/base/Dockerfile" \
+    "$PROJECT_ROOT_DIR"
+  echo_color_message green "✅ Docker Image Built: $build_tag"
+  push_docker_image "$build_tag"
+}
+
+push_docker_image() {
+  local build_tag=$1
   if [ "$PUSH_TO_REGISTRY" = true ]; then
     echo_color_message yellow "🚀 Pushing image to registry: $build_tag"
     docker push "$build_tag"
@@ -143,9 +182,11 @@ help_menu() {
     echo "arguments to the docker build command."
     echo
     echo "Options:"
-    echo "  --variation <variation>   Set the PHP variation (e.g., apache, fpm)"
+    echo "  --variation <variation>   Set the PHP variation (e.g., apache, fpm), or 'base' to compile PHP"
+    echo "                            from source into serversideup/php-base (needs --sapi)"
     echo "  --version <version>       Set the PHP version (e.g., 8.4, 8.5, or a pinned patch like 8.1.34)"
     echo "  --os <os>                 Set the base OS (e.g., bookworm, trixie, alpine3.24)"
+    echo "  --sapi <sapi>             With --variation base: cli, fpm, or zts"
     echo "  --prefix <prefix>         Set the prefix for the Docker image (e.g., beta)"
     echo "  --registry <registry>     Set a custom registry (e.g., localhost:5000)"
     echo "  --platform <platform>     Set the platform (default: detected from system architecture)"
@@ -172,6 +213,10 @@ while [[ $# -gt 0 ]]; do
         ;;
         --prefix)
         PHP_BUILD_PREFIX="$2-"
+        shift 2
+        ;;
+        --sapi)
+        PHP_BUILD_SAPI="$2"
         shift 2
         ;;
         --registry)
@@ -208,6 +253,20 @@ check_vars \
   PHP_BUILD_VARIATION \
   PHP_BUILD_VERSION \
   PHP_BUILD_BASE_OS
+
+if [ "$PHP_BUILD_VARIATION" = "base" ]; then
+  case "$PHP_BUILD_SAPI" in
+    cli|fpm|zts) ;;
+    *)
+      echo_color_message red "🚨 --variation base needs --sapi cli, fpm, or zts"
+      echo
+      help_menu
+      exit 1
+      ;;
+  esac
+  build_base_image
+  exit 0
+fi
 
 # Auto-resolve PHP extension source overrides for the minor version being built
 if [ -z "$PHP_EXTENSION_OVERRIDES" ]; then

@@ -6,6 +6,7 @@ This project maintains open source PHP Docker images (`serversideup/php`) for La
 
 ```
 src/
+  base/              # serversideup/php-base: PHP compiled from source, a drop-in for the official php images
   variations/        # One Dockerfile per image variation (cli, fpm, fpm-apache, fpm-nginx, frankenphp)
   common/            # Shared scripts and configs copied into ALL variations
     usr/local/bin/   # Entrypoint and helper scripts (POSIX /bin/sh)
@@ -15,6 +16,7 @@ src/
   utilities-webservers/ # Shared web server entrypoint utilities (SSL, etc.)
 scripts/             # Build tooling (Bash, not POSIX)
   dev.sh             # Local image builds
+  get-php-source.sh  # Resolves one PHP version to its php.net tarball, sha256, and GPG keys
   conf/              # PHP version matrix and base config (YAML)
   generate-matrix.sh # Generates CI build matrix from YAML config
   assemble-docker-tags.sh
@@ -54,8 +56,17 @@ Each variation Dockerfile uses multi-stage builds:
 2. Variation-specific configs live in `src/variations/<variation>/etc/`
 3. The build context is the **project root** (not `src/`), so COPY paths are relative to root: `COPY --chmod=755 src/common/ /`
 
+### Base image (`src/base/`)
+`src/base/Dockerfile` compiles PHP from the php.net tarball into `serversideup/php-base:<version>-<cli|fpm|zts>-<os>`, an image meant to be interchangeable with the official `php:<version>-<cli|fpm|zts>-<os>`: same paths, ENV, `docker-php-ext-*` scripts, configure flags, and `/usr/local/etc` contents. It is a port of docker-library/php's `Dockerfile-linux.template`, pinned to the commit in `src/base/bin/UPSTREAM`; when upstream changes how the official images are built, port the change here too. One Dockerfile covers every PHP minor, SAPI, and OS: the per-minor differences are computed from `PHP_VERSION` inside the RUN steps.
+
+- The tarball URL, sha256, and signing keys come from `scripts/get-php-source.sh`, which reads only php.net plus the `gpg_keys` of each minor in the base config. Add a new minor's release manager keys (https://www.php.net/gpg-keys.php) when you add the minor.
+- The OS image to build on is `base_image` on each OS entry in the base config.
+- Build one locally with `scripts/dev.sh --variation base --version 8.4 --os bookworm --sapi fpm`, then check it against the official image with `scripts/test-base-image.sh serversideup/php-base:8.4-fpm-bookworm 8.4.27 php:8.4.27-fpm-bookworm`. Any difference from the official image other than `PHP_BUILD_PROVIDER` is a bug.
+- Variations take the image to build on as `BASE_IMAGE` (default: the official image), so `scripts/dev.sh --variation fpm-nginx --version 8.4 --os bookworm --build-arg BASE_IMAGE=serversideup/php-base:8.4-fpm-bookworm` builds a variation on a local base.
+
 ### Build args used across Dockerfiles
 - `PHP_VERSION`, `BASE_OS_VERSION`, `PHP_VARIATION` -- set by CI matrix or `scripts/dev.sh`
+- `BASE_IMAGE` -- the PHP image a variation builds on; defaults to the official `php:` image
 - `NGINX_VERSION` -- resolved per-OS from `scripts/conf/php-versions-base-config.yml`
 - `REPOSITORY_BUILD_VERSION` -- image version label
 
@@ -108,7 +119,7 @@ When modifying the version pipeline, the base config (`php-versions-base-config.
   - a new way for untrusted input to reach the image (a web server location, a healthcheck, a workflow trigger), a change to `SECURITY.md` scope, or a new intentional default the scanner should not report: `.oss-scanner/threat_model.md`
 
   After changing any of these, build it with `docker build -f .oss-scanner/Dockerfile -t oss-scanner .`, then confirm the affected variations start with no network: `docker run --rm -it --privileged --network none --user root oss-scanner bash`, then `.oss-scanner/run-variation <variation> &` and `curl localhost:8080/healthcheck`.
-- Every PR run starts with `service_lint.yml` (script tests, actionlint for workflows, hadolint for `src/variations/*/Dockerfile` and `.oss-scanner/Dockerfile` with project decisions recorded in `.hadolint.yaml`, ShellCheck at warning severity for `scripts/*.sh`, `src/common/usr/local/bin/*`, `src/s6/usr/local/bin/*`, `.oss-scanner/run-variation`, and `entrypoint.d/*.sh`) before any image builds. New linters go there. The local commands are in the contributing docs.
+- Every PR run starts with `service_lint.yml` (script tests, actionlint for workflows, hadolint for `src/base/Dockerfile`, `src/variations/*/Dockerfile`, and `.oss-scanner/Dockerfile` with project decisions recorded in `.hadolint.yaml`, ShellCheck at warning severity for `scripts/*.sh`, `src/common/usr/local/bin/*`, `src/s6/usr/local/bin/*`, `.oss-scanner/run-variation`, and `entrypoint.d/*.sh`) before any image builds. New linters go there. The local commands are in the contributing docs.
 - `scripts/test-image.sh` checks that an image starts, runs as an unprivileged user, reports the expected PHP version, loads the default extensions, reaches a healthy HEALTHCHECK, and (for images with a web server) serves a mounted `index.php` through NGINX, Apache, or Caddy. Run it locally against any image before opening a PR that touches startup behavior. Keep the checks generic across variations: it detects the web server from the image's `*_HTTP_PORT` environment variables rather than the image name.
 - Every build job records its image details (tags, Depot Registry reference, build ID, digest) as an `image-details-*` artifact; the publish job adds a `.published.json` record with the compressed size per architecture. `service_report.yml` merges them with `scripts/build-summary.sh` (the published record wins) into one table on the run summary and in the PR comment.
 - `fail-fast` is off, so one failed image never cancels the others. `trigger_auto-retry-failed-builds.yml` re-runs the failed jobs of a production, beta, or PR run once when only a few jobs failed and no newer run exists. If that also fails, or too many jobs failed to look transient, it opens a `ci-failure` issue assigned to the maintainer with the failed jobs, their first error annotation, the log tail, and a link to re-run. Only production and beta runs open issues; PR runs have the PR comment. GitHub's own failure emails do not cover this case reliably: scheduled runs notify whoever last edited the cron line, and re-run attempts are triggered by the Actions bot.
