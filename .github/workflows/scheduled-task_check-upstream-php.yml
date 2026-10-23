@@ -1,0 +1,161 @@
+name: Check Upstream PHP Images
+run-name: Check php-base against docker-library/php
+
+# serversideup/php-base renders docker-library's template, vendored in src/base/upstream,
+# and must stay a drop-in for the official images. Every Monday, before the beta rebuild,
+# this checks both: whether docker-library changed the files we vendor, and whether our
+# newest base images still match the official image of the same PHP version. Either one
+# opens an issue. See src/base/UPSTREAM for how to pull upstream changes in.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 1'
+
+permissions: {}
+
+jobs:
+  drift:
+    # Forks inherit the cron schedule. Their runs always fail and email whoever last edited the schedule upstream.
+    if: github.event_name != 'schedule' || github.repository == 'serversideup/docker-php'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.drift.outputs.changed }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Compare the vendored files with docker-library/php
+        id: drift
+        run: |
+          if bash scripts/check-upstream-php.sh > drift.diff; then
+            echo "The vendored files match docker-library/php $(head -n1 drift.diff | cut -d' ' -f2)"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            cat drift.diff
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload the diff
+        if: steps.drift.outputs.changed == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: upstream-drift
+          path: drift.diff
+          retention-days: 30
+
+  list:
+    if: github.event_name != 'schedule' || github.repository == 'serversideup/docker-php'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      packages: read
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+    steps:
+      # GHCR lists versions newest first. Keep the newest image of the newest patch for each
+      # minor, SAPI, and OS, and group them by minor so each job shares its pulls.
+      - name: Find the newest base images
+        id: list
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The package doesn't exist until the first base image is pushed. Then there is nothing to check yet.
+          TAGS=$(gh api --paginate "/orgs/${GITHUB_REPOSITORY_OWNER}/packages/container/php-base/versions" --jq '.[].metadata.container.tags[]' 2>/dev/null) || TAGS=""
+          MATRIX=$(jq -R -s -c '
+            split("\n")
+            | map(select(test("^[0-9]+\\.[0-9]+\\.[0-9]+-[a-z]+-[a-z0-9.]+-[0-9a-f]{12}$"))
+              | capture("^(?<php>[0-9]+\\.[0-9]+\\.[0-9]+)-(?<sapi>[a-z]+)-(?<os>[a-z0-9.]+)-[0-9a-f]{12}$") + {tag: .})
+            | map(. + {minor: (.php | split(".")[0:2] | join("."))})
+            | group_by([.minor, .sapi, .os])
+            | map(max_by(.php | split(".") | map(tonumber)) as $newest | map(select(.php == $newest.php)) | first)
+            | group_by(.minor)
+            | {include: map({minor: .[0].minor, images: (map({php, sapi, os, tag}) | tojson)})}' <<< "$TAGS")
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "$MATRIX" | jq -r '.include[] | "\(.minor): \(.images | fromjson | map(.tag) | join(", "))"'
+
+  parity:
+    needs: list
+    if: needs.list.outputs.matrix != '' && fromJson(needs.list.outputs.matrix).include[0] != null
+    name: parity ${{ matrix.minor }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.list.outputs.matrix) }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Every image is checked even after one fails, so the issue lists all of them at once.
+      - name: Compare each base image with the official one
+        env:
+          IMAGES: ${{ matrix.images }}
+        run: |
+          FAILED=()
+          while IFS=$'\t' read -r PHP SAPI OS TAG; do
+            IMAGE="ghcr.io/serversideup/php-base:$TAG"
+            OFFICIAL="php:${PHP}-${SAPI}-${OS}"
+            docker manifest inspect "$OFFICIAL" > /dev/null 2>&1 || OFFICIAL="php:${PHP%.*}-${SAPI}-${OS}"
+            echo "::group::$TAG vs $OFFICIAL"
+            if ! { docker pull --quiet "$IMAGE" && bash scripts/test-base-image.sh "$IMAGE" "$SAPI" "$OFFICIAL"; }; then
+              FAILED+=("$TAG")
+            fi
+            echo "::endgroup::"
+            docker image rm "$IMAGE" "$OFFICIAL" > /dev/null 2>&1 || true
+          done < <(jq -r '.[] | [.php, .sapi, .os, .tag] | @tsv' <<< "$IMAGES")
+
+          if [ "${#FAILED[@]}" -gt 0 ]; then
+            echo "::error title=Base images differ from the official images::${FAILED[*]}"
+            exit 1
+          fi
+
+  notify:
+    needs: [drift, list, parity]
+    if: always() && (needs.drift.outputs.changed == 'true' || needs.list.result == 'failure' || needs.parity.result == 'failure')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ASSIGNEE: jaydrogers
+      ISSUE_LABEL: upstream-php
+      DRIFT: ${{ needs.drift.outputs.changed }}
+      LIST_RESULT: ${{ needs.list.result }}
+      PARITY_RESULT: ${{ needs.parity.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Open or update the upstream issue
+        run: |
+          {
+            echo "The weekly upstream check found something to look at ([run]($RUN_URL)):"
+            echo
+            if [ "$DRIFT" = "true" ]; then
+              echo "- **docker-library/php changed files we vendor.** The diff is attached to the run as \`upstream-drift\`. Pull the changes in with the steps in \`src/base/UPSTREAM\`."
+            fi
+            if [ "$LIST_RESULT" = "failure" ] || [ "$PARITY_RESULT" = "failure" ]; then
+              echo "- **Our newest php-base images no longer match the official images,** or could not be checked. The failed checks are in the run's \`parity\` jobs."
+            fi
+          } > issue.md
+
+          gh label create "$ISSUE_LABEL" --description "php-base needs to catch up with docker-library/php" --color 0E8A16 --force
+          EXISTING=$(gh issue list --label "$ISSUE_LABEL" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body-file issue.md
+          else
+            gh issue create --title "php-base needs to catch up with docker-library/php" --body-file issue.md --label "$ISSUE_LABEL" --assignee "$ASSIGNEE"
+          fi

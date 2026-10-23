@@ -435,6 +435,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
     merged_json=$(jq -s '
         {
             php_variations: (.[1].php_variations // []),
+            php_extension_overrides: (.[1].php_extension_overrides // []),
             php_versions: (
                 .[0].php_versions + .[1].php_versions
                 | group_by(.major)
@@ -446,6 +447,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
                         | map({
                             minor: .[0].minor,
                             base_os: (map(.base_os // []) | add),
+                            php_from_source: all(.[]; .php_from_source != false),
                             patch_versions: (map(.patch_versions // []) | flatten | unique | select(. != null)),
                             php_extension_overrides: (map(.php_extension_overrides // []) | add | unique)
                         })

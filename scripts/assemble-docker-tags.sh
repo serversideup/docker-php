@@ -1,6 +1,6 @@
 #!/bin/bash
 ###################################################
-# Usage: assemble-docker-tags.sh --variation <variation> --os <os> --patch-version <patch-version> [--stable-release --github-release-tag <tag>]
+# Usage: assemble-docker-tags.sh --variation <variation> --os <os> --patch-version <patch-version> [--stable-release --github-release-tag <tag> --release-tags-only]
 ###################################################
 # This scripts dives deep into the advanced logic of assembling Docker tags for GitHub Actions.
 # If $CI is "true", it outputs the tags to GITHUB_ENV for use in subsequent steps.
@@ -32,6 +32,9 @@ DEFAULT_IMAGE_VARIATION="${DEFAULT_IMAGE_VARIATION:-$(yq e -r '.php_variations[]
 IFS=',' read -ra DOCKER_REGISTRY_REPOSITORIES <<< "${DOCKER_REGISTRY_REPOSITORIES:-"docker.io/serversideup/php,ghcr.io/serversideup/php"}"
 DOCKER_TAG_PREFIX="${DOCKER_TAG_PREFIX:-""}"
 RELEASE_TYPE="${RELEASE_TYPE:-"testing"}"
+GITHUB_RELEASE_TAG="${GITHUB_RELEASE_TAG:-""}"
+# False for a release older than the newest one (a backport), so it never moves floating tags like 8.4-fpm-nginx
+PUBLISH_FLOATING_TAGS="${PUBLISH_FLOATING_TAGS:-"true"}"
 
 ##########################
 # Functions
@@ -81,9 +84,21 @@ check_vars() {
   return 0
 }
 
+append_docker_tag() {
+  tag_name=$1
+
+  if [[ -z "$DOCKER_TAGS" ]]; then
+    DOCKER_TAGS+="$tag_name"
+  else
+    DOCKER_TAGS+=",$tag_name"
+  fi
+
+  echo_color_message blue "🐳 Set tag: $tag_name"
+}
+
 add_docker_tag() {
 # Function: add_docker_tag
-# Description: Appends Docker tags to the DOCKER_TAGS variable and prints each tag.
+# Description: Appends the floating and release tags for a suffix to the DOCKER_TAGS variable.
 #
 # Parameters:
 #   docker_tag_suffix - The suffix to be appended to the Docker image name as part of the tag.
@@ -91,30 +106,19 @@ add_docker_tag() {
 
   for image_name in "${DOCKER_REGISTRY_REPOSITORIES[@]}"; do
 
-    # Append a dash to tags that have a suffix
-    if [[ -n "$DOCKER_TAG_PREFIX" && "$docker_tag_suffix" != "$DOCKER_TAG_PREFIX" ]]; then
-      prefix_tag="$DOCKER_TAG_PREFIX-"
-    else
-      prefix_tag=""
-    fi
-    
-    tag_name="$image_name:$prefix_tag$docker_tag_suffix"    
+    if [[ "$PUBLISH_FLOATING_TAGS" == "true" ]]; then
+      # Append a dash to tags that have a suffix
+      if [[ -n "$DOCKER_TAG_PREFIX" && "$docker_tag_suffix" != "$DOCKER_TAG_PREFIX" ]]; then
+        prefix_tag="$DOCKER_TAG_PREFIX-"
+      else
+        prefix_tag=""
+      fi
 
-    if [[ -z "$DOCKER_TAGS" ]]; then
-      # Do not prefix with comma
-      DOCKER_TAGS+="$tag_name"
-    else
-      # Add a comma to separate the tags
-      DOCKER_TAGS+=",$tag_name"
+      append_docker_tag "$image_name:$prefix_tag$docker_tag_suffix"
     fi
 
-    # Trim commas for a better output
-    echo_color_message blue "🐳 Set tag: ${tag_name//,}  "
-
-    if [[ -n "$GITHUB_RELEASE_TAG" && "$GITHUB_REF_TYPE" == "tag" && "$docker_tag_suffix" != "latest"  ]]; then
-      release_tag_name="$image_name:$docker_tag_suffix-$GITHUB_RELEASE_TAG"
-      DOCKER_TAGS+=",$release_tag_name"
-      echo_color_message blue "🐳 Set tag: $release_tag_name"
+    if [[ -n "$GITHUB_RELEASE_TAG" && "$docker_tag_suffix" != "latest" ]]; then
+      append_docker_tag "$image_name:$docker_tag_suffix-$GITHUB_RELEASE_TAG"
     fi
 
   done
@@ -228,6 +232,7 @@ help_menu() {
     echo "  --patch-version <patch-version> Set the PHP patch version (e.g., 8.4.25, 8.1.34)"
     echo "  --github-release-tag <tag>      Set the GitHub release tag"
     echo "  --stable-release                Flag the tags for a stable release"
+    echo "  --release-tags-only             Skip floating tags (for a release older than the newest one)"
     echo
     echo "Environment Variables (Defaults):"
     echo "  DOCKER_REGISTRY_REPOSITORIES  Names of images to tag (default: 'docker.io/serversideup/php' 'ghcr.io/serversideup/php')"
@@ -253,9 +258,12 @@ while [[ $# -gt 0 ]]; do
         shift 2
         ;;
         --github-release-tag)
-        GITHUB_REF_TYPE="tag"
         GITHUB_RELEASE_TAG="$2"
         shift 2
+        ;;
+        --release-tags-only)
+        PUBLISH_FLOATING_TAGS="false"
+        shift
         ;;
         --stable-release)
         RELEASE_TYPE="latest"
@@ -509,6 +517,11 @@ if is_latest_stable_patch_within_build_minor; then
       fi
     fi
   fi
+fi
+
+if [[ -z "$DOCKER_TAGS" ]]; then
+  echo_color_message red "🛑 ERROR: No tags to publish. Floating tags are off, so a release tag (--github-release-tag) is required."
+  exit 1
 fi
 
 echo_color_message green "🚀 Summary of Docker Tags Being Shipped: $DOCKER_TAGS"

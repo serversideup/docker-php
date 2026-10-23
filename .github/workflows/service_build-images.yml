@@ -41,6 +41,18 @@ on:
         type: string
         default: ${{ github.ref }}
         description: 'The git ref to checkout (branch, tag, or commit SHA)'
+      release-tag:
+        type: string
+        default: ''
+        description: 'The release being published (example: v5.1.0). Adds release tags like 8.4-fpm-nginx-v5.1.0. Empty for rebuilds and pull requests.'
+      floating-tags:
+        type: boolean
+        default: true
+        description: 'Publish floating tags like 8.4-fpm-nginx. False for a release older than the newest one, so a backport never moves them.'
+      base-images:
+        type: string
+        default: '{}'
+        description: 'JSON map of "<php>-<sapi>-<os>" to the serversideup/php-base image to build on, from service_build-base-images.yml. Empty builds on the official images (pull requests from forks).'
 
 jobs:
   images:
@@ -50,6 +62,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      packages: read
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(inputs.matrix)[inputs.variation] }}
@@ -86,20 +99,19 @@ jobs:
           DOCKER_TAG_PREFIX: ${{ inputs.tag-prefix }}
           DOCKER_REGISTRY_REPOSITORIES: ${{ inputs.registry-repositories }}
           RELEASE_TYPE: ${{ inputs.release-type }}
-          GITHUB_RELEASE_TAG: ${{ github.ref_name }}
-          GITHUB_REF_TYPE: ${{ github.ref_type }}
+          GITHUB_RELEASE_TAG: ${{ inputs.release-tag }}
+          PUBLISH_FLOATING_TAGS: ${{ inputs.floating-tags }}
 
       - name: Set REPOSITORY_BUILD_VERSION
         id: set_version
+        env:
+          RELEASE_TAG: ${{ inputs.release-tag }}
+          REF: ${{ inputs.ref }}
         run: |
-          if [[ "${{ github.ref_type }}" == "tag" || "${{ inputs.ref }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            # Building from a tag (release or scheduled task)
+          if [[ -n "$RELEASE_TAG" || "$REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Building a release, or rebuilding one on a schedule
             echo "🚀 Setting REPOSITORY_BUILD_VERSION to Tag + Run ID"
-            if [[ "${{ github.ref_type }}" == "tag" ]]; then
-              VERSION="${{ github.ref_name }}"
-            else
-              VERSION="${{ inputs.ref }}"
-            fi
+            VERSION="${RELEASE_TAG:-$REF}"
             echo "REPOSITORY_BUILD_VERSION=${VERSION}-${{ github.run_id }}" >> "$GITHUB_ENV"
           else
             # Regular git build (PR, branch push, etc). Read the SHA from the checkout so
@@ -108,6 +120,44 @@ jobs:
             SHORT_SHA=$(git rev-parse --short=7 HEAD)
             echo "REPOSITORY_BUILD_VERSION=git-${SHORT_SHA}-${{ github.run_id }}" >> "$GITHUB_ENV"
           fi
+
+      # Fork pull requests can't build base images, so they build on the official ones.
+      - name: Resolve the PHP base image
+        id: base_image
+        env:
+          BASE_IMAGES: ${{ inputs.base-images }}
+          KEY: ${{ matrix.patch_version }}-${{ matrix.base_sapi }}-${{ matrix.base_os }}
+          FROM_SOURCE: ${{ matrix.php_from_source && inputs.publish }}
+        run: |
+          if [ "$FROM_SOURCE" != "true" ]; then
+            echo "Building on the official php:${KEY} image"
+            exit 0
+          fi
+          BASE_IMAGE=$(jq -r --arg key "$KEY" '.[$key] // empty' <<< "$BASE_IMAGES")
+          if [ -z "$BASE_IMAGE" ]; then
+            echo "::error title=No base image::service_build-base-images.yml did not plan a php-base image for ${KEY}."
+            exit 1
+          fi
+          echo "Building on $BASE_IMAGE"
+          {
+            echo "arg=BASE_IMAGE=$BASE_IMAGE"
+            echo "image=$BASE_IMAGE"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Login to GitHub Container Registry
+        if: ${{ startsWith(steps.base_image.outputs.image, 'ghcr.io/') }}
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to DockerHub
+        if: ${{ startsWith(steps.base_image.outputs.image, 'docker.io/') }}
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Compute NGINX build-arg (only for fpm-nginx)
         id: compute_nginx
@@ -141,6 +191,7 @@ jobs:
             PHP_VARIATION=${{ matrix.php_variation }}
             REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
             PHP_EXTENSION_OVERRIDES=${{ matrix.php_extension_overrides }}
+            ${{ steps.base_image.outputs.arg }}
             ${{ steps.compute_nginx.outputs.nginx_arg }}
           platforms: |
             linux/amd64

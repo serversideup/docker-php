@@ -1,0 +1,131 @@
+name: Watch PHP Releases
+run-name: Watch php.net for new PHP releases
+
+# Checks php.net every 15 minutes. When a PHP patch we build is out and has no php-base
+# image yet, this compiles and tests its base images right away (the slow part of a
+# release) and opens an issue. Releasing stays a human decision: push the next version
+# tag, and the release reuses the base images compiled here.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
+
+concurrency:
+  group: watch-php-releases
+
+permissions: {}
+
+jobs:
+  check:
+    # Forks inherit the cron schedule. Their runs always fail and email whoever last edited the schedule upstream.
+    if: github.event_name != 'schedule' || github.repository == 'serversideup/docker-php'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+      packages: read
+    outputs:
+      versions: ${{ steps.check.outputs.versions }}
+      title: ${{ steps.check.outputs.title }}
+    env:
+      ISSUE_LABEL: php-release
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Find PHP releases with no base image yet
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          OUR_MINORS=$(yq -r '.php_versions[].minor_versions[] | select(.php_from_source != false) | .minor' scripts/conf/php-versions-base-config.yml)
+          RELEASED=$(curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors "https://www.php.net/releases/active.php" \
+            | jq -r '.[][] | .version // empty' | sort -V)
+          # The package doesn't exist until the first base image is pushed, so no tags means none are built yet.
+          TAGS=$(gh api --paginate "/orgs/${GITHUB_REPOSITORY_OWNER}/packages/container/php-base/versions" --jq '.[].metadata.container.tags[]' 2>/dev/null) || TAGS=""
+
+          NEW=()
+          for VERSION in $RELEASED; do
+            grep -qxF "${VERSION%.*}" <<< "$OUR_MINORS" || continue
+            grep -q "^${VERSION//./\\.}-" <<< "$TAGS" || NEW+=("$VERSION")
+          done
+          if [ "${#NEW[@]}" -eq 0 ]; then
+            echo "Every PHP release we build already has base images"
+            exit 0
+          fi
+
+          TITLE="PHP ${NEW[*]} released"
+          # Someone is already on it. Compiling again every 15 minutes would not help.
+          if [ -n "$(gh issue list --label "$ISSUE_LABEL" --state open --search "\"$TITLE\" in:title" --json number --jq '.[].number')" ]; then
+            echo "An open issue already tracks $TITLE"
+            exit 0
+          fi
+          echo "New PHP releases: ${NEW[*]}"
+          echo "versions=${NEW[*]}" >> "$GITHUB_OUTPUT"
+          echo "title=$TITLE" >> "$GITHUB_OUTPUT"
+
+  setup:
+    needs: check
+    if: needs.check.outputs.versions != ''
+    uses: ./.github/workflows/service_setup-matrix.yml
+    permissions:
+      contents: read
+
+  base:
+    needs: [check, setup]
+    uses: ./.github/workflows/service_build-base-images.yml
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    with:
+      matrix: ${{ needs.setup.outputs.matrix }}
+      image-prefix: "ghcr.io/serversideup/php-base:"
+
+  notify:
+    needs: [check, setup, base]
+    if: always() && needs.check.outputs.versions != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ASSIGNEE: jaydrogers
+      ISSUE_LABEL: php-release
+      TITLE: ${{ needs.check.outputs.title }}
+      VERSIONS: ${{ needs.check.outputs.versions }}
+      BASE_RESULT: ${{ needs.base.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Open an issue for the release
+        run: |
+          LATEST=$(gh release list --exclude-drafts --exclude-pre-releases --limit 100 --json tagName --jq '.[].tagName' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
+          NEXT="${LATEST%.*}.$(( ${LATEST##*.} + 1 ))"
+          if [ "$BASE_RESULT" = "success" ]; then
+            STATUS="The base images are compiled and tested, so a release only builds the images on top."
+          else
+            STATUS="⚠️ Compiling the base images did not succeed (\`$BASE_RESULT\`). Check [the run]($RUN_URL) before releasing."
+          fi
+
+          cat > issue.md <<MARKDOWN
+          php.net released PHP ${VERSIONS}: https://www.php.net/downloads.php?source=Y
+
+          ${STATUS}
+
+          To release, push the next version tag from \`main\`:
+
+          \`\`\`bash
+          git fetch origin && git tag ${NEXT} origin/main && git push origin ${NEXT}
+          \`\`\`
+
+          Write the release notes as a draft release named \`${NEXT}\` first if you want custom notes. Otherwise the release gets generated notes. [Watcher run]($RUN_URL)
+          MARKDOWN
+
+          gh label create "$ISSUE_LABEL" --description "A PHP release is ready to ship" --color 777BB4 --force
+          gh issue create --title "$TITLE" --body-file issue.md --label "$ISSUE_LABEL" --assignee "$ASSIGNEE"

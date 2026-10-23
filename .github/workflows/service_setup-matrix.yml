@@ -40,6 +40,8 @@ jobs:
           ./scripts/get-php-versions.sh
         env:
           SKIP_DOWNLOAD: false
+          # PHP is compiled from php.net (service_build-base-images.yml), so a release doesn't wait for Docker Hub.
+          SKIP_DOCKERHUB_VALIDATION: true
 
       - name: Ensure our PHP Versions file exists.
         run: |

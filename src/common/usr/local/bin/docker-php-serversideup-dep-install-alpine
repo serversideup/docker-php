@@ -1,5 +1,5 @@
 #!/bin/sh
-set -oe
+set -e
 
 ###################################################
 # Usage: docker-php-serversideup-dep-install-alpine [alpine-packages]
@@ -59,8 +59,17 @@ fi
 # "$*" joins the packages with single spaces for display
 DEP_PACKAGES="$*"
 echo "🤖 Installing: $DEP_PACKAGES"
-apk update
-apk add --no-cache "$@"
+# apk has no retry option like apt's Acquire::Retries, and --no-cache fetches the index itself
+attempt=1
+until apk add --no-cache "$@"; do
+    if [ "$attempt" -ge 3 ]; then
+        echo "🛑 ERROR ($script_name): Unable to install $DEP_PACKAGES after $attempt attempts."
+        exit 1
+    fi
+    echo "⚠️ WARNING ($script_name): apk add failed. Retrying in $((attempt * 10)) seconds..."
+    sleep $((attempt * 10))
+    attempt=$((attempt + 1))
+done
 
 
 echo "🧼 Cleaning up installation of: $DEP_PACKAGES"

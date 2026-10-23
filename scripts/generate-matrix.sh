@@ -36,14 +36,14 @@ yq -o=json "$PHP_VERSIONS_FILE" | jq -c '
     ((($variation.supported_os // []) | any(os_family_match($os.name; .))));
 
   . as $root
-  | [ ($root.php_variations[] | {name, supported_os, excluded_minor_versions}) as $variation
+  | [ ($root.php_variations[] | {name, base_sapi, supported_os, excluded_minor_versions}) as $variation
       | $root.php_versions[]
       | .minor_versions[] as $minor
       | select((($variation.excluded_minor_versions // []) | index($minor.minor)) | not)
       | ($minor.base_os // [])[] as $os
       | ($minor.patch_versions // [])[] as $patch
       | select(is_supported($variation; $os))
-      | {patch_version: $patch, base_os: $os.name, php_variation: $variation.name, php_extension_overrides: (($minor.php_extension_overrides // []) | join(" "))}
+      | {patch_version: $patch, base_os: $os.name, php_variation: $variation.name, base_sapi: $variation.base_sapi, php_from_source: ($minor.php_from_source != false), php_extension_overrides: ((($root.php_extension_overrides // []) + ($minor.php_extension_overrides // [])) | join(" "))}
     ]
   | { include: ( . | sort_by(.patch_version | version_weight) | reverse ) }
 '

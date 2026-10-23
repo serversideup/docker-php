@@ -28,6 +28,7 @@ DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php"}"
 DOCKER_ADDITIONAL_BUILD_ARGS=()
 PUSH_TO_REGISTRY=false
 PLATFORM=""
+PHP_FROM_SOURCE=false
 
 # UI Colors
 function ui_set_yellow {
@@ -95,6 +96,18 @@ php_minor_version() {
   fi
 }
 
+build_php_base_image() {
+  local sapi base_line version context_dir
+  sapi=$(VARIATION="$PHP_BUILD_VARIATION" yq -r '.php_variations[] | select(.name == env(VARIATION)) | .base_sapi' "$BASE_PHP_VERSIONS_CONFIG_FILE")
+  base_line=$("$SCRIPT_DIR/generate-php-base.sh" --version "$PHP_BUILD_VERSION" --os "$PHP_BUILD_BASE_OS" --sapi "$sapi")
+  read -r version _ _ context_dir <<< "$base_line"
+  BASE_IMAGE="serversideup/php-base:${version}-${sapi}-${PHP_BUILD_BASE_OS}"
+
+  echo_color_message yellow "🐳 Building PHP $version from source: $BASE_IMAGE"
+  docker buildx build --platform "$PLATFORM" --tag "$BASE_IMAGE" "$context_dir"
+  echo_color_message green "✅ PHP Base Image Built: $BASE_IMAGE"
+}
+
 build_docker_image() {
   build_tag="${DOCKER_REPOSITORY}:${PHP_BUILD_PREFIX}${PHP_BUILD_VERSION}-${PHP_BUILD_VARIATION}-${PHP_BUILD_BASE_OS}"
   echo_color_message yellow "🐳 Building Docker Image: $build_tag"
@@ -103,9 +116,16 @@ build_docker_image() {
   if [ -z "$PLATFORM" ]; then
       PLATFORM=$(detect_platform)
   fi
+
+  if [ "$PHP_FROM_SOURCE" = true ]; then
+    build_php_base_image
+  fi
   
   # Assemble build arguments
   local build_args=()
+  if [ -n "$BASE_IMAGE" ]; then
+    build_args+=(--build-arg "BASE_IMAGE=$BASE_IMAGE")
+  fi
   build_args+=(--build-arg PHP_VARIATION="$PHP_BUILD_VARIATION")
   build_args+=(--build-arg PHP_VERSION="$PHP_BUILD_VERSION")
   build_args+=(--build-arg BASE_OS_VERSION="$PHP_BUILD_BASE_OS")
@@ -150,6 +170,7 @@ help_menu() {
     echo "  --registry <registry>     Set a custom registry (e.g., localhost:5000)"
     echo "  --platform <platform>     Set the platform (default: detected from system architecture)"
     echo "  --push                    Push the image to the registry"
+    echo "  --php-from-source         Compile PHP from php.net into serversideup/php-base first and build on it"
     echo "  --*                       Any additional options will be passed to the docker buildx command"
 }
 
@@ -183,6 +204,10 @@ while [[ $# -gt 0 ]]; do
         PLATFORM="$2"
         shift 2
         ;;
+        --php-from-source)
+        PHP_FROM_SOURCE=true
+        shift
+        ;;
         --*)
         # If there's a next argument and it starts with '--', treat the current argument as standalone.
         # Otherwise, pair the current argument with the next.
@@ -212,7 +237,7 @@ check_vars \
 # Auto-resolve PHP extension source overrides for the minor version being built
 if [ -z "$PHP_EXTENSION_OVERRIDES" ]; then
   PHP_EXTENSION_OVERRIDES=$(MINOR="$(php_minor_version "$PHP_BUILD_VERSION")" yq -r '
-    [.php_versions[].minor_versions[] | select(.minor == env(MINOR)) | .php_extension_overrides // [] | .[]] | join(" ")
+    [(.php_extension_overrides // [] | .[]), (.php_versions[].minor_versions[] | select(.minor == env(MINOR)) | .php_extension_overrides // [] | .[])] | join(" ")
   ' "$BASE_PHP_VERSIONS_CONFIG_FILE")
 
   if [ -n "$PHP_EXTENSION_OVERRIDES" ]; then
