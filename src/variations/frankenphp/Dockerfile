@@ -223,6 +223,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     PHP_REALPATH_CACHE_TTL="600" \
     PHP_SESSION_COOKIE_HTTPONLY="On" \
     PHP_SESSION_COOKIE_SECURE=false \
+    PHP_SESSION_UPLOAD_PROGRESS_ENABLED="0" \
     PHP_UPLOAD_MAX_FILE_SIZE="100M" \
     PHP_ZEND_DETECT_UNICODE="" \
     PHP_ZEND_MULTIBYTE="Off" \
