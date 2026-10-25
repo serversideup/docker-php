@@ -150,6 +150,9 @@ All of our software is free and open to the world. None of this can be brought t
 ### Silver Sponsors
 <a href="https://giga-infosystems.com"><img src="https://serversideup.net/sponsors/giga-infosystems.png" alt="GiGa infosystems" width="200px"></a>
 
+### Bronze Sponsors
+<a href="https://deimosindustries.com">Deimos Industries</a> · <a href="https://carepilot.com">CarePilot (Formerly DocuCare)</a>
+
 ### Infrastructure Sponsors
 These companies give us free access to the tools and infrastructure we use to build, test, and ship our open source projects. Their support helps our entire community.
 
