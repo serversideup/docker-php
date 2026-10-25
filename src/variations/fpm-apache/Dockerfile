@@ -155,7 +155,7 @@ RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  
     ln -sf /dev/stderr /var/log/apache2/error.log && \
     \
     # enable Apache2 mods
-    a2enmod actions autoindex deflate headers http2 proxy proxy_fcgi remoteip rewrite setenvif ssl unique_id && \
+    a2enmod actions autoindex deflate expires headers http2 proxy proxy_fcgi remoteip rewrite setenvif ssl unique_id && \
     \
     # force Docker ENVs to handle the apache variables for the run user and group
     echo "export APACHE_RUN_USER=${APACHE_RUN_USER}" >> /etc/apache2/envvars && \

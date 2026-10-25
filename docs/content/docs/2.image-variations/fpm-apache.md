@@ -199,6 +199,15 @@ services:
 For production deployments, consider using a reverse proxy like Traefik or Caddy to handle SSL termination instead of managing certificates in the container.
 ::
 
+## Static Asset Caching
+Like the [`fpm-nginx`](/docs/image-variations/fpm-nginx) variation, Apache sends `Cache-Control: public, max-age=31536000, immutable` for static assets, media and fonts (`/etc/apache2/conf-available/performance.conf`). Fonts also get `Access-Control-Allow-Origin: *`. Compressed responses are sent without an `ETag`, so browsers revalidate them with `Last-Modified` and get a `304 Not Modified` (Apache's default `-gzip` ETag never matched).
+
+The header is only set when the response has no `Cache-Control` yet, so your own rules take precedence: `mod_expires` rules or `Header set` in an `.htaccess` file. `mod_expires` is enabled, so the usual `<IfModule mod_expires.c>` blocks work. To opt out for some files, set your own `Cache-Control` for them; `Header unset` is not enough, as the default is added afterwards. With `DISABLE_DEFAULT_CONFIG=true`, `performance.conf` is not enabled; `mod_expires` still is.
+
+::note
+`immutable` tells browsers not to revalidate for a year. That suits assets whose URL changes with their content (a hash in the file name, or a `?ver=` query string as WordPress adds). If you replace files under the same URL, such as uploads in WordPress, set a shorter lifetime for them in your `.htaccess`.
+::
+
 ## Environment Variables
 The FPM-Apache variation supports extensive customization through environment variables.
 
