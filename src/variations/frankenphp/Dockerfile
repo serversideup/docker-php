@@ -2,7 +2,7 @@
 ARG BASE_OS_VERSION='trixie'
 ARG PHP_VERSION='8.5'
 ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
-ARG FRANKENPHP_VERSION='1.13.2'
+ARG FRANKENPHP_VERSION='1.13.4'
 ARG GOLANG_VERSION='1.27'
 
 ########################
@@ -97,6 +97,23 @@ ENV GOTOOLCHAIN="local"
 # Install dependencies & Download FrankenPHP
 RUN docker-php-serversideup-dep-install-alpine "$PHPIZE_DEPS ${BUILD_DEPENDENCY_PACKAGES_ALPINE}" && \
     docker-php-serversideup-dep-install-debian "${BUILD_DEPENDENCY_PACKAGES_DEBIAN}"
+
+# Bookworm ships libbrotli 1.0.9, but FrankenPHP's cbrotli needs 1.1 or newer and
+# 1.2.1 fixes CVE-2026-111497. Remove this once Bookworm is no longer supported.
+# Multiarch library paths sort before libc.conf on arm64, so without 000-brotli.conf
+# the distro libbrotli would still be loaded there.
+WORKDIR /usr/local/src/brotli
+RUN if ! pkg-config --atleast-version=1.1 libbrotlienc; then \
+        docker-php-serversideup-download https://github.com/google/brotli/archive/refs/tags/v1.2.1.tar.gz /tmp/brotli.tar.gz && \
+        echo "98d35d11a78dc453aebb7d10c3748f3f73ff78c8267c0dc697b8631f67bf7e8f  /tmp/brotli.tar.gz" | sha256sum -c - && \
+        tar xz --strip-components 1 -f /tmp/brotli.tar.gz && \
+        rm -f /tmp/brotli.tar.gz && \
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF && \
+        cmake --build build && \
+        cmake --install build && \
+        echo /usr/local/lib > /etc/ld.so.conf.d/000-brotli.conf && \
+        ldconfig; \
+    fi
 
 # Install e-dant/watcher (necessary for file watching)
 WORKDIR /usr/local/src/watcher
@@ -242,7 +259,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY --from=frankenphp-build /usr/local/bin/frankenphp /usr/local/bin/frankenphp
-COPY --from=frankenphp-build /usr/local/lib/libwatcher* /usr/local/lib/
+COPY --from=frankenphp-build /usr/local/lib/libwatcher* /usr/local/lib/libbrotli* /usr/local/lib/
 
 COPY src/variations/frankenphp/etc/frankenphp/ /etc/frankenphp/
 
@@ -253,6 +270,9 @@ RUN \
     if cat /etc/os-release | grep -q 'alpine'; then \
         ldconfig /usr/local/lib; \
     elif cat /etc/os-release | grep -q 'debian'; then \
+        if [ -e /usr/local/lib/libbrotlicommon.so.1 ]; then \
+            echo /usr/local/lib > /etc/ld.so.conf.d/000-brotli.conf; \
+        fi; \
         ldconfig; \
     else \
         echo "Unsupported OS"; \
