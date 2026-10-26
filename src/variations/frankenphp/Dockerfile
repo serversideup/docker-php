@@ -145,10 +145,13 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
 # FrankenPHP Final
 ####################
 FROM common AS final
+# brotli-libs and libbrotli1 upgrade past CVE-2026-111497. Remove them once the official PHP images ship the fix.
 ARG DEPENDENCY_PACKAGES_ALPINE="\
+    brotli-libs \
     libstdc++ \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
+    libbrotli1 \
     libstdc++6 \
     procps \
     zip"

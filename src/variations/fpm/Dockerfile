@@ -7,10 +7,13 @@ ARG PHP_VARIATION='fpm'
 ##########
 FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
 
+# brotli-libs and libbrotli1 upgrade past CVE-2026-111497. Remove them once the official PHP images ship the fix.
 ARG DEPENDENCY_PACKAGES_ALPINE="\
+    brotli-libs \
     fcgi \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
+    libbrotli1 \
     libfcgi-bin \
     procps \
     zip"

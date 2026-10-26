@@ -60,7 +60,7 @@ fi
 DEP_PACKAGES="$*"
 echo "🤖 Installing: $DEP_PACKAGES"
 apk update
-apk add --no-cache "$@"
+apk add --no-cache --upgrade "$@"
 
 
 echo "🧼 Cleaning up installation of: $DEP_PACKAGES"
