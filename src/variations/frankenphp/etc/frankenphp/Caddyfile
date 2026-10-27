@@ -1,3 +1,6 @@
+# Add additional Caddy configuration files from the caddyfile-snippets.d directory
+import caddyfile-snippets.d/*.caddyfile
+
 ########################################################
 # Global Caddy configuration
 ########################################################

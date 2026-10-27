@@ -447,6 +447,7 @@ Most changes only need one of the [environment variables](#frankenphpcaddy-confi
 |-------|----------------|----------------------|--------|
 | Global | [Global options](https://caddyserver.com/docs/caddyfile/options){target="_blank"}, including Caddy's `servers` option | `CADDY_GLOBAL_OPTIONS` | `/etc/frankenphp/caddyfile-global.d/` |
 | Server | [Directives](https://caddyserver.com/docs/caddyfile/directives){target="_blank"} for your app, like `header`, `redir`, and request matchers | `CADDY_SERVER_EXTRA_DIRECTIVES` | `/etc/frankenphp/caddyfile-server.d/` |
+| Snippets | [Snippets](https://caddyserver.com/docs/caddyfile/concepts#snippets){target="_blank"} for your app | None | `/etc/frankenphp/caddyfile-snippets.d/` |
 | New sites | Extra site blocks, like a second domain or a reverse proxy | None | `/etc/frankenphp/caddyfile.d/` |
 
 Every `.caddyfile` file in a folder is imported at that level. Use the environment variables for a quick one-liner and the folders for anything longer. The folders also work with [Laravel Octane](/docs/framework-guides/laravel/octane#octane-options), which replaces `CADDY_GLOBAL_OPTIONS` and `CADDY_SERVER_EXTRA_DIRECTIVES` with its own values.
@@ -519,6 +520,25 @@ basic_auth @protected {
 
 Generate the password hash with `docker run --rm -it serversideup/php:8.5-frankenphp frankenphp hash-password`.
 ::
+
+#### Add custom snippet
+
+Files in `caddyfile-snippets.d/` sit at the top of the Caddyfile, outside your app's site, before any other snippets. Use them to create custom snippets:
+
+```caddyfile [logging.caddyfile]
+(logging) {
+	log {
+		output file /var/log/caddy.log
+		format json
+	}
+}
+```
+
+Then use this snippet anywhere you need, for example in your server config:
+
+```caddyfile [caddyfile-server.d/app.caddyfile]
+import logging
+```
 
 #### Add another site
 Files in `caddyfile.d/` sit at the top level of the Caddyfile, outside your app's site. Use them for a whole new site block:
