@@ -114,7 +114,7 @@ RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
     docker-php-serversideup-install-php-extensions "${DEPENDENCY_PHP_EXTENSIONS}" "${PHP_EXTENSION_OVERRIDES}"
 
 # copy our fpm configurations
-COPY src/php-fpm.d/ /
+COPY --chmod=755 src/php-fpm.d/ /
 
 # install composer from Composer's official Docker image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

@@ -261,7 +261,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY --from=frankenphp-build /usr/local/bin/frankenphp /usr/local/bin/frankenphp
 COPY --from=frankenphp-build /usr/local/lib/libwatcher* /usr/local/lib/libbrotli* /usr/local/lib/
 
-COPY src/variations/frankenphp/etc/frankenphp/ /etc/frankenphp/
+COPY --chmod=755 src/variations/frankenphp/etc/frankenphp/ /etc/frankenphp/
 
 RUN \
     docker-php-serversideup-dep-install-alpine "${DEPENDENCY_PACKAGES_ALPINE}" && \
