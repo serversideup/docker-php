@@ -4,7 +4,7 @@ set -euo pipefail
 # Usage: test-image.sh <image> [expected-php-version]
 #
 # Runs a published or locally built image and checks the things a user would notice
-# first: it starts, it runs as an unprivileged user, PHP reports the expected version,
+# first: it starts, it runs as an unprivileged user, nothing is world-writable, PHP reports the expected version,
 # the default extensions load, and images that ship a web server serve a PHP file
 # through it. Works against any image reference.
 # Commands go through the image's own entrypoint so every entrypoint.d script runs.
@@ -33,6 +33,13 @@ pass "PHP $php_version"
 uid=$(docker run --rm "$image" id -u | tail -n1)
 [ "$uid" != "0" ] || fail "Container runs as root by default"
 pass "Runs as unprivileged user (uid $uid)"
+
+# A COPY without --chmod gives existing destination directories the build context's modes.
+# Sticky directories like /tmp are expected.
+world_writable=$(docker run --rm --user root --entrypoint sh "$image" -c \
+    'find / -xdev -perm -0002 \( -type d ! -perm -1000 -o -type f \) -print')
+[ -z "$world_writable" ] || fail "World-writable paths:"$'\n'"$world_writable"
+pass "No world-writable files or directories"
 
 loaded_extensions=$(docker run --rm "$image" php -r 'echo implode(" ", array_map("strtolower", get_loaded_extensions()));' | tail -n1)
 missing_extensions=""
