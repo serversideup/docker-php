@@ -134,7 +134,7 @@ SERVER_TYPE=$(detect_web_server_type)
 
 if [ "$DISABLE_DEFAULT_CONFIG" = false ]; then
     if [ "$SERVER_TYPE" = "Apache" ]; then
-        enable_apache_conf remoteip security serversideup
+        enable_apache_conf performance remoteip security serversideup
         enable_apache_site "$SSL_MODE"
     elif [ "$SERVER_TYPE" = "NGINX" ]; then
         process_template /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf
