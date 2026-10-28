@@ -124,6 +124,18 @@ jobs:
           fi
           echo "nginx_arg=NGINX_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
+      # Every pinned dependency version from the base config, as build args of the same name.
+      - name: Collect build args
+        id: build_args
+        env:
+          PHP_VERSIONS_FILE: ${{ inputs.php-versions-file }}
+        run: |
+          {
+            echo "args<<BUILD_ARGS"
+            yq -r '.dependencies | to_entries[] | "\(.key)=\(.value)"' "$PHP_VERSIONS_FILE"
+            echo "BUILD_ARGS"
+          } | tee -a "$GITHUB_OUTPUT"
+
       # Authentication: the Depot project ID comes from depot.json. Same-repo runs authenticate
       # through the Depot OIDC trust relationship (id-token: write). Pull requests from forks
       # have no OIDC token, so Depot falls back to its open-source pull request flow, which
@@ -142,6 +154,7 @@ jobs:
             REPOSITORY_BUILD_VERSION=${{ env.REPOSITORY_BUILD_VERSION }}
             PHP_EXTENSION_OVERRIDES=${{ matrix.php_extension_overrides }}
             ${{ steps.compute_nginx.outputs.nginx_arg }}
+            ${{ steps.build_args.outputs.args }}
           platforms: |
             linux/amd64
             linux/arm64/v8

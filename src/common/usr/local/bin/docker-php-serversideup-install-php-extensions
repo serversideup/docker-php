@@ -8,6 +8,11 @@ set -e
 # swapping an extension for a different source. Overrides are space separated
 # "name=source" pairs, where source is any value install-php-extensions accepts
 # (for example "redis=phpredis/phpredis@develop").
+#
+# When PHPREDIS_VERSION and PHPREDIS_LIBLZF_REF are set (our images pass them as build
+# args from scripts/conf/php-versions-base-config.yml), redis is built from its GitHub
+# source instead of PECL, so a PECL outage cannot block a release. An override such as
+# "redis=phpredis/phpredis@develop" builds that branch, tag, or commit the same way.
 
 script_name="docker-php-serversideup-install-php-extensions"
 
@@ -19,9 +24,22 @@ if [ -z "$extensions" ]; then
     exit 0
 fi
 
+phpredis_source_dir="/tmp/phpredis"
+
 ############
 # Functions
 ############
+# GitHub tarballs leave out git submodules, so phpredis's bundled liblzf is downloaded
+# separately. The directory is then installed like any local source.
+download_phpredis_source() {
+    mkdir -p "$phpredis_source_dir/liblzf"
+    docker-php-serversideup-download "https://codeload.github.com/phpredis/phpredis/tar.gz/$1" /tmp/phpredis.tar.gz
+    tar -xzf /tmp/phpredis.tar.gz -C "$phpredis_source_dir" --strip-components=1
+    docker-php-serversideup-download "https://codeload.github.com/nemequ/liblzf/tar.gz/$PHPREDIS_LIBLZF_REF" /tmp/liblzf.tar.gz
+    tar -xzf /tmp/liblzf.tar.gz -C "$phpredis_source_dir/liblzf" --strip-components=1
+    rm -f /tmp/phpredis.tar.gz /tmp/liblzf.tar.gz
+}
+
 resolve_extension_source() {
     resolved_extension="$1"
     for override in $overrides; do
@@ -29,6 +47,18 @@ resolve_extension_source() {
             resolved_extension="${override#*=}"
         fi
     done
+    if [ -n "${PHPREDIS_VERSION:-}" ] && [ -n "${PHPREDIS_LIBLZF_REF:-}" ]; then
+        case "$resolved_extension" in
+            redis)
+                download_phpredis_source "$PHPREDIS_VERSION"
+                resolved_extension="$phpredis_source_dir"
+                ;;
+            phpredis/phpredis@*)
+                download_phpredis_source "${resolved_extension#*@}"
+                resolved_extension="$phpredis_source_dir"
+                ;;
+        esac
+    fi
     echo "$resolved_extension"
 }
 
@@ -42,5 +72,6 @@ done
 
 echo "🤖 Installing PHP extensions:$resolved_extensions"
 install-php-extensions $resolved_extensions
+rm -rf "$phpredis_source_dir"
 
 echo "⚡️ Completed installation of PHP extensions:$resolved_extensions"

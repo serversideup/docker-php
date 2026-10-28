@@ -1,3 +1,27 @@
+# Every version that ships in the image, other than PHP (read from php.net at build time)
+# and NGINX (operating_systems below). Each key is passed to the Dockerfiles as a build arg
+# of the same name. Renovate reads the comments and opens
+# a pull request when a newer version is out (see renovate.json).
+dependencies:
+  # renovate: datasource=github-releases depName=phpredis/phpredis
+  PHPREDIS_VERSION: 6.3.0
+  # The liblzf commit that phpredis bundles as a submodule. GitHub tarballs leave submodules
+  # out, so it is downloaded separately. Check it when bumping phpredis:
+  # gh api repos/phpredis/phpredis/contents/liblzf?ref=<version> --jq .sha
+  PHPREDIS_LIBLZF_REF: fb25820c3c0aeafd127956ae6c115063b47e459a
+  # renovate: datasource=github-releases depName=mlocati/docker-php-extension-installer
+  PHP_EXT_INSTALLER_VERSION: 2.12.0
+  # renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
+  S6_VERSION: v3.2.3.2
+  # renovate: datasource=github-releases depName=renatomefi/php-fpm-healthcheck
+  PHP_FPM_HEALTHCHECK_VERSION: v0.6.0
+  # renovate: datasource=github-releases depName=php/frankenphp
+  FRANKENPHP_VERSION: 1.13.4
+  # renovate: datasource=docker depName=golang
+  GOLANG_VERSION: "1.27"
+  # renovate: datasource=github-releases depName=e-dant/watcher
+  WATCHER_VERSION: 0.14.5
+
 php_variations:
   - name: cli
     default: true
