@@ -51,10 +51,7 @@ jobs:
       publish: >-
         ${{
           github.event_name == 'workflow_dispatch' ||
-          (
-            github.event.pull_request.head.repo.full_name == github.repository &&
-            github.actor != 'dependabot[bot]'
-          )
+          github.event.pull_request.head.repo.full_name == github.repository
         }}
 
   build:
@@ -78,15 +75,11 @@ jobs:
       tag-prefix: ${{ inputs.pr_number || github.event.pull_request.number }}
       release-type: testing
       # Only save and publish when the code comes from this repository or a maintainer asked for it.
-      # Pull requests from forks are built but never leave Depot's isolated builders. Dependabot
-      # runs have no access to the registry secrets, so they are treated the same way.
+      # Pull requests from forks are built but never leave Depot's isolated builders.
       publish: >-
         ${{
           github.event_name == 'workflow_dispatch' ||
-          (
-            github.event.pull_request.head.repo.full_name == github.repository &&
-            github.actor != 'dependabot[bot]'
-          )
+          github.event.pull_request.head.repo.full_name == github.repository
         }}
     secrets: inherit
 
@@ -130,10 +123,7 @@ jobs:
       always() &&
       (
         github.event_name == 'workflow_dispatch' ||
-        (
-          github.event.pull_request.head.repo.full_name == github.repository &&
-          github.actor != 'dependabot[bot]'
-        )
+        github.event.pull_request.head.repo.full_name == github.repository
       )
     runs-on: ubuntu-24.04
     timeout-minutes: 5
