@@ -5,6 +5,9 @@ name: Auto-retry failed image builds
 # the failure looks transient. When a run is still red after that, or was never worth
 # retrying, it opens an issue for a human. Pull request runs skip the issue because the
 # PR comment already carries the result.
+#
+# Runs are found by workflow file, because `workflow_run.name` holds the run's title
+# (`run-name:`), not the workflow's name.
 on:
   workflow_run:
     workflows:
@@ -17,7 +20,8 @@ permissions: {}
 
 jobs:
   triage:
-    if: github.event.workflow_run.conclusion == 'failure'
+    # A Depot runner that never connects leaves its job failed or cancelled, which can end the whole run as cancelled.
+    if: contains(fromJSON('["failure", "cancelled"]'), github.event.workflow_run.conclusion)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -30,7 +34,7 @@ jobs:
       RUN_URL: ${{ github.event.workflow_run.html_url }}
       RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
       RUN_TITLE: ${{ github.event.workflow_run.display_title }}
-      WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+      RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
       WORKFLOW_PATH: ${{ github.event.workflow_run.path }}
       TRIGGER: ${{ github.event.workflow_run.event }}
       HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
@@ -48,15 +52,27 @@ jobs:
             sleep 120
           fi
 
-          LATEST=$(gh run list --workflow "$WORKFLOW_NAME" --branch "$HEAD_BRANCH" --limit 1 --json databaseId --jq '.[0].databaseId')
+          LATEST=$(gh run list --workflow "$(basename "$WORKFLOW_PATH")" --branch "$HEAD_BRANCH" --limit 1 --json databaseId --jq '.[0].databaseId')
           if [ "$LATEST" != "$RUN_ID" ]; then
             echo "::notice title=Skipped::A newer run already exists for $HEAD_BRANCH, so this one is stale."
             echo "action=none" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          FAILED=$(gh run view "$RUN_ID" --json jobs --jq '[.jobs[] | select(.conclusion == "failure")] | length')
-          echo "Failed jobs in $RUN_URL (attempt $RUN_ATTEMPT): $FAILED"
+          JOBS=$(gh run view "$RUN_ID" --json jobs --jq '.jobs')
+          FAILED=$(echo "$JOBS" | jq '[.[] | select(.conclusion == "failure")] | length')
+          CANCELLED=$(echo "$JOBS" | jq '[.[] | select(.conclusion == "cancelled")] | length')
+
+          # A run someone cancelled by hand has no failed jobs. A runner that never connects
+          # fails one job and cancels others, so that case is retried like any other failure.
+          if [ "$RUN_CONCLUSION" = "cancelled" ] && [ "$FAILED" = "0" ]; then
+            echo "::notice title=Skipped::The run was cancelled and no job failed, so it was most likely cancelled on purpose."
+            echo "action=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          FAILED=$((FAILED + CANCELLED))
+          echo "Failed or cancelled jobs in $RUN_URL (attempt $RUN_ATTEMPT): $FAILED"
 
           if [ "$RUN_ATTEMPT" = "1" ] && [ "$FAILED" -le "$MAX_FAILED_JOBS" ]; then
             echo "action=retry" >> "$GITHUB_OUTPUT"
@@ -76,7 +92,7 @@ jobs:
           echo "::notice title=Retry started::Re-running failed jobs for $RUN_URL. If this attempt also fails, an issue is opened."
 
       - name: Open an issue for a human
-        if: steps.check.outputs.action == 'issue' && !contains(env.WORKFLOW_NAME, 'PR Images')
+        if: steps.check.outputs.action == 'issue' && !endsWith(env.WORKFLOW_PATH, 'action_publish-images-prs.yml')
         env:
           REASON: ${{ steps.check.outputs.reason }}
           MAX_DETAILED_JOBS: 8
@@ -84,7 +100,7 @@ jobs:
         run: |
           JOBS=$(gh run view "$RUN_ID" --json jobs --jq '.jobs')
           TOTAL=$(echo "$JOBS" | jq 'length')
-          FAILED_JOBS=$(echo "$JOBS" | jq -c '[.[] | select(.conclusion == "failure")
+          FAILED_JOBS=$(echo "$JOBS" | jq -c '[.[] | select(.conclusion == "failure" or .conclusion == "cancelled")
             | { id: .databaseId, name, url, step: ((.steps[]? | select(.conclusion == "failure") | .name) // "-") }]')
           FAILED=$(echo "$FAILED_JOBS" | jq 'length')
           WORKFLOW_URL="https://github.com/${GH_REPO}/actions/workflows/$(basename "$WORKFLOW_PATH")"
@@ -107,7 +123,7 @@ jobs:
           {
             echo "**[Re-run failed jobs]($RUN_URL)** · [Run summary]($RUN_URL#summary) · [Workflow history]($WORKFLOW_URL) · attempt $RUN_ATTEMPT"
             echo ""
-            echo "$FAILED of $TOTAL jobs failed on \`$HEAD_BRANCH\` at [\`$SHORT_SHA\`](https://github.com/${GH_REPO}/commit/${HEAD_SHA}), triggered by \`$TRIGGER\`. $REASON"
+            echo "$FAILED of $TOTAL jobs failed or were cancelled on \`$HEAD_BRANCH\` at [\`$SHORT_SHA\`](https://github.com/${GH_REPO}/commit/${HEAD_SHA}), triggered by \`$TRIGGER\`. $REASON"
             echo ""
             echo "### Failed jobs"
             echo ""
