@@ -99,15 +99,12 @@ RUN \
 # FPM-NGINX: Main Image
 ##########
 FROM ${BASE_IMAGE}
-# brotli-libs and libbrotli1 upgrade past CVE-2026-111497. Remove them once the official PHP images ship the fix.
 ARG DEPENDENCY_PACKAGES_ALPINE="\
-    brotli-libs \
     fcgi \
     gettext \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
     gettext-base \
-    libbrotli1 \
     libfcgi-bin \
     procps \
     zip"
