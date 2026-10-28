@@ -6,8 +6,11 @@ on:
   workflow_call:
 
 env:
+  # renovate: datasource=github-releases depName=rhysd/actionlint
   ACTIONLINT_VERSION: 1.7.12
+  # renovate: datasource=github-releases depName=koalaman/shellcheck
   SHELLCHECK_VERSION: v0.11.0
+  # renovate: datasource=github-releases depName=hadolint/hadolint
   HADOLINT_VERSION: v2.15.1
 
 jobs:
