@@ -25,6 +25,10 @@ image_env() { docker image inspect --format '{{range .Config.Env}}{{println .}}{
 echo "🔎 Testing $image"
 
 php_version=$(docker run --rm "$image" php -r 'echo PHP_VERSION;' | tail -n1)
+# A release candidate tag like 8.6-rc reports a version like 8.6.0RC4
+if [[ "$expected_php" == *-rc ]] && [[ "$php_version" == "${expected_php%-rc}".*RC* ]]; then
+    expected_php="$php_version"
+fi
 if [ -n "$expected_php" ] && [ "$php_version" != "$expected_php" ]; then
     fail "PHP reports $php_version, expected $expected_php"
 fi

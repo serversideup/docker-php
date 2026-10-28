@@ -56,6 +56,44 @@ assert_contains "$summary" "| built, not published |" "marks images that were bu
 assert_contains "$summary" '`serversideup/php-dev:700-8.5.10-cli-trixie`' "shows the image reference without the registry prefix"
 
 echo
+echo "generate-matrix.sh"
+versions_file="$image_details/php-versions.yml"
+cat > "$versions_file" <<'YAML'
+dependencies:
+  DOCKER_LIBRARY_PHP_REF: master-sha
+php_variations:
+  - name: cli
+    php_base: cli
+  - name: fpm-nginx
+    php_base: fpm
+php_versions:
+  - major: "8"
+    minor_versions:
+      - minor: "8.1"
+        docker_library_ref: frozen-sha
+        base_os:
+          - name: bookworm
+        patch_versions:
+          - 8.1.34
+      - minor: "8.4"
+        base_os:
+          - name: trixie
+        patch_versions:
+          - 8.4.27
+      - minor: "8.6-rc"
+        php_base_overrides:
+          fpm-nginx: cli
+        base_os:
+          - name: trixie
+        patch_versions:
+          - 8.6-rc
+YAML
+matrix_json=$(bash "$scripts_dir/generate-matrix.sh" "$versions_file" | jq -c '.include[]')
+assert_contains "$matrix_json" '"php_variation":"fpm-nginx","php_extension_overrides":"","php_base":"fpm","php_base_tag":"php-base-8.4.27-fpm-trixie","docker_library_ref":"master-sha"' "builds variations on their docker-library base from the global ref"
+assert_contains "$matrix_json" '"php_base_tag":"php-base-8.1.34-cli-bookworm","docker_library_ref":"frozen-sha"' "uses a minor version's own docker-library ref"
+assert_contains "$matrix_json" '"php_variation":"fpm-nginx","php_extension_overrides":"","php_base":"cli","php_base_tag":"php-base-8.6-rc-cli-trixie"' "lets a minor version swap a variation's docker-library base"
+
+echo
 if [ "$failures" -gt 0 ]; then
     echo "$failures check(s) failed" >&2
     exit 1

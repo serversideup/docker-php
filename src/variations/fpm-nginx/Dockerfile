@@ -22,7 +22,7 @@ RUN docker-php-serversideup-s6-install
 ####################
 # NGINX Signing Key
 ####################
-FROM php:${PHP_VERSION}-fpm-${BASE_OS_VERSION} AS nginx-repo-config
+FROM ${BASE_IMAGE} AS nginx-repo-config
 
 ARG SIGNING_KEY_URL="https://nginx.org/keys/nginx_signing.key"
 ARG SIGNING_FINGERPRINT="573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62"

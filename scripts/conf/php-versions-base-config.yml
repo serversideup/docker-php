@@ -3,6 +3,9 @@
 # of the same name. Renovate reads the comments and opens
 # a pull request when a newer version is out (see renovate.json).
 dependencies:
+  # The docker-library/php commit the PHP base images are compiled from. Renovate moves it
+  # to the latest commit on master once a week and merges it when every check passes. A minor version can pin its own with docker_library_ref.
+  DOCKER_LIBRARY_PHP_REF: 5ec2a6a0dad498e89a91a39454dbb52e98ce2bdb
   # renovate: datasource=github-releases depName=phpredis/phpredis
   PHPREDIS_VERSION: 6.3.0
   # The liblzf commit that phpredis bundles as a submodule. GitHub tarballs leave submodules
@@ -22,16 +25,23 @@ dependencies:
   # renovate: datasource=github-releases depName=e-dant/watcher
   WATCHER_VERSION: 0.14.5
 
+# php_base is the docker-library/php variant each variation is built on. A minor version
+# can swap it with php_base_overrides (8.6 has no separate zts variant, for example).
 php_variations:
   - name: cli
+    php_base: cli
     default: true
   - name: fpm
+    php_base: fpm
   - name: fpm-apache
+    php_base: fpm
     supported_os: # Open a discussion on serversideup/php if you want to see Alpine support for fpm-apache (https://github.com/serversideup/docker-php/discussions/66)
       - bookworm
       - trixie
   - name: fpm-nginx
+    php_base: fpm
   - name: frankenphp
+    php_base: zts
     excluded_minor_versions:
       - "8.1"
       - "8.2"
@@ -40,10 +50,12 @@ php_versions:
   - major: "8"
     minor_versions:
       # PHP 8.1 is end of life, so php.net no longer lists it in the active releases feed
-      # and the patch version must be pinned here. The official php:8.1.34 images still
-      # exist on Docker Hub, and Debian Bookworm, Trixie, and Alpine 3.22 still receive
-      # security updates, so weekly rebuilds keep delivering OS patches.
+      # and the patch version must be pinned here. docker-library/php removed 8.1 from master,
+      # so it builds from the last commit that had it ("Update 8.1 to 8.1.34"). Debian Bookworm,
+      # Trixie, and Alpine 3.22 still receive security updates, so weekly rebuilds keep
+      # delivering OS patches.
       - minor: "8.1"
+        docker_library_ref: 5c037abaf9dc0095e29807c048d9d1b97e6a9716
         base_os:
           - name: alpine3.22
           - name: bookworm
@@ -82,10 +94,14 @@ php_versions:
           - name: trixie
         patch_versions:
         #   - 8.5.8 # Pull latest from Official PHP source
-      # PHP 8.6 is blocked upstream: the official php:8.6-rc images no longer ship pecl/pear,
-      # and install-php-extensions does not support 8.6 yet (its pickle fallback is not 8.6
-      # compatible), so no PECL extension can be installed. Uncomment once that is resolved.
+      # PHP 8.6 waits on install-php-extensions: docker-library's 8.6 images no longer ship
+      # pecl/pear, and the installer's 8.6 support is still in review
+      # (https://github.com/mlocati/docker-php-extension-installer/pull/1388). Uncomment once
+      # Renovate bumps PHP_EXT_INSTALLER_VERSION to a release that includes it.
       # https://github.com/serversideup/docker-php/issues/698
+      #
+      # "8.6-rc" builds the newest release candidate php.net lists. docker-library builds
+      # every 8.6 image with ZTS and has no separate zts variant, so FrankenPHP uses cli.
       #
       # - minor: "8.6-rc"
       #   base_os:
@@ -95,6 +111,8 @@ php_versions:
       #     - name: trixie
       #   patch_versions:
       #     - 8.6-rc
+      #   php_base_overrides:
+      #     frankenphp: cli
       #   php_extension_overrides:
       #     - redis=phpredis/phpredis@develop
 

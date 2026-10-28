@@ -1,12 +1,12 @@
 # Threat model
 
 ## What this project does and where untrusted input enters
-serversideup/php publishes PHP Docker images (`cli`, `fpm`, `fpm-nginx`, `fpm-apache`, `frankenphp`) on Debian and Alpine. We build on the official `php` images and add entrypoint scripts, S6 Overlay services, and web server configs. All of it is configured through environment variables. The images run as `www-data` and listen on 8080 and 8443. See `SECURITY.md` for our full scope.
+serversideup/php publishes PHP Docker images (`cli`, `fpm`, `fpm-nginx`, `fpm-apache`, `frankenphp`) on Debian and Alpine. We compile PHP with the official docker-library/php Dockerfiles at a pinned commit and add entrypoint scripts, S6 Overlay services, and web server configs. All of it is configured through environment variables. The images run as `www-data` and listen on 8080 and 8443. See `SECURITY.md` for our full scope.
 
 Untrusted input:
 - **HTTP requests** to the NGINX, Apache, and Caddy (FrankenPHP) configs we ship. Assume any client on the network can send them. This includes headers that reach PHP or our real-IP handling (`TRUSTED_PROXY`), requests for `/healthcheck`, PHP-FPM status paths, `/storage/*.php`, dotfiles such as `.env` and `.git`, path info after `index.php`, and plain-HTTP requests when `SSL_MODE` is `mixed` or `full`.
 - **Pull requests from forks** against `.github/workflows/`. A fork can control the PR title, branch name, and file contents. It must never reach repository secrets, the Depot OIDC trust, or any publish to Docker Hub or GHCR.
-- **Downloads during image builds** (s6-overlay, NGINX signing keys, PHP extension installer) through `docker-php-serversideup-download`. Tampering in transit or at the source must be caught by checksums or signatures.
+- **Downloads during image builds** (the PHP tarball from php.net, the docker-library/php Dockerfiles, phpredis and liblzf source, s6-overlay, NGINX signing keys, PHP extension installer) through `docker-php-serversideup-download`. Tampering in transit or at the source must be caught by checksums or signatures. The PHP tarball is checked against php.net's SHA256 and its GPG signature, docker-library/php and liblzf are pinned to commits, and the other downloads are pinned to release tags in `scripts/conf/php-versions-base-config.yml`.
 
 Trusted (operators control these):
 - Environment variables

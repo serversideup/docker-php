@@ -28,6 +28,7 @@ DOCKER_REPOSITORY="${DOCKER_REPOSITORY:-"serversideup/php"}"
 DOCKER_ADDITIONAL_BUILD_ARGS=()
 PUSH_TO_REGISTRY=false
 PLATFORM=""
+BUILD_PHP_BASE=false
 
 # UI Colors
 function ui_set_yellow {
@@ -95,15 +96,42 @@ php_minor_version() {
   fi
 }
 
+# Compiles PHP the way CI does (see scripts/prepare-php-base.sh) and builds on that
+# instead of the official image from Docker Hub.
+build_php_base_image() {
+  if ! [[ "$PHP_BUILD_VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+|-rc)$ ]]; then
+    echo_color_message red "❌ --build-php-base needs a full patch version (e.g., 8.4.27) or a release candidate (e.g., 8.6-rc), not '$PHP_BUILD_VERSION'"
+    exit 1
+  fi
+
+  local php_base docker_library_ref base_context
+  php_base=$(VARIATION="$PHP_BUILD_VARIATION" MINOR="$(php_minor_version "$PHP_BUILD_VERSION")" yq -r '
+    [.php_versions[].minor_versions[] | select(.minor == env(MINOR)) | .php_base_overrides[env(VARIATION)] // ""]
+    + [.php_variations[] | select(.name == env(VARIATION)) | .php_base]
+    | map(select(. != "")) | .[0]
+  ' "$BASE_PHP_VERSIONS_CONFIG_FILE")
+  docker_library_ref=$(MINOR="$(php_minor_version "$PHP_BUILD_VERSION")" yq -r '
+    [.php_versions[].minor_versions[] | select(.minor == env(MINOR)) | .docker_library_ref // ""] + [.dependencies.DOCKER_LIBRARY_PHP_REF]
+    | map(select(. != "")) | .[0]
+  ' "$BASE_PHP_VERSIONS_CONFIG_FILE")
+  base_context="$PROJECT_ROOT_DIR/.php-base/${PHP_BUILD_VERSION}-${php_base}-${PHP_BUILD_BASE_OS}"
+  BASE_IMAGE="php-base:${PHP_BUILD_VERSION}-${php_base}-${PHP_BUILD_BASE_OS}"
+
+  bash "$SCRIPT_DIR/prepare-php-base.sh" "$docker_library_ref" "$PHP_BUILD_VERSION" "$PHP_BUILD_BASE_OS" "$php_base" "$base_context"
+
+  echo_color_message yellow "🐳 Compiling PHP base image: $BASE_IMAGE"
+  docker buildx build \
+    --load \
+    --platform "$PLATFORM" \
+    --tag "$BASE_IMAGE" \
+    "$base_context"
+  echo_color_message green "✅ PHP base image built: $BASE_IMAGE"
+}
+
 build_docker_image() {
   build_tag="${DOCKER_REPOSITORY}:${PHP_BUILD_PREFIX}${PHP_BUILD_VERSION}-${PHP_BUILD_VARIATION}-${PHP_BUILD_BASE_OS}"
   echo_color_message yellow "🐳 Building Docker Image: $build_tag"
 
-  # Set default platform if not specified
-  if [ -z "$PLATFORM" ]; then
-      PLATFORM=$(detect_platform)
-  fi
-  
   # Assemble build arguments
   local build_args=()
   build_args+=(--build-arg PHP_VARIATION="$PHP_BUILD_VARIATION")
@@ -114,6 +142,10 @@ build_docker_image() {
   while IFS= read -r dependency; do
     build_args+=(--build-arg "$dependency")
   done < <(yq -r '.dependencies | to_entries[] | "\(.key)=\(.value)"' "$BASE_PHP_VERSIONS_CONFIG_FILE")
+
+  if [ -n "$BASE_IMAGE" ]; then
+    build_args+=(--build-arg "BASE_IMAGE=$BASE_IMAGE")
+  fi
 
   if [ -n "$NGINX_VERSION" ] && [ "$PHP_BUILD_VARIATION" = "fpm-nginx" ]; then
     build_args+=(--build-arg "NGINX_VERSION=$NGINX_VERSION")
@@ -154,6 +186,8 @@ help_menu() {
     echo "  --prefix <prefix>         Set the prefix for the Docker image (e.g., beta)"
     echo "  --registry <registry>     Set a custom registry (e.g., localhost:5000)"
     echo "  --platform <platform>     Set the platform (default: detected from system architecture)"
+    echo "  --build-php-base          Compile PHP from source like CI does (needs a full patch version, e.g., 8.4.27, or 8.6-rc,"
+    echo "                            and the default docker builder, which can use local images)"
     echo "  --push                    Push the image to the registry"
     echo "  --*                       Any additional options will be passed to the docker buildx command"
 }
@@ -187,6 +221,10 @@ while [[ $# -gt 0 ]]; do
         --platform)
         PLATFORM="$2"
         shift 2
+        ;;
+        --build-php-base)
+        BUILD_PHP_BASE=true
+        shift
         ;;
         --*)
         # If there's a next argument and it starts with '--', treat the current argument as standalone.
@@ -242,6 +280,14 @@ if [ -z "$NGINX_VERSION" ] && [ "$PHP_BUILD_VARIATION" = "fpm-nginx" ]; then
   fi
 
   echo_color_message green "✅ Using NGINX version '$NGINX_VERSION' for OS '$PHP_BUILD_BASE_OS'"
+fi
+
+if [ -z "$PLATFORM" ]; then
+    PLATFORM=$(detect_platform)
+fi
+
+if [ "$BUILD_PHP_BASE" = true ]; then
+  build_php_base_image
 fi
 
 build_docker_image

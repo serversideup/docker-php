@@ -55,8 +55,18 @@ jobs:
     with:
       ref: ${{ needs.release.outputs.tag }}
 
-  build:
+  base:
     needs: [release, setup]
+    uses: ./.github/workflows/service_build-php-base.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      matrix: ${{ needs.setup.outputs.base-matrix }}
+      ref: ${{ needs.release.outputs.tag }}
+
+  build:
+    needs: [release, setup, base]
     name: build ${{ matrix.variation }}
     strategy:
       fail-fast: false
@@ -76,7 +86,7 @@ jobs:
     secrets: inherit
 
   test:
-    needs: [release, setup, build]
+    needs: [release, setup, base, build]
     if: always() && needs.setup.result == 'success'
     uses: ./.github/workflows/service_test-images.yml
     permissions:
