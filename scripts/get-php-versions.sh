@@ -434,6 +434,7 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
     # Use 'echo' to pass the JSON data to 'jq'
     merged_json=$(jq -s '
         {
+            dependencies: (.[1].dependencies // {}),
             php_variations: (.[1].php_variations // []),
             php_versions: (
                 .[0].php_versions + .[1].php_versions

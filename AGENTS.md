@@ -15,7 +15,7 @@ src/
   utilities-webservers/ # Shared web server entrypoint utilities (SSL, etc.)
 scripts/             # Build tooling (Bash, not POSIX)
   dev.sh             # Local image builds
-  conf/              # PHP version matrix and base config (YAML)
+  conf/              # PHP version matrix, base config, and every pinned dependency version (YAML)
   generate-matrix.sh # Generates CI build matrix from YAML config
   assemble-docker-tags.sh
 docs/                # Nuxt 4 documentation site (see docs/AGENTS.md for docs-specific guidelines)
@@ -56,6 +56,7 @@ Each variation Dockerfile uses multi-stage builds:
 
 ### Build args used across Dockerfiles
 - `PHP_VERSION`, `BASE_OS_VERSION`, `PHP_VARIATION` -- set by CI matrix or `scripts/dev.sh`
+- Every key under `dependencies` in `scripts/conf/php-versions-base-config.yml` (`S6_VERSION`, `PHPREDIS_VERSION`, `FRANKENPHP_VERSION`, ...) -- passed as a build arg of the same name by CI and `scripts/dev.sh`. Dockerfiles declare them with no default and helper scripts fail when one is missing, so the config is the only place a version lives. To add a dependency, add a line there with a `# renovate:` comment and an `ARG` in each stage that uses it.
 - `NGINX_VERSION` -- resolved per-OS from `scripts/conf/php-versions-base-config.yml`
 - `REPOSITORY_BUILD_VERSION` -- image version label
 
