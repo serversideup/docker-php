@@ -56,8 +56,8 @@ jobs:
 
   build:
     needs: [setup, base]
-    # Forks skip every job in the base phase. Build anyway unless a base failed.
-    if: ${{ !cancelled() && needs.setup.result == 'success' && needs.base.result != 'failure' }}
+    # Forks skip every job in the base phase, so build when it was skipped or succeeded.
+    if: ${{ !cancelled() && needs.setup.result == 'success' && (needs.base.result == 'success' || needs.base.result == 'skipped') }}
     name: build ${{ matrix.variation }}
     strategy:
       fail-fast: false
@@ -154,7 +154,7 @@ jobs:
             *)       TEST_CELL="⏭️ Skipped" ;;
           esac
           # A failed base skips every build, which leaves the test phase nothing to test.
-          if [ "$BASE_RESULT" = "failure" ]; then
+          if [ "$BASE_RESULT" = "failure" ] || [ "$BASE_RESULT" = "cancelled" ]; then
             BUILD_CELL="❌ PHP base images failed to compile"
             TEST_CELL="⏭️ Skipped"
           fi
