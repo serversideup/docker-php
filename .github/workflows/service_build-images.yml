@@ -1,11 +1,12 @@
 name: Build Images
 
-# Phase 1 of 3: build every image for one variation. Nothing is pushed to a public
-# registry here. When publishing is requested, each image is saved to the Depot
-# Registry so the image tests can run against it and, if they pass,
-# service_publish-images.yml promotes the exact same image to Docker Hub and GHCR.
-# When it is not (pull requests from forks), the amd64 image is loaded onto the
-# runner and tested right here instead, so a green build still means a tested image.
+# Phase 1 of 3: build every image for one variation on the PHP base images that
+# service_build-php-base.yml compiled. Nothing is pushed to a public registry here.
+# When publishing is requested, each image is saved to the Depot Registry so the
+# image tests can run against it and, if they pass, service_publish-images.yml
+# promotes the exact same image to Docker Hub and GHCR. When it is not (pull requests
+# from forks), the amd64 image is loaded onto the runner and tested right here
+# instead, so a green build still means a tested image.
 on:
   workflow_call:
     inputs:
@@ -124,15 +125,22 @@ jobs:
           fi
           echo "nginx_arg=NGINX_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
-      # Every pinned dependency version from the base config, as build args of the same name.
+      # Every pinned dependency version from the base config, plus the PHP base image that
+      # service_build-php-base.yml compiled for this image. Builds that are not saved (forks)
+      # have no compiled base and use the Dockerfile's default, the official image.
       - name: Collect build args
         id: build_args
         env:
+          PUBLISH: ${{ inputs.publish }}
           PHP_VERSIONS_FILE: ${{ inputs.php-versions-file }}
+          PHP_BASE_TAG: ${{ matrix.php_base_tag }}
         run: |
           {
             echo "args<<BUILD_ARGS"
             yq -r '.dependencies | to_entries[] | "\(.key)=\(.value)"' "$PHP_VERSIONS_FILE"
+            if [ "$PUBLISH" = "true" ]; then
+              echo "BASE_IMAGE=registry.depot.dev/$(jq -r .id depot.json):${{ github.run_id }}-${PHP_BASE_TAG}"
+            fi
             echo "BUILD_ARGS"
           } | tee -a "$GITHUB_OUTPUT"
 

@@ -38,8 +38,29 @@ jobs:
     with:
       ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
 
-  build:
+  # Pull requests from forks skip the base phase and build on the official images.
+  base:
     needs: [setup]
+    uses: ./.github/workflows/service_build-php-base.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      matrix: ${{ needs.setup.outputs.base-matrix }}
+      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
+      publish: >-
+        ${{
+          github.event_name == 'workflow_dispatch' ||
+          (
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            github.actor != 'dependabot[bot]'
+          )
+        }}
+
+  build:
+    needs: [setup, base]
+    # Forks skip every job in the base phase. Build anyway unless a base failed.
+    if: ${{ !cancelled() && needs.setup.result == 'success' && needs.base.result != 'failure' }}
     name: build ${{ matrix.variation }}
     strategy:
       fail-fast: false
@@ -70,7 +91,7 @@ jobs:
     secrets: inherit
 
   test:
-    needs: [setup, build]
+    needs: [setup, base, build]
     if: always() && needs.setup.result == 'success'
     uses: ./.github/workflows/service_test-images.yml
     permissions:
@@ -104,7 +125,7 @@ jobs:
       ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
 
   comment:
-    needs: [build, test, publish, report]
+    needs: [base, build, test, publish, report]
     if: >-
       always() &&
       (
@@ -122,6 +143,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
       PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+      BASE_RESULT: ${{ needs.base.result }}
       BUILD_RESULT: ${{ needs.build.result }}
       TEST_RESULT: ${{ needs.test.result }}
       PUBLISH_RESULT: ${{ needs.publish.result }}
@@ -141,6 +163,11 @@ jobs:
             failure) TEST_CELL="❌ Failed" ;;
             *)       TEST_CELL="⏭️ Skipped" ;;
           esac
+          # A failed base skips every build, which leaves the test phase nothing to test.
+          if [ "$BASE_RESULT" = "failure" ]; then
+            BUILD_CELL="❌ PHP base images failed to compile"
+            TEST_CELL="⏭️ Skipped"
+          fi
           case "$PUBLISH_RESULT" in
             success) PUBLISH_CELL="✅ Published to serversideup/php-dev" ;;
             failure) PUBLISH_CELL="❌ Failed" ;;

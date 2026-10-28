@@ -1,11 +1,12 @@
 ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.5'
 ARG PHP_VARIATION='cli'
+ARG BASE_IMAGE="php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}"
 
 ##########
 # CLI: Main Image
 ##########
-FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
+FROM ${BASE_IMAGE}
 
 # brotli-libs and libbrotli1 upgrade past CVE-2026-111497. Remove them once the official PHP images ship the fix.
 ARG DEPENDENCY_PACKAGES_ALPINE="\

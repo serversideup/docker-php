@@ -18,6 +18,9 @@ on:
       variations:
         description: 'JSON array of variation names, e.g. ["cli","fpm"]'
         value: ${{ jobs.matrix.outputs.variations }}
+      base-matrix:
+        description: 'One entry per PHP base image the variations build on, e.g. {"include": [{"php_base_tag": "php-base-8.4.27-fpm-trixie", ...}]}'
+        value: ${{ jobs.matrix.outputs.base-matrix }}
 
 jobs:
   matrix:
@@ -28,6 +31,7 @@ jobs:
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
       variations: ${{ steps.matrix.outputs.variations }}
+      base-matrix: ${{ steps.matrix.outputs.base-matrix }}
     steps:
       - name: Check out code
         uses: actions/checkout@v7
@@ -62,13 +66,17 @@ jobs:
             | from_entries
           ')
           VARIATIONS=$(echo "$MATRIX_BY_VARIATION" | jq -c 'keys')
+          BASE_MATRIX=$(echo "$FULL_MATRIX" | jq -c '{ include: (.include | unique_by(.php_base_tag) | map({ patch_version, base_os, php_base, php_base_tag, docker_library_ref })) }')
 
-          echo "matrix=${MATRIX_BY_VARIATION}" >> "$GITHUB_OUTPUT"
-          echo "variations=${VARIATIONS}" >> "$GITHUB_OUTPUT"
+          {
+            echo "matrix=${MATRIX_BY_VARIATION}"
+            echo "variations=${VARIATIONS}"
+            echo "base-matrix=${BASE_MATRIX}"
+          } >> "$GITHUB_OUTPUT"
           echo "$MATRIX_BY_VARIATION" | jq '.'
 
           {
-            echo "## Build matrix: $(echo "$FULL_MATRIX" | jq '.include | length') images across $(echo "$VARIATIONS" | jq 'length') variations"
+            echo "## Build matrix: $(echo "$FULL_MATRIX" | jq '.include | length') images across $(echo "$VARIATIONS" | jq 'length') variations, on $(echo "$BASE_MATRIX" | jq '.include | length') PHP base images"
             echo ""
             echo "| PHP | Resolved patch version | Base OS |"
             echo "|---|---|---|"
