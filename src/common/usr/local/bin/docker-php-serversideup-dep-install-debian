@@ -1,5 +1,5 @@
 #!/bin/sh
-set -oe
+set -e
 
 ###################################################
 # Usage: docker-php-serversideup-dep-install-debian [debian-packages]

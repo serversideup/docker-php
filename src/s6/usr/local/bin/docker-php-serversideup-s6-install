@@ -1,5 +1,5 @@
 #!/bin/sh
-set -oue
+set -eu
 
 ###############################################
 # Usage: docker-php-serversideup-s6-install
