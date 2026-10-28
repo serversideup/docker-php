@@ -1,0 +1,71 @@
+name: Build PHP Base Images
+
+# Runs before service_build-images.yml. Compiles PHP for every PHP version, base OS, and
+# docker-library/php variant (cli, fpm, zts) the build matrix needs, with docker-library's
+# own Dockerfile at a pinned commit (see scripts/prepare-php-base.sh). PHP ships as soon
+# as php.net publishes the tarball, without waiting for the official images on Docker Hub.
+# Each base is saved to the Depot Registry and the variations are built on top of it.
+# Pull requests from forks cannot save images, so they skip this phase and the
+# variations build on the official images instead.
+on:
+  workflow_call:
+    inputs:
+      matrix:
+        required: true
+        type: string
+        description: 'Base image matrix JSON, as produced by service_setup-matrix.yml.'
+      publish:
+        type: boolean
+        default: true
+        description: 'Save the base images to the Depot Registry. False for pull requests from forks, which skip this phase.'
+      ref:
+        type: string
+        default: ${{ github.ref }}
+        description: 'The git ref to checkout (branch, tag, or commit SHA)'
+
+jobs:
+  images:
+    if: inputs.publish
+    name: ${{ matrix.patch_version }}-${{ matrix.php_base }}-${{ matrix.base_os }}
+    runs-on: depot-ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(inputs.matrix) }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Depot CLI
+        uses: depot/setup-action@v1
+
+      # The context lives inside the checkout so Depot finds depot.json above it.
+      - name: Prepare the docker-library/php build context
+        env:
+          DOCKER_LIBRARY_REF: ${{ matrix.docker_library_ref }}
+          PATCH_VERSION: ${{ matrix.patch_version }}
+          BASE_OS: ${{ matrix.base_os }}
+          PHP_BASE: ${{ matrix.php_base }}
+          PHP_BASE_TAG: ${{ matrix.php_base_tag }}
+        run: bash scripts/prepare-php-base.sh "$DOCKER_LIBRARY_REF" "$PATCH_VERSION" "$BASE_OS" "$PHP_BASE" ".php-base/$PHP_BASE_TAG"
+
+      # Always from scratch. Upstream installs the OS packages PHP links against (curl,
+      # Brotli, OpenSSL) in its first layers, and a cached layer would keep shipping old
+      # versions until Debian or Alpine publish a new base image.
+      - name: Compile and save the PHP base image
+        uses: depot/build-push-action@v1
+        with:
+          context: .php-base/${{ matrix.php_base_tag }}
+          platforms: |
+            linux/amd64
+            linux/arm64/v8
+          pull: true
+          no-cache: true
+          push: false
+          save: true
+          save-tags: ${{ github.run_id }}-${{ matrix.php_base_tag }}
