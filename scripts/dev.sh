@@ -4,7 +4,7 @@
 set -oe pipefail
 
 ##########################################################################
-# Usage: build.sh --variation <variation> --version <version> --os <os>
+# Usage: dev.sh --variation <variation> --version <version> --os <os>
 ##########################################################################
 # This script is used to build a Docker image for a specific PHP version
 # and variation. It is intended to be used for local development. You may
@@ -109,6 +109,11 @@ build_docker_image() {
   build_args+=(--build-arg PHP_VARIATION="$PHP_BUILD_VARIATION")
   build_args+=(--build-arg PHP_VERSION="$PHP_BUILD_VERSION")
   build_args+=(--build-arg BASE_OS_VERSION="$PHP_BUILD_BASE_OS")
+
+  # Every pinned dependency version, the same way CI passes them
+  while IFS= read -r dependency; do
+    build_args+=(--build-arg "$dependency")
+  done < <(yq -r '.dependencies | to_entries[] | "\(.key)=\(.value)"' "$BASE_PHP_VERSIONS_CONFIG_FILE")
 
   if [ -n "$NGINX_VERSION" ] && [ "$PHP_BUILD_VARIATION" = "fpm-nginx" ]; then
     build_args+=(--build-arg "NGINX_VERSION=$NGINX_VERSION")
