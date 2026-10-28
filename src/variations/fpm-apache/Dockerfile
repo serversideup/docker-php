@@ -24,15 +24,12 @@ RUN docker-php-serversideup-s6-install
 # FPM-APACHE: Main Image
 ##########
 FROM ${BASE_IMAGE}
-# brotli-libs and libbrotli1 upgrade past CVE-2026-111497. Remove them once the official PHP images ship the fix.
 ARG DEPENDENCY_PACKAGES_ALPINE="\
-    brotli-libs \
     apache2 \
     fcgi \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
     apache2 \
-    libbrotli1 \
     libfcgi-bin \
     procps \
     zip"
