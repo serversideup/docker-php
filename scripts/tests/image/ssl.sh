@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# SSL_MODE=full generates a self-signed certificate and stops serving the plain HTTP port.
+# SSL_MODE=full generates a self-signed certificate and redirects HTTP to HTTPS.
 # It is also the only way to reach the web server over HTTP/2.
 requires healthcheck web_server https
 
@@ -33,4 +33,19 @@ test_survives_requests_that_finish_before_php_over_http1_and_http2() {
             fail "Web server stopped after a ${protocol#--} request finished before PHP did (status: $status)"
         fi
     done
+}
+
+test_redirects_http_to_https() {
+    local response
+    response=$(curl --silent --max-time 5 --output /dev/null --write-out '%{http_code} %{redirect_url}' "http://127.0.0.1:${host_port}/" || true)
+    case "$response" in
+        30[1278]" https://"*) ;;
+        *) fail "Expected HTTP to redirect to HTTPS, got: ${response:-<empty>}" ;;
+    esac
+}
+
+test_serves_http_and_https_in_mixed_mode() {
+    start_container --env SSL_MODE=mixed
+    expect_body / "serversideup-php-ok:${php_version}"
+    expect_body --https / "serversideup-php-ok:${php_version}"
 }

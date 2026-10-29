@@ -7,6 +7,7 @@
 
 health_timeout_seconds=90
 http_timeout_seconds=30
+skip_status=200
 
 fail() { echo "$1" >&2; exit 1; }
 image_env() { docker image inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$image" | sed -n "s/^$1=//p"; }
@@ -18,7 +19,8 @@ run_php() {
     docker run --rm "$@" "$image" php -r "$code" | tail -n1
 }
 
-# Skips the rest of the test file when the image lacks one of the named features.
+# Skips the rest of the test file, or the rest of the test when called inside one,
+# when the image lacks one of the named features.
 requires() {
     local feature missing
     for feature in "$@"; do
@@ -30,8 +32,8 @@ requires() {
             *) fail "Unknown requirement: $feature" ;;
         esac
         if [ -n "${missing:-}" ]; then
-            echo "⏭️  skipped: $missing"
-            exit 0
+            echo "skipped: $missing"
+            exit "$skip_status"
         fi
     done
 }
@@ -72,16 +74,28 @@ start_container() {
     [ -z "$https_port" ] || https_host_port=$(docker port "$container" "$https_port" | head -n1 | sed 's/.*://')
 }
 
+# Builds an image from the one under test with the Dockerfile instructions on stdin
+# and prints its ID. It is removed when the run ends.
+build_image() {
+    { echo "FROM $image"; cat; } | docker build --quiet --label "$test_label" -
+}
+
+# Usage: expect_body [--https] <path> <expected>
 # Retries until the response body matches, since the web server may still be warming up.
 expect_body() {
-    local path="$1" expected="$2" body=""
+    local base="http://127.0.0.1:${host_port}" body=""
+    if [ "$1" = "--https" ]; then
+        base="https://127.0.0.1:${https_host_port}"
+        shift
+    fi
+    local path="$1" expected="$2"
     for _ in $(seq 1 "$http_timeout_seconds"); do
-        body=$(curl --silent --show-error --max-time 5 "http://127.0.0.1:${host_port}${path}" 2>/dev/null || true)
+        body=$(curl --silent --show-error --insecure --max-time 5 "${base}${path}" 2>/dev/null || true)
         [ "$body" = "$expected" ] && return 0
         sleep 1
     done
     dump_container_state "$container"
-    fail "Web server did not serve ${path} on port ${http_port}. Response: ${body:-<empty>}"
+    fail "Web server did not serve ${base}${path}. Response: ${body:-<empty>}"
 }
 
 # Uploaded PHP files under /storage must never run, including through PATH_INFO

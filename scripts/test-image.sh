@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2034 # the image facts are read by the files in scripts/tests/image/
+# shellcheck disable=SC2034,SC2154 # variables are shared with scripts/tests/image/lib.sh and the test files
 set -euo pipefail
 
 # Usage: test-image.sh <image> [expected-php-version]
@@ -21,18 +21,22 @@ source "$tests_dir/lib.sh"
 test_label="serversideup-php-test=$$"
 work_dir=$(mktemp -d)
 cleanup() {
-    local containers
+    local containers images
     containers=$(docker ps --all --quiet --filter "label=$test_label")
-    # shellcheck disable=SC2086 # one container ID per word
+    images=$(docker images --quiet --filter "label=$test_label" | sort -u)
+    # shellcheck disable=SC2086 # one ID per word
     [ -z "$containers" ] || docker rm --force $containers >/dev/null 2>&1 || true
+    # shellcheck disable=SC2086
+    [ -z "$images" ] || docker rmi --force $images >/dev/null 2>&1 || true
     rm -rf "$work_dir"
 }
 trap cleanup EXIT
 
-# The container runs unprivileged, so the mounted document root must be world readable.
-web_dir="$work_dir/public"
-cp -R "$tests_dir/fixtures/public" "$web_dir"
-chmod -R u=rwX,go=rX "$web_dir"
+# The container runs unprivileged, so mounted fixtures must be world readable.
+fixtures_dir="$work_dir/fixtures"
+cp -R "$tests_dir/fixtures" "$fixtures_dir"
+chmod -R u=rwX,go=rX "$fixtures_dir"
+web_dir="$fixtures_dir/public"
 
 php_version=$(run_php 'echo PHP_VERSION;')
 has_healthcheck=$(docker image inspect --format '{{if .Config.Healthcheck}}yes{{end}}' "$image")
@@ -60,37 +64,50 @@ done
 failures_file="$work_dir/failures"
 touch "$failures_file"
 
+output="$work_dir/output"
+
 report() {
-    local name="$1" status="$2" output="$3"
-    if [ "$status" -eq 0 ]; then
-        echo "✅ $name"
-        return
+    local name="$1" status="$2"
+    case "$status" in
+        0) echo "✅ $name" ;;
+        "$skip_status") echo "⏭️  $name, $(tail -n1 "$output")" ;;
+        *)
+            echo "❌ $name"
+            sed 's/^/   /' "$output"
+            echo "$area: $name" >> "$failures_file"
+            ;;
+    esac
+}
+
+# A file stops early when requires skips it or setup fails.
+report_file_stopped() {
+    if [ "$1" -eq "$skip_status" ]; then
+        echo "⏭️  $(tail -n1 "$output")"
+    else
+        report setup "$1"
     fi
-    echo "❌ $name"
-    sed 's/^/   /' "$output"
-    echo "$area: $name" >> "$failures_file"
 }
 
 # Runs in its own subshell so one file's containers and variables never reach the next.
-# setup() runs in the file's shell so the tests can use the container it starts; an EXIT
-# trap reports it when it fails. Each test runs in a subshell with errexit on, so a failed
-# command ends that test only.
+# The file and its setup() run in that shell so the tests can use the container setup
+# starts; an EXIT trap reports them when they stop it. Each test runs in a subshell with
+# errexit on, so a failed command ends that test only.
 run_test_file() {
-    local file="$1" output="$work_dir/output" test_function status
+    local file="$1" test_function status
+    exec 3>&1
+    trap 'report_file_stopped $? >&3' EXIT
     # shellcheck source=/dev/null
-    source "$file"
+    source "$file" >"$output" 2>&1
     if declare -F setup >/dev/null; then
-        exec 3>&1
-        trap 'report setup 1 "$output" >&3' EXIT
         setup >"$output" 2>&1
-        trap - EXIT
     fi
+    trap - EXIT
     for test_function in $(grep -o '^test_[a-z0-9_]*' "$file"); do
         set +e
         ( set -e; "$test_function" ) >"$output" 2>&1
         status=$?
         set -e
-        report "$(echo "${test_function#test_}" | tr _ ' ')" "$status" "$output"
+        report "$(echo "${test_function#test_}" | tr _ ' ')" "$status"
     done
 }
 
