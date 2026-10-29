@@ -20,9 +20,11 @@ dependencies:
   PHP_FPM_HEALTHCHECK_VERSION: v0.6.0
   # renovate: datasource=github-releases depName=php/frankenphp
   FRANKENPHP_VERSION: 1.13.4
-  # renovate: datasource=docker depName=golang
+  # Go and watcher follow FrankenPHP rather than their own releases, so bump them in the
+  # same pull request as FRANKENPHP_VERSION. Go matches GO_VERSION in FrankenPHP's
+  # docker-bake.hcl at that tag. FrankenPHP downloads the latest watcher release when it
+  # builds, so use the watcher release that was current when that FrankenPHP version shipped.
   GOLANG_VERSION: "1.27"
-  # renovate: datasource=github-releases depName=e-dant/watcher
   WATCHER_VERSION: 0.14.5
 
 # php_base is the docker-library/php variant each variation is built on. A minor version
