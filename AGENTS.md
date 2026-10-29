@@ -115,18 +115,19 @@ When modifying the version pipeline, the base config (`php-versions-base-config.
   - a new way for untrusted input to reach the image (a web server location, a healthcheck, a workflow trigger), a change to `SECURITY.md` scope, or a new intentional default the scanner should not report: `.oss-scanner/threat_model.md`
 
   After changing any of these, build it with `docker build -f .oss-scanner/Dockerfile -t oss-scanner .`, then confirm the affected variations start with no network: `docker run --rm -it --privileged --network none --user root oss-scanner bash`, then `.oss-scanner/run-variation <variation> &` and `curl localhost:8080/healthcheck`.
-- Every PR run starts with `service_lint.yml` (script tests, actionlint for workflows, hadolint for `src/variations/*/Dockerfile` and `.oss-scanner/Dockerfile` with project decisions recorded in `.hadolint.yaml`, ShellCheck at warning severity for `scripts/*.sh`, `src/common/usr/local/bin/*`, `src/s6/usr/local/bin/*`, `.oss-scanner/run-variation`, and `entrypoint.d/*.sh`) before any image builds. New linters go there. The local commands are in the contributing docs.
-- `scripts/test-image.sh` checks that an image starts, runs as an unprivileged user, has no world-writable files or directories (outside sticky ones like `/tmp`), reports the expected PHP version, loads the default extensions, reaches a healthy HEALTHCHECK, and (for images with a web server) serves a mounted `index.php` through NGINX, Apache, or Caddy. Run it locally against any image before opening a PR that touches startup behavior. Keep the checks generic across variations: it detects the web server from the image's `*_HTTP_PORT` environment variables rather than the image name.
+- Every PR run starts with `service_lint.yml` (script tests, actionlint for workflows, hadolint for `src/variations/*/Dockerfile` and `.oss-scanner/Dockerfile` with project decisions recorded in `.hadolint.yaml`, ShellCheck at warning severity for `scripts/*.sh`, `scripts/tests/image/*.sh`, `src/common/usr/local/bin/*`, `src/s6/usr/local/bin/*`, `.oss-scanner/run-variation`, and `entrypoint.d/*.sh`) before any image builds. New linters go there. The local commands are in the contributing docs.
+- `scripts/test-image.sh <image> [php-version]` runs the image tests in `scripts/tests/image/`: one file per feature area (`php.sh`, `security.sh`, `healthcheck.sh`, `web-server.sh`, `ssl.sh`, `frankenphp.sh`, `octane.sh`), each `test_*` function one test, shared helpers and image facts in `lib.sh`, served PHP files in `fixtures/public/`. Every test runs even after one fails. Add a test to the file for its area, or a new file for a new area; never add checks to `scripts/test-image.sh` itself. Keep tests generic across variations: a file declares what it needs with `requires` (`healthcheck`, `web_server`, `https`, `frankenphp`), detected from the image's environment variables rather than its name. Run it locally against any image before opening a PR that touches startup behavior; `TEST_ONLY=<file>` runs one area.
 - Every build job records its image details (tags, Depot Registry reference, build ID, digest) as an `image-details-*` artifact; the publish job adds a `.published.json` record with the compressed size per architecture. `service_report.yml` merges them with `scripts/build-summary.sh` (the published record wins) into one table on the run summary and in the PR comment.
 - `fail-fast` is off, so one failed image never cancels the others. `trigger_auto-retry-failed-builds.yml` re-runs the failed jobs of a production, beta, or PR run once when only a few jobs failed and no newer run exists. It also handles runs that end `cancelled` because a Depot runner never connected, but skips a run cancelled by hand (no failed jobs). It finds runs by workflow file, because `workflow_run.name` is the run's `run-name` title. If that also fails, or too many jobs failed to look transient, it opens a `ci-failure` issue assigned to the maintainer with the failed jobs, their first error annotation, the log tail, and a link to re-run. Only production and beta runs open issues; PR runs have the PR comment. GitHub's own failure emails do not cover this case reliably: scheduled runs notify whoever last edited the cron line, and re-run attempts are triggered by the Actions bot.
 
 ## Verification
 
-There is no automated test suite for image logic. To verify changes:
+To verify image changes:
 1. Build the affected variation locally with `scripts/dev.sh`
-2. Run the built image and confirm the change works: `docker run --rm -it serversideup/php:8.4-fpm-nginx-bookworm sh`
-3. For entrypoint script changes, test on both Debian and Alpine builds
-4. Run `shellcheck` on any modified shell scripts when available
+2. Run `bash scripts/test-image.sh <tag>` against it, and add a test in `scripts/tests/image/` for new behavior
+3. Run the built image and confirm the change works: `docker run --rm -it serversideup/php:8.4-fpm-nginx-bookworm sh`
+4. For entrypoint script changes, test on both Debian and Alpine builds
+5. Run `shellcheck` on any modified shell scripts when available
 
 ## Key Design Decisions
 

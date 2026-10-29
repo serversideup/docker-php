@@ -1,0 +1,3 @@
+# The test files read and set variables that scripts/test-image.sh and lib.sh share
+# with them (image, php_version, container, ...), which ShellCheck can't see across files.
+disable=SC2034,SC2154
