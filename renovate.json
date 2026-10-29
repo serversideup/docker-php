@@ -66,6 +66,11 @@
       "platformAutomerge": false
     },
     {
+      "description": "Go and watcher follow FrankenPHP, so its pull request reminds you to bump them together",
+      "matchDepNames": ["php/frankenphp"],
+      "prBodyNotes": ["Update `GOLANG_VERSION` in the same pull request to match `GO_VERSION` in [FrankenPHP's docker-bake.hcl](https://github.com/php/frankenphp/blob/v{{{newVersion}}}/docker-bake.hcl), and update `WATCHER_VERSION` to the [watcher release](https://github.com/e-dant/watcher/releases) that was current when this FrankenPHP version shipped."]
+    },
+    {
       "description": "The docs site only tracks the project switcher bar",
       "matchManagers": ["npm"],
       "matchPackageNames": ["!@serversideup/project-switcher-bar"],
