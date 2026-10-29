@@ -9,8 +9,9 @@ set -euo pipefail
 # Writes the build context for one official PHP image (docker-library/php at a pinned
 # commit) set to compile <php-patch-version> from the php.net tarball. That lets us ship a
 # release as soon as php.net publishes it, without waiting for Docker Hub. Only the version
-# lines change, and "pecl update-channels" is removed so a PECL outage cannot fail the build.
-# Everything else, including the GPG check, is exactly what the official images run.
+# lines change, "pecl update-channels" is removed so a PECL outage cannot fail the build, and
+# `php -v` names us as the builder. Everything else, including the GPG check, is exactly what
+# the official images run.
 
 if [ "$#" -ne 5 ]; then
     sed -n '4,5p' "$0" | sed 's/^# //' >&2
@@ -27,6 +28,8 @@ scripts_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 download="$scripts_dir/../src/common/usr/local/bin/docker-php-serversideup-download"
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
+
+build_provider="Server Side Up (https://serversideup.net/php)"
 
 fail() {
     echo "🛑 ERROR (prepare-php-base.sh): $1" >&2
@@ -62,6 +65,7 @@ sed \
     -e "s|^ENV PHP_VERSION .*|ENV PHP_VERSION ${version}|" \
     -e "s|^ENV PHP_URL=.*|ENV PHP_URL=\"${tarball_url}\" PHP_ASC_URL=\"${tarball_url}.asc\"|" \
     -e "s|^ENV PHP_SHA256=.*|ENV PHP_SHA256=\"${sha256}\"|" \
+    -e "s|PHP_BUILD_PROVIDER='[^']*'|PHP_BUILD_PROVIDER='${build_provider}'|" \
     -e '/^[[:space:]]*pecl update-channels;/d' \
     "$dockerfile" > "$dockerfile.new"
 mv "$dockerfile.new" "$dockerfile"
@@ -70,6 +74,7 @@ mv "$dockerfile.new" "$dockerfile"
 [ "$(grep -c "^ENV PHP_VERSION ${version}\$" "$dockerfile")" = "1" ] || fail "PHP_VERSION was not set to ${version}"
 grep -qF "ENV PHP_URL=\"${tarball_url}\"" "$dockerfile" || fail "PHP_URL was not set to ${tarball_url}"
 grep -qF "ENV PHP_SHA256=\"${sha256}\"" "$dockerfile" || fail "PHP_SHA256 was not set"
+grep -qF "PHP_BUILD_PROVIDER='${build_provider}'" "$dockerfile" || fail "PHP_BUILD_PROVIDER was not set"
 if grep -E '^[^#]*pecl' "$dockerfile"; then
     fail "the Dockerfile still calls pecl"
 fi
