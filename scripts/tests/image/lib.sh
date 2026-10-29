@@ -10,6 +10,7 @@ http_timeout_seconds=30
 skip_status=200
 
 fail() { echo "$1" >&2; exit 1; }
+skip() { echo "skipped: $1"; exit "$skip_status"; }
 image_env() { docker image inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$image" | sed -n "s/^$1=//p"; }
 
 # Usage: run_php <code> [docker run options]
@@ -29,12 +30,10 @@ requires() {
             web_server) [ -n "$http_port" ] || missing="no web server" ;;
             https) [ -n "$https_port" ] || missing="no HTTPS port" ;;
             frankenphp) [ -n "$is_frankenphp" ] || missing="not FrankenPHP" ;;
+            fpm) [ -n "$is_fpm" ] || missing="no PHP-FPM" ;;
             *) fail "Unknown requirement: $feature" ;;
         esac
-        if [ -n "${missing:-}" ]; then
-            echo "skipped: $missing"
-            exit "$skip_status"
-        fi
+        [ -z "${missing:-}" ] || skip "$missing"
     done
 }
 

@@ -41,6 +41,7 @@ web_dir="$fixtures_dir/public"
 php_version=$(run_php 'echo PHP_VERSION;')
 has_healthcheck=$(docker image inspect --format '{{if .Config.Healthcheck}}yes{{end}}' "$image")
 is_frankenphp=$(image_env CADDY_HTTP_PORT)
+is_fpm=$(image_env PHP_FPM_POOL_NAME)
 
 # Web images expose their HTTP port and document root as environment variables, and
 # serve TLS on their HTTPS port once SSL_MODE is on.
