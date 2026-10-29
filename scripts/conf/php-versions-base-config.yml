@@ -13,7 +13,7 @@ dependencies:
   # gh api repos/phpredis/phpredis/contents/liblzf?ref=<version> --jq .sha
   PHPREDIS_LIBLZF_REF: fb25820c3c0aeafd127956ae6c115063b47e459a
   # renovate: datasource=github-releases depName=mlocati/docker-php-extension-installer
-  PHP_EXT_INSTALLER_VERSION: 2.12.0
+  PHP_EXT_INSTALLER_VERSION: 2.12.6
   # renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
   S6_VERSION: v3.2.3.2
   # renovate: datasource=github-releases depName=renatomefi/php-fpm-healthcheck
@@ -94,27 +94,24 @@ php_versions:
           - name: trixie
         patch_versions:
         #   - 8.5.8 # Pull latest from Official PHP source
-      # PHP 8.6 waits on install-php-extensions: docker-library's 8.6 images no longer ship
-      # pecl/pear, and the installer's 8.6 support is still in review
-      # (https://github.com/mlocati/docker-php-extension-installer/pull/1388). Uncomment once
-      # Renovate bumps PHP_EXT_INSTALLER_VERSION to a release that includes it.
-      # https://github.com/serversideup/docker-php/issues/698
-      #
       # "8.6-rc" builds the newest release candidate php.net lists. docker-library builds
       # every 8.6 image with ZTS and has no separate zts variant, so FrankenPHP uses cli.
-      #
-      # - minor: "8.6-rc"
-      #   base_os:
-      #     - name: alpine3.23
-      #     - name: alpine3.24
-      #     - name: bookworm
-      #     - name: trixie
-      #   patch_versions:
-      #     - 8.6-rc
-      #   php_base_overrides:
-      #     frankenphp: cli
-      #   php_extension_overrides:
-      #     - redis=phpredis/phpredis@develop
+      - minor: "8.6-rc"
+        base_os:
+          - name: alpine3.23
+          - name: alpine3.24
+          - name: bookworm
+          - name: trixie
+        patch_versions:
+          - 8.6-rc
+        php_base_overrides:
+          frankenphp: cli
+        # phpredis 6.3.0 does not compile on PHP 8.6, so 8.6 builds the last develop commit
+        # before #2959. That change added an enable-redis-phpser build option, and
+        # install-php-extensions answers phpredis's build prompts in order, so newer commits
+        # turn on phpser and fail. Remove this once a phpredis release supports PHP 8.6.
+        php_extension_overrides:
+          - redis=phpredis/phpredis@810984b5a5aedc37e3ff3c19e33af8dc08c8290f
 
 operating_systems:
   - family: alpine
