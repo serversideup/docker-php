@@ -1,0 +1,11 @@
+<?php
+// Stands in for a Laravel app so the automations can be tested without installing one.
+// Records each command in /tmp/artisan.log, reports FAKE_LARAVEL_VERSION, and fails
+// the command named in FAKE_ARTISAN_FAILS.
+$command = implode(' ', array_slice($argv, 1));
+if ($command === '--version') {
+    echo 'Laravel Framework ' . (getenv('FAKE_LARAVEL_VERSION') ?: '12.0.0') . PHP_EOL;
+    exit(0);
+}
+file_put_contents('/tmp/artisan.log', $command . PHP_EOL, FILE_APPEND);
+exit($command === getenv('FAKE_ARTISAN_FAILS') ? 1 : 0);
