@@ -2,8 +2,8 @@
 ARG BASE_OS_VERSION='trixie'
 ARG PHP_VERSION='8.5'
 ARG BASE_IMAGE="php:${PHP_VERSION}-zts-${BASE_OS_VERSION}"
-ARG FRANKENPHP_VERSION='1.13.4'
-ARG GOLANG_VERSION='1.27'
+ARG FRANKENPHP_VERSION
+ARG GOLANG_VERSION
 
 ########################
 # Common
@@ -53,6 +53,7 @@ FROM golang:${GOLANG_VERSION} AS golang-image
 FROM common AS frankenphp-build
 ARG FRANKENPHP_VERSION
 ARG GOLANG_VERSION
+ARG WATCHER_VERSION
 ARG BUILD_DEPENDENCY_PACKAGES_ALPINE="\
     argon2-dev \
     bash \
@@ -117,12 +118,7 @@ RUN if ! pkg-config --atleast-version=1.1 libbrotlienc; then \
 
 # Install e-dant/watcher (necessary for file watching)
 WORKDIR /usr/local/src/watcher
-RUN WATCHER_TARBALL_URL=$(docker-php-serversideup-download https://api.github.com/repos/e-dant/watcher/releases/latest | \
-        grep tarball_url | \
-        awk '{ print $2 }' | \
-        sed 's/,$//' | \
-        sed 's/"//g') && \
-    docker-php-serversideup-download "$WATCHER_TARBALL_URL" /tmp/watcher.tar.gz && \
+RUN docker-php-serversideup-download "https://codeload.github.com/e-dant/watcher/tar.gz/refs/tags/${WATCHER_VERSION}" /tmp/watcher.tar.gz && \
     tar xz --strip-components 1 -f /tmp/watcher.tar.gz && \
     rm -f /tmp/watcher.tar.gz && \
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
@@ -162,18 +158,18 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
 # FrankenPHP Final
 ####################
 FROM common AS final
-# brotli-libs and libbrotli1 upgrade past CVE-2026-111497. Remove them once the official PHP images ship the fix.
 ARG DEPENDENCY_PACKAGES_ALPINE="\
-    brotli-libs \
     libstdc++ \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
-    libbrotli1 \
     libstdc++6 \
     procps \
     zip"
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG PHP_EXTENSION_OVERRIDES=''
+ARG PHP_EXT_INSTALLER_VERSION
+ARG PHPREDIS_VERSION
+ARG PHPREDIS_LIBLZF_REF
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \

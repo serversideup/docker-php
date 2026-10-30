@@ -19,7 +19,7 @@ Vulnerabilities in what *we* author and ship:
 - Entrypoint scripts, healthchecks, helper scripts, and S6 service definitions in `src/`
 - Default configs we ship for PHP-FPM, NGINX, Apache, and FrankenPHP
 - Insecure defaults: ports, file permissions, the `www-data` user model, SSL defaults
-- Build pipeline integrity (GitHub Actions workflows, tag assembly, image publishing)
+- Build pipeline integrity (GitHub Actions workflows, tag assembly, image publishing, image signing)
 - Documentation that materially misleads users about a security-relevant setting
 
 ## What is out of scope — report to the upstream project
@@ -34,7 +34,13 @@ Vulnerabilities in software we package but do not maintain belong with the upstr
 | Composer | [composer/composer on GitHub](https://github.com/composer/composer/security) |
 | Debian / Alpine base packages | The respective distribution security teams |
 
-If an upstream CVE is already publicly disclosed, you don't need to file with us — we pick up upstream patches on our **weekly rebuilds (Tuesday 08:00 UTC)** for floating tags. See [How our releases work](https://serversideup.net/open-source/docker-php/docs/getting-started/upgrade-guide#how-our-releases-work) for the full cadence and which tags receive rebuilds.
+If an upstream CVE is already publicly disclosed, you don't need to file with us. Floating tags pick up upstream fixes on their own: a new PHP patch publishes within about an hour of php.net listing it, and operating system packages update on the **weekly rebuild (Tuesday 08:00 UTC)**. See [How our releases work](https://serversideup.net/open-source/docker-php/docs/getting-started/upgrade-guide#how-our-releases-work) for the full cadence and which tags receive rebuilds.
+
+## Verifying images and public scan results
+
+Images we publish are signed with cosign and carry an SBOM and build provenance. Images published before signing was added have provenance only. [Verifying images](https://serversideup.net/open-source/docker-php/docs/guide/verifying-images) shows how to check them.
+
+Each production build ends with a vulnerability scan of every published image. The results are in the run summary of each [production run](https://github.com/serversideup/docker-php/actions/workflows/action_publish-images-production.yml), and [Vulnerability scanning](https://serversideup.net/open-source/docker-php/docs/reference/vulnerability-scanning) explains how to read them. Scanner findings are already disclosed upstream CVEs. Anything that is not yet public, including a problem in what we author, still goes through [private reporting](#reporting-a-vulnerability).
 
 ## Component lifecycle references
 
@@ -51,7 +57,7 @@ Our images bundle third-party software, each with its own support window. Before
 
 We publish images for end-of-life PHP versions so legacy applications have a path into containers, but only while two things remain true:
 
-1. The official `php` image for that version still exists on Docker Hub, so we have a base to build from.
+1. The official docker-library/php Dockerfile for that version exists at some commit, so we can still compile it the same way the official images did.
 2. The operating system release underneath still receives security updates from its distribution. Debian LTS counts. Once a release passes its end of life, a rebuild cannot deliver any patches, and Debian removes the packages from its mirrors soon after, so the build fails anyway.
 
 When either condition stops holding, we stop rebuilding that image and its existing tags freeze at their last successful build. We do not pin archived or snapshot package repositories to keep an EOL base building: that produces a fresh tag with the same unpatched packages, which is worse than an honest frozen tag. Use an EOL base as a stepping stone, not a destination. See [Choosing an image — Operating Systems](https://serversideup.net/open-source/docker-php/docs/getting-started/choosing-an-image#operating-systems) for the trade-off.
@@ -67,7 +73,7 @@ The following images are no longer built. Their existing tags remain pullable on
 | Anything on Debian Bullseye | 2026-09-03 | Debian 11 LTS ended on 2026-08-31. The following week Debian removed the Bullseye packages from `deb.debian.org` and `security.debian.org`, so `apt-get install` fails inside the build. |
 | Anything on Alpine 3.16 | 2026-09-03 | Alpine 3.16 reached end of life on 2024-05-23 and has received no security updates since. It was only ever used by PHP 7.4 and 8.0. |
 
-PHP 8.1 is also end of life, but it is still built. Its official base images exist, and Debian Bookworm, Debian Trixie, and Alpine 3.22 still receive security updates, so a weekly rebuild delivers real operating system patches. It stops when those bases do.
+PHP 8.1 is end of life and still built. We compile it from the last docker-library/php commit that included it. Debian Bookworm, Debian Trixie, and Alpine 3.22 still receive security updates, so a weekly rebuild delivers real operating system patches. It stops when those bases do.
 
 If you are running one of the frozen images, treat it as a migration deadline rather than a stable base. Move to a supported PHP version and base from [Choosing an image](https://serversideup.net/open-source/docker-php/docs/getting-started/choosing-an-image). The [Upgrade Guide](https://serversideup.net/open-source/docker-php/docs/getting-started/upgrade-guide) covers moving between our releases. If you cannot move yet and need to install packages on a frozen Bullseye tag, the [major version migration guide](https://serversideup.net/open-source/docker-php/docs/guide/major-version-migrations#installing-packages-on-a-frozen-bullseye-image) shows how to do it in your own Dockerfile.
 

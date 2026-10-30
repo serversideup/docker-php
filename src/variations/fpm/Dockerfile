@@ -1,24 +1,26 @@
 ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.5'
 ARG PHP_VARIATION='fpm'
+ARG BASE_IMAGE="php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}"
 
 ##########
 # FPM: Main Image
 ##########
-FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
+FROM ${BASE_IMAGE}
 
-# brotli-libs and libbrotli1 upgrade past CVE-2026-111497. Remove them once the official PHP images ship the fix.
 ARG DEPENDENCY_PACKAGES_ALPINE="\
-    brotli-libs \
     fcgi \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
-    libbrotli1 \
     libfcgi-bin \
     procps \
     zip"
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG PHP_EXTENSION_OVERRIDES=''
+ARG PHP_FPM_HEALTHCHECK_VERSION
+ARG PHP_EXT_INSTALLER_VERSION
+ARG PHPREDIS_VERSION
+ARG PHPREDIS_LIBLZF_REF
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (fpm)" \
@@ -107,7 +109,7 @@ RUN rm -rf /usr/local/etc/php-fpm.d/*.conf && \
     \
     # Ensure "php-fpm-healthcheck" is installed
     echo "⬇️ Downloading php-fpm-healthcheck..." && \
-    docker-php-serversideup-download https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/v0.6.0/php-fpm-healthcheck /usr/local/bin/php-fpm-healthcheck && \
+    docker-php-serversideup-download https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/${PHP_FPM_HEALTHCHECK_VERSION}/php-fpm-healthcheck /usr/local/bin/php-fpm-healthcheck && \
     chmod +x /usr/local/bin/php-fpm-healthcheck && \
     \
     # Install default PHP extensions

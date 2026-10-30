@@ -36,14 +36,23 @@ yq -o=json "$PHP_VERSIONS_FILE" | jq -c '
     ((($variation.supported_os // []) | any(os_family_match($os.name; .))));
 
   . as $root
-  | [ ($root.php_variations[] | {name, supported_os, excluded_minor_versions}) as $variation
+  | [ ($root.php_variations[] | {name, php_base, supported_os, excluded_minor_versions}) as $variation
       | $root.php_versions[]
       | .minor_versions[] as $minor
       | select((($variation.excluded_minor_versions // []) | index($minor.minor)) | not)
       | ($minor.base_os // [])[] as $os
       | ($minor.patch_versions // [])[] as $patch
       | select(is_supported($variation; $os))
-      | {patch_version: $patch, base_os: $os.name, php_variation: $variation.name, php_extension_overrides: (($minor.php_extension_overrides // []) | join(" "))}
+      | ((($minor.php_base_overrides // {})[$variation.name]) // $variation.php_base) as $php_base
+      | {
+          patch_version: $patch,
+          base_os: $os.name,
+          php_variation: $variation.name,
+          php_extension_overrides: (($minor.php_extension_overrides // []) | join(" ")),
+          php_base: $php_base,
+          php_base_tag: "php-base-\($patch)-\($php_base)-\($os.name)",
+          docker_library_ref: ($minor.docker_library_ref // $root.dependencies.DOCKER_LIBRARY_PHP_REF)
+        }
     ]
   | { include: ( . | sort_by(.patch_version | version_weight) | reverse ) }
 '

@@ -1,22 +1,23 @@
 ARG BASE_OS_VERSION='bookworm'
 ARG PHP_VERSION='8.5'
 ARG PHP_VARIATION='cli'
+ARG BASE_IMAGE="php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}"
 
 ##########
 # CLI: Main Image
 ##########
-FROM php:${PHP_VERSION}-${PHP_VARIATION}-${BASE_OS_VERSION}
+FROM ${BASE_IMAGE}
 
-# brotli-libs and libbrotli1 upgrade past CVE-2026-111497. Remove them once the official PHP images ship the fix.
 ARG DEPENDENCY_PACKAGES_ALPINE="\
-    brotli-libs \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
-    libbrotli1 \
     procps \
     zip"
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG PHP_EXTENSION_OVERRIDES=''
+ARG PHP_EXT_INSTALLER_VERSION
+ARG PHPREDIS_VERSION
+ARG PHPREDIS_LIBLZF_REF
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (cli)" \

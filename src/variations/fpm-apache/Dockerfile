@@ -11,6 +11,8 @@ FROM ${BASE_IMAGE} AS s6-build
 
 ARG S6_DIR='/opt/s6/'
 ARG S6_SRC_URL="https://github.com/just-containers/s6-overlay/releases/download"
+ARG S6_VERSION
+ARG PHP_FPM_HEALTHCHECK_VERSION
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -22,20 +24,20 @@ RUN docker-php-serversideup-s6-install
 # FPM-APACHE: Main Image
 ##########
 FROM ${BASE_IMAGE}
-# brotli-libs and libbrotli1 upgrade past CVE-2026-111497. Remove them once the official PHP images ship the fix.
 ARG DEPENDENCY_PACKAGES_ALPINE="\
-    brotli-libs \
     apache2 \
     fcgi \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
     apache2 \
-    libbrotli1 \
     libfcgi-bin \
     procps \
     zip"
 ARG DEPENDENCY_PHP_EXTENSIONS='mysqli opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG PHP_EXTENSION_OVERRIDES=''
+ARG PHP_EXT_INSTALLER_VERSION
+ARG PHPREDIS_VERSION
+ARG PHPREDIS_LIBLZF_REF
 ARG REPOSITORY_BUILD_VERSION='dev'
 
 LABEL org.opencontainers.image.title="serversideup/php (fpm-apache)" \

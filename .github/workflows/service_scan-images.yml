@@ -1,0 +1,212 @@
+name: Scan Images
+
+# Runs after every production publish, or by hand for the latest one. Grype scans each
+# published image. Every finding is counted in the run summary, which anyone can read,
+# and the findings that have a fix become code scanning alerts in the Security tab.
+#
+# A compromised scanner has nothing to steal: the scan job has no token, no registry
+# credentials, and Grype runs in its own container without the runner's environment.
+# Images are pulled anonymously from GHCR, which has no pull limit for public images.
+# Only the alerts job can write, and it never runs Grype.
+on:
+  workflow_call:
+    inputs:
+      run-id:
+        type: string
+        default: ''
+        description: 'The production run whose published images to scan. Defaults to the calling run.'
+  workflow_dispatch:
+    inputs:
+      run-id:
+        type: string
+        required: false
+        description: 'The production run whose published images to scan. Left empty, the latest successful one.'
+
+permissions: {}
+
+env:
+  # renovate: datasource=docker depName=anchore/grype
+  GRYPE_VERSION: v0.121.0@sha256:621d56d1d68106b787022c81546f7e0a36202a25d1239f0c20195fab8c16f7ea
+  SCAN_REPOSITORY: ghcr.io/serversideup/php
+  SCAN_PLATFORM: linux/amd64
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+      count: ${{ steps.list.outputs.count }}
+      main-sha: ${{ steps.run.outputs.main-sha }}
+    steps:
+      - name: Find the production run to scan
+        id: run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          INPUT_RUN_ID: ${{ inputs.run-id }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+        run: |
+          # Called from a production run, the run itself. Started by hand, the latest successful one.
+          RUN_ID="$INPUT_RUN_ID"
+          if [ -z "$RUN_ID" ] && [[ "$WORKFLOW_REF" == *"/service_scan-images.yml@"* ]]; then
+            RUN_ID=$(gh run list --workflow action_publish-images-production.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          fi
+          echo "id=${RUN_ID:-$GITHUB_RUN_ID}" | tee -a "$GITHUB_OUTPUT"
+          # Alerts describe the published images, not a commit, so every scan reports
+          # against main. Release and weekly scans then share one list of alerts.
+          echo "main-sha=$(gh api "repos/${GH_REPO}/commits/main" --jq .sha)" | tee -a "$GITHUB_OUTPUT"
+
+      - name: Download the published image records
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: image-details-published-*
+          path: image-details
+          merge-multiple: true
+          run-id: ${{ steps.run.outputs.id }}
+          github-token: ${{ github.token }}
+
+      - name: Group the images by variation
+        id: list
+        run: |
+          # shellcheck disable=SC2016 # $repository is a jq variable
+          MATRIX=$(find image-details -name '*.published.json' -print0 | xargs -0 -r jq -s -c --arg repository "$SCAN_REPOSITORY" '
+            map({image: "\(.php)-\(.variation)-\(.os)", variation, php, os, tag: "\($repository):\(.php)-\(.variation)-\(.os)"})
+            | group_by(.variation)
+            | { include: map({ variation: .[0].variation, images: tojson }) }')
+          MATRIX="${MATRIX:-{\"include\":[]\}}"
+          COUNT=$(echo "$MATRIX" | jq '[.include[].images | fromjson | length] | add // 0')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "$COUNT images to scan"
+
+  scan:
+    needs: plan
+    if: needs.plan.outputs.count > 0
+    name: scan ${{ matrix.variation }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions: {}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      # The database goes in a volume so every image in the group is scanned against the
+      # same one, downloaded once.
+      - name: Download the vulnerability database
+        run: docker run --rm -v grype-db:/db -e GRYPE_DB_CACHE_DIR=/db "anchore/grype:${GRYPE_VERSION}" db update
+
+      # Grype names every image's findings after the same file (php//lib/apk/db/installed),
+      # which code scanning would merge into one alert across all images. Each finding is
+      # moved under its image, keyed by PHP minor version so an alert stays the same alert
+      # when a new PHP patch ships.
+      - name: Scan every image in the group
+        env:
+          IMAGES: ${{ matrix.images }}
+          VARIATION: ${{ matrix.variation }}
+          SCAN_ATTEMPTS: 3
+        run: |
+          mkdir -p raw fixable
+          chmod 777 raw
+
+          scan_image() {
+            local image="$1" tag="$2" digest
+            digest=$(docker buildx imagetools inspect "$tag" --format '{{json .Manifest.Digest}}' | jq -r .) || return 1
+            docker run --rm -v grype-db:/db -v "$PWD/raw:/out" -e GRYPE_DB_CACHE_DIR=/db -e GRYPE_DB_AUTO_UPDATE=false \
+              "anchore/grype:${GRYPE_VERSION}" "registry:${SCAN_REPOSITORY}@${digest}" --platform "$SCAN_PLATFORM" --quiet \
+              --output "json=/out/${image}.json" --output "sarif=/out/${image}.sarif"
+          }
+
+          FAILED=()
+          {
+            echo "## ${VARIATION}: vulnerabilities by image"
+            echo ""
+            echo "| Image | Critical | High | Medium | Fixable |"
+            echo "|---|---|---|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          while IFS=$'\t' read -r IMAGE PHP OS TAG; do
+            echo "::group::${IMAGE}"
+            attempt=1
+            until scan_image "$IMAGE" "$TAG"; do
+              if [ "$attempt" -ge "$SCAN_ATTEMPTS" ]; then
+                echo "::error title=Scan failed::${IMAGE} could not be scanned after ${SCAN_ATTEMPTS} attempts"
+                FAILED+=("$IMAGE")
+                break
+              fi
+              sleep $(( 10 * attempt ))
+              attempt=$(( attempt + 1 ))
+            done
+            if [ -s "raw/${IMAGE}.json" ] && [ -s "raw/${IMAGE}.sarif" ]; then
+              case "$PHP" in
+                *-rc*) KEY="${PHP}-${OS}" ;;
+                *) KEY="${PHP%.*}-${OS}" ;;
+              esac
+              # shellcheck disable=SC2016 # the backticks are Markdown
+              jq -r --arg image "$IMAGE" '[.matches[].vulnerability] as $v
+                | def count(s): [$v[] | select(.severity == s)] | length;
+                "| `\($image)` | \(count("Critical")) | \(count("High")) | \(count("Medium")) | \([$v[] | select(.fix.state == "fixed")] | length) |"' \
+                "raw/${IMAGE}.json" | tee -a "$GITHUB_STEP_SUMMARY"
+              jq --slurpfile scan "raw/${IMAGE}.json" --arg key "$KEY" '
+                ([$scan[0].matches[] | select(.vulnerability.fix.state == "fixed") | "\(.vulnerability.id)-\(.artifact.name)"] | unique) as $fixable
+                | .runs[0]
+                | {
+                    rules: [.tool.driver.rules[] | select(.id as $id | $fixable | index($id))],
+                    results: [.results[] | select(.ruleId as $id | $fixable | index($id))
+                      | .locations |= map(.physicalLocation.artifactLocation.uri |= ($key + "/" + sub("^[^/]*//"; "")))
+                      | .partialFingerprints = {primaryLocationLineHash: "\($key):\(.ruleId):1"}]
+                  }' "raw/${IMAGE}.sarif" > "fixable/${IMAGE}.json"
+            fi
+            echo "::endgroup::"
+          done < <(echo "$IMAGES" | jq -r '.[] | [.image, .php, .os, .tag] | @tsv')
+
+          if [ "${#FAILED[@]}" -gt 0 ]; then
+            echo "::error title=Scan failed::${FAILED[*]} were not scanned"
+            exit 1
+          fi
+
+          # One run for the whole variation keeps the upload within code scanning's limit of 20 runs per file.
+          TEMPLATE=$(find raw -name '*.sarif' | head -n1)
+          jq -s --slurpfile template "$TEMPLATE" '. as $images | {
+              "$schema": $template[0]["$schema"],
+              version: $template[0].version,
+              runs: [{
+                tool: {driver: ($template[0].runs[0].tool.driver | .rules = ([$images[].rules[]] | unique_by(.id)))},
+                results: [$images[].results[]]
+              }]
+            }' fixable/*.json > "${VARIATION}.sarif"
+          echo "$(jq '.runs[0].results | length' "${VARIATION}.sarif") fixable findings across $(find fixable -name '*.json' | wc -l) images"
+
+      - name: Upload the findings
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sarif-${{ matrix.variation }}
+          path: ${{ matrix.variation }}.sarif
+          retention-days: 7
+
+  alerts:
+    needs: [plan, scan]
+    if: needs.scan.result == 'success'
+    name: alerts ${{ matrix.variation }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Download the findings
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sarif-${{ matrix.variation }}
+
+      - name: Update the code scanning alerts
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          sarif_file: ${{ matrix.variation }}.sarif
+          category: grype/${{ matrix.variation }}
+          ref: refs/heads/main
+          sha: ${{ needs.plan.outputs.main-sha }}

@@ -3,6 +3,7 @@
 </p>
 <p align="center">
 	<a href="https://github.com/serversideup/docker-php/actions/workflows/action_publish-images-production.yml"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/serversideup/docker-php/.github%2Fworkflows%2Faction_publish-images-production.yml"></a>
+	<a href="https://scorecard.dev/viewer/?uri=github.com/serversideup/docker-php"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/serversideup/docker-php/badge"></a>
 	<a href="https://github.com/serversideup/docker-php/blob/main/LICENSE" target="_blank"><img src="https://badgen.net/github/license/serversideup/docker-php" alt="License"></a>
 	<a href="https://serversideup.net/sponsor/"><img src="https://badgen.net/badge/icon/Support%20Us?label=GitHub%20Sponsors&color=orange" alt="Support us"></a>
   <br />
@@ -97,7 +98,7 @@ serversideup/php:{{version}}-{{variation-name}}
 > [!NOTE]  
 > All images are available on [**Docker Hub**](https://hub.docker.com/r/serversideup/php/) and [**GitHub Packages**](https://github.com/serversideup/docker-php/pkgs/container/php).
 
-We support **PHP 8.2 through 8.5** with both **Debian** and **Alpine** base images. PHP 8.1 is end of life but still built while its base operating systems receive security updates. See our [security policy](SECURITY.md#component-lifecycle-references) for the rule.
+We support **PHP 8.2 through 8.5** with both **Debian** and **Alpine** base images. PHP 8.1 is end of life but still built while its base operating systems receive security updates. See our [security policy](SECURITY.md#component-lifecycle-references) for the rule. PHP 8.6 release candidates are available for testing as `8.6-rc` tags, such as `serversideup/php:8.6-rc-fpm-nginx`. Every rebuild uses the newest release candidate on php.net.
 
 [Learn More About Choosing an Image →](https://serversideup.net/open-source/docker-php/docs/getting-started/choosing-an-image)
 

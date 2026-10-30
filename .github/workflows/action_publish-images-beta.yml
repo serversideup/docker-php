@@ -55,8 +55,18 @@ jobs:
     with:
       ref: ${{ needs.release.outputs.tag }}
 
-  build:
+  base:
     needs: [release, setup]
+    uses: ./.github/workflows/service_build-php-base.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      matrix: ${{ needs.setup.outputs.base-matrix }}
+      ref: ${{ needs.release.outputs.tag }}
+
+  build:
+    needs: [release, setup, base]
     name: build ${{ matrix.variation }}
     strategy:
       fail-fast: false
@@ -73,10 +83,9 @@ jobs:
       registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
       tag-prefix: "beta"
       release-type: "testing"
-    secrets: inherit
 
   test:
-    needs: [release, setup, build]
+    needs: [release, setup, base, build]
     if: always() && needs.setup.result == 'success'
     uses: ./.github/workflows/service_test-images.yml
     permissions:
@@ -96,7 +105,9 @@ jobs:
       id-token: write
     with:
       ref: ${{ needs.release.outputs.tag }}
-    secrets: inherit
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
   report:
     needs: [release, setup, build, test, publish]
@@ -106,4 +117,3 @@ jobs:
       contents: read
     with:
       matrix: ${{ needs.setup.outputs.matrix }}
-      ref: ${{ needs.release.outputs.tag }}

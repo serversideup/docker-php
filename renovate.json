@@ -1,0 +1,100 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "enabledManagers": ["custom.regex", "github-actions", "npm"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Versions with a '# renovate:' comment on the line above",
+      "managerFilePatterns": ["scripts/conf/php-versions-base-config.yml", ".github/workflows/service_lint.yml", ".github/workflows/service_scan-images.yml"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+versioning=(?<versioning>\\S+))?\\s*\\n\\s*[A-Z0-9_]+:\\s*\"?(?<currentValue>[^\"\\s@]+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?\"?"
+      ]
+    },
+    {
+      "customType": "regex",
+      "description": "The docker-library/php commit the PHP base images are compiled from",
+      "managerFilePatterns": ["scripts/conf/php-versions-base-config.yml"],
+      "matchStrings": ["DOCKER_LIBRARY_PHP_REF: (?<currentDigest>[a-f0-9]{40})"],
+      "currentValueTemplate": "master",
+      "depNameTemplate": "docker-library/php",
+      "packageNameTemplate": "https://github.com/docker-library/php",
+      "datasourceTemplate": "git-refs"
+    },
+    {
+      "customType": "regex",
+      "description": "NGINX package for each Alpine version",
+      "managerFilePatterns": ["scripts/conf/php-versions-base-config.yml"],
+      "matchStrings": ["number: (?<packageName>3\\.\\d+)\\n\\s+nginx_version: (?<currentValue>\\S+)"],
+      "depNameTemplate": "nginx-alpine{{{packageName}}}",
+      "datasourceTemplate": "custom.nginx-alpine",
+      "versioningTemplate": "apk",
+      "extractVersionTemplate": "^nginx-(?<version>\\d+\\.\\d+\\.\\d+-r\\d+)\\.apk$"
+    },
+    {
+      "customType": "regex",
+      "description": "NGINX package for each Debian version",
+      "managerFilePatterns": ["scripts/conf/php-versions-base-config.yml"],
+      "matchStrings": ["version: (?<packageName>[a-z]+)\\n\\s+number: \\d+\\n\\s+nginx_version: (?<currentValue>\\S+)"],
+      "depNameTemplate": "nginx-{{{packageName}}}",
+      "datasourceTemplate": "custom.nginx-debian",
+      "versioningTemplate": "deb",
+      "extractVersionTemplate": "^nginx_(?<version>\\d+\\.\\d+\\.\\d+-\\d+~{{{packageName}}})_amd64\\.deb$"
+    }
+  ],
+  "customDatasources": {
+    "nginx-alpine": {
+      "defaultRegistryUrlTemplate": "https://nginx.org/packages/alpine/v{{packageName}}/main/x86_64/",
+      "format": "html"
+    },
+    "nginx-debian": {
+      "defaultRegistryUrlTemplate": "https://nginx.org/packages/debian/pool/nginx/n/nginx/",
+      "format": "html"
+    }
+  },
+  "packageRules": [
+    {
+      "description": "Wait three days before proposing a new release, so a hijacked or broken one is usually caught first. git-refs and the nginx.org listings have no release dates, so they are not covered.",
+      "matchDatasources": ["github-releases", "github-tags", "docker"],
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "zizmor's releases are tagged v1.2.3 but its container image is tagged 1.2.3",
+      "matchDepNames": ["zizmorcore/zizmor"],
+      "extractVersion": "^v(?<version>.+)$"
+    },
+    {
+      "description": "Bump NGINX on every OS in one pull request",
+      "matchDatasources": ["custom.nginx-alpine", "custom.nginx-debian"],
+      "groupName": "nginx"
+    },
+    {
+      "description": "Merge the weekly docker-library/php bump once every check passes. Renovate merges it itself because GitHub's auto-merge would merge right away without required checks.",
+      "matchDepNames": ["docker-library/php"],
+      "schedule": ["before 6am on monday"],
+      "automerge": true,
+      "platformAutomerge": false
+    },
+    {
+      "description": "Go and watcher follow FrankenPHP, so its pull request reminds you to bump them together",
+      "matchDepNames": ["php/frankenphp"],
+      "prBodyNotes": ["Update `GOLANG_VERSION` in the same pull request to match `GO_VERSION` in [FrankenPHP's docker-bake.hcl](https://github.com/php/frankenphp/blob/v{{{newVersion}}}/docker-bake.hcl), and update `WATCHER_VERSION` to the [watcher release](https://github.com/e-dant/watcher/releases) that was current when this FrankenPHP version shipped."]
+    },
+    {
+      "description": "The docs site only tracks the project switcher bar",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["!@serversideup/project-switcher-bar"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "schedule": ["* 0-3 1 * *"]
+    },
+    {
+      "description": "Runner images (ubuntu-24.04) are upgraded by hand",
+      "matchDatasources": ["github-runners"],
+      "enabled": false
+    }
+  ]
+}

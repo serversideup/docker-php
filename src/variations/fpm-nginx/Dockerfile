@@ -10,6 +10,8 @@ FROM ${BASE_IMAGE} AS s6-build
 
 ARG S6_DIR='/opt/s6/'
 ARG S6_SRC_URL="https://github.com/just-containers/s6-overlay/releases/download"
+ARG S6_VERSION
+ARG PHP_FPM_HEALTHCHECK_VERSION
 
 # copy our scripts
 COPY --chmod=755 src/common/ /
@@ -20,7 +22,7 @@ RUN docker-php-serversideup-s6-install
 ####################
 # NGINX Signing Key
 ####################
-FROM php:${PHP_VERSION}-fpm-${BASE_OS_VERSION} AS nginx-repo-config
+FROM ${BASE_IMAGE} AS nginx-repo-config
 
 ARG SIGNING_KEY_URL="https://nginx.org/keys/nginx_signing.key"
 ARG SIGNING_FINGERPRINT="573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62"
@@ -97,20 +99,20 @@ RUN \
 # FPM-NGINX: Main Image
 ##########
 FROM ${BASE_IMAGE}
-# brotli-libs and libbrotli1 upgrade past CVE-2026-111497. Remove them once the official PHP images ship the fix.
 ARG DEPENDENCY_PACKAGES_ALPINE="\
-    brotli-libs \
     fcgi \
     gettext \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
     gettext-base \
-    libbrotli1 \
     libfcgi-bin \
     procps \
     zip"
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG PHP_EXTENSION_OVERRIDES=''
+ARG PHP_EXT_INSTALLER_VERSION
+ARG PHPREDIS_VERSION
+ARG PHPREDIS_LIBLZF_REF
 ARG REPOSITORY_BUILD_VERSION='dev'
 ARG NGINX_VERSION='1.28.0-1'
 

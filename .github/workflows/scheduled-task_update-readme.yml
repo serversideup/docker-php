@@ -7,6 +7,6 @@ jobs:
   update-readme:
     # Forks inherit the cron schedule. Their weekly rebuilds always fail and email whoever last edited the schedule upstream.
     if: github.event_name != 'schedule' || github.repository == 'serversideup/docker-php'
-    uses: serversideup/.github/.github/workflows/update-readme.yml@master
+    uses: serversideup/.github/.github/workflows/update-readme.yml@0cc5de42120438871a6c36a91b6a7dc2a15dbd7f # v1.0.1
     permissions:
       contents: write
