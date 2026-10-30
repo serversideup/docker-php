@@ -116,7 +116,6 @@ jobs:
       contents: read
     with:
       matrix: ${{ needs.setup.outputs.matrix }}
-      ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
 
   comment:
     needs: [base, build, test, publish, report]

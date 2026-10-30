@@ -133,4 +133,3 @@ jobs:
       contents: read
     with:
       matrix: ${{ needs.setup.outputs.matrix }}
-      ref: ${{ needs.release.outputs.tag }}
