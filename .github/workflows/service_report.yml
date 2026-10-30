@@ -9,10 +9,6 @@ on:
         type: string
         default: '{}'
         description: 'Build matrix JSON keyed by variation, used to list images that did not build.'
-      ref:
-        type: string
-        default: ${{ github.ref }}
-        description: 'The git ref to checkout (branch, tag, or commit SHA)'
     outputs:
       markdown:
         description: 'The rendered Markdown table'
@@ -28,11 +24,12 @@ jobs:
     outputs:
       markdown: ${{ steps.render.outputs.markdown }}
     steps:
+      # The commit that started the run, never a pull request's: a maintainer-dispatched
+      # build of a fork's pull request must not run the fork's copy of build-summary.sh.
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ inputs.ref }}
 
       - name: Download image details from every build job
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
