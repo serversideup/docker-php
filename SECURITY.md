@@ -19,7 +19,7 @@ Vulnerabilities in what *we* author and ship:
 - Entrypoint scripts, healthchecks, helper scripts, and S6 service definitions in `src/`
 - Default configs we ship for PHP-FPM, NGINX, Apache, and FrankenPHP
 - Insecure defaults: ports, file permissions, the `www-data` user model, SSL defaults
-- Build pipeline integrity (GitHub Actions workflows, tag assembly, image publishing)
+- Build pipeline integrity (GitHub Actions workflows, tag assembly, image publishing, image signing)
 - Documentation that materially misleads users about a security-relevant setting
 
 ## What is out of scope — report to the upstream project
@@ -34,7 +34,13 @@ Vulnerabilities in software we package but do not maintain belong with the upstr
 | Composer | [composer/composer on GitHub](https://github.com/composer/composer/security) |
 | Debian / Alpine base packages | The respective distribution security teams |
 
-If an upstream CVE is already publicly disclosed, you don't need to file with us — we pick up upstream patches on our **weekly rebuilds (Tuesday 08:00 UTC)** for floating tags. See [How our releases work](https://serversideup.net/open-source/docker-php/docs/getting-started/upgrade-guide#how-our-releases-work) for the full cadence and which tags receive rebuilds.
+If an upstream CVE is already publicly disclosed, you don't need to file with us. Floating tags pick up upstream fixes on their own: a new PHP patch publishes within about an hour of php.net listing it, and operating system packages update on the **weekly rebuild (Tuesday 08:00 UTC)**. See [How our releases work](https://serversideup.net/open-source/docker-php/docs/getting-started/upgrade-guide#how-our-releases-work) for the full cadence and which tags receive rebuilds.
+
+## Verifying images and public scan results
+
+Images we publish are signed with cosign and carry an SBOM and build provenance. Images published before signing was added have provenance only. [Verifying images](https://serversideup.net/open-source/docker-php/docs/guide/verifying-images) shows how to check them.
+
+Each production build ends with a vulnerability scan of every published image. The results are in the run summary of each [production run](https://github.com/serversideup/docker-php/actions/workflows/action_publish-images-production.yml), and [Vulnerability scanning](https://serversideup.net/open-source/docker-php/docs/reference/vulnerability-scanning) explains how to read them. Scanner findings are already disclosed upstream CVEs. Anything that is not yet public, including a problem in what we author, still goes through [private reporting](#reporting-a-vulnerability).
 
 ## Component lifecycle references
 

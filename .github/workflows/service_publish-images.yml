@@ -3,7 +3,9 @@ name: Publish Images
 # Phase 3 of 3: promote the exact images that passed the image tests from the Depot
 # Registry to Docker Hub and GHCR. No rebuild happens here and no image bytes pass
 # through the runner: `depot push` copies each saved build to every tag server-side,
-# and the published digest is checked against the one the build recorded. Depot
+# the published digest is checked against the one the build recorded, and each
+# registry's copy is signed with cosign. Signing is keyless: the signature is tied to
+# this workflow through its OIDC token, so there is no signing key to store or leak. Depot
 # sponsors this project, so its runners are used for the phases that do real work.
 on:
   workflow_call:
@@ -16,6 +18,11 @@ on:
         type: string
         default: ${{ github.ref }}
         description: 'The git ref to checkout (branch, tag, or commit SHA)'
+    secrets:
+      DOCKER_HUB_USERNAME:
+        required: true
+      DOCKER_HUB_ACCESS_TOKEN:
+        required: true
 
 jobs:
   list:
@@ -29,7 +36,7 @@ jobs:
       count: ${{ steps.list.outputs.count }}
     steps:
       - name: Download image details from every build job
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: image-details-*
           path: image-details
@@ -63,28 +70,32 @@ jobs:
       matrix: ${{ fromJson(needs.list.outputs.matrix) }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: ${{ inputs.ref }}
 
       - name: Set up Depot CLI
-        uses: depot/setup-action@v1
+        uses: depot/setup-action@91bc8495a33ebfc504ffc89e5674379ccf23c29c # v1.7.2
         with:
           oidc: true
 
       - name: Login to DockerHub
-        uses: docker/login-action@v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         if: ${{ inputs.authenticate_with_ghcr }}
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       # `depot push` handles one tag at a time, so images are pushed in parallel and each
       # one's output is printed afterwards as its own log group. Every image is attempted
@@ -104,6 +115,21 @@ jobs:
           PROJECT=$(jq -r .id depot.json)
           mkdir -p image-details logs
 
+          retry() {
+            local description="$1" attempt=1
+            shift
+            until "$@"; do
+              if [ "$attempt" -ge "$PUSH_ATTEMPTS" ]; then
+                echo "::error title=Publish failed::${description} failed after ${PUSH_ATTEMPTS} attempts"
+                return 1
+              fi
+              local pause=$(( 15 * attempt + RANDOM % 15 ))
+              echo "${description}: attempt ${attempt} of ${PUSH_ATTEMPTS} failed, retrying in ${pause}s"
+              sleep "$pause"
+              attempt=$(( attempt + 1 ))
+            done
+          }
+
           publish_image() {
             local php="$1" os="$2" saved="$3" build_id="$4" digest="$5" tags="$6"
             local image_name="${VARIATION}-${php}-${os}"
@@ -112,17 +138,7 @@ jobs:
               tag_args+=(--tag "$tag")
             done
             echo "Pushing build $build_id to $(( ${#tag_args[@]} / 2 )) tags"
-            local attempt=1
-            until depot push --project "$PROJECT" --progress plain "${tag_args[@]}" "$build_id"; do
-              if [ "$attempt" -ge "$PUSH_ATTEMPTS" ]; then
-                echo "::error title=Publish failed::${image_name} could not be pushed after ${PUSH_ATTEMPTS} attempts"
-                return 1
-              fi
-              local pause=$(( 15 * attempt + RANDOM % 15 ))
-              echo "Push attempt ${attempt} of ${PUSH_ATTEMPTS} failed, retrying in ${pause}s"
-              sleep "$pause"
-              attempt=$(( attempt + 1 ))
-            done
+            retry "Pushing ${image_name}" depot push --project "$PROJECT" --progress plain "${tag_args[@]}" "$build_id" || return 1
 
             # What was published must be what was tested: the tested digest has to appear
             # in the published index (as the index itself or one of its manifests).
@@ -137,6 +153,13 @@ jobs:
             else
               echo "Published digest matches the tested image ($digest)"
             fi
+
+            # Every tag in a registry points at the same index, so one signature per registry covers them all.
+            local index_digest repository
+            index_digest=$(docker buildx imagetools inspect "$canonical_tag" --format '{{json .Manifest.Digest}}' | jq -r .)
+            for repository in $(tr ',' '\n' <<< "$tags" | sed 's/:[^:]*$//' | sort -u); do
+              retry "Signing ${repository}@${index_digest}" cosign sign --yes "${repository}@${index_digest}" || return 1
+            done
 
             local manifest sizes
             manifest=$(docker manifest inspect -v "$canonical_tag") || manifest='[]'
@@ -187,7 +210,7 @@ jobs:
 
       - name: Record the published images
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: image-details-published-${{ matrix.variation }}
           path: image-details/

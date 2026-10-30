@@ -8,8 +8,11 @@ name: Auto-retry failed image builds
 #
 # Runs are found by workflow file, because `workflow_run.name` holds the run's title
 # (`run-name:`), not the workflow's name.
+#
+# workflow_run is safe here: this never checks out or runs code from the run it reacts
+# to, and only reads that run's metadata and logs.
 on:
-  workflow_run:
+  workflow_run: # zizmor: ignore[dangerous-triggers]
     workflows:
       - "Docker Publish (Production Images)"
       - "Docker Publish (Beta Images)"

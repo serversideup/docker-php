@@ -37,12 +37,13 @@ jobs:
       matrix: ${{ fromJson(inputs.matrix) }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: ${{ inputs.ref }}
 
       - name: Set up Depot CLI
-        uses: depot/setup-action@v1
+        uses: depot/setup-action@91bc8495a33ebfc504ffc89e5674379ccf23c29c # v1.7.2
 
       # The context lives inside the checkout so Depot finds depot.json above it.
       - name: Prepare the docker-library/php build context
@@ -58,7 +59,7 @@ jobs:
       # Brotli, OpenSSL) in its first layers, and a cached layer would keep shipping old
       # versions until Debian or Alpine publish a new base image.
       - name: Compile and save the PHP base image
-        uses: depot/build-push-action@v1
+        uses: depot/build-push-action@0f27be7c41d76663a98518dfe68f1c46582242c4 # v1.19.0
         with:
           context: .php-base/${{ matrix.php_base_tag }}
           platforms: |

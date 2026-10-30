@@ -26,7 +26,7 @@ jobs:
       count: ${{ steps.list.outputs.count }}
     steps:
       - name: Download image details from every build job
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: image-details-*
           path: image-details
@@ -65,12 +65,13 @@ jobs:
       matrix: ${{ fromJson(needs.list.outputs.matrix) }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: ${{ inputs.ref }}
 
       - name: Set up Depot CLI
-        uses: depot/setup-action@v1
+        uses: depot/setup-action@91bc8495a33ebfc504ffc89e5674379ccf23c29c # v1.7.2
         with:
           oidc: true
 
@@ -83,10 +84,12 @@ jobs:
         env:
           IMAGES: ${{ matrix.images }}
           PHP: ${{ matrix.php }}
+          OS: ${{ matrix.os }}
+          ARCH: ${{ matrix.arch }}
         run: |
           FAILED=()
           while IFS=$'\t' read -r VARIATION SAVED; do
-            echo "::group::${VARIATION} ${PHP}-${{ matrix.os }} ${{ matrix.arch }}"
+            echo "::group::${VARIATION} ${PHP}-${OS} ${ARCH}"
             if ! { docker pull --quiet "$SAVED" && bash scripts/test-image.sh "$SAVED" "$PHP"; }; then
               FAILED+=("$VARIATION")
             fi
@@ -94,6 +97,6 @@ jobs:
           done < <(echo "$IMAGES" | jq -r '.[] | [.variation, .saved] | @tsv')
 
           if [ "${#FAILED[@]}" -gt 0 ]; then
-            echo "::error title=Image tests failed::${FAILED[*]} failed for ${PHP}-${{ matrix.os }} on ${{ matrix.arch }}"
+            echo "::error title=Image tests failed::${FAILED[*]} failed for ${PHP}-${OS} on ${ARCH}"
             exit 1
           fi

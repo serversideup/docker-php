@@ -1,0 +1,74 @@
+name: Watch for PHP releases
+
+# PHP is compiled from php.net, so a new patch can ship as soon as php.net lists it.
+# Every hour this resolves the active patches the same way a build does, and starts a
+# production run when one of them has no image on Docker Hub yet. Like the weekly
+# rebuild, that run rebuilds the latest release and only moves the floating tags.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+
+permissions: {}
+
+jobs:
+  watch:
+    # Forks inherit the cron schedule. Their weekly rebuilds always fail and email whoever last edited the schedule upstream.
+    if: github.event_name != 'schedule' || github.repository == 'serversideup/docker-php'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PRODUCTION_WORKFLOW: action_publish-images-production.yml
+      DOCKER_HUB_REPOSITORY: serversideup/php
+      # A run that started this recently either is still going or already opened a ci-failure issue.
+      COOLDOWN_HOURS: 6
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Resolve the active PHP patches
+        run: ./scripts/get-php-versions.sh
+
+      # Each patch is looked up as its cli tag on the first OS it builds for. Anything other
+      # than "found" or "not found" is skipped, so a Docker Hub outage never starts a run.
+      - name: Find patches that have no image yet
+        id: missing
+        run: |
+          MISSING=()
+          while IFS=$'\t' read -r PATCH OS; do
+            TAG="${PATCH}-cli-${OS}"
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 5 \
+              "https://hub.docker.com/v2/namespaces/${DOCKER_HUB_REPOSITORY%/*}/repositories/${DOCKER_HUB_REPOSITORY#*/}/tags/${TAG}")
+            case "$STATUS" in
+              200) echo "$PATCH is published ($TAG)" ;;
+              404) echo "$PATCH has no image yet ($TAG)"; MISSING+=("$PATCH") ;;
+              *) echo "::warning title=Docker Hub lookup failed::$TAG returned HTTP $STATUS, skipping $PATCH this hour" ;;
+            esac
+          done < <(yq -o=json scripts/conf/php-versions.yml | jq -r '
+            .php_versions[].minor_versions[]
+            | .base_os[0].name as $os
+            | .patch_versions[] | select(test("rc") | not)
+            | [., $os] | @tsv')
+          echo "patches=${MISSING[*]}" >> "$GITHUB_OUTPUT"
+
+      - name: Start a production run
+        if: steps.missing.outputs.patches != ''
+        env:
+          PATCHES: ${{ steps.missing.outputs.patches }}
+        run: |
+          RECENT=$(gh run list --workflow "$PRODUCTION_WORKFLOW" --limit 10 --json status,createdAt,url \
+            | jq -r --argjson hours "$COOLDOWN_HOURS" \
+              '[.[] | select(.status != "completed" or ((.createdAt | fromdateiso8601) > (now - $hours * 3600)))][0].url // ""')
+          if [ -n "$RECENT" ]; then
+            echo "::notice title=Already building::$RECENT started in the last ${COOLDOWN_HOURS} hours, so no new run was started for PHP $PATCHES."
+            exit 0
+          fi
+          gh workflow run "$PRODUCTION_WORKFLOW" -f reason="PHP ${PATCHES// /, } release"
+          echo "::notice title=Production run started::PHP $PATCHES has no published image yet."

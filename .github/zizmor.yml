@@ -1,0 +1,6 @@
+# zizmor configuration for .github/workflows
+# Each disabled rule is a deliberate project decision, not an oversight.
+rules:
+  # Its fix, `uses: $/...`, is rejected by actionlint 1.7.12, which also lints these workflows.
+  self-repository:
+    disable: true

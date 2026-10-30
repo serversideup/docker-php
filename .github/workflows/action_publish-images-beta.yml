@@ -83,7 +83,6 @@ jobs:
       registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
       tag-prefix: "beta"
       release-type: "testing"
-    secrets: inherit
 
   test:
     needs: [release, setup, base, build]
@@ -106,7 +105,9 @@ jobs:
       id-token: write
     with:
       ref: ${{ needs.release.outputs.tag }}
-    secrets: inherit
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
   report:
     needs: [release, setup, build, test, publish]
