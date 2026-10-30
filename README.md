@@ -3,6 +3,7 @@
 </p>
 <p align="center">
 	<a href="https://github.com/serversideup/docker-php/actions/workflows/action_publish-images-production.yml"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/serversideup/docker-php/.github%2Fworkflows%2Faction_publish-images-production.yml"></a>
+	<a href="https://scorecard.dev/viewer/?uri=github.com/serversideup/docker-php"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/serversideup/docker-php/badge"></a>
 	<a href="https://github.com/serversideup/docker-php/blob/main/LICENSE" target="_blank"><img src="https://badgen.net/github/license/serversideup/docker-php" alt="License"></a>
 	<a href="https://serversideup.net/sponsor/"><img src="https://badgen.net/badge/icon/Support%20Us?label=GitHub%20Sponsors&color=orange" alt="Support us"></a>
   <br />
