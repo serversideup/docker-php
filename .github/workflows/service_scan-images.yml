@@ -1,0 +1,332 @@
+name: Scan Images
+
+# Runs after every production publish, or by hand for the latest one. Each published
+# image is scanned for known vulnerabilities, and the results are published three ways:
+# a signed vulnerability attestation on each image, the reports on the security-reports
+# branch that the Security status docs page reads, and an issue for each fixable
+# critical or high finding that a rebuild did not clear.
+#
+# A compromised scanner has nothing to steal and nothing it can publish. The scan job's
+# token can only read, it holds no registry credentials, and Grype runs in its own
+# container without the runner's environment. Images are pulled anonymously from GHCR,
+# which has no pull limit for public images. The report job does the signing and
+# writing and never runs scanner code: it only reads the summaries the scan jobs upload.
+on:
+  workflow_call:
+    inputs:
+      run-id:
+        type: string
+        default: ''
+        description: 'The production run whose published images to scan. Defaults to the calling run.'
+    secrets:
+      DOCKER_HUB_USERNAME:
+        required: true
+      DOCKER_HUB_ACCESS_TOKEN:
+        required: true
+  workflow_dispatch:
+    inputs:
+      run-id:
+        type: string
+        required: false
+        description: 'The production run whose published images to scan. Left empty, the latest successful one.'
+
+permissions: {}
+
+env:
+  # renovate: datasource=docker depName=anchore/grype
+  GRYPE_VERSION: v0.121.0@sha256:621d56d1d68106b787022c81546f7e0a36202a25d1239f0c20195fab8c16f7ea
+  SCAN_REPOSITORY: ghcr.io/serversideup/php
+  SCAN_PLATFORM: linux/amd64
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+      count: ${{ steps.list.outputs.count }}
+    steps:
+      - name: Find the production run to scan
+        id: run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          INPUT_RUN_ID: ${{ inputs.run-id }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+        run: |
+          # Called from a production run, the run itself. Started by hand, the latest successful one.
+          RUN_ID="$INPUT_RUN_ID"
+          if [ -z "$RUN_ID" ] && [[ "$WORKFLOW_REF" == *"/service_scan-images.yml@"* ]]; then
+            RUN_ID=$(gh run list --workflow action_publish-images-production.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          fi
+          echo "id=${RUN_ID:-$GITHUB_RUN_ID}" | tee -a "$GITHUB_OUTPUT"
+
+      - name: Download the published image records
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: image-details-published-*
+          path: image-details
+          merge-multiple: true
+          run-id: ${{ steps.run.outputs.id }}
+          github-token: ${{ github.token }}
+
+      - name: Group the images by variation
+        id: list
+        run: |
+          # shellcheck disable=SC2016 # $repository is a jq variable
+          MATRIX=$(find image-details -name '*.published.json' -print0 | xargs -0 -r jq -s -c --arg repository "$SCAN_REPOSITORY" '
+            map({variation, image: "\(.php)-\(.variation)-\(.os)", php, os, tag: "\($repository):\(.php)-\(.variation)-\(.os)"})
+            | group_by(.variation)
+            | { include: map({ variation: .[0].variation, images: tojson }) }')
+          MATRIX="${MATRIX:-{\"include\":[]\}}"
+          COUNT=$(echo "$MATRIX" | jq '[.include[].images | fromjson | length] | add // 0')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "$COUNT images to scan"
+
+  scan:
+    needs: plan
+    if: needs.plan.outputs.count > 0
+    name: scan ${{ matrix.variation }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The database goes in a volume so every image in the group is scanned against the
+      # same one, downloaded once.
+      - name: Download the vulnerability database
+        run: docker run --rm -v grype-db:/db -e GRYPE_DB_CACHE_DIR=/db "anchore/grype:${GRYPE_VERSION}" db update
+
+      # The index digest is what users pull, so it is what the summary and the attestation name.
+      - name: Scan every image in the group
+        env:
+          IMAGES: ${{ matrix.images }}
+          VARIATION: ${{ matrix.variation }}
+          SCAN_ATTEMPTS: 3
+        run: |
+          mkdir -p scans raw
+
+          scan_image() {
+            local image="$1" php="$2" os="$3" tag="$4" digest
+            digest=$(docker buildx imagetools inspect "$tag" --format '{{json .Manifest.Digest}}' | jq -r .) || return 1
+            docker run --rm -v grype-db:/db -e GRYPE_DB_CACHE_DIR=/db -e GRYPE_DB_AUTO_UPDATE=false \
+              "anchore/grype:${GRYPE_VERSION}" "registry:${SCAN_REPOSITORY}@${digest}" \
+              --platform "$SCAN_PLATFORM" --output json --quiet > "raw/${image}.json" || return 1
+            bash scripts/scan-summary.sh "raw/${image}.json" "$image" "$VARIATION" "$php" "$os" "$digest" > "scans/${image}.json"
+          }
+
+          FAILED=()
+          while IFS=$'\t' read -r IMAGE PHP OS TAG; do
+            echo "::group::${IMAGE}"
+            attempt=1
+            until scan_image "$IMAGE" "$PHP" "$OS" "$TAG"; do
+              rm -f "scans/${IMAGE}.json"
+              if [ "$attempt" -ge "$SCAN_ATTEMPTS" ]; then
+                echo "::error title=Scan failed::${IMAGE} could not be scanned after ${SCAN_ATTEMPTS} attempts"
+                FAILED+=("$IMAGE")
+                break
+              fi
+              sleep $(( 10 * attempt ))
+              attempt=$(( attempt + 1 ))
+            done
+            if [ -f "scans/${IMAGE}.json" ]; then
+              jq -r '"Critical \(.counts.Critical) (\(.fixable.Critical) fixable), High \(.counts.High) (\(.fixable.High) fixable)"' "scans/${IMAGE}.json"
+            fi
+            echo "::endgroup::"
+          done < <(echo "$IMAGES" | jq -r '.[] | [.image, .php, .os, .tag] | @tsv')
+
+          {
+            echo "## ${VARIATION}: vulnerabilities by image"
+            echo ""
+            echo "| Image | Critical | High | Fixable critical or high |"
+            echo "|---|---|---|---|"
+            # shellcheck disable=SC2016 # the backticks are Markdown
+            find scans -name '*.json' -print0 | xargs -0 -r jq -s -r 'sort_by(.image)[]
+              | "| `\(.image)` | \(.counts.Critical) | \(.counts.High) | \(.fixable.Critical + .fixable.High) |"'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${#FAILED[@]}" -gt 0 ]; then
+            echo "::error title=Scan failed::${FAILED[*]} were not scanned"
+            exit 1
+          fi
+
+      - name: Upload the scan summaries
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: scans-${{ matrix.variation }}
+          path: scans/
+          retention-days: 7
+
+  report:
+    needs: [plan, scan]
+    if: needs.scan.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    # Two runs writing the reports branch at once would race on the previous index.
+    concurrency:
+      group: security-reports
+    permissions:
+      contents: write
+      issues: write
+      packages: write
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      REPORTS_BRANCH: security-reports
+      STATUS_PAGE_URL: https://serversideup.net/open-source/docker-php/docs/reference/security-status
+      ASSIGNEE: jaydrogers
+      ISSUE_LABEL: security-scan
+      # The first scan after this lands could find a backlog. The rest wait for the next scan.
+      MAX_NEW_ISSUES: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the scan summaries
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: scans-*
+          path: scans
+          merge-multiple: true
+
+      # Only this job writes the branch. It holds nothing but reports, so it starts as an
+      # orphan the first time.
+      - name: Check out the reports branch
+        run: |
+          git init --quiet "$REPORTS_BRANCH"
+          cd "$REPORTS_BRANCH"
+          git remote add origin "${GITHUB_SERVER_URL}/${GH_REPO}.git"
+          if git fetch --quiet --depth 1 origin "$REPORTS_BRANCH" 2> /dev/null; then
+            git checkout --quiet -b "$REPORTS_BRANCH" FETCH_HEAD
+          else
+            echo "No ${REPORTS_BRANCH} branch yet, starting it"
+            git checkout --quiet --orphan "$REPORTS_BRANCH"
+          fi
+
+      - name: Build the reports
+        id: reports
+        run: bash scripts/security-report.sh scans "${REPORTS_BRANCH}/reports" "$RUN_URL" > fixable.json
+
+      - name: Publish the reports
+        run: |
+          cd "$REPORTS_BRANCH"
+          git add --all reports
+          if git diff --cached --quiet; then
+            echo "The reports did not change"
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit --quiet -m "Security scan $(date -u +%Y-%m-%d)" -m "$RUN_URL"
+          AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          git -c "http.${GITHUB_SERVER_URL}/.extraheader=AUTHORIZATION: basic ${AUTH}" push --quiet origin "HEAD:${REPORTS_BRANCH}"
+
+      - name: Login to DockerHub
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      # Keyless, like the image signatures: the attestation is tied to this workflow
+      # through its OIDC token. Both registries hold the same index, so both get one.
+      - name: Attest the scan results to each image
+        env:
+          ATTEST_ATTEMPTS: 3
+          REPOSITORIES: docker.io/serversideup/php ghcr.io/serversideup/php
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/.github/workflows/service_scan-images.yml
+        run: |
+          FAILED=()
+          for SCAN in scans/*.json; do
+            IMAGE=$(jq -r .image "$SCAN")
+            DIGEST=$(jq -r .digest "$SCAN")
+            jq --arg run_url "$RUN_URL" --arg run_id "$GITHUB_RUN_ID" --arg builder "$WORKFLOW_URL" '{
+              invocation: {uri: $run_url, event_id: $run_id, "builder.id": $builder},
+              scanner: {uri: "pkg:github/anchore/grype@v\(.scanner.version)", version: .scanner.version, db: {uri: "https://grype.anchore.io", version: .scanner.db_built}, result: .},
+              metadata: {scanStartedOn: .scanned_at, scanFinishedOn: .scanned_at}
+            }' "$SCAN" > predicate.json
+            for REPOSITORY in $REPOSITORIES; do
+              attempt=1
+              until cosign attest --yes --type vuln --predicate predicate.json "${REPOSITORY}@${DIGEST}"; do
+                if [ "$attempt" -ge "$ATTEST_ATTEMPTS" ]; then
+                  echo "::error title=Attestation failed::${REPOSITORY}@${DIGEST} (${IMAGE})"
+                  FAILED+=("$IMAGE")
+                  break
+                fi
+                sleep $(( 15 * attempt ))
+                attempt=$(( attempt + 1 ))
+              done
+            done
+          done
+          if [ "${#FAILED[@]}" -gt 0 ]; then
+            echo "::error title=Attestation failed::${FAILED[*]} are missing a scan attestation"
+            exit 1
+          fi
+
+      # Every finding here is an already disclosed upstream CVE that anyone can see by
+      # scanning the image, so the issues are public. Problems in our own code go through
+      # private advisories instead (SECURITY.md).
+      - name: Open and close issues for fixable findings
+        if: always() && steps.reports.outcome == 'success'
+        run: |
+          gh label create "$ISSUE_LABEL" --description "A fixable vulnerability survived a rebuild" --color D93F0B --force
+          OPEN=$(gh issue list --label "$ISSUE_LABEL" --state open --limit 500 --json number,title)
+          NEW=0
+
+          while read -r FINDING; do
+            ID=$(echo "$FINDING" | jq -r .id)
+            SEVERITY=$(echo "$FINDING" | jq -r .severity)
+            PACKAGES=$(echo "$FINDING" | jq -r '.packages | join(", ")')
+            TITLE="${ID}: ${SEVERITY} in ${PACKAGES} has a fix"
+            {
+              echo "**${ID}** (${SEVERITY}) has a fix available, and it was still in the published images after a rebuild. It has been found in $(echo "$FINDING" | jq .consecutive_scans) scans in a row."
+              echo ""
+              echo "The weekly rebuild picks up most fixes on its own, so something is holding this one back: a pinned version, an upstream image that has not been rebuilt yet, or a frozen base such as PHP 8.1's."
+              echo ""
+              echo "| Image | Package | Installed | Fixed in |"
+              echo "|---|---|---|---|"
+              echo "$FINDING" | jq -r '.images[] | "| `\(.image)` | \(.package) | \(.version) | \(.fixed_in | join(", ")) |"'
+              echo ""
+              echo "<sub>[Security status]($STATUS_PAGE_URL) · [Scan run]($RUN_URL). This issue updates on every scan and closes itself once a scan no longer finds it.</sub>"
+            } > issue.md
+
+            EXISTING=$(echo "$OPEN" | jq -r --arg id "$ID" '[.[] | select(.title | startswith($id + ":"))][0].number // ""')
+            if [ -n "$EXISTING" ]; then
+              gh issue edit "$EXISTING" --title "$TITLE" --body-file issue.md
+            elif [ "$NEW" -lt "$MAX_NEW_ISSUES" ]; then
+              gh issue create --title "$TITLE" --body-file issue.md --label "$ISSUE_LABEL" --assignee "$ASSIGNEE"
+              NEW=$(( NEW + 1 ))
+            else
+              echo "::warning title=Issue deferred::${ID} waits for the next scan, ${MAX_NEW_ISSUES} issues were already opened in this one."
+            fi
+          done < <(jq -c '.[] | select(.consecutive_scans >= 2)' fixable.json)
+
+          # Close the issues whose finding is gone, by fix or because the image is no longer published.
+          echo "$OPEN" | jq -r '.[] | [.number, (.title | split(":")[0])] | @tsv' | while IFS=$'\t' read -r NUMBER ID; do
+            if ! jq -e --arg id "$ID" 'any(.[]; .id == $id)' fixable.json > /dev/null; then
+              gh issue close "$NUMBER" --comment "No longer found in the [latest scan]($RUN_URL)."
+            fi
+          done

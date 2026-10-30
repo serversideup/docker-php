@@ -81,7 +81,6 @@ jobs:
           github.event_name == 'workflow_dispatch' ||
           github.event.pull_request.head.repo.full_name == github.repository
         }}
-    secrets: inherit
 
   test:
     needs: [setup, base, build]
@@ -105,7 +104,9 @@ jobs:
     with:
       ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
       authenticate_with_ghcr: false
-    secrets: inherit
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
   report:
     needs: [setup, build, test, publish]

@@ -6,6 +6,10 @@ serversideup/php publishes PHP Docker images (`cli`, `fpm`, `fpm-nginx`, `fpm-ap
 Untrusted input:
 - **HTTP requests** to the NGINX, Apache, and Caddy (FrankenPHP) configs we ship. Assume any client on the network can send them. This includes headers that reach PHP or our real-IP handling (`TRUSTED_PROXY`), requests for `/healthcheck`, PHP-FPM status paths, `/storage/*.php`, dotfiles such as `.env` and `.git`, path info after `index.php`, and plain-HTTP requests when `SSL_MODE` is `mixed` or `full`.
 - **Pull requests from forks** against `.github/workflows/`. A fork can control the PR title, branch name, and file contents. It must never reach repository secrets, the Depot OIDC trust, or any publish to Docker Hub or GHCR.
+- **Workflows that start without a pull request.** None of these run fork code:
+  - `scheduled-task_watch-php-releases.yml` runs hourly on `schedule` and on `workflow_dispatch`. It reads php.net's release feed and Docker Hub's tag API, and when a patch has no image it starts the production workflow with `actions: write`. The patch version from php.net reaches the run title through `gh workflow run -f reason=...`.
+  - `service_scan-images.yml` runs on `workflow_call` after every production publish and on `workflow_dispatch`. Grype, its vulnerability database, and the images it scans are third-party input. The `scan` job has a read-only token, no registry credentials, and runs Grype in its own container. The `report` job holds `contents: write`, `issues: write`, `packages: write`, and `id-token: write`, never runs scanner code, and only reads the JSON summaries the scan jobs upload. Text from those summaries (CVE IDs, package names, versions) ends up in public issue titles and bodies.
+  - `scheduled-task_scorecard.yml` runs on `push` to `main`, `schedule`, `branch_protection_rule`, and `workflow_dispatch`.
 - **Downloads during image builds** (the PHP tarball from php.net, the docker-library/php Dockerfiles, phpredis and liblzf source, s6-overlay, NGINX signing keys, PHP extension installer) through `docker-php-serversideup-download`. Tampering in transit or at the source must be caught by checksums or signatures. The PHP tarball is checked against php.net's SHA256 and its GPG signature, docker-library/php and liblzf are pinned to commits, and the other downloads are pinned to release tags in `scripts/conf/php-versions-base-config.yml`.
 
 Trusted (operators control these):
@@ -23,6 +27,8 @@ Most:
 - Web server configs in `src/variations/*/etc/` and PHP-FPM pools in `src/php-fpm.d/`
 - The unprivileged model. A path from `www-data` to root, or a default that runs something as root, matters.
 - `.github/workflows/` and `scripts/` used by CI (what gets built, tested, and published)
+- The signing identities. cosign signs images keylessly from `.github/workflows/service_publish-images.yml` and scan attestations from `.github/workflows/service_scan-images.yml`, at `refs/heads/main` or a `v*` tag, with GitHub's OIDC issuer. Users trust anything signed by those identities, so a way to run other code inside those workflows matters.
+- The `security-reports` branch. Only the `report` job in `service_scan-images.yml` writes it, and the docs site's security status page reads `reports/index.json` from it.
 
 Least, or out of scope:
 - The `docs/` site
@@ -47,8 +53,8 @@ kill %1                                                   # stops it, like docke
 `KEY=VALUE` arguments override the image's environment, like `docker run -e`. Every variation listens on 8080 and 8443, so run one at a time or change the port variables. Scripts in `src/` must run under both Debian `dash` and Alpine BusyBox `sh`, so check behavior on `fpm-nginx-alpine` as well. `scripts/tests/run.sh` tests the CI helper scripts.
 
 ## How you rate severity
-- **Critical:** remote, unauthenticated code execution or arbitrary file read (for example, `.env` or application source) through a config we ship with default settings. Also a fork pull request that can publish an image or read a secret.
-- **High:** escalation from `www-data` to root. A default that exposes secrets, the PHP-FPM status page, or FastCGI to the network. A fork pull request that can run code with write access to the repository or with Depot or registry credentials. A downloaded artifact that is used without verification.
+- **Critical:** remote, unauthenticated code execution or arbitrary file read (for example, `.env` or application source) through a config we ship with default settings. Also a fork pull request that can publish an image, sign as one of our workflows, or read a secret.
+- **High:** escalation from `www-data` to root. A default that exposes secrets, the PHP-FPM status page, or FastCGI to the network. A fork pull request that can run code with write access to the repository or with Depot or registry credentials. Scanner output that can write to `security-reports`, sign an attestation, or run code in the `report` job. A downloaded artifact that is used without verification.
 - **Medium:** client IP spoofing past `TRUSTED_PROXY`, so that IP-based controls are bypassed. Plain HTTP served when the docs say SSL is enforced. Denial of service from a single unauthenticated request.
 - **Low:** version banners and other information leaks that give no access. Hardening gaps with no demonstrated impact.
 
@@ -58,4 +64,5 @@ When a finding only applies with a non-default environment variable, rate it one
 - `COMPOSER_ALLOW_SUPERUSER=1` is intentional for builds that run as root.
 - `PHP_DISPLAY_ERRORS` and similar settings that operators can turn on for development are not findings.
 - Images run as `www-data` and can be switched to root with `USER root`. That design is documented and intentional.
-- Packages that are not pinned, and floating base image tags, are intentional. Weekly rebuilds pick up security fixes.
+- Packages that are not pinned, and floating base image tags, are intentional. Weekly rebuilds pick up security fixes, and the release watcher picks up new PHP patches within the hour.
+- Public `security-scan` issues that list CVEs in our images are intentional. They are already disclosed upstream CVEs that anyone can find by scanning a public image.

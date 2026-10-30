@@ -3,11 +3,17 @@ run-name: >-
   Production images (${{
     github.event.release.tag_name ||
     (github.event_name == 'schedule' && 'weekly rebuild') ||
+    inputs.reason ||
     'manual rebuild'
   }})
 
 on:
   workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Shown in the run title (example: PHP 8.5.13 release). Left empty, the run is a "manual rebuild".'
+        type: string
+        required: false
   release:
     types: [released]
   schedule:
@@ -83,7 +89,6 @@ jobs:
       registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
       tag-prefix: ''
       release-type: "latest"
-    secrets: inherit
 
   test:
     needs: [release, setup, base, build]
@@ -106,7 +111,24 @@ jobs:
       id-token: write
     with:
       ref: ${{ needs.release.outputs.tag }}
-    secrets: inherit
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+  # Scans what was just published and updates the public security reports.
+  scan:
+    needs: [release, publish]
+    if: needs.publish.result == 'success'
+    uses: ./.github/workflows/service_scan-images.yml
+    permissions:
+      actions: read
+      contents: write
+      issues: write
+      packages: write
+      id-token: write
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
   report:
     needs: [release, setup, build, test, publish]
