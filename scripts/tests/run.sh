@@ -93,55 +93,6 @@ assert_contains "$matrix_json" '"php_variation":"fpm-nginx","php_extension_overr
 assert_contains "$matrix_json" '"php_base_tag":"php-base-8.1.34-cli-bookworm","docker_library_ref":"frozen-sha"' "uses a minor version's own docker-library ref"
 assert_contains "$matrix_json" '"php_variation":"fpm-nginx","php_extension_overrides":"","php_base":"cli","php_base_tag":"php-base-8.6-rc-cli-trixie"' "lets a minor version swap a variation's docker-library base"
 
-# Grype output trimmed to the fields the summary reads: a fixable critical (reported
-# twice, as Grype does for one package matched two ways), a high Debian won't fix, and
-# a negligible one.
-grype_match() {
-    printf '{"vulnerability":{"id":"%s","severity":"%s","dataSource":"https://example.test/%s","fix":{"versions":%s,"state":"%s"}},"artifact":{"name":"%s","version":"1.0","type":"deb"}}' "$@"
-}
-grype_scan() {
-    echo "{\"descriptor\":{\"version\":\"0.121.0\",\"timestamp\":\"2026-10-30T08:00:00Z\",\"db\":{\"status\":{\"built\":\"2026-10-30T06:00:00Z\"}}},\"matches\":[$1]}"
-}
-
-echo
-echo "scan-summary.sh"
-grype_scan "$(grype_match CVE-1 Critical CVE-1 '["1.1"]' fixed libssl3),$(grype_match CVE-1 Critical CVE-1 '["1.1"]' fixed libssl3),$(grype_match CVE-2 High CVE-2 '[]' wont-fix libsqlite3),$(grype_match CVE-3 Negligible CVE-3 '[]' not-fixed libc6)" > "$image_details/grype.json"
-scan=$(bash "$scripts_dir/scan-summary.sh" "$image_details/grype.json" 8.5.12-cli-bookworm cli 8.5.12 bookworm sha256:aaa | jq -c .)
-assert_contains "$scan" '"counts":{"Critical":2,"High":1,"Medium":0,"Low":0,"Negligible":1,"Unknown":0}' "counts every match per severity"
-assert_contains "$scan" '"fixable":{"Critical":2,"High":0,' "counts the matches that have a fix"
-assert_contains "$scan" '"scanner":{"name":"grype","version":"0.121.0","db_built":"2026-10-30T06:00:00Z"}' "records the scanner and database it used"
-assert_contains "$(echo "$scan" | jq -c '[.vulnerabilities[].id]')" '["CVE-1","CVE-2"]' "lists one finding per package and leaves negligible ones out"
-
-echo
-echo "security-report.sh"
-scans="$image_details/scans"
-reports="$image_details/reports"
-mkdir -p "$scans"
-echo "$scan" > "$scans/8.5.12-cli-bookworm.json"
-bash "$scripts_dir/scan-summary.sh" "$image_details/grype.json" 8.4.27-cli-bookworm cli 8.4.27 bookworm sha256:bbb > "$scans/8.4.27-cli-bookworm.json"
-first=$(bash "$scripts_dir/security-report.sh" "$scans" "$reports" https://example.test/run/1 | jq -c .)
-assert_contains "$first" '"id":"CVE-1","severity":"Critical","packages":["libssl3"]' "lists fixable critical findings"
-assert_contains "$first" '"consecutive_scans":1' "counts a new finding as seen once"
-assert_contains "$(echo "$first" | jq -c '[.[].id]')" '["CVE-1"]' "leaves findings without a fix out of the fixable list"
-assert_contains "$(jq -c '[.images[].image]' "$reports/index.json")" '["8.4.27-cli-bookworm","8.5.12-cli-bookworm"]' "indexes every scanned image"
-assert_contains "$(ls "$reports/images")" "8.5.12-cli-bookworm.json" "writes a report per image"
-
-second=$(bash "$scripts_dir/security-report.sh" "$scans" "$reports" https://example.test/run/2 | jq -c .)
-assert_contains "$second" '"consecutive_scans":2' "counts a finding that survived a rebuild"
-
-rm "$scans/8.4.27-cli-bookworm.json"
-grype_scan "$(grype_match CVE-2 High CVE-2 '[]' wont-fix libsqlite3)" > "$image_details/grype.json"
-bash "$scripts_dir/scan-summary.sh" "$image_details/grype.json" 8.5.12-cli-bookworm cli 8.5.12 bookworm sha256:aaa > "$scans/8.5.12-cli-bookworm.json"
-third=$(bash "$scripts_dir/security-report.sh" "$scans" "$reports" https://example.test/run/3 | jq -c .)
-assert_contains "$third" '[]' "drops a finding the rebuild fixed"
-assert_contains "$(ls "$reports/images")" "8.5.12-cli-bookworm.json" "keeps reports for images still published"
-if [ -e "$reports/images/8.4.27-cli-bookworm.json" ]; then
-    echo "❌ removes reports for images no longer published"
-    failures=$((failures + 1))
-else
-    echo "✅ removes reports for images no longer published"
-fi
-
 echo
 if [ "$failures" -gt 0 ]; then
     echo "$failures check(s) failed" >&2

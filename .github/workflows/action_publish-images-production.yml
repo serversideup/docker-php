@@ -115,20 +115,15 @@ jobs:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-  # Scans what was just published and updates the public security reports.
+  # Scans what was just published: counts in the run summary, fixable findings as code scanning alerts.
   scan:
     needs: [release, publish]
     if: needs.publish.result == 'success'
     uses: ./.github/workflows/service_scan-images.yml
     permissions:
       actions: read
-      contents: write
-      issues: write
-      packages: write
-      id-token: write
-    secrets:
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      contents: read
+      security-events: write
 
   report:
     needs: [release, setup, build, test, publish]

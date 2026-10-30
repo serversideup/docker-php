@@ -19,7 +19,7 @@ Vulnerabilities in what *we* author and ship:
 - Entrypoint scripts, healthchecks, helper scripts, and S6 service definitions in `src/`
 - Default configs we ship for PHP-FPM, NGINX, Apache, and FrankenPHP
 - Insecure defaults: ports, file permissions, the `www-data` user model, SSL defaults
-- Build pipeline integrity (GitHub Actions workflows, tag assembly, image publishing, image signing and attestations)
+- Build pipeline integrity (GitHub Actions workflows, tag assembly, image publishing, image signing)
 - Documentation that materially misleads users about a security-relevant setting
 
 ## What is out of scope — report to the upstream project
@@ -40,7 +40,7 @@ If an upstream CVE is already publicly disclosed, you don't need to file with us
 
 Images we publish are signed with cosign and carry an SBOM and build provenance. Images published before signing was added have provenance only. [Verifying images](https://serversideup.net/open-source/docker-php/docs/guide/verifying-images) shows how to check them.
 
-Each production build ends with a vulnerability scan of every published image. The results are on the [security status](https://serversideup.net/open-source/docker-php/docs/reference/security-status) page. Scanner findings are already disclosed upstream CVEs, so we track the fixable ones that survive a rebuild in public issues labeled [`security-scan`](https://github.com/serversideup/docker-php/issues?q=label%3Asecurity-scan). Anything that is not yet public, including a problem in what we author, still goes through [private reporting](#reporting-a-vulnerability).
+Each production build ends with a vulnerability scan of every published image. The results are in the run summary of each [production run](https://github.com/serversideup/docker-php/actions/workflows/action_publish-images-production.yml), and [Vulnerability scanning](https://serversideup.net/open-source/docker-php/docs/reference/vulnerability-scanning) explains how to read them. Scanner findings are already disclosed upstream CVEs. Anything that is not yet public, including a problem in what we author, still goes through [private reporting](#reporting-a-vulnerability).
 
 ## Component lifecycle references
 
