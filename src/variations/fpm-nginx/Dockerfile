@@ -98,10 +98,13 @@ RUN \
 ##########
 FROM ${BASE_IMAGE}
 # brotli-libs and libbrotli1 upgrade past CVE-2026-111497. Remove them once the official PHP images ship the fix.
+# curl and libcurl upgrade Alpine past curl 8.22.0 (CVE-2026-86409 and others). Remove them once the official PHP images ship 8.23.0.
 ARG DEPENDENCY_PACKAGES_ALPINE="\
     brotli-libs \
+    curl \
     fcgi \
     gettext \
+    libcurl \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
     gettext-base \
