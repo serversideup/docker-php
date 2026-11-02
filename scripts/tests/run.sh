@@ -94,6 +94,21 @@ assert_contains "$matrix_json" '"php_base_tag":"php-base-8.1.34-cli-bookworm","d
 assert_contains "$matrix_json" '"php_variation":"fpm-nginx","php_extension_overrides":"","php_base":"cli","php_base_tag":"php-base-8.6-rc-cli-trixie"' "lets a minor version swap a variation's docker-library base"
 
 echo
+echo "get-php-release-candidate.sh"
+# The shape of php.net's pre-release feed: 8.5 has no release candidate pending, 8.6 does.
+feed_file="$image_details/pre-release-builds.json"
+cat > "$feed_file" <<'JSON'
+{"8.5.12":{"active":true,"release":null},
+ "8.6.0":{"active":true,"release":{"version":"8.6.0RC4","files":{"xz":{"path":"https://downloads.php.net/~rm/php-8.6.0RC4.tar.xz","sha256":"93f2"}}}},
+ "reported":["8.6.0RC4"],
+ "releases":{"8.6.0":{}}}
+JSON
+release_candidate=$(PHP_PRE_RELEASE_JSON_FEED="file://$feed_file" bash "$scripts_dir/get-php-release-candidate.sh" 8.6)
+assert_contains "$release_candidate" '{"version":"8.6.0RC4","url":"https://downloads.php.net/~rm/php-8.6.0RC4.tar.xz","sha256":"93f2"}' "finds the newest release candidate for a minor"
+no_release_candidate=$(PHP_PRE_RELEASE_JSON_FEED="file://$feed_file" bash "$scripts_dir/get-php-release-candidate.sh" 8.5)
+assert_contains "[$no_release_candidate]" "[]" "prints nothing when php.net lists no release candidate"
+
+echo
 if [ "$failures" -gt 0 ]; then
     echo "$failures check(s) failed" >&2
     exit 1

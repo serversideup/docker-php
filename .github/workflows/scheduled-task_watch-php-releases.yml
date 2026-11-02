@@ -38,6 +38,8 @@ jobs:
 
       # Each patch is looked up as its cli tag on the first OS it builds for. Anything other
       # than "found" or "not found" is skipped, so a Docker Hub outage never starts a run.
+      # A minor with no base OS (a new PHP minor php.net lists before the base config does)
+      # is not built, so starting a run for it would only rebuild everything else.
       - name: Find patches that have no image yet
         id: missing
         run: |
@@ -53,6 +55,7 @@ jobs:
             esac
           done < <(yq -o=json scripts/conf/php-versions.yml | jq -r '
             .php_versions[].minor_versions[]
+            | select((.base_os // []) | length > 0)
             | .base_os[0].name as $os
             | .patch_versions[] | select(test("rc") | not)
             | [., $os] | @tsv')

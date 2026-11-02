@@ -104,6 +104,9 @@ jobs:
     with:
       ref: ${{ inputs.pr_number && format('refs/pull/{0}/head', inputs.pr_number) || github.ref }}
       authenticate_with_ghcr: false
+      # A manual run signs as main, the identity users verify production images against,
+      # so the code a maintainer dispatches for a fork's pull request is never signed.
+      sign: ${{ github.event_name == 'pull_request' }}
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}

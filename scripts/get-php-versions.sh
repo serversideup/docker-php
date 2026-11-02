@@ -210,6 +210,18 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
         }
     ' <(echo "$downloaded_and_normalized_json_data") <(echo "$base_json_data"))
 
+    # A release candidate minor such as "8.6-rc" builds only while php.net lists a release
+    # candidate for it. Publishing is all or nothing, so one missing base would otherwise
+    # hold back every other image, including PHP security releases.
+    for rc_minor in $(echo "$merged_json" | jq -r '.php_versions[].minor_versions[].minor | select(endswith("-rc"))'); do
+        release_candidate=$("$SCRIPT_DIR/get-php-release-candidate.sh" "${rc_minor%-rc}")
+        if [ -z "$release_candidate" ]; then
+            echo_color_message yellow "⚠️  php.net lists no release candidate for PHP ${rc_minor%-rc}, so $rc_minor is not built."
+            echo "::warning title=No PHP release candidate::php.net lists no release candidate for PHP ${rc_minor%-rc}, so $rc_minor is not built. Remove it from the base config once ${rc_minor%-rc} is released."
+            merged_json=$(echo "$merged_json" | jq --arg rc_minor "$rc_minor" '.php_versions[].minor_versions |= map(select(.minor != $rc_minor))')
+        fi
+    done
+
     # Convert updated JSON data back to YAML
     merged_and_finalized_yaml=$(echo "$merged_json" | yq eval -P -)
 
