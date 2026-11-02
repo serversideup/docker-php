@@ -14,6 +14,10 @@ on:
         default: true
         type: boolean
         description: 'Whether to log in to GitHub Container Registry.'
+      sign:
+        default: true
+        type: boolean
+        description: 'Whether to sign the published images with cosign.'
       ref:
         type: string
         default: ${{ github.ref }}
@@ -95,6 +99,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install cosign
+        if: ${{ inputs.sign }}
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       # `depot push` handles one tag at a time, so images are pushed in parallel and each
@@ -110,6 +115,7 @@ jobs:
           IMAGES: ${{ matrix.images }}
           VARIATION: ${{ matrix.variation }}
           MAX_PARALLEL: 2
+          SIGN: ${{ inputs.sign }}
           PUSH_ATTEMPTS: 5
         run: |
           PROJECT=$(jq -r .id depot.json)
@@ -155,11 +161,13 @@ jobs:
             fi
 
             # Every tag in a registry points at the same index, so one signature per registry covers them all.
-            local index_digest repository
-            index_digest=$(docker buildx imagetools inspect "$canonical_tag" --format '{{json .Manifest.Digest}}' | jq -r .)
-            for repository in $(tr ',' '\n' <<< "$tags" | sed 's/:[^:]*$//' | sort -u); do
-              retry "Signing ${repository}@${index_digest}" cosign sign --yes "${repository}@${index_digest}" || return 1
-            done
+            if [ "$SIGN" = "true" ]; then
+              local index_digest repository
+              index_digest=$(docker buildx imagetools inspect "$canonical_tag" --format '{{json .Manifest.Digest}}' | jq -r .)
+              for repository in $(tr ',' '\n' <<< "$tags" | sed 's/:[^:]*$//' | sort -u); do
+                retry "Signing ${repository}@${index_digest}" cosign sign --yes "${repository}@${index_digest}" || return 1
+              done
+            fi
 
             local manifest sizes
             manifest=$(docker manifest inspect -v "$canonical_tag") || manifest='[]'

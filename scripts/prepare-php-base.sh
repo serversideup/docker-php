@@ -39,12 +39,11 @@ fail() {
 # docker-library keeps release candidates in their own directory, such as 8.6-rc
 if [[ "$patch" == *-rc ]]; then
     minor="$patch"
-    release=$("$download" "https://www.php.net/release-candidates.php?format=json" \
-        | jq -c --arg prefix "${patch%-rc}." '[to_entries[] | select(.key | startswith($prefix)) | .value.release | select(.version != null and .files.xz.sha256 != "")][0] // empty')
+    release=$("$scripts_dir/get-php-release-candidate.sh" "${patch%-rc}")
     [ -n "$release" ] || fail "php.net does not list a release candidate for ${patch%-rc}"
     version=$(jq -r '.version' <<< "$release")
-    tarball_url=$(jq -r '.files.xz.path' <<< "$release")
-    sha256=$(jq -r '.files.xz.sha256' <<< "$release")
+    tarball_url=$(jq -r '.url' <<< "$release")
+    sha256=$(jq -r '.sha256' <<< "$release")
 else
     minor="${patch%.*}"
     version="$patch"
