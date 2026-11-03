@@ -52,18 +52,19 @@ if [ "$current_uid" -eq "$uid" ] && [ "$current_gid" -eq "$gid" ]; then
 fi
 
 # Check if another group has the GID already
-if getent group "$gid" > /dev/null; then
+existing_group_name=$(getent group "$gid" | cut -d: -f1)
+if [ -n "$existing_group_name" ] && [ "$existing_group_name" != "$username" ]; then
     moved_group_id="99$gid"
-    existing_group_name=$(getent group "$gid" | cut -d: -f1)
     echo "$script_name: ⚡️ Moving GID of $existing_group_name to $moved_group_id"
     groupmod -g "$moved_group_id" "$existing_group_name"
 fi
 
 # Check if another user has the UID already
-if getent passwd "$uid" > /dev/null; then
+existing_user_name=$(getent passwd "$uid" | cut -d: -f1)
+if [ -n "$existing_user_name" ] && [ "$existing_user_name" != "$username" ]; then
     moved_user_id="99$uid"
-    echo "$script_name: ⚡️ Moving UID of $username to $moved_user_id"
-    usermod -u "$moved_user_id" "$username"
+    echo "$script_name: ⚡️ Moving UID of $existing_user_name to $moved_user_id"
+    usermod -u "$moved_user_id" "$existing_user_name"
 fi
 
 # Change the UID and GID
