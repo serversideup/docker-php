@@ -41,6 +41,21 @@
 	# tls directive is not needed when auto_https is enabled
 }
 
+# Every CADDY_AUTO_HTTPS value needs a snippet, or Caddy exits on start-up in mixed and full mode
+(auto-https-disable_redirects) {
+	import auto-https-on
+}
+
+# Caddy issues no certificates, so serve SSL_CERTIFICATE_FILE
+(auto-https-disable_certs) {
+	import auto-https-off
+}
+
+# Caddy still issues certificates for names on the loaded certificate
+(auto-https-ignore_loaded_certs) {
+	import auto-https-off
+}
+
 # Common app logic; reused across all modes
 (php-app-common) {
 	root * {$CADDY_SERVER_ROOT:/var/www/html/public}
