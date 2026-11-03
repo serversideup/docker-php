@@ -1,70 +1,30 @@
 ---
 title: FPM
-description: 'Learn how to use the FPM variation of the serversideup/php image.'
+description: 'Run PHP-FPM on its own behind a web server or proxy you manage.'
 ---
 
 ::lead-p
-The FPM variation runs PHP-FPM (FastCGI Process Manager) without a web server. It's designed to work alongside a separate web server or load balancer that handles static content and proxies PHP requests to this container.
-
-Use this variation when you're building microservices architectures or have a separate proxy layer handling HTTP traffic.
+The `fpm` variation runs PHP-FPM alone and answers FastCGI requests on port `9000`, so you bring the web server. Choose it when you already run NGINX, Caddy, or another FastCGI-capable server, or want to scale PHP separately from it. If you want the web server in the same container, use [`fpm-nginx`](/docs/image-variations/fpm-nginx), [`fpm-apache`](/docs/image-variations/fpm-apache), or [`frankenphp`](/docs/image-variations/frankenphp). [Compare every variation →](/docs/getting-started/choosing-an-image)
 ::
 
-## When to Use FPM
-Use the FPM variation when you need to:
+## At a glance
 
-- Separate your PHP processing from your web server layer
-- Build microservices where PHP runs as a dedicated backend service
-- Use a separate load balancer or API gateway to route traffic
-- Have an existing NGINX, Traefik, or other reverse proxy infrastructure
-- Scale your PHP processing independently from your web server
+| | `fpm` |
+|---|---|
+| Processes | `php-fpm` only. No S6 Overlay; the FPM master manages its own workers. |
+| Ports | `9000` (FastCGI, not HTTP) |
+| Stop signal | `SIGQUIT` (FPM finishes in-flight requests, then exits) |
+| Default health check | [`php-fpm-healthcheck`](https://github.com/renatomefi/php-fpm-healthcheck){target="_blank"}, which reads FPM's status page |
+| Webroot variable | None. Your web server sets the document root. |
+| PHP versions | 8.1 to 8.5, plus the 8.6 release candidate |
+| Operating systems | Debian and Alpine |
 
-#### Perfect for
-- Microservices architectures where separation of concerns is important
-- Kubernetes deployments with separate service containers
-- Large-scale deployments with dedicated load balancers
-- Advanced setups where you want full control over your proxy configuration
+## Quick start
+This Compose file runs PHP-FPM and the official NGINX image side by side. Both mount the same code, because NGINX serves static files itself and passes only PHP requests to FPM.
 
-#### What's Inside
+::code-tree{defaultValue="compose.yml"}
 
-| Item | Status |
-|------|--------|
-| PHP-FPM process manager | ✅ |
-| PHP CLI binary | ✅ |
-| Common PHP extensions | ✅ |
-| `composer` executable | ✅ |
-| `install-php-extensions` script | ✅ |
-| Essential system utilities | ✅ |
-| S6 Overlay (process supervisor) | ✅ |
-| Native health checks | ✅ (via [`php-fpm-healthcheck`](https://github.com/renatomefi/php-fpm-healthcheck){target="_blank"} script) |
-| Web server | ❌ (requires external web server) |
-| Process management | Single entrypoint, single process |
-| Exposed Ports | `9000` (FastCGI) |
-| Stop Signal | `SIGQUIT` |
-
-## How FPM Works
-Unlike variations that include a web server, the FPM variation only runs PHP-FPM, which listens on port 9000 for FastCGI requests.
-
-You'll need a separate web server (like NGINX, Apache, or Caddy) to:
-
-::steps{level="4"}
-#### Accept HTTP requests from clients
-#### Serve static files directly (CSS, JavaScript, images)
-#### Forward PHP requests to the FPM container on port 9000
-#### Return the PHP-FPM response back to the client
-::
-This architecture gives you maximum flexibility but requires more configuration than the all-in-one variations.
-
-::note
-If you want a simpler setup with everything in one container, consider using the `fpm-nginx`, `fpm-apache`, or `frankenphp` variations instead. These include both the web server and PHP-FPM in a single container.
-::
-
-## Quick Start
-Here are a few examples to help you get started with the FPM variation.
-
-### Docker Compose with Separate NGINX
-This example shows a common setup with PHP-FPM in one container and NGINX in another.
-
-```yml [compose.yml]
+```yaml [compose.yml]
 services:
   php:
     image: serversideup/php:8.5-fpm
@@ -72,24 +32,20 @@ services:
       - ./:/var/www/html
 
   nginx:
-    image: nginx:alpine
+    image: nginx:1.30-alpine
     ports:
       - "80:80"
     volumes:
       - ./:/var/www/html
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - php
 ```
 
-And your NGINX configuration (`nginx.conf`):
-
 ```nginx [nginx.conf]
 server {
     listen 80;
-    server_name localhost;
     root /var/www/html/public;
-
     index index.php index.html;
 
     location / {
@@ -98,82 +54,38 @@ server {
 
     location ~ \.php$ {
         fastcgi_pass php:9000;
-        fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }
 }
 ```
 
-::tip
-Notice how the `fastcgi_pass` directive points to `php:9000`. This is the service name from your Docker Compose file. Docker's networking allows services to communicate using their service names.
+```php [public/index.php]
+<?php
+phpinfo();
+```
+
 ::
 
-### Health Check
-The FPM variation includes [`php-fpm-healthcheck`](https://github.com/renatomefi/php-fpm-healthcheck){target="_blank"}, a POSIX-compliant script that monitors PHP-FPM's `/status` endpoint to verify the service is healthy.
+`fastcgi_pass php:9000` uses the Compose service name as the host name. The file path in `SCRIPT_FILENAME` is resolved inside the PHP container, so mount the code at the same path in both containers.
 
-::tip
-The `php-fpm-healthcheck` script can also monitor specific metrics like accepted connections or queue length. For example, you could fail the health check if the listen queue exceeds 10 processes: `php-fpm-healthcheck --listen-queue=10`
-::
+## Health check
+The image's health check runs `php-fpm-healthcheck`, which passes when FPM's status page answers. Add options to fail on load as well, such as `--listen-queue=10` to fail when more than 10 requests are waiting:
 
-```yml [compose.yml]{7-10}
+```yaml [compose.yml]
 services:
   php:
     image: serversideup/php:8.5-fpm
-    volumes:
-      - ./:/var/www/html
     healthcheck:
       test: ["CMD", "php-fpm-healthcheck", "--listen-queue=10"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
 ```
 
-## Environment Variables
-The FPM variation supports extensive customization through environment variables. Here are some common ones:
+For Laravel queue, Horizon, and scheduler health checks, see [Laravel health checks](/docs/framework-guides/laravel/health-checks).
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PHP_FPM_POOL_NAME` | `www` | Name of the PHP-FPM pool |
-| `PHP_FPM_PM_CONTROL` | `dynamic` | Process manager control (`dynamic`, `static`, `ondemand`) |
-| `PHP_FPM_PM_MAX_CHILDREN` | `20` | Maximum number of child processes |
-| `PHP_FPM_PM_START_SERVERS` | `2` | Number of child processes created on startup |
-| `PHP_FPM_PM_MIN_SPARE_SERVERS` | `1` | Minimum number of idle processes |
-| `PHP_FPM_PM_MAX_SPARE_SERVERS` | `3` | Maximum number of idle processes |
-| `PHP_MEMORY_LIMIT` | `256M` | Maximum memory a script can use |
-| `PHP_MAX_EXECUTION_TIME` | `99` | Maximum time a script can run (seconds) |
+## Configuration
+Set PHP and PHP-FPM options with `PHP_*` and `PHP_FPM_*` environment variables. All of them, with defaults, are in the [environment variable specification](/docs/reference/environment-variable-specification). To size the FPM process pool for your server, see [production performance tuning](/docs/deployment-and-production/production-performance-tuning).
 
-::tip{to="/docs/reference/environment-variable-specification"}
-For a complete list of available environment variables, see the [Environment Variable Specification →](/docs/reference/environment-variable-specification).
-::
-
-## Performance Tuning
-The FPM variation gives you fine-grained control over PHP process management. Here are some tuning tips:
-
-### For High-Traffic Applications
-```yml [compose.yml]
-services:
-  php:
-    image: serversideup/php:8.5-fpm
-    environment:
-      PHP_FPM_PM_CONTROL: "static"
-      PHP_FPM_PM_MAX_CHILDREN: "50"
-      PHP_MEMORY_LIMIT: "512M"
-```
-
-### For Low-Memory Environments
-```yml [compose.yml]
-services:
-  php:
-    image: serversideup/php:8.5-fpm
-    environment:
-      PHP_FPM_PM_CONTROL: "ondemand"
-      PHP_FPM_PM_MAX_CHILDREN: "10"
-      PHP_FPM_PM_PROCESS_IDLE_TIMEOUT: "10s"
-```
-
-## Further Customization
-If you need to customize the container further, reference the docs below:
-
-- [Environment Variable Specification](/docs/reference/environment-variable-specification) - See which environment variables are available to customize PHP and PHP-FPM settings.
-- [Command Reference](/docs/reference/command-reference) - See which commands are available to run inside the container.
+## Related pages
+- [Choosing an image](/docs/getting-started/choosing-an-image)
+- [Packaging your app for deployment](/docs/deployment-and-production/packaging-your-app-for-deployment)
+- [Command reference](/docs/reference/command-reference)

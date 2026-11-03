@@ -1,81 +1,62 @@
 ---
 title: CLI
-description: 'Learn how to use the CLI variation of the serversideup/php image.'
+description: 'Run PHP and Composer from the command line with the cli variation, which has no web server.'
 ---
 
 ::lead-p
-The CLI variation is a minimal image designed for running PHP from the command line only. It does not include a web server.
-
-Use this variation for running commands like Composer, running one-off scripts, or executing PHP commands that don't require a web server.
+The `cli` variation runs PHP from the command line, with no web server and no process supervisor. Choose it for Composer, one-off scripts, running PHP without installing it on your machine, or [Laravel Octane on Swoole or RoadRunner](/docs/framework-guides/laravel/octane#run-octane-on-swoole-or-roadrunner). [Compare every variation →](/docs/getting-started/choosing-an-image)
 ::
 
-## When to Use CLI
-Use the CLI variation when you need to:
+## At a glance
 
-- Run Composer for dependency management
-- Execute one-off PHP scripts
-- Run queue workers, the scheduler, or Horizon
-- Run Laravel Octane on Swoole, Open Swoole, or RoadRunner
-- Need a very small image size
+| | `cli` |
+|---|---|
+| Processes | One: the command you pass. No supervisor. |
+| Ports | None |
+| Stop signal | `SIGTERM` |
+| Default health check | None |
+| Webroot variable | Not used |
+| PHP versions | 8.1 to 8.5, plus the 8.6 release candidate |
+| Operating systems | Debian and Alpine |
 
-#### Perfect for
-- Running PHP locally without needing to install PHP on your host system.
-- Serving a Laravel Octane application when you do not want [FrankenPHP](/docs/image-variations/frankenphp). See [Running Octane Without FrankenPHP](/docs/framework-guides/laravel/octane#running-octane-without-frankenphp).
+The image also includes `composer` and `install-php-extensions`. See [default configurations](/docs/getting-started/default-configurations) for the full list of extensions and settings.
 
-#### What's Inside
+## Quick start
+Mount your project into `/var/www/html` and open a shell:
 
-| Item | Status |
-|------|--------|
-| PHP CLI binary | ✅ |
-| Common PHP extensions | ✅ |
-| `composer` executable | ✅ |
-| `install-php-extensions` script | ✅ |
-| Essential system utilities | ✅ |
-| Native health checks | ❌ |
-| Web server | ❌ (no web server included) |
-| Process management | Single entrypoint, single process |
-| Exposed Ports | None |
-| Stop Signal | `SIGTERM` |
-
-## Quick Start
-Here are a few quick examples to get you started.
-
-### Docker CLI
 ```bash [Terminal]
-docker run -it -v $(pwd):/var/www/html serversideup/php:cli bash
+docker run --rm -it -v "$(pwd):/var/www/html" serversideup/php:8.5-cli bash
 ```
 
-The above command will mount your current directory as the `/var/www/html` directory in the container and open a bash shell inside the container where PHP is installed. To exit, just type `exit`.
+Or run one command and exit:
 
-### Docker Compose
-If you want something more repeatable, you can use Docker Compose to start a container with the CLI variation and mount your current directory as the `/var/www/html` directory in the container.
+```bash [Terminal]
+docker run --rm -v "$(pwd):/var/www/html" serversideup/php:8.5-cli composer install
+```
 
-```yml [compose.yml]
+Alpine images have no `bash`. Use `sh` with `serversideup/php:8.5-cli-alpine`.
+
+### With Docker Compose
+Define the service once:
+
+```yaml [compose.yml]
 services:
   php:
-    image: serversideup/php:cli
+    image: serversideup/php:8.5-cli
     volumes:
       - ./:/var/www/html
 ```
 
-Once you have your `compose.yml` file set, you can use the `docker compose` cli to start a container with your configuration.
+Then run commands through it. The first `php` is the service name and the second is the command:
 
 ```bash [Terminal]
-docker compose run -it php bash
+docker compose run --rm php php my-script.php
 ```
 
-Or you can pass commands directly to the container without starting a shell.
+## Laravel workers and the scheduler
+Queue workers, Horizon, and the scheduler usually run from the same image as your web app with a different command, so every container has the same code and extensions. See [Laravel workers](/docs/framework-guides/laravel/workers) for the commands and health checks.
 
-::note
-Don't get confused. `php` is in this command twice because it's the name of the service and the command to run inside the container. If this is too confusing, you can set your service name to something else like `app` in your `compose.yml` file.
-::
-
-```bash [Terminal]
-docker compose run php php my-script.php
-```
-
-### Further Customization
-If you need to customize the container further, reference the docs below:
-
-- [Environment Variable Specifications](/docs/reference/environment-variable-specification) - See which environment variables are available to customize common PHP settings.
-- [Command Reference](/docs/reference/command-reference) - See which commands are available to run inside the container.
+## Related pages
+- [Environment variable specification](/docs/reference/environment-variable-specification): every `PHP_*` setting
+- [Command reference](/docs/reference/command-reference): helper commands inside the container
+- [Installing additional PHP extensions](/docs/customizing-the-image/installing-additional-php-extensions)
