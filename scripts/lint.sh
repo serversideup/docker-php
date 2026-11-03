@@ -62,10 +62,24 @@ check_hadolint() {
         hadolint src/variations/*/Dockerfile .oss-scanner/Dockerfile
 }
 
+# The whole build matrix starts at once and transient 5xx errors are common, so Dockerfiles
+# download with docker-php-serversideup-download, which retries. HEALTHCHECK runs curl in the
+# finished container, so it's allowed.
+verify_dockerfile_downloads() {
+    local calls
+    calls=$(grep -nE '(^|[^-[:alnum:]])curl[[:space:]]+(-|https?:|"|\$)' \
+        src/variations/*/Dockerfile .oss-scanner/Dockerfile | grep -v 'CMD \[')
+    [ -z "$calls" ] && return 0
+    echo "❌ Use docker-php-serversideup-download instead of curl in a Dockerfile:"
+    echo "$calls"
+    return 1
+}
+
 check_scripts() {
     bash scripts/tests/run.sh &&
         bash scripts/check-env-var-docs.sh &&
-        bash scripts/check-command-docs.sh
+        bash scripts/check-command-docs.sh &&
+        verify_dockerfile_downloads
 }
 
 if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
