@@ -167,6 +167,12 @@ export default defineAppConfig({
                     target: '_blank'
                 },
                 {
+                    icon: 'i-lucide-scroll-text',
+                    label: 'Release Notes',
+                    to: 'https://github.com/serversideup/docker-php/releases',
+                    target: '_blank'
+                },
+                {
                     icon: 'i-lucide-bell-ring',
                     label: 'Subscribe',
                     to: 'https://serversideup.net/subscribe',
