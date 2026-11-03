@@ -26,12 +26,17 @@ export default defineNuxtConfig({
                 highlight: {
                     theme: 'github-dark',
                     langs: [
+                        'apache',
                         'jinja',
                         'bash',
                         'diff',
                         'dockerfile',
+                        'ini',
+                        'json',
                         'nginx',
                         'php',
+                        'sh',
+                        'yaml',
                     ]
                 },
                 toc: {
@@ -43,10 +48,43 @@ export default defineNuxtConfig({
 
     compatibilityDate: '2024-07-11',
 
+    routeRules: {
+        '/docs/getting-started/upgrade-guide': { redirect: '../upgrading/upgrade-guide' },
+        '/docs/getting-started/changelog': { redirect: 'https://github.com/serversideup/docker-php/releases' },
+        '/docs/getting-started/about': { redirect: '../troubleshooting/getting-help' },
+        '/docs/guide/migrating-from-official-php-images': { redirect: '../getting-started/migrating-from-official-php-images' },
+        '/docs/guide/using-healthchecks-with-laravel': { redirect: '../framework-guides/laravel/health-checks' },
+        '/docs/guide/using-s6-overlay': { redirect: '../customizing-the-image/using-s6-overlay' },
+        '/docs/guide/understanding-file-permissions': { redirect: '../customizing-the-image/understanding-file-permissions' },
+        '/docs/guide/configuring-trusted-proxies': { redirect: '../deployment-and-production/configuring-trusted-proxies' },
+        '/docs/guide/major-version-migrations': { redirect: '../upgrading/upgrade-guide#upgrade-to-a-new-major-version' },
+        '/docs/guide/production-performance-tuning': { redirect: '../deployment-and-production/production-performance-tuning' },
+        '/docs/guide/verifying-images': { redirect: '../security/verifying-images' },
+        '/docs/reference/verifying-images': { redirect: '../security/verifying-images' },
+        '/docs/reference/vulnerability-scanning': { redirect: '../security/vulnerability-scanning' },
+        '/docs/reference/how-images-are-built': { redirect: '../security/how-images-are-built' },
+        '/docs/deployment-and-production/development-to-production': { redirect: 'packaging-your-app-for-deployment' }
+    },
+
     nitro: {
         prerender: {
             routes: [
-                '/'
+                '/',
+                '/docs/getting-started/upgrade-guide',
+                '/docs/getting-started/changelog',
+                '/docs/getting-started/about',
+                '/docs/guide/migrating-from-official-php-images',
+                '/docs/guide/using-healthchecks-with-laravel',
+                '/docs/guide/using-s6-overlay',
+                '/docs/guide/understanding-file-permissions',
+                '/docs/guide/configuring-trusted-proxies',
+                '/docs/guide/major-version-migrations',
+                '/docs/guide/production-performance-tuning',
+                '/docs/guide/verifying-images',
+                '/docs/reference/verifying-images',
+                '/docs/reference/vulnerability-scanning',
+                '/docs/reference/how-images-are-built',
+                '/docs/deployment-and-production/development-to-production'
             ],
             crawlLinks: true,
             autoSubfolderIndex: false
@@ -122,13 +160,6 @@ export default defineNuxtConfig({
                 ]
             },
             {
-                title: 'Advanced Guides',
-                contentCollection: 'docs',
-                contentFilters: [
-                    { field: 'path', operator: 'LIKE', value: '/docs/guide%' }
-                ]
-            },
-            {
                 title: 'Customizing The Image',
                 contentCollection: 'docs',
                 contentFilters: [
@@ -136,10 +167,24 @@ export default defineNuxtConfig({
                 ]
             },
             {
+                title: 'Upgrading',
+                contentCollection: 'docs',
+                contentFilters: [
+                    { field: 'path', operator: 'LIKE', value: '/docs/upgrading%' }
+                ]
+            },
+            {
                 title: 'Troubleshooting',
                 contentCollection: 'docs',
                 contentFilters: [
                     { field: 'path', operator: 'LIKE', value: '/docs/troubleshooting%' }
+                ]
+            },
+            {
+                title: 'Security',
+                contentCollection: 'docs',
+                contentFilters: [
+                    { field: 'path', operator: 'LIKE', value: '/docs/security%' }
                 ]
             },
             {
