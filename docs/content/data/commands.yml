@@ -1,0 +1,270 @@
+# Every helper command the images add to /usr/local/bin. The reference page at
+# /docs/reference/command-reference renders this file, and
+# scripts/check-command-docs.sh fails CI when it drifts from src/.
+#
+# Each command:
+#   name         The command
+#   summary      One line on what it does
+#   variations   Variations that ship it. Leave it out when every variation does
+#   root         true when it needs `USER root` in a Dockerfile
+#   description  More detail. Markdown: inline code and links only
+#   usage        The command's signature
+#   options      Flags and arguments, each with a name and description
+#   example      A working example: language, filename, and code
+#   reference    Optional link to further reading
+commands:
+  - name: artisan
+    summary: Run `php artisan` from any directory.
+    description: Runs `php $APP_BASE_DIR/artisan` with your arguments, so you don't need to be in the app directory. It exits with an error if there's no `artisan` file in `APP_BASE_DIR`.
+    usage: artisan <command> [arguments]
+    example:
+      language: bash
+      filename: Terminal
+      code: docker compose exec php artisan migrate:status
+  - name: docker-php-serversideup-dep-install-alpine
+    summary: Install OS packages on Alpine only.
+    root: true
+    description: Installs packages with `apk` on Alpine and does nothing on Debian, so one Dockerfile builds on both. Pair it with `docker-php-serversideup-dep-install-debian` for the Debian package names. Pass packages as separate arguments, a comma-separated list, or across lines. It cleans up the package cache when it finishes.
+    usage: docker-php-serversideup-dep-install-alpine <package> [package ...]
+    example:
+      language: dockerfile
+      filename: Dockerfile
+      code: |-
+        FROM serversideup/php:8.5-fpm-nginx
+
+        USER root
+        RUN docker-php-serversideup-dep-install-debian "default-mysql-client, git" \
+            && docker-php-serversideup-dep-install-alpine "mysql-client, git"
+        USER www-data
+  - name: docker-php-serversideup-dep-install-debian
+    summary: Install OS packages on Debian only.
+    root: true
+    description: Installs packages with `apt-get` on Debian and does nothing on Alpine, so one Dockerfile builds on both. Pair it with `docker-php-serversideup-dep-install-alpine` for the Alpine package names. Pass packages as separate arguments, a comma-separated list, or across lines. It cleans up the package cache when it finishes.
+    usage: docker-php-serversideup-dep-install-debian <package> [package ...]
+    example:
+      language: dockerfile
+      filename: Dockerfile
+      code: |-
+        FROM serversideup/php:8.5-fpm-nginx
+
+        USER root
+        RUN docker-php-serversideup-dep-install-debian "default-mysql-client, git" \
+            && docker-php-serversideup-dep-install-alpine "mysql-client, git"
+        USER www-data
+  - name: docker-php-serversideup-download
+    summary: Download a file, retrying failed requests.
+    description: Downloads a file during a build and retries failed requests up to five times. Without an output file, it writes to stdout, so you can pipe it into another command.
+    usage: docker-php-serversideup-download <url> [output-file]
+    options:
+      - name: <url>
+        description: The file to download.
+      - name: "[output-file]"
+        description: Where to save it. Leave it out to write to stdout.
+    example:
+      language: bash
+      filename: Terminal
+      code: |-
+        docker-php-serversideup-download https://example.com/tool.tar.gz /tmp/tool.tar.gz
+        docker-php-serversideup-download https://example.com/key.asc | gpg --dearmor > /usr/share/keyrings/example.gpg
+  - name: docker-php-serversideup-entrypoint
+    summary: The image's entrypoint, which runs the start-up scripts.
+    description: The `ENTRYPOINT` of every variation. It sources the scripts in `/etc/entrypoint.d` in order, then runs the container's command. If you set your own `ENTRYPOINT`, none of the image's start-up scripts run.
+    reference:
+      label: Adding your own start-up scripts
+      url: /docs/customizing-the-image/adding-your-own-start-up-scripts
+  - name: docker-php-serversideup-install-php-ext-installer
+    summary: Install a specific version of `install-php-extensions`.
+    root: true
+    description: Downloads `install-php-extensions` to `/usr/local/bin`. Pass a version to pin it; without one, it installs the latest release.
+    usage: docker-php-serversideup-install-php-ext-installer [version]
+    example:
+      language: bash
+      filename: Terminal
+      code: docker-php-serversideup-install-php-ext-installer 2.12.6
+  - name: docker-php-serversideup-install-php-extensions
+    summary: Install PHP extensions, optionally from another source.
+    root: true
+    description: Installs extensions with `install-php-extensions`. The optional second argument swaps an extension's source, such as a branch or tag. Our image builds set the `PHPREDIS_VERSION` and `PHPREDIS_LIBLZF_REF` build args to build `redis` from GitHub; your Dockerfile doesn't, so `redis` installs from PECL unless you pass an override.
+    usage: docker-php-serversideup-install-php-extensions "<extensions>" ["<name=source> ..."]
+    options:
+      - name: "<extensions>"
+        description: Space-separated extensions to install.
+      - name: "<name=source>"
+        description: Space-separated pairs that build an extension from another source, such as `redis=phpredis/phpredis@develop`.
+    example:
+      language: bash
+      filename: Terminal
+      code: docker-php-serversideup-install-php-extensions "opcache redis zip" "redis=phpredis/phpredis@develop"
+  - name: docker-php-serversideup-s6-init
+    summary: Run the start-up scripts as S6 Overlay services.
+    variations:
+      - fpm-nginx
+      - fpm-apache
+    root: true
+    description: Converts every script in `/etc/entrypoint.d` into an S6 Overlay oneshot service that runs in the same order the entrypoint would use. PHP-FPM and the web server start after the last one. Use it when your own S6 service has to wait for a start-up script. It's safe to run again in an image built on one that already ran it.
+    usage: docker-php-serversideup-s6-init
+    example:
+      language: dockerfile
+      filename: Dockerfile
+      code: |-
+        FROM serversideup/php:8.5-fpm-nginx
+
+        USER root
+        COPY --chmod=755 ./entrypoint.d/ /etc/entrypoint.d/
+        RUN docker-php-serversideup-s6-init
+        USER www-data
+    reference:
+      label: Using S6 Overlay
+      url: /docs/customizing-the-image/using-s6-overlay
+  - name: docker-php-serversideup-set-file-permissions
+    summary: Give a UID and GID ownership of the files the image needs.
+    root: true
+    description: Changes the owner of the directories the variation needs, such as `/var/www`, `/composer`, and the web server's config and log directories. It detects the variation for you.
+    usage: docker-php-serversideup-set-file-permissions --owner USER:GROUP [--service SERVICE] [--dir PATH]...
+    options:
+      - name: --owner
+        description: Required. The user and group, as names or IDs.
+      - name: --service
+        description: Overrides detection with `cli`, `fpm`, `fpm-nginx`, `fpm-apache`, or `frankenphp`.
+      - name: --dir
+        description: Adds a directory. Repeat it for more.
+    example:
+      language: bash
+      filename: Terminal
+      code: docker-php-serversideup-set-file-permissions --owner 1000:1000 --dir /var/www/storage
+    reference:
+      label: Understanding file permissions
+      url: /docs/customizing-the-image/understanding-file-permissions
+  - name: docker-php-serversideup-set-id
+    summary: Change the UID and GID of `www-data` or another user.
+    root: true
+    description: Changes the UID and GID of a user. If another user or group already has the ID, it moves that one to `99<id>` first. Run `docker-php-serversideup-set-file-permissions` with the same IDs afterward, so the user still owns its files.
+    usage: docker-php-serversideup-set-id <username> <uid>:<gid>
+    example:
+      language: bash
+      filename: Terminal
+      code: docker-php-serversideup-set-id www-data 1000:1000
+    reference:
+      label: Understanding file permissions
+      url: /docs/customizing-the-image/understanding-file-permissions
+  - name: healthcheck-horizon
+    summary: Check that Laravel Horizon is running.
+    description: Runs `php artisan horizon:status`. It exits with `1` when no Horizon process is running or Horizon is paused, and `0` otherwise.
+    usage: healthcheck-horizon
+    example:
+      language: yaml
+      filename: compose.yml
+      code: |-
+        healthcheck:
+          test: ["CMD", "healthcheck-horizon"]
+          start_period: 10s
+    reference:
+      label: Horizon
+      url: /docs/framework-guides/laravel/horizon
+  - name: healthcheck-nightwatch
+    summary: Check the Laravel Nightwatch agent.
+    description: Runs `php artisan nightwatch:status` from `APP_BASE_DIR` and returns its exit code. It boots your application on every check.
+    usage: healthcheck-nightwatch
+    example:
+      language: yaml
+      filename: compose.yml
+      code: |-
+        healthcheck:
+          test: ["CMD", "healthcheck-nightwatch"]
+          start_period: 10s
+    reference:
+      label: Nightwatch
+      url: /docs/framework-guides/laravel/nightwatch
+  - name: healthcheck-octane
+    summary: Check that Laravel Octane is running.
+    description: Runs `php artisan octane:status` from `APP_BASE_DIR` and returns its exit code, which fails when the Octane server isn't running.
+    usage: healthcheck-octane
+    example:
+      language: yaml
+      filename: compose.yml
+      code: |-
+        healthcheck:
+          test: ["CMD", "healthcheck-octane"]
+          start_period: 10s
+    reference:
+      label: Laravel Octane
+      url: /docs/framework-guides/laravel/octane
+  - name: healthcheck-queue
+    summary: Check that a `queue:work` process is running.
+    description: Looks for a process named `queue:work` with `pgrep`. It proves the worker is running, not that it's processing jobs. It fails if you run `queue:listen` instead.
+    usage: healthcheck-queue
+    example:
+      language: yaml
+      filename: compose.yml
+      code: |-
+        healthcheck:
+          test: ["CMD", "healthcheck-queue"]
+          start_period: 10s
+    reference:
+      label: Queue
+      url: /docs/framework-guides/laravel/queue
+  - name: healthcheck-reverb
+    summary: Check that a `reverb:start` process is running.
+    description: Looks for a process named `reverb:start` with `pgrep`. It proves the server is running, not that it accepts connections.
+    usage: healthcheck-reverb
+    example:
+      language: yaml
+      filename: compose.yml
+      code: |-
+        healthcheck:
+          test: ["CMD", "healthcheck-reverb"]
+          start_period: 10s
+    reference:
+      label: Reverb
+      url: /docs/framework-guides/laravel/reverb
+  - name: healthcheck-schedule
+    summary: Check that a `schedule:work` process is running.
+    description: Looks for a process named `schedule:work` with `pgrep`. It proves the scheduler is running, not that tasks succeed.
+    usage: healthcheck-schedule
+    example:
+      language: yaml
+      filename: compose.yml
+      code: |-
+        healthcheck:
+          test: ["CMD", "healthcheck-schedule"]
+          start_period: 10s
+    reference:
+      label: Task scheduler
+      url: /docs/framework-guides/laravel/task-scheduler
+  - name: install-php-extensions
+    summary: Install PHP extensions and the libraries they need.
+    root: true
+    description: From docker-php-extension-installer. It installs PHP extensions and the system libraries they need in one command. `docker-php-ext-install` and `pecl` from the official image also work.
+    usage: install-php-extensions <extension> [extension ...]
+    example:
+      language: dockerfile
+      filename: Dockerfile
+      code: |-
+        FROM serversideup/php:8.5-fpm-nginx
+
+        USER root
+        RUN install-php-extensions intl bcmath
+        USER www-data
+    reference:
+      label: docker-php-extension-installer
+      url: https://github.com/mlocati/docker-php-extension-installer
+  - name: php-fpm-healthcheck
+    summary: Check PHP-FPM through its ping and status pages.
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: The `fpm` variation's health check, from php-fpm-healthcheck. It exits with `1` when PHP-FPM doesn't answer, or when a threshold you pass is crossed.
+    usage: php-fpm-healthcheck [--<metric>=<max>]
+    options:
+      - name: --listen-queue
+        description: Fail when more requests than this are waiting for a worker.
+    example:
+      language: yaml
+      filename: compose.yml
+      code: |-
+        healthcheck:
+          test: ["CMD", "php-fpm-healthcheck", "--listen-queue=10"]
+    reference:
+      label: php-fpm-healthcheck
+      url: https://github.com/renatomefi/php-fpm-healthcheck
