@@ -22,6 +22,8 @@ export default eventHandler(async (event) => {
     page.body.value.unshift(['h1', {}, page.title])
   }
 
+  await expandReferenceComponents(event, page.body)
+
   setHeader(event, 'Content-Type', 'text/markdown; charset=utf-8')
   return stringify({ ...page.body, type: 'minimark' }, { format: 'markdown/html' })
 })

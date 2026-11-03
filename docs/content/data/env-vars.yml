@@ -1,0 +1,969 @@
+# Every environment variable the images read. The reference page at
+# /docs/reference/environment-variable-specification renders this file, and
+# scripts/check-env-var-docs.sh fails CI when it drifts from src/.
+#
+# Each variable:
+#   name                The variable
+#   default             The default value. "" means empty; null means unset
+#   variation_defaults  Defaults that differ for specific variations
+#   variations          Variations that read it. Leave it out when every variation does
+#   requires            Another variable that must be set for this one to matter
+#   values              The accepted values, when the variable only takes a fixed set
+#   description         What it does, in plain words. Markdown: inline code and links only
+#   reference           Optional link to the official docs for the underlying setting
+variables:
+  - name: APACHE_DOCUMENT_ROOT
+    default: "/var/www/html/public"
+    variations:
+      - fpm-apache
+    description: Directory Apache serves files from. Set `/var/www/html` for apps without a `public/` folder.
+    reference:
+      label: DocumentRoot
+      url: https://httpd.apache.org/docs/2.4/mod/core.html#documentroot
+  - name: APACHE_HTTPS_PORT
+    default: "8443"
+    variations:
+      - fpm-apache
+    description: Port Apache listens on for HTTPS inside the container.
+  - name: APACHE_HTTP_PORT
+    default: "8080"
+    variations:
+      - fpm-apache
+    description: Port Apache listens on for HTTP inside the container.
+  - name: APACHE_MAX_CONNECTIONS_PER_CHILD
+    default: "0"
+    variations:
+      - fpm-apache
+    description: Connections an Apache process handles before it restarts. `0` never restarts.
+    reference:
+      label: MaxConnectionsPerChild
+      url: https://httpd.apache.org/docs/2.4/mod/mpm_common.html#maxconnectionsperchild
+  - name: APACHE_MAX_REQUEST_WORKERS
+    default: "150"
+    variations:
+      - fpm-apache
+    description: Most requests Apache serves at once.
+    reference:
+      label: MaxRequestWorkers
+      url: https://httpd.apache.org/docs/2.4/mod/mpm_common.html#maxrequestworkers
+  - name: APACHE_MAX_SPARE_THREADS
+    default: "75"
+    variations:
+      - fpm-apache
+    description: Most idle threads Apache keeps.
+    reference:
+      label: MaxSpareThreads
+      url: https://httpd.apache.org/docs/2.4/mod/mpm_common.html#maxsparethreads
+  - name: APACHE_MIN_SPARE_THREADS
+    default: "10"
+    variations:
+      - fpm-apache
+    description: Fewest idle threads Apache keeps.
+    reference:
+      label: MinSpareThreads
+      url: https://httpd.apache.org/docs/2.4/mod/mpm_common.html#minsparethreads
+  - name: APACHE_RUN_GROUP
+    default: "www-data"
+    variations:
+      - fpm-apache
+    description: The group Apache runs as when started as root. Same build-time limit as `APACHE_RUN_USER`.
+  - name: APACHE_RUN_USER
+    default: "www-data"
+    variations:
+      - fpm-apache
+    description: The user Apache runs as when started as root. Written into `/etc/apache2/envvars` at build time, so changing it at runtime has no effect.
+  - name: APACHE_START_SERVERS
+    default: "2"
+    variations:
+      - fpm-apache
+    description: Apache processes started at launch.
+    reference:
+      label: StartServers
+      url: https://httpd.apache.org/docs/2.4/mod/mpm_common.html#startservers
+  - name: APACHE_THREADS_PER_CHILD
+    default: "25"
+    variations:
+      - fpm-apache
+    description: Threads each Apache process runs.
+    reference:
+      label: ThreadsPerChild
+      url: https://httpd.apache.org/docs/2.4/mod/mpm_common.html#threadsperchild
+  - name: APACHE_THREAD_LIMIT
+    default: "64"
+    variations:
+      - fpm-apache
+    description: Upper limit for `APACHE_THREADS_PER_CHILD`.
+    reference:
+      label: ThreadLimit
+      url: https://httpd.apache.org/docs/2.4/mod/mpm_common.html#threadlimit
+  - name: APP_BASE_DIR
+    default: "/var/www/html"
+    description: Where your app lives in the container. If you change it, also change `NGINX_WEBROOT`, `APACHE_DOCUMENT_ROOT`, or `CADDY_SERVER_ROOT`.
+  - name: AUTORUN_DEBUG
+    default: "false"
+    requires: AUTORUN_ENABLED
+    description: Print each automation step and the `AUTORUN_*` values it read, plus the database errors while it waits for the database. `LOG_OUTPUT_LEVEL=debug` prints the steps but not the database errors.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_ENABLED
+    default: "false"
+    description: Run the Laravel automations (storage link, migrations, and caches) each time the container starts. They run whatever the container's command is, so turn them on for one service only, not your [workers](/docs/framework-guides/laravel/workers). `DISABLE_DEFAULT_CONFIG=true` also turns them off.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_CONFIG_CACHE
+    default: "true"
+    requires: AUTORUN_ENABLED
+    description: Run `php artisan config:cache` so Laravel loads its config from one cached file. Once config is cached, Laravel stops reading `.env`, so `env()` outside your config files only sees the container's environment variables.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_EVENT_CACHE
+    default: "true"
+    requires: AUTORUN_ENABLED
+    description: Run `php artisan event:cache` so Laravel reads its event listeners from a cache instead of scanning your `Listeners` directory on every request.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_MIGRATION
+    default: "true"
+    requires: AUTORUN_ENABLED
+    description: Run `php artisan migrate` at start-up, after clearing the config cache and waiting for the database. `AUTORUN_LARAVEL_MIGRATION_MODE` picks the command, and the variables below add flags.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_MIGRATION_DATABASE
+    default: ""
+    requires: AUTORUN_ENABLED
+    description: Connections to migrate, comma-separated, such as `mysql,pgsql`. Empty uses the default connection.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_MIGRATION_FORCE
+    default: "true"
+    requires: AUTORUN_ENABLED
+    description: Add `--force` so migrations run without the confirmation prompt Laravel shows when `APP_ENV=production`. A container can't answer it, so with `false` in production Laravel cancels the migration and the container stops.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_MIGRATION_ISOLATION
+    default: "false"
+    requires: AUTORUN_ENABLED
+    description: Add `--isolated` so only one container migrates at a time. Needs a default cache store that supports [atomic locks](https://laravel.com/docs/migrations#running-migrations), shared by every host that runs migrations, and `default` mode; any other mode stops the container. Laravel older than 9.38.0 migrates without it, and the first deploy skips it until the migrations table exists.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_MIGRATION_MODE
+    default: "default"
+    requires: AUTORUN_ENABLED
+    description: 'Pick the migrate command: `default` (`migrate`), `fresh` (`migrate:fresh`), or `refresh` (`migrate:refresh`). `fresh` and `refresh` drop every table, so use them only in development.'
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+    values:
+      - "default"
+      - "fresh"
+      - "refresh"
+  - name: AUTORUN_LARAVEL_MIGRATION_SEED
+    default: "false"
+    requires: AUTORUN_ENABLED
+    description: Add `--seed` to run your database seeders after migrating. They run on every start, so make them safe to repeat.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_MIGRATION_SKIP_DB_CHECK
+    default: "false"
+    requires: AUTORUN_ENABLED
+    description: Migrate right away instead of first waiting for the database to accept connections.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_MIGRATION_TIMEOUT
+    default: "30"
+    requires: AUTORUN_ENABLED
+    description: Seconds to wait for the database to accept connections before migrating, trying once a second. A host that never answers holds each try for the driver's connect timeout, so the wait can run much longer. If the database isn't ready in time, the container stops.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_OPTIMIZE
+    default: "true"
+    requires: AUTORUN_ENABLED
+    description: Run `php artisan optimize`, which caches config, events, routes, and views in one command on Laravel 11 and newer. Turn one cache off with its variable below and the image leaves it out with `--except` (Laravel 11.38.0+) or runs the other `*:cache` commands one by one. With `false`, only the cache variables set to `true` run.
+    reference:
+      label: Optimization
+      url: https://laravel.com/docs/deployment#optimization
+  - name: AUTORUN_LARAVEL_ROUTE_CACHE
+    default: "true"
+    requires: AUTORUN_ENABLED
+    description: Run `php artisan route:cache` so Laravel registers your routes from one cached file instead of loading every route file on each request.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_SKIP_IF_NOT_FOUND
+    default: "false"
+    requires: AUTORUN_ENABLED
+    description: Skip without failing when there's no Laravel in `APP_BASE_DIR`, such as before the first `composer install`. Laravel counts as found when `artisan` and `vendor/` both exist.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_STORAGE_LINK
+    default: "true"
+    requires: AUTORUN_ENABLED
+    description: Run `php artisan storage:link` so files in `storage/app/public` are served from `public/storage`. Skipped when `public/storage` already exists.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: AUTORUN_LARAVEL_VIEW_CACHE
+    default: "true"
+    requires: AUTORUN_ENABLED
+    description: Run `php artisan view:cache` to compile every Blade template at start-up, so no visitor waits for a page to compile.
+    reference:
+      label: Laravel automations
+      url: /docs/framework-guides/laravel/automations
+  - name: CADDY_ACME_PROFILE
+    default: "off"
+    variations:
+      - frankenphp
+    description: Let's Encrypt certificate profile. `shortlived` issues certificates that last about six days and renew every few days; it's also needed for IP-address certificates. Any profile other than `off` drops Caddy's ZeroSSL fallback, so the container needs reliable outbound access to Let's Encrypt.
+    reference:
+      label: Let's Encrypt profiles
+      url: https://letsencrypt.org/docs/profiles/
+    values:
+      - "off"
+      - "shortlived"
+      - "tlsserver"
+      - "classic"
+  - name: CADDY_ADMIN
+    default: "off"
+    variations:
+      - frankenphp
+    description: Caddy's admin API, which can reconfigure the server. Ignored under [Laravel Octane](/docs/framework-guides/laravel/octane#octane-options), which turns it on for itself on `localhost`.
+    reference:
+      label: admin
+      url: https://caddyserver.com/docs/caddyfile/options#admin
+  - name: CADDY_AUTO_HTTPS
+    default: "off"
+    variations:
+      - frankenphp
+    description: Whether Caddy gets certificates and redirects HTTP to HTTPS on its own.
+    reference:
+      label: auto_https
+      url: https://caddyserver.com/docs/caddyfile/options#auto-https
+    values:
+      - "on"
+      - "off"
+      - "disable_redirects"
+      - "disable_certs"
+      - "ignore_loaded_certs"
+  - name: CADDY_GLOBAL_OPTIONS
+    default: ""
+    variations:
+      - frankenphp
+    description: Extra Caddy global options. Ignored under [Laravel Octane](/docs/framework-guides/laravel/octane#octane-options), which overwrites it; use a file in `/etc/frankenphp/caddyfile-global.d/` instead.
+    reference:
+      label: Global options
+      url: https://caddyserver.com/docs/caddyfile/options
+  - name: CADDY_HTTPS_PORT
+    default: "8443"
+    variations:
+      - frankenphp
+    description: Port Caddy listens on for HTTPS inside the container.
+  - name: CADDY_HTTPS_SERVER_ADDRESS
+    default: "https://"
+    variations:
+      - frankenphp
+    description: Site address Caddy answers on for HTTPS. Set your domain here, such as `https://example.com`.
+    reference:
+      label: Addresses
+      url: https://caddyserver.com/docs/caddyfile/concepts#addresses
+  - name: CADDY_HTTP_PORT
+    default: "8080"
+    variations:
+      - frankenphp
+    description: Port Caddy listens on for HTTP inside the container.
+  - name: CADDY_HTTP_SERVER_ADDRESS
+    default: "http://"
+    variations:
+      - frankenphp
+    description: Site address Caddy answers on for HTTP. The default `http://` answers any hostname.
+    reference:
+      label: Addresses
+      url: https://caddyserver.com/docs/caddyfile/concepts#addresses
+  - name: CADDY_LOG_FORMAT
+    default: "auto"
+    variations:
+      - frankenphp
+    description: Format of Caddy's logs. `auto` writes JSON in a container and readable lines in a terminal. Every format redacts the `authorization` query parameter. Leave `auto` under [Laravel Octane](/docs/framework-guides/laravel/octane#logging), which only parses JSON.
+    reference:
+      label: log format
+      url: https://caddyserver.com/docs/caddyfile/directives/log#format
+    values:
+      - "auto"
+      - "console"
+      - "json"
+  - name: CADDY_LOG_OUTPUT
+    default: "stderr"
+    variations:
+      - frankenphp
+    description: Where Caddy writes its access and runtime logs. Leave `stderr` under [Laravel Octane](/docs/framework-guides/laravel/octane#logging), which only relays `stderr`.
+  - name: CADDY_PHP_SERVER_OPTIONS
+    default: ""
+    variations:
+      - frankenphp
+    description: Extra directives inside the `php_server` block.
+    reference:
+      label: php_server
+      url: https://frankenphp.dev/docs/config/#caddyfile-config
+  - name: CADDY_SERVER_ADMIN_HOST
+    default: "localhost"
+    variations:
+      - frankenphp
+    description: Set by Laravel Octane, so you don't set it. Host of the Caddy admin API that `octane:status`, `octane:reload`, and `octane:stop` call.
+  - name: CADDY_SERVER_ADMIN_PORT
+    default: "2019"
+    variations:
+      - frankenphp
+    description: 'Set by Laravel Octane, so you don''t set it. Port of the Caddy admin API, from Octane''s `--admin-port` or derived from `--port`: `--port=8080` gives `2099`.'
+  - name: CADDY_SERVER_EXTRA_DIRECTIVES
+    default: ""
+    variations:
+      - frankenphp
+    description: Extra Caddyfile directives for your site. Laravel Octane overwrites it, so prefer a file in `/etc/frankenphp/caddyfile-server.d/`. See [adding your own Caddyfile rules](/docs/image-variations/frankenphp#adding-your-own-caddyfile-rules).
+  - name: CADDY_SERVER_LOG_LEVEL
+    default: null
+    variations:
+      - frankenphp
+    description: Caddy's log level. When unset, it follows `LOG_OUTPUT_LEVEL`. Under [Laravel Octane](/docs/framework-guides/laravel/octane#logging), use `octane:start --log-level` instead.
+    values:
+      - "DEBUG"
+      - "INFO"
+      - "WARN"
+      - "ERROR"
+  - name: CADDY_SERVER_ROOT
+    default: "/var/www/html/public"
+    variations:
+      - frankenphp
+    description: Directory Caddy serves files from. Set `/var/www/html` for apps without a `public/` folder.
+    reference:
+      label: root
+      url: https://caddyserver.com/docs/caddyfile/directives/root
+  - name: CADDY_SERVER_WATCH_DIRECTIVES
+    default: ""
+    variations:
+      - frankenphp
+    description: Set by Laravel Octane, so you don't set it. Holds the `watch` directives from `--watch` and the `watch` paths in `config/octane.php`.
+  - name: CADDY_SERVER_WORKER_DIRECTIVE
+    default: ""
+    variations:
+      - frankenphp
+    description: Set by Laravel Octane, so you don't set it. Holds the worker settings from `--workers` for the `worker` block that loads `frankenphp-worker.php`.
+  - name: COMPOSER_ALLOW_SUPERUSER
+    default: "1"
+    description: Hide Composer's warning about running as root.
+  - name: COMPOSER_HOME
+    default: "/composer"
+    description: Composer's global directory, shared by every project. It holds global config, `auth.json`, and globally required packages.
+  - name: COMPOSER_MAX_PARALLEL_HTTP
+    default: "24"
+    description: Parallel Composer downloads, `1` to `50`. Composer's own default is `12`, and raising it further rarely helps. Lower it if your proxy struggles.
+  - name: DISABLE_DEFAULT_CONFIG
+    default: "false"
+    description: '`true` skips the image''s start-up scripts and automations, so you configure everything yourself. That includes the web server configuration, so `fpm-nginx` and `fpm-apache` need your own. Your own scripts in `/etc/entrypoint.d/` still run.'
+  - name: FRANKENPHP_CONFIG
+    default: ""
+    variations:
+      - frankenphp
+    description: Directives inside the global `frankenphp` block, such as `num_threads`.
+    reference:
+      label: frankenphp
+      url: https://frankenphp.dev/docs/config/#caddyfile-config
+  - name: HEALTHCHECK_PATH
+    default: "/healthcheck"
+    variations:
+      - fpm-nginx
+      - fpm-apache
+      - frankenphp
+    description: Path the container health check requests, left out of access logs. The image answers `/healthcheck` itself; set an app route such as `/up` to check your app instead.
+    reference:
+      label: Health checks
+      url: /docs/deployment-and-production/health-checks
+  - name: HEALTHCHECK_SSL_CERTIFICATE_FILE
+    default: "/etc/ssl/healthcheck/localhost.crt"
+    variations:
+      - frankenphp
+    description: Self-signed certificate for the health check on `localhost` when `SSL_MODE=full`. The image generates it at start-up whenever `SSL_MODE` isn't `off`.
+  - name: HEALTHCHECK_SSL_PRIVATE_KEY_FILE
+    default: "/etc/ssl/healthcheck/localhost.key"
+    variations:
+      - frankenphp
+    description: Private key for the health check certificate.
+  - name: LARAVEL_OCTANE
+    default: "0"
+    variations:
+      - frankenphp
+    description: Set by Laravel Octane, so you don't set it. Octane passes `1`, which runs `frankenphp-worker.php` as a worker and turns on the admin API. If you set it yourself, only `1` and `0` work; anything else, such as `true` or an empty string, stops FrankenPHP with a "File to import not found" error. See [Laravel Octane](/docs/framework-guides/laravel/octane).
+  - name: LOG_OUTPUT_LEVEL
+    default: "warn"
+    variation_defaults:
+      frankenphp: "info"
+    description: How much PHP, PHP-FPM, and the web server log. `debug` also shows every PHP error and traces the entrypoint. FrankenPHP defaults to `info` because Caddy logs requests at that level.
+    values:
+      - "debug"
+      - "info"
+      - "notice"
+      - "warn"
+      - "error"
+      - "crit"
+      - "alert"
+      - "emerg"
+  - name: MERCURE_ENABLED
+    default: "false"
+    variations:
+      - frankenphp
+    values:
+      - "true"
+      - "false"
+    description: Run the [Mercure hub](/docs/image-variations/frankenphp#mercure) at `/.well-known/mercure`. Needs both JWT keys.
+    reference:
+      label: Mercure configuration
+      url: https://mercure.rocks/docs/deployment/configuration
+  - name: MERCURE_EXTRA_DIRECTIVES
+    default: ""
+    variations:
+      - frankenphp
+    description: Extra hub directives, one per line, such as `anonymous` or `cors_origins`.
+    reference:
+      label: Mercure directives
+      url: https://mercure.rocks/docs/deployment/configuration
+  - name: MERCURE_PUBLISHER_JWT_ALG
+    default: "HS256"
+    variations:
+      - frankenphp
+    description: Algorithm for publisher tokens. A PEM key needs an asymmetric one, such as `RS256`.
+  - name: MERCURE_PUBLISHER_JWT_KEY
+    default: null
+    variations:
+      - frankenphp
+    description: Shared secret or PEM public key that verifies publisher tokens.
+  - name: MERCURE_SUBSCRIBER_JWT_ALG
+    default: "HS256"
+    variations:
+      - frankenphp
+    description: Algorithm for subscriber tokens.
+  - name: MERCURE_SUBSCRIBER_JWT_KEY
+    default: null
+    variations:
+      - frankenphp
+    description: Shared secret or PEM public key that verifies subscriber tokens.
+  - name: MERCURE_TRUSTED_ISSUERS
+    default: "https://localhost"
+    variations:
+      - frankenphp
+    description: The `iss` claim tokens must carry, usually your app's URL. Tokens are verified only with the keys of the issuer they claim.
+  - name: NGINX_ACCESS_LOG
+    default: "/dev/stdout"
+    variations:
+      - fpm-nginx
+    description: Where NGINX writes access logs. The default sends them to the container log.
+    reference:
+      label: access_log
+      url: https://nginx.org/en/docs/http/ngx_http_log_module.html#access_log
+  - name: NGINX_CLIENT_MAX_BODY_SIZE
+    default: "100M"
+    variations:
+      - fpm-nginx
+    description: Largest request body NGINX accepts. Keep it in line with `PHP_POST_MAX_SIZE`.
+    reference:
+      label: client_max_body_size
+      url: https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size
+  - name: NGINX_ERROR_LOG
+    default: "/dev/stderr"
+    variations:
+      - fpm-nginx
+    description: Where NGINX writes errors. The default sends them to the container log.
+    reference:
+      label: error_log
+      url: https://nginx.org/en/docs/ngx_core_module.html#error_log
+  - name: NGINX_FASTCGI_BUFFERS
+    default: "8 8k"
+    variations:
+      - fpm-nginx
+    description: Number and size of the buffers NGINX uses to read a response from PHP-FPM. Raise it if large responses get written to disk.
+    reference:
+      label: fastcgi_buffers
+      url: https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_buffers
+  - name: NGINX_FASTCGI_BUFFER_SIZE
+    default: "8k"
+    variations:
+      - fpm-nginx
+    description: Buffer for the first part of a PHP-FPM response, which holds the headers. Raise it if large headers cause `502` errors.
+    reference:
+      label: fastcgi_buffer_size
+      url: https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_buffer_size
+  - name: NGINX_HTTPS_PORT
+    default: "8443"
+    variations:
+      - fpm-nginx
+    description: Port NGINX listens on for HTTPS inside the container.
+  - name: NGINX_HTTP_PORT
+    default: "8080"
+    variations:
+      - fpm-nginx
+    description: Port NGINX listens on for HTTP inside the container.
+  - name: NGINX_LISTEN_IP_PROTOCOL
+    default: "all"
+    variations:
+      - fpm-nginx
+    description: Which IP versions NGINX listens on. Use `ipv4` on hosts without IPv6.
+    reference:
+      label: listen
+      url: https://nginx.org/en/docs/http/ngx_http_core_module.html#listen
+    values:
+      - "all"
+      - "ipv4"
+      - "ipv6"
+  - name: NGINX_SERVER_TOKENS
+    default: "off"
+    variations:
+      - fpm-nginx
+    description: Show the NGINX version in the `Server` header and on error pages.
+    reference:
+      label: server_tokens
+      url: https://nginx.org/en/docs/http/ngx_http_core_module.html#server_tokens
+  - name: NGINX_WEBROOT
+    default: "/var/www/html/public"
+    variations:
+      - fpm-nginx
+    description: Directory NGINX serves files from. Set `/var/www/html` for apps without a `public/` folder.
+    reference:
+      label: root
+      url: https://nginx.org/en/docs/http/ngx_http_core_module.html#root
+  - name: PHP_DATE_TIMEZONE
+    default: "UTC"
+    description: Default timezone for PHP date and time functions.
+    reference:
+      label: date.timezone
+      url: https://www.php.net/manual/en/datetime.configuration.php#ini.date.timezone
+  - name: PHP_DISABLE_FUNCTIONS
+    default: ""
+    description: PHP functions to turn off, comma-separated, such as `exec,shell_exec`. Empty by default because Laravel, Composer, and Symfony Process need `proc_open`.
+    reference:
+      label: disable_functions
+      url: https://www.php.net/manual/en/ini.core.php#ini.disable-functions
+  - name: PHP_DISPLAY_ERRORS
+    default: "Off"
+    description: Show PHP errors in the response. Keep it `Off` in production; errors still go to the log.
+    reference:
+      label: display_errors
+      url: https://www.php.net/manual/en/errorfunc.configuration.php#ini.display-errors
+  - name: PHP_DISPLAY_STARTUP_ERRORS
+    default: "Off"
+    description: Show errors that happen while PHP starts, before your code runs.
+    reference:
+      label: display_startup_errors
+      url: https://www.php.net/manual/en/errorfunc.configuration.php#ini.display-startup-errors
+  - name: PHP_ERROR_LOG
+    default: "/dev/stderr"
+    description: Where PHP writes errors. The default sends them to the container log.
+    reference:
+      label: error_log
+      url: https://www.php.net/manual/en/errorfunc.configuration.php#ini.error-log
+  - name: PHP_ERROR_REPORTING
+    default: "22527"
+    description: 'Which errors PHP reports, as a number. `22527` is `E_ALL & ~E_DEPRECATED & ~E_STRICT`: everything except deprecation and strict notices. [This calculator](https://maximivanov.github.io/php-error-reporting-calculator/) works out other values.'
+    reference:
+      label: error_reporting
+      url: https://www.php.net/manual/en/errorfunc.configuration.php#ini.error-reporting
+  - name: PHP_FILE_UPLOADS
+    default: "On"
+    description: Allow file uploads in HTTP requests.
+    reference:
+      label: file_uploads
+      url: https://www.php.net/manual/en/ini.core.php#ini.file-uploads
+  - name: PHP_FPM_CHILD_PROCESS_GROUP
+    default: "www-data"
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: Group PHP-FPM workers run as. Only used when the container runs as root.
+    reference:
+      label: group
+      url: https://www.php.net/manual/en/install.fpm.configuration.php
+  - name: PHP_FPM_CHILD_PROCESS_USER
+    default: "www-data"
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: User PHP-FPM workers run as. Only used when the container runs as root.
+    reference:
+      label: user
+      url: https://www.php.net/manual/en/install.fpm.configuration.php
+  - name: PHP_FPM_PM_CONTROL
+    default: "dynamic"
+    variation_defaults:
+      fpm-nginx: "ondemand"
+      fpm-apache: "ondemand"
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: How PHP-FPM manages workers. `static` keeps a fixed number running, `dynamic` keeps a few spare, and `ondemand` starts them as requests arrive.
+    reference:
+      label: pm
+      url: https://www.php.net/manual/en/install.fpm.configuration.php
+    values:
+      - "static"
+      - "dynamic"
+      - "ondemand"
+  - name: PHP_FPM_PM_MAX_CHILDREN
+    default: "20"
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: Most PHP-FPM workers at once, which caps how many requests run in parallel. With `static`, it's the exact number of workers. See [PHP-FPM workers](/docs/deployment-and-production/production-performance-tuning#php-fpm-workers).
+    reference:
+      label: pm.max_children
+      url: https://www.php.net/manual/en/install.fpm.configuration.php
+  - name: PHP_FPM_PM_MAX_REQUESTS
+    default: "0"
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: Requests a worker handles before it restarts, which limits memory leaks. `0` never restarts.
+    reference:
+      label: pm.max_requests
+      url: https://www.php.net/manual/en/install.fpm.configuration.php
+  - name: PHP_FPM_PM_MAX_SPARE_SERVERS
+    default: "3"
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: Most idle workers to keep. Only used with `dynamic`.
+    reference:
+      label: pm.max_spare_servers
+      url: https://www.php.net/manual/en/install.fpm.configuration.php
+  - name: PHP_FPM_PM_MIN_SPARE_SERVERS
+    default: "1"
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: Fewest idle workers to keep. Only used with `dynamic`.
+    reference:
+      label: pm.min_spare_servers
+      url: https://www.php.net/manual/en/install.fpm.configuration.php
+  - name: PHP_FPM_PM_START_SERVERS
+    default: "2"
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: Workers started with PHP-FPM. Only used with `dynamic`.
+    reference:
+      label: pm.start_servers
+      url: https://www.php.net/manual/en/install.fpm.configuration.php
+  - name: PHP_FPM_PM_STATUS_PATH
+    default: "/status"
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: URL path for the PHP-FPM status page. The `fpm` variation's health check reads `/status`, so changing it there fails the health check.
+    reference:
+      label: pm.status_path
+      url: https://www.php.net/manual/en/install.fpm.configuration.php
+  - name: PHP_FPM_POOL_NAME
+    default: "www"
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: Name of the PHP-FPM pool, shown in logs and on the status page.
+  - name: PHP_FPM_PROCESS_CONTROL_TIMEOUT
+    default: "10s"
+    variations:
+      - fpm
+      - fpm-nginx
+      - fpm-apache
+    description: How long workers get to react to a stop or reload signal from PHP-FPM before they are killed.
+    reference:
+      label: process_control_timeout
+      url: https://www.php.net/manual/en/install.fpm.configuration.php
+  - name: PHP_HTML_ERRORS
+    default: "On"
+    description: Format displayed errors as HTML. Only affects errors shown on screen; PHP always turns it off for the CLI.
+    reference:
+      label: html_errors
+      url: https://www.php.net/manual/en/errorfunc.configuration.php#ini.html-errors
+  - name: PHP_MAX_EXECUTION_TIME
+    default: "99"
+    description: Seconds a script may run before PHP stops it. On Linux, time spent waiting on the database, network, or other system calls doesn't count.
+    reference:
+      label: max_execution_time
+      url: https://www.php.net/manual/en/info.configuration.php#ini.max-execution-time
+  - name: PHP_MAX_FILE_UPLOADS
+    default: "20"
+    description: Most files one request can upload.
+    reference:
+      label: max_file_uploads
+      url: https://www.php.net/manual/en/ini.core.php#ini.max-file-uploads
+  - name: PHP_MAX_INPUT_TIME
+    default: "-1"
+    description: Seconds PHP may spend reading request input, such as POST data and uploads. `-1` uses `PHP_MAX_EXECUTION_TIME` and `0` removes the limit. The CLI always uses `-1`.
+    reference:
+      label: max_input_time
+      url: https://www.php.net/manual/en/info.configuration.php#ini.max-input-time
+  - name: PHP_MAX_INPUT_VARS
+    default: "1000"
+    description: Most input variables PHP accepts per request, counted separately for query strings, POST data, and cookies. Raise it for very large forms.
+    reference:
+      label: max_input_vars
+      url: https://www.php.net/manual/en/info.configuration.php#ini.max-input-vars
+  - name: PHP_MEMORY_LIMIT
+    default: "256M"
+    description: Most memory one script may use, such as `512M`. `-1` removes the limit.
+    reference:
+      label: memory_limit
+      url: https://www.php.net/manual/en/ini.core.php#ini.memory-limit
+  - name: PHP_OPCACHE_ENABLE
+    default: "0"
+    description: Keep compiled PHP in memory so requests skip parsing and compiling. Set `1` in production. See [production performance tuning](/docs/deployment-and-production/production-performance-tuning#php-opcache).
+    reference:
+      label: opcache.enable
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.enable
+  - name: PHP_OPCACHE_ENABLE_CLI
+    default: "1"
+    description: Use OPcache for `php` commands too. Only matters when OPcache is on. `0` keeps it to the web server, so a preload script doesn't run on every `php` command.
+    reference:
+      label: opcache.enable_cli
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.enable-cli
+  - name: PHP_OPCACHE_ENABLE_FILE_OVERRIDE
+    default: "0"
+    description: Answer `file_exists()`, `is_file()`, and `is_readable()` from the cache for files that are already cached. With `PHP_OPCACHE_VALIDATE_TIMESTAMPS` off, a file deleted after it was cached still looks present.
+    reference:
+      label: opcache.enable_file_override
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.enable-file-override
+  - name: PHP_OPCACHE_FORCE_RESTART_TIMEOUT
+    default: "180"
+    description: Seconds to wait for a pending cache reset before OPcache kills the processes still holding the old cache.
+    reference:
+      label: opcache.force_restart_timeout
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.force-restart-timeout
+  - name: PHP_OPCACHE_INTERNED_STRINGS_BUFFER
+    default: "32"
+    description: Memory, in MB, for storing repeated strings once. It comes out of `PHP_OPCACHE_MEMORY_CONSUMPTION`.
+    reference:
+      label: opcache.interned_strings_buffer
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.interned-strings-buffer
+  - name: PHP_OPCACHE_JIT
+    default: "off"
+    description: PHP's just-in-time compiler. To use it, set `tracing` and a non-zero `PHP_OPCACHE_JIT_BUFFER_SIZE`.
+    reference:
+      label: opcache.jit
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.jit
+  - name: PHP_OPCACHE_JIT_BUFFER_SIZE
+    default: "0"
+    description: Memory for JIT-compiled code, such as `64M`. `0` leaves the JIT off. Added on top of `PHP_OPCACHE_MEMORY_CONSUMPTION`.
+    reference:
+      label: opcache.jit_buffer_size
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.jit-buffer-size
+  - name: PHP_OPCACHE_MAX_ACCELERATED_FILES
+    default: "32531"
+    description: Most scripts OPcache can hold. PHP rounds up to a prime, and `32531` is one.
+    reference:
+      label: opcache.max_accelerated_files
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.max-accelerated-files
+  - name: PHP_OPCACHE_MEMORY_CONSUMPTION
+    default: "256"
+    description: Shared memory for the cache, in MB. It fills only as files are cached.
+    reference:
+      label: opcache.memory_consumption
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.memory-consumption
+  - name: PHP_OPCACHE_PRELOAD
+    default: ""
+    description: Path to a script that loads classes into memory when PHP starts. Empty turns preloading off. It also runs on every `php` command unless `PHP_OPCACHE_ENABLE_CLI=0`. See [preloading](/docs/deployment-and-production/production-performance-tuning#preloading).
+    reference:
+      label: opcache.preload
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.preload
+  - name: PHP_OPCACHE_PRELOAD_USER
+    default: ""
+    description: User the preload script runs as. Required to preload when the container runs as root.
+    reference:
+      label: opcache.preload_user
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.preload-user
+  - name: PHP_OPCACHE_REVALIDATE_FREQ
+    default: "2"
+    description: Seconds between checks for changed files. Only used when `PHP_OPCACHE_VALIDATE_TIMESTAMPS=1`.
+    reference:
+      label: opcache.revalidate_freq
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.revalidate-freq
+  - name: PHP_OPCACHE_SAVE_COMMENTS
+    default: "1"
+    description: Keep doc comments in the cache. `0` breaks code that reads PHPDoc annotations, such as Doctrine and PHPUnit.
+    reference:
+      label: opcache.save_comments
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.save-comments
+  - name: PHP_OPCACHE_VALIDATE_TIMESTAMPS
+    default: "0"
+    description: Check cached files for changes. With `0`, code changes need a container restart. Set `1` if you mount your code and keep OPcache on.
+    reference:
+      label: opcache.validate_timestamps
+      url: https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.validate-timestamps
+  - name: PHP_OPEN_BASEDIR
+    default: ""
+    description: Limit the files PHP can open to these directories, separated by `:`. It's a safety net, not a security boundary. Setting it turns off the realpath cache.
+    reference:
+      label: open_basedir
+      url: https://www.php.net/manual/en/ini.core.php#ini.open-basedir
+  - name: PHP_POST_MAX_SIZE
+    default: "100M"
+    description: Largest request body PHP accepts. Keep it at least as large as `PHP_UPLOAD_MAX_FILE_SIZE`.
+    reference:
+      label: post_max_size
+      url: https://www.php.net/manual/en/ini.core.php#ini.post-max-size
+  - name: PHP_REALPATH_CACHE_SIZE
+    default: "4096K"
+    description: Memory PHP uses to remember resolved file paths, which saves file system lookups on every request. Raise it for apps with a large `vendor/` directory. See [realpath cache](/docs/deployment-and-production/production-performance-tuning#php-realpath-cache).
+    reference:
+      label: realpath_cache_size
+      url: https://www.php.net/manual/en/ini.core.php#ini.realpath-cache-size
+  - name: PHP_REALPATH_CACHE_TTL
+    default: "600"
+    description: Seconds PHP keeps a resolved file path in the cache. `600` follows [Symfony's recommendation](https://symfony.com/doc/current/performance.html#configure-the-php-realpath-cache).
+    reference:
+      label: realpath_cache_ttl
+      url: https://www.php.net/manual/en/ini.core.php#ini.realpath-cache-ttl
+  - name: PHP_SESSION_COOKIE_HTTPONLY
+    default: "On"
+    description: Hide the session cookie from JavaScript. Applies to native PHP sessions only; Laravel sets its own cookie flags.
+    reference:
+      label: session.cookie_httponly
+      url: https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-httponly
+  - name: PHP_SESSION_COOKIE_SECURE
+    default: "false"
+    description: Send the session cookie over HTTPS only. Off by default so local development over HTTP works; set `true` when you serve over HTTPS. Applies to native PHP sessions only; Laravel sets its own cookie flags.
+    reference:
+      label: session.cookie_secure
+      url: https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-secure
+  - name: PHP_SESSION_UPLOAD_PROGRESS_ENABLED
+    default: "0"
+    description: Track upload progress in the session. Off because of [PHP's October 23, 2026 advisory](https://www.php.net/archive/2026.php#2026-10-23-1). Only set `1` if your app reads upload progress and never changes `session.serialize_handler` at runtime.
+    reference:
+      label: session.upload_progress.enabled
+      url: https://www.php.net/manual/en/session.configuration.php#ini.session.upload-progress.enabled
+  - name: PHP_UPLOAD_MAX_FILE_SIZE
+    default: "100M"
+    description: Largest single file PHP accepts in an upload.
+    reference:
+      label: upload_max_filesize
+      url: https://www.php.net/manual/en/ini.core.php#ini.upload-max-filesize
+  - name: PHP_ZEND_DETECT_UNICODE
+    default: ""
+    description: Check scripts for a byte order mark to detect their encoding. Only used when `PHP_ZEND_MULTIBYTE` is on.
+    reference:
+      label: zend.detect_unicode
+      url: https://www.php.net/manual/en/ini.core.php#ini.zend.detect-unicode
+  - name: PHP_ZEND_MULTIBYTE
+    default: "Off"
+    description: Parse scripts written in multibyte encodings such as Shift JIS. Most apps leave it off.
+    reference:
+      label: zend.multibyte
+      url: https://www.php.net/manual/en/ini.core.php#ini.zend.multibyte
+  - name: S6_BEHAVIOUR_IF_STAGE2_FAILS
+    default: "2"
+    variations:
+      - fpm-nginx
+      - fpm-apache
+    description: Stop the container if a start-up service fails.
+    reference:
+      label: s6-overlay
+      url: https://github.com/just-containers/s6-overlay#customizing-s6-overlay-behaviour
+  - name: S6_CMD_WAIT_FOR_SERVICES_MAXTIME
+    default: "0"
+    variations:
+      - fpm-nginx
+      - fpm-apache
+    description: Milliseconds to wait for services to start before giving up. `0` waits forever.
+    reference:
+      label: s6-overlay
+      url: https://github.com/just-containers/s6-overlay#customizing-s6-overlay-behaviour
+  - name: S6_KEEP_ENV
+    default: "1"
+    variations:
+      - fpm-nginx
+      - fpm-apache
+    description: Pass the container's environment to every service.
+    reference:
+      label: s6-overlay
+      url: https://github.com/just-containers/s6-overlay#customizing-s6-overlay-behaviour
+  - name: S6_VERBOSITY
+    default: "1"
+    variations:
+      - fpm-nginx
+      - fpm-apache
+    description: How much S6 Overlay logs, from `0` to `5`. `1` prints warnings and errors. Raise it first when a service won't start.
+    reference:
+      label: s6-overlay
+      url: https://github.com/just-containers/s6-overlay#customizing-s6-overlay-behaviour
+  - name: SHOW_WELCOME_MESSAGE
+    default: "true"
+    description: Print the container information banner at start-up.
+  - name: SSL_CERTIFICATE_FILE
+    default: "/etc/ssl/private/self-signed-web.crt"
+    variations:
+      - fpm-nginx
+      - fpm-apache
+      - frankenphp
+    description: Path to the TLS certificate. When `SSL_MODE` isn't `off` and neither this file nor the private key exists, the image generates a self-signed pair; if only one exists, the container stops. FrankenPHP ignores it when `CADDY_AUTO_HTTPS=on`.
+  - name: SSL_MODE
+    default: "off"
+    variations:
+      - fpm-nginx
+      - fpm-apache
+      - frankenphp
+    description: Whether the web server serves HTTP, HTTPS, or both. `mixed` serves both, and `full` redirects HTTP to HTTPS. With native PHP sessions over HTTPS, also set `PHP_SESSION_COOKIE_SECURE=true`.
+    reference:
+      label: Configuring SSL
+      url: /docs/deployment-and-production/configuring-ssl
+    values:
+      - "off"
+      - "mixed"
+      - "full"
+  - name: SSL_PRIVATE_KEY_FILE
+    default: "/etc/ssl/private/self-signed-web.key"
+    variations:
+      - fpm-nginx
+      - fpm-apache
+      - frankenphp
+    description: Path to the TLS private key.
+  - name: TRUSTED_PROXY
+    default: "cloudflare"
+    variations:
+      - fpm-nginx
+      - fpm-apache
+      - frankenphp
+    description: Which proxies may pass the visitor's real IP address to your app.
+    reference:
+      label: Configuring trusted proxies
+      url: /docs/deployment-and-production/configuring-trusted-proxies
+    values:
+      - "cloudflare"
+      - "sucuri"
+      - "local"
+      - "off"
+  - name: XDG_CONFIG_HOME
+    default: "/config"
+    variations:
+      - frankenphp
+    description: Where Caddy saves its autosaved config.
+  - name: XDG_DATA_HOME
+    default: "/data"
+    variations:
+      - frankenphp
+    description: Where Caddy stores certificates. Mount a volume here if Caddy issues certificates, so they survive restarts.
