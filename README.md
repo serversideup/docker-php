@@ -14,7 +14,7 @@
 ## Introduction
 Production-ready PHP Docker images built on official PHP. Optimized for Laravel, WordPress, and modern PHP applications.
 
-### What Makes These Images Different?
+### What makes these images different
 
 **serversideup/php** takes the official PHP Docker images and adds everything you need for real-world production use:
 
@@ -37,22 +37,22 @@ Production-ready PHP Docker images built on official PHP. Optimized for Laravel,
 
 </details>
 
-## Getting Started
+## Getting started
 
-### Try it in 2 minutes ⚡
+### Try it in two minutes
 
-Want to see how easy it is? Our installation guide walks you through creating your first PHP app with Docker:
+The [quick start guide](https://serversideup.net/open-source/docker-php/docs/getting-started/installation) walks you through your first PHP app with Docker:
 
 1. ✅ Run `phpinfo()` in your browser
-2. ✅ Upgrade PHP versions by changing one line
-3. ✅ Switch between variations (FPM, FrankenPHP, etc.)
-4. ✅ See environment variables in action
+2. ✅ Change PHP settings with environment variables
+3. ✅ Upgrade or downgrade PHP by changing one line
+4. ✅ Switch variations (FPM, FrankenPHP, and more)
 
-**[👉 Follow the quick start guide](https://serversideup.net/open-source/docker-php/docs/getting-started/installation)**
+**[Follow the quick start guide →](https://serversideup.net/open-source/docker-php/docs/getting-started/installation)**
 
-### Quick Example
+### Quick example
 
-Here's what a complete Laravel setup with NGINX + PHP 8.5 looks like:
+A Laravel app with NGINX and PHP 8.5, configured with environment variables:
 
 ```yml
 services:
@@ -61,21 +61,14 @@ services:
     ports:
       - "80:8080"
     environment:
-      # Customize PHP with environment variables
-      PHP_OPCACHE_ENABLE: "1"
       PHP_MEMORY_LIMIT: "512M"
-      
-      # Laravel automations (migrations, storage link, etc.)
+      # Run migrations, storage:link, and optimize on start
       AUTORUN_ENABLED: "true"
     volumes:
       - .:/var/www/html
 ```
 
-That's it. No complex configs. Just environment variables.
-
-**Ready to try it?** [Get started with our tutorial →](https://serversideup.net/open-source/docker-php/docs/getting-started/installation)
-
-## Available Image Variations
+## Image variations
 
 Choose the variation that fits your needs. All images follow the pattern:
 
@@ -83,7 +76,7 @@ Choose the variation that fits your needs. All images follow the pattern:
 serversideup/php:{{version}}-{{variation-name}}
 ```
 
-### Popular Variations
+### Popular variations
 
 | Variation | Best For | Example |
 |-----------|----------|---------|
@@ -93,7 +86,7 @@ serversideup/php:{{version}}-{{variation-name}}
 | **fpm-nginx** | Stable and performant web server | `serversideup/php:8.5-fpm-nginx` |
 | **frankenphp** | Modern, high-performance apps with worker mode | `serversideup/php:8.5-frankenphp` |
 
-### Supported PHP Versions & Platforms
+### Supported PHP versions and platforms
 
 > [!NOTE]  
 > All images are available on [**Docker Hub**](https://hub.docker.com/r/serversideup/php/) and [**GitHub Packages**](https://github.com/serversideup/docker-php/pkgs/container/php).
@@ -110,9 +103,9 @@ We support **PHP 8.2 through 8.5** with both **Debian** and **Alpine** base imag
 | fpm-apache | **Debian Based**<br>[![serversideup/php:8.5-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.5-fpm-apache?label=serversideup%2Fphp%3A8.5-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.4-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm-apache?label=serversideup%2Fphp%3A8.4-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm-apache?label=serversideup%2Fphp%3A8.3-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm-apache&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm-apache](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-apache?label=serversideup%2Fphp%3A8.2-fpm-apache)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-apache&page=1&ordering=-name) |
 | fpm-nginx | **Debian Based**<br>[![serversideup/php:8.5-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.5-fpm-nginx?label=serversideup%2Fphp%3A8.5-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.4-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm-nginx?label=serversideup%2Fphp%3A8.4-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm-nginx?label=serversideup%2Fphp%3A8.3-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm-nginx&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm-nginx](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-nginx?label=serversideup%2Fphp%3A8.2-fpm-nginx)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-nginx&page=1&ordering=-name)<br>**Alpine Based**<br>[![serversideup/php:8.5-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.5-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.5-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.4-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.4-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.4-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.3-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.3-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.3-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-fpm-nginx-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.2-fpm-nginx-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.2-fpm-nginx-alpine?label=serversideup%2Fphp%3A8.2-fpm-nginx-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.2-fpm-nginx-alpine&page=1&ordering=-name) |
 | frankenphp | **Debian Based**<br>[![serversideup/php:8.5-frankenphp](https://img.shields.io/docker/image-size/serversideup/php/8.5-frankenphp?label=serversideup%2Fphp%3A8.5-frankenphp)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-frankenphp&page=1&ordering=-name)<br>[![serversideup/php:8.4-frankenphp](https://img.shields.io/docker/image-size/serversideup/php/8.4-frankenphp?label=serversideup%2Fphp%3A8.4-frankenphp)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-frankenphp&page=1&ordering=-name)<br>[![serversideup/php:8.3-frankenphp](https://img.shields.io/docker/image-size/serversideup/php/8.3-frankenphp?label=serversideup%2Fphp%3A8.3-frankenphp)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-frankenphp&page=1&ordering=-name)<br>**Alpine Based**<br>[![serversideup/php:8.5-frankenphp-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.5-frankenphp-alpine?label=serversideup%2Fphp%3A8.5-frankenphp-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.5-frankenphp-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.4-frankenphp-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.4-frankenphp-alpine?label=serversideup%2Fphp%3A8.4-frankenphp-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.4-frankenphp-alpine&page=1&ordering=-name)<br>[![serversideup/php:8.3-frankenphp-alpine](https://img.shields.io/docker/image-size/serversideup/php/8.3-frankenphp-alpine?label=serversideup%2Fphp%3A8.3-frankenphp-alpine)](https://hub.docker.com/r/serversideup/php/tags?name=8.3-frankenphp-alpine&page=1&ordering=-name) |
-| unit (deprecated) | ⚠️ NGINX is no longer maintaining NGINX Unit. We stopped providing updates for this image. [Learn more →](https://serversideup.net/open-source/docker-php/docs/image-variations/unit) |
+| unit (removed) | ⚠️ NGINX no longer maintains NGINX Unit, so this variation is no longer built. [Learn more →](https://serversideup.net/open-source/docker-php/docs/image-variations/unit) |
 
-## Professional Support
+## Professional support
 Need help integrating Docker with your PHP application?
 
 - **[Managed Hosting](https://serversideup.net/hire-us/)** - CI/CD design, managed hosting, guaranteed uptime
@@ -121,13 +114,13 @@ Need help integrating Docker with your PHP application?
 
 ## Resources
 - **[Website](https://serversideup.net/open-source/docker-php/)** overview of the product.
-- **[Docs](https://serversideup.net/open-source/docker-php/docs)** for a deep-dive on how to use the product.
+- **[Docs](https://serversideup.net/open-source/docker-php/docs)** for setup guides and the full reference.
 - **[Discord](https://serversideup.net/discord)** for friendly support from the community and the team.
 - **[GitHub](https://github.com/serversideup/docker-php)** for source code, bug reports, and project management.
 - **[Get Professional Help](https://serversideup.net/professional-support)** - Get video + screen-sharing help directly from the core contributors.
 
 ## Contributing
-As an open-source project, we strive for transparency and collaboration in our development process. We greatly appreciate any contributions members of our community can provide. Whether you're fixing bugs, proposing features, improving documentation, or spreading awareness - your involvement strengthens the project. Please review our [contribution guidelines](https://serversideup.net/open-source/docker-php/docs/getting-started/contributing) and [code of conduct](./.github/code_of_conduct.md) to understand how we work together respectfully.
+Bug fixes, features, and docs improvements are all welcome. Read the [contribution guide](https://serversideup.net/open-source/docker-php/docs/getting-started/contributing) and [code of conduct](./.github/code_of_conduct.md) before opening a pull request.
 
 - **Bug Report**: If you're experiencing an issue while using these images, please [create an issue](https://github.com/serversideup/docker-php/issues/new/choose).
 - **Feature Request**: Make this project better by [submitting a feature request](https://github.com/serversideup/docker-php/discussions/66).
