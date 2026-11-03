@@ -1,0 +1,25 @@
+name: Lint Docs
+
+# The PR image workflow runs the full lint, but it skips pull requests that only change docs.
+# This runs the checks that compare the docs reference with src/ for those pull requests.
+on:
+  pull_request:
+    paths:
+      - docs/content/**
+
+permissions: {}
+
+jobs:
+  docs-match-src:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check the docs match src/
+        run: bash scripts/lint.sh scripts
