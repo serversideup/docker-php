@@ -1,251 +1,110 @@
 ---
 title: FPM-Apache
-description: 'Learn how to use the FPM-Apache variation of the serversideup/php image.'
+description: 'Run Apache and PHP-FPM together in one container with the fpm-apache variation.'
 ---
 
 ::lead-p
-The FPM-Apache variation combines PHP-FPM with Apache as a reverse proxy in a single container. Apache serves static content directly and forwards PHP requests to PHP-FPM for processing.
-
-Use this variation when you need Apache-specific features, `.htaccess` support, or want an all-in-one solution for running PHP applications.
+The `fpm-apache` variation runs Apache and PHP-FPM in one container, supervised by S6 Overlay. Choose it when your app depends on `.htaccess` files or Apache modules, as WordPress and many older PHP apps do. [Compare every variation →](/docs/getting-started/choosing-an-image)
 ::
 
-## When to Use FPM-Apache
-Use the FPM-Apache variation when you need to:
+## At a glance
 
-- Run WordPress sites that rely on `.htaccess` configurations
-- Use Apache-specific modules like `mod_rewrite` or `mod_security`
-- Deploy applications that require `.htaccess` support
-- Want an all-in-one container with both web server and PHP processing
-- Need Apache's mature ecosystem and widespread documentation
+| | `fpm-apache` |
+|---|---|
+| Processes | Apache (event MPM) and PHP-FPM, supervised by S6 Overlay |
+| Ports | `8080` (HTTP), `8443` (HTTPS) |
+| Stop signal | `SIGQUIT` |
+| Default health check | `curl` to `http://localhost:${APACHE_HTTP_PORT}${HEALTHCHECK_PATH}` (`/healthcheck` by default) |
+| Webroot variable | `APACHE_DOCUMENT_ROOT` (default `/var/www/html/public`) |
+| PHP versions | 8.1 to 8.5, plus the 8.6 release candidate |
+| Operating systems | Debian only. There is no Alpine build. |
 
-#### Perfect for
-- WordPress hosting with Docker
-- Legacy PHP applications that depend on Apache
-- Teams familiar with Apache configuration
-- Applications requiring `.htaccess` support
+Requests flow the same way as in [`fpm-nginx`](/docs/image-variations/fpm-nginx#how-a-request-flows-through-nginx-and-php-fpm), with Apache in place of NGINX. One difference: Apache has no built-in rule that sends unknown paths to `index.php`. Your app's `.htaccess` does that, such as the one Laravel ships in `public/.htaccess`. Without it, routes other than real files return `404`.
 
-#### What's Inside
+## Quick start
+Put your app's public files in `public/`, which is the default document root:
 
-| Item | Status |
-|------|--------|
-| Apache web server | ✅ |
-| PHP-FPM process manager | ✅ |
-| PHP CLI binary | ✅ |
-| Common PHP extensions | ✅ |
-| `composer` executable | ✅ |
-| `install-php-extensions` script | ✅ |
-| Essential system utilities | ✅ |
-| S6 Overlay (process supervisor) | ✅ |
-| Native health checks | ✅ (via HTTP endpoint) |
-| `.htaccess` support | ✅ |
-| SSL/TLS support | ✅ (self-signed certificates or bring your own) |
-| Process management | S6 Overlay supervising both Apache and PHP-FPM |
-| Exposed Ports | `8080` (HTTP), `8443` (HTTPS) |
-| Stop Signal | `SIGQUIT` |
+::code-tree{defaultValue="compose.yml"}
 
-## How FPM-Apache Works
-This variation runs both Apache and PHP-FPM in a single container, managed by S6 Overlay (for the most accurate process supervision). Here's how requests flow:
-
-::steps{level="4"}
-
-#### Client sends HTTP request
-The container listens on port 8080 (or 8443 for HTTPS) for incoming HTTP requests.
-
-#### Apache receives the request
-Apache receives the request and determines if it's a static file or PHP script.
-
-#### Check for static files
-Static files (CSS, JavaScript, images) are served directly by Apache.
-
-#### Forward PHP requests to PHP-FPM
-PHP requests are forwarded to PHP-FPM via FastCGI protocol.
-
-#### Process PHP requests with PHP-FPM
-PHP-FPM processes the PHP script and returns the result to Apache.
-
-#### Send the response back to the client
-Apache sends the response back to the client.
-
-::
-
-S6 Overlay ensures both Apache and PHP-FPM are running and automatically restarts them if either process fails.
-
-::note
-If you don't specifically need Apache, consider using the [`fpm-nginx`](/docs/image-variations/fpm-nginx) or [`frankenphp`](/docs/image-variations/frankenphp) variations instead. They offer better performance for modern PHP applications.
-::
-
-## Quick Start
-Here are a few examples to help you get started with the FPM-Apache variation.
-
-### Docker CLI
-```bash [Terminal]
-docker run -p 80:8080 -v $(pwd):/var/www/html/public serversideup/php:8.5-fpm-apache
-```
-
-Your application will be available at `http://localhost`. The default document root is `/var/www/html/public`.
-
-### Docker Compose
-::warning
-Notice how we're mapping the current directory to `/var/www/html/`, but the actual default document root is `/var/www/html/public`. We're assuming you're creating the `public` directory and putting your PHP code in there. It's not best practice to expose your `compose.yml` file. See the [Installation guide](/docs/getting-started/installation) for a full example.
-::
-
-This is the recommended approach for local development and production deployments.
-
-```yml [compose.yml]
+```yaml [compose.yml]
 services:
   php:
     image: serversideup/php:8.5-fpm-apache
     ports:
       - "80:8080"
-      - "443:8443"
     volumes:
       - ./:/var/www/html
-    environment:
-      PHP_OPCACHE_ENABLE: "1"
-      SSL_MODE: "full"
 ```
 
-::tip
-The FPM-Apache variation uses ports 8080 and 8443 (instead of 80 and 443) to allow the container to run as a non-root user for better security.
+```php [public/index.php]
+<?php
+phpinfo();
+```
+
 ::
 
-### WordPress Example
-The FPM-Apache variation is excellent for WordPress hosting:
+Run `docker compose up` and open `http://localhost`. Mounting your code like this is for development. In production, copy the code into your own image instead; see [packaging your app for deployment](/docs/deployment-and-production/packaging-your-app-for-deployment). For a WordPress setup with a database, see [using WordPress with Docker](/docs/framework-guides/wordpress/using-wordpress-with-docker).
 
-```yml [compose.yml]
+## Configuration
+These variables are specific to this variation. Defaults and the full list, including every `PHP_*` and `PHP_FPM_*` option, are in the [environment variable specification](/docs/reference/environment-variable-specification).
+
+| To change | Set |
+|---|---|
+| Document root | `APACHE_DOCUMENT_ROOT` |
+| Listening ports | `APACHE_HTTP_PORT`, `APACHE_HTTPS_PORT` |
+| Apache worker threads | `APACHE_START_SERVERS`, `APACHE_MIN_SPARE_THREADS`, `APACHE_MAX_SPARE_THREADS`, `APACHE_THREAD_LIMIT`, `APACHE_THREADS_PER_CHILD`, `APACHE_MAX_REQUEST_WORKERS`, `APACHE_MAX_CONNECTIONS_PER_CHILD` |
+| Maximum upload size | `PHP_UPLOAD_MAX_FILE_SIZE` and `PHP_POST_MAX_SIZE` |
+
+## Customize Apache
+The default configuration adds security headers, hides the Apache version, turns off `TRACE`, blocks dotfiles (except `/.well-known/`), PHP files under `/storage/`, and WordPress's `xmlrpc.php`. You can add rules in two places.
+
+### `.htaccess` for per-directory rules
+`AllowOverride All` is set on the document root. Your `.htaccess` files work as they would on any Apache host and apply without a restart.
+
+### `conf-enabled` for server-wide rules
+Files in `/etc/apache2/conf-enabled/` ending in `.conf` load before the virtual hosts and apply to every site and port. This example redirects an old URL and limits `/admin` to a private network:
+
+```apache [custom.conf]
+Redirect permanent /old-pricing /pricing
+
+<Location "/admin">
+    Require ip 10.0.0.0/8
+</Location>
+```
+
+::code-group
+
+```yaml [compose.yml]
 services:
-  wordpress:
+  php:
     image: serversideup/php:8.5-fpm-apache
     ports:
       - "80:8080"
-      - "443:8443"
-    volumes:
-      - ./wordpress:/var/www/html
-    environment:
-      SSL_MODE: "full"
-      PHP_MEMORY_LIMIT: "512M"
-      PHP_OPCACHE_ENABLE: "1"
-    depends_on:
-      - mariadb
-
-  mariadb:
-    image: mariadb:11
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: wordpress
-    volumes:
-      - db_data:/var/lib/mysql
-
-volumes:
-  db_data:
-```
-
-### Health Check
-The FPM-Apache variation includes a built-in health check that verifies Apache is responding:
-
-::note
-The health check endpoint is configurable via the `HEALTHCHECK_PATH` environment variable, which defaults to `/healthcheck`.
-::
-
-If you are using Laravel, you can use the `/up` route to validate that Laravel is running and healthy.
-
-:u-button{to="/docs/guide/using-healthchecks-with-laravel" label="Learn more about using healthchecks with Laravel" aria-label="Learn more about using healthchecks with Laravel" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
-
-## SSL/TLS Support
-::tip{to="/docs/deployment-and-production/configuring-ssl"}
-For more information on SSL, see the [Configuring SSL](/docs/deployment-and-production/configuring-ssl) guide.
-::
-The FPM-Apache variation includes built-in SSL support with self-signed certificates for development.
-
-### Enabling SSL
-```yml [compose.yml]
-services:
-  php:
-    image: serversideup/php:8.5-fpm-apache
-    ports:
-      - "8080:8080"
-      - "8443:8443"
     volumes:
       - ./:/var/www/html
-    environment:
-      SSL_MODE: "full"
+      - ./custom.conf:/etc/apache2/conf-enabled/custom.conf:ro
 ```
 
-Available SSL modes:
-- `off` - SSL disabled (default)
-- `mixed` - Both HTTP (8080) and HTTPS (8443) enabled
-- `full` - HTTPS only on port 8443
-
-### Custom SSL Certificates
-For production, use your own SSL certificates:
-
-```yml [compose.yml]
-services:
-  php:
-    image: serversideup/php:8.5-fpm-apache
-    ports:
-      - "443:8443"
-    volumes:
-      - ./:/var/www/html
-      - ./certs/server.crt:/etc/ssl/private/self-signed-web.crt:ro
-      - ./certs/server.key:/etc/ssl/private/self-signed-web.key:ro
-    environment:
-      SSL_MODE: "full"
+```dockerfile [Dockerfile]
+FROM serversideup/php:8.5-fpm-apache
+COPY custom.conf /etc/apache2/conf-enabled/
 ```
 
-::warning
-For production deployments, consider using a reverse proxy like Traefik or Caddy to handle SSL termination instead of managing certificates in the container.
 ::
 
-## Environment Variables
-The FPM-Apache variation supports extensive customization through environment variables.
+The image's own rules are in `conf-enabled/security.conf`, `remoteip.conf`, and `serversideup.conf`. A file with the same name replaces the image's file.
 
-### Apache Configuration
+### Replace a site
+Each `SSL_MODE` has its own virtual host file in `/etc/apache2/sites-available/`: `ssl-off.conf`, `ssl-mixed.conf`, and `ssl-full.conf`. Mount your own file over the one for your mode to replace it. You then own the health check route and the PHP handler. Start from a copy of the [image's files](https://github.com/serversideup/docker-php/tree/main/src/variations/fpm-apache/etc/apache2){target="_blank"}.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `APACHE_DOCUMENT_ROOT` | `/var/www/html/public` | Document root for Apache |
-| `APACHE_START_SERVERS` | `2` | Number of Apache server processes to start |
-| `APACHE_MIN_SPARE_THREADS` | `10` | Minimum idle threads |
-| `APACHE_MAX_SPARE_THREADS` | `75` | Maximum idle threads |
-| `APACHE_THREADS_PER_CHILD` | `25` | Number of threads per child process |
-| `APACHE_MAX_REQUEST_WORKERS` | `150` | Maximum simultaneous connections |
-| `APACHE_MAX_CONNECTIONS_PER_CHILD` | `0` | Requests before child process restarts (0 = unlimited) |
-| `SSL_MODE` | `off` | SSL mode: `off`, `mixed`, or `full` |
-| `SSL_CERTIFICATE_FILE` | `/etc/ssl/private/self-signed-web.crt` | Path to SSL certificate |
-| `SSL_PRIVATE_KEY_FILE` | `/etc/ssl/private/self-signed-web.key` | Path to SSL private key |
-| `HEALTHCHECK_PATH` | `/healthcheck` | Path for health check endpoint |
+## Health checks
+PHP-FPM answers the `/healthcheck` route. The default health check fails if either Apache or PHP-FPM is down. Set `HEALTHCHECK_PATH=/up` to check Laravel's health route instead. [Health checks](/docs/deployment-and-production/health-checks) covers timing and orchestrators. [Laravel health checks](/docs/framework-guides/laravel/health-checks) covers `/up` and worker containers.
 
-::tip{to="/docs/reference/environment-variable-specification"}
-For a complete list of available environment variables, see the [Environment Variable Specification →](/docs/reference/environment-variable-specification).
-::
+## SSL
+`SSL_MODE=mixed` serves HTTP on `8080` and HTTPS on `8443`. `SSL_MODE=full` serves HTTPS on `8443` and redirects HTTP on `8080` to it. The image generates a self-signed certificate unless you provide one. See [configuring SSL](/docs/deployment-and-production/configuring-ssl).
 
-### PHP-FPM Configuration
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PHP_FPM_POOL_NAME` | `www` | Name of the PHP-FPM pool |
-| `PHP_FPM_PM_CONTROL` | `ondemand` | Process manager control (`dynamic`, `static`, `ondemand`) |
-| `PHP_FPM_PM_MAX_CHILDREN` | `20` | Maximum number of child processes |
-| `PHP_FPM_PM_START_SERVERS` | `2` | Number of child processes created on startup |
-| `PHP_FPM_PM_MIN_SPARE_SERVERS` | `1` | Minimum number of idle processes |
-| `PHP_FPM_PM_MAX_SPARE_SERVERS` | `3` | Maximum number of idle processes |
-| `PHP_MEMORY_LIMIT` | `256M` | Maximum memory a script can use |
-| `PHP_MAX_EXECUTION_TIME` | `99` | Maximum time a script can run (seconds) |
-| `PHP_UPLOAD_MAX_FILE_SIZE` | `100M` | Maximum upload file size |
-| `PHP_FILE_UPLOADS` | `On` | Whether HTTP file uploads are allowed |
-| `PHP_MAX_FILE_UPLOADS` | `20` | Maximum number of files per request |
-| `PHP_POST_MAX_SIZE` | `100M` | Maximum POST request size |
-
-::tip{to="/docs/reference/environment-variable-specification"}
-For a complete list of available environment variables, see the [Environment Variable Specification →](/docs/reference/environment-variable-specification).
-::
-
-## Further Customization
-If you need to customize the container further, reference the docs below:
-
-- [Environment Variable Specification](/docs/reference/environment-variable-specification) - See which environment variables are available to customize PHP and Apache settings.
-- [Command Reference](/docs/reference/command-reference) - See which commands are available to run inside the container.
-
+## Related pages
+- [Using WordPress with Docker](/docs/framework-guides/wordpress/using-wordpress-with-docker)
+- [Configuring trusted proxies](/docs/deployment-and-production/configuring-trusted-proxies)
+- [Production performance tuning](/docs/deployment-and-production/production-performance-tuning)
+- [Command reference](/docs/reference/command-reference)

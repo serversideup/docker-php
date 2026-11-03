@@ -1,94 +1,39 @@
 ---
 title: FPM-NGINX
-description: 'Learn how to use the FPM-NGINX variation of the serversideup/php image.'
+description: 'Run NGINX and PHP-FPM together in one container with the fpm-nginx variation.'
 ---
 
 ::lead-p
-The FPM-NGINX variation combines PHP-FPM with NGINX as a reverse proxy in a single container. This is the traditional setup widely adopted for many PHP applications and is currently is the best balance of performance, stability, and compatibility. If you want the latest and greatest, consider using the [FrankenPHP variation →](/docs/image-variations/frankenphp).
+The `fpm-nginx` variation runs NGINX and PHP-FPM in one container, supervised by S6 Overlay. Choose it for Laravel and other PHP apps that run on PHP-FPM when you want the web server included and don't need Apache's `.htaccess` files or FrankenPHP's worker mode. [Compare every variation →](/docs/getting-started/choosing-an-image)
 ::
 
-## When to Use FPM-NGINX
-Use the FPM-NGINX variation when you need to:
+## At a glance
 
-- Run Laravel applications with excellent performance and stability
-- Want an all-in-one container with both web server and PHP processing
-- Need a fast, lightweight web server with low resource consumption
-- Serve static assets efficiently while processing PHP requests
+| | `fpm-nginx` |
+|---|---|
+| Processes | NGINX and PHP-FPM, supervised by S6 Overlay |
+| Ports | `8080` (HTTP), `8443` (HTTPS) |
+| Stop signal | `SIGQUIT` |
+| Default health check | `curl` to `http://localhost:${NGINX_HTTP_PORT}${HEALTHCHECK_PATH}` (`/healthcheck` by default) |
+| Webroot variable | `NGINX_WEBROOT` (default `/var/www/html/public`) |
+| PHP versions | 8.1 to 8.5, plus the 8.6 release candidate |
+| Operating systems | Debian and Alpine |
 
-#### Perfect for
-- Laravel applications (this is our most popular variation for Laravel)
-- Modern PHP frameworks (Symfony, etc.)
-- API-first applications
-- Production deployments requiring high performance and stability
+## How a request flows through NGINX and PHP-FPM
 
-#### What's Inside
+1. NGINX receives the request on `8080` or `8443`.
+2. If the path matches a file in the webroot, such as a CSS file or image, NGINX serves it directly.
+3. Any other path is rewritten to `/index.php`, and NGINX passes `.php` requests to PHP-FPM over FastCGI on `127.0.0.1:9000`.
+4. PHP-FPM runs the script and returns the response through NGINX.
 
-| Item | Status |
-|------|--------|
-| NGINX web server | ✅ |
-| PHP-FPM process manager | ✅ |
-| PHP CLI binary | ✅ |
-| Common PHP extensions | ✅ |
-| `composer` executable | ✅ |
-| `install-php-extensions` script | ✅ |
-| Essential system utilities | ✅ |
-| S6 Overlay (process supervisor) | ✅ |
-| Native health checks | ✅ (via HTTP endpoint) |
-| SSL/TLS support | ✅ (self-signed certificates) |
-| Process management | S6 Overlay supervising both NGINX and PHP-FPM |
-| Exposed Ports | `8080` (HTTP), `8443` (HTTPS) |
-| Stop Signal | `SIGQUIT` |
+S6 Overlay starts PHP-FPM before NGINX and restarts either one if it exits. PHP-FPM answers the `/healthcheck` route. The default health check fails if either process is down.
 
-## How FPM-NGINX Works
-This variation runs both NGINX and PHP-FPM in a single container, managed by S6 Overlay. Here's how requests flow:
+## Quick start
+Put your app's public files in `public/`, which is the default webroot:
 
-::steps{level="4"}
+::code-tree{defaultValue="compose.yml"}
 
-#### Client sends HTTP request
-The container listens on port 8080 (or 8443 for HTTPS) for incoming HTTP requests.
-
-#### NGINX receives the request
-NGINX receives the request and determines if it's a static file or PHP script.
-
-#### Check for static files
-Static files (CSS, JavaScript, images) are served directly by NGINX.
-
-#### Forward PHP requests to PHP-FPM
-PHP requests are forwarded to PHP-FPM via FastCGI protocol.
-
-#### Process PHP requests with PHP-FPM
-PHP-FPM processes the PHP script and returns the result to NGINX.
-
-#### Send the response back to the client
-NGINX sends the response back to the client.
-
-::
-
-S6 Overlay ensures both NGINX and PHP-FPM are running and automatically restarts them if either process fails.
-
-::tip
-This variation offers better performance than FPM-Apache for most modern PHP applications. NGINX is designed to handle high concurrency with lower resource consumption.
-::
-
-## Quick Start
-Here are a few examples to help you get started with the FPM-NGINX variation.
-
-### Docker CLI
-```bash [Terminal]
-docker run -p 80:8080 -v $(pwd):/var/www/html/public serversideup/php:8.5-fpm-nginx
-```
-
-Your application will be available at `http://localhost`. The default webroot is `/var/www/html/public`.
-
-### Docker Compose
-
-::warning
-Notice how we're mapping the current directory to `/var/www/html/`, but the actual default document root is `/var/www/html/public`. We're assuming you're creating the `public` directory and putting your PHP code in there. It's not best practice to expose your `compose.yml` file. See the [Installation guide](/docs/getting-started/installation) for a full example.
-::
-
-This is the recommended approach for local development and production deployments.
-
-```yml [compose.yml]
+```yaml [compose.yml]
 services:
   php:
     image: serversideup/php:8.5-fpm-nginx
@@ -96,244 +41,101 @@ services:
       - "80:8080"
     volumes:
       - ./:/var/www/html
-    environment:
-      PHP_OPCACHE_ENABLE: "1"
 ```
 
-::tip
-The FPM-NGINX variation uses ports 8080 and 8443 (instead of 80 and 443) to allow the container to run as a non-root user for better security.
+```php [public/index.php]
+<?php
+phpinfo();
+```
+
 ::
 
-### Laravel Example
-The FPM-NGINX variation is perfectly suited for Laravel applications:
+Run `docker compose up` and open `http://localhost`. Mounting your code like this is for development. In production, copy the code into your own image instead; see [packaging your app for deployment](/docs/deployment-and-production/packaging-your-app-for-deployment).
 
-```yml [compose.yml]
-services:
-  php:
-    image: serversideup/php:8.5-fpm-nginx
-    ports:
-      - "80:8080"
-      - "443:8443"
-    volumes:
-      - .:/var/www/html
-    environment:
-      SSL_MODE: "full"
-      PHP_OPCACHE_ENABLE: "1"
-    depends_on:
-      - mariadb
-      - redis
+## Configuration
+These variables are specific to this variation. Defaults and the full list, including every `PHP_*` and `PHP_FPM_*` option, are in the [environment variable specification](/docs/reference/environment-variable-specification).
 
-  mariadb:
-    image: mariadb:11
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: laravel
-      MYSQL_USER: laravel
-      MYSQL_PASSWORD: laravel
-    volumes:
-      - db_data:/var/lib/mysql
+| To change | Set |
+|---|---|
+| Document root | `NGINX_WEBROOT` |
+| Maximum upload or request size | `NGINX_CLIENT_MAX_BODY_SIZE`, plus `PHP_UPLOAD_MAX_FILE_SIZE` and `PHP_POST_MAX_SIZE` |
+| FastCGI response buffers | `NGINX_FASTCGI_BUFFERS`, `NGINX_FASTCGI_BUFFER_SIZE` |
+| Log destinations | `NGINX_ACCESS_LOG`, `NGINX_ERROR_LOG` |
+| Listening ports | `NGINX_HTTP_PORT`, `NGINX_HTTPS_PORT` |
+| IPv4 only or IPv6 only | `NGINX_LISTEN_IP_PROTOCOL` |
+| NGINX version in response headers | `NGINX_SERVER_TOKENS` |
 
-  redis:
-    image: redis:alpine
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
+## Custom NGINX rules go in `server-opts.d`
+The default site sends missing paths to `/index.php` and adds security headers. It blocks dotfiles (except `/.well-known/`) and PHP files under `/storage/`. Static assets get a one-year cache and gzip is on. To add your own rules, put a `.conf` file in the folder for the level where the rules belong:
 
-volumes:
-  db_data:
-  redis_data:
-```
+| Folder | Included inside | Use it for |
+|---|---|---|
+| `/etc/nginx/server-opts.d/` | Each `server {}` block that serves your app | `location` blocks, redirects, `add_header` |
+| `/etc/nginx/conf.d/` | The `http {}` block | `limit_req_zone`, `map`, or a whole extra `server {}` |
 
+A `location` block in `conf.d/` stops NGINX from starting with `"location" directive is not allowed here`. With `SSL_MODE=full`, the HTTP server only redirects. Rules in `server-opts.d/` then apply to HTTPS requests only.
 
-### Health Check
-The FPM-NGINX variation includes a built-in health check that verifies NGINX is responding:
+The image already has `performance.conf` and `security.conf` in `server-opts.d/`. A file with the same name replaces the image's rules. Your files are used as written: environment variables such as `${NGINX_WEBROOT}` are not filled in.
 
-::note
-The health check endpoint is configurable via the `HEALTHCHECK_PATH` environment variable, which defaults to `/healthcheck`.
-::
+### Example: rate limit an API and redirect an old URL
+A rate limit needs two parts: the zone at `http` level and the limit inside a `location`.
 
-If you are using Laravel, you can use the `/up` route to validate that Laravel is running and healthy.
+::code-group
 
-:u-button{to="/docs/guide/using-healthchecks-with-laravel" label="Learn more about using healthchecks with Laravel" aria-label="Learn more about using healthchecks with Laravel" size="md" color="primary" variant="outline" trailing-icon="i-lucide-arrow-right" class="font-bold ring ring-inset ring-blue-600 text-blue-600 hover:ring-blue-500 hover:text-blue-500"}
-
-## SSL/TLS Support
-The FPM-NGINX variation includes built-in SSL support with self-signed certificates for development.
-
-### Enabling SSL
-```yml [compose.yml]
-services:
-  php:
-    image: serversideup/php:8.5-fpm-nginx
-    ports:
-      - "80:8080"
-      - "443:8443"
-    volumes:
-      - ./:/var/www/html
-    environment:
-      SSL_MODE: "full"
-```
-
-Available SSL modes:
-- `off` - SSL disabled (default)
-- `mixed` - Both HTTP (8080) and HTTPS (8443) enabled
-- `full` - HTTPS only on port 8443
-
-### Custom SSL Certificates
-For production, use your own SSL certificates:
-
-```yml [compose.yml]
-services:
-  php:
-    image: serversideup/php:8.5-fpm-nginx
-    ports:
-      - "443:8443"
-    volumes:
-      - ./:/var/www/html
-      - ./certs/server.crt:/etc/ssl/private/self-signed-web.crt:ro
-      - ./certs/server.key:/etc/ssl/private/self-signed-web.key:ro
-    environment:
-      SSL_MODE: "full"
-```
-
-::warning
-For production deployments, consider using a reverse proxy like Traefik or Caddy to handle SSL termination instead of managing certificates in the container.
-::
-
-## Environment Variables
-The FPM-NGINX variation supports extensive customization through environment variables.
-
-### NGINX Configuration
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `NGINX_WEBROOT` | `/var/www/html/public` | Document root for NGINX |
-| `NGINX_ACCESS_LOG` | `/dev/stdout` | Path to access log file |
-| `NGINX_ERROR_LOG` | `/dev/stderr` | Path to error log file |
-| `NGINX_CLIENT_MAX_BODY_SIZE` | `100M` | Maximum upload/request body size |
-| `NGINX_FASTCGI_BUFFERS` | `8 8k` | Number and size of FastCGI buffers |
-| `NGINX_FASTCGI_BUFFER_SIZE` | `8k` | Size of the first FastCGI response buffer |
-| `NGINX_SERVER_TOKENS` | `off` | Show NGINX version in headers (`on`/`off`) |
-| `NGINX_LISTEN_IP_PROTOCOL` | `all` | IP protocol to listen on (`all`, `ipv4`, `ipv6`) |
-| `SSL_MODE` | `off` | SSL mode: `off`, `mixed`, or `full` |
-| `SSL_CERTIFICATE_FILE` | `/etc/ssl/private/self-signed-web.crt` | Path to SSL certificate |
-| `SSL_PRIVATE_KEY_FILE` | `/etc/ssl/private/self-signed-web.key` | Path to SSL private key |
-| `HEALTHCHECK_PATH` | `/healthcheck` | Path for health check endpoint |
-
-::tip{to="/docs/reference/environment-variable-specification"}
-For a complete list of available environment variables, see the [Environment Variable Specification →](/docs/reference/environment-variable-specification).
-::
-
-### PHP-FPM Configuration
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PHP_FPM_POOL_NAME` | `www` | Name of the PHP-FPM pool |
-| `PHP_FPM_PM_CONTROL` | `ondemand` | Process manager control (`dynamic`, `static`, `ondemand`) |
-| `PHP_FPM_PM_MAX_CHILDREN` | `20` | Maximum number of child processes |
-| `PHP_FPM_PM_START_SERVERS` | `2` | Number of child processes created on startup |
-| `PHP_FPM_PM_MIN_SPARE_SERVERS` | `1` | Minimum number of idle processes |
-| `PHP_FPM_PM_MAX_SPARE_SERVERS` | `3` | Maximum number of idle processes |
-| `PHP_MEMORY_LIMIT` | `256M` | Maximum memory a script can use |
-| `PHP_MAX_EXECUTION_TIME` | `99` | Maximum time a script can run (seconds) |
-| `PHP_UPLOAD_MAX_FILE_SIZE` | `100M` | Maximum upload file size |
-| `PHP_FILE_UPLOADS` | `On` | Whether HTTP file uploads are allowed |
-| `PHP_MAX_FILE_UPLOADS` | `20` | Maximum number of files per request |
-| `PHP_POST_MAX_SIZE` | `100M` | Maximum POST request size |
-
-## Performance Tuning
-Here are some tuning recommendations for different scenarios:
-
-### For Production (low memory environments)
-::note{to="/docs/deployment-and-production/packaging-your-app-for-deployment"}
-If you're running an application in production, you'll likely want to package your application inside an image for deployment. Click here to learn more.
-::
-```yml [compose.yml]
-services:
-  php:
-    # You'll likely replace this with your own custom image name
-    image: serversideup/php:8.5-fpm-nginx
-    environment:
-      # Enable OPcache for production
-      PHP_OPCACHE_ENABLE: "1"
-      
-      # NGINX Settings (adjust as needed)
-      NGINX_FASTCGI_BUFFERS: "16 16k"
-      NGINX_FASTCGI_BUFFER_SIZE: "32k"
-```
-
-### For High-Traffic Applications
-```yml [compose.yml]
-services:
-  php:
-    # You'll likely replace this with your own custom image name
-    image: serversideup/php:8.5-fpm-nginx
-    environment:
-      # NGINX Settings
-      NGINX_CLIENT_MAX_BODY_SIZE: "200M"
-      NGINX_FASTCGI_BUFFERS: "32 32k"
-      
-      # PHP-FPM Settings (adjust as needed)
-      PHP_FPM_PM_CONTROL: "static"
-      PHP_FPM_PM_MAX_CHILDREN: "50"
-      PHP_MEMORY_LIMIT: "512M"
-      
-      # OPcache Settings
-      PHP_OPCACHE_ENABLE: "1"
-```
-
-::note{to="/docs/reference/environment-variable-specification"}
-These are just examples. Review the [Environment Variable Specification](/docs/reference/environment-variable-specification) for a complete list of available environment variables to match your needs.
-::
-
-## NGINX Configuration
-Unlike Apache's `.htaccess` files, NGINX uses configuration files. The FPM-NGINX variation comes pre-configured for Laravel and modern PHP applications.
-
-### Default Configuration
-The default NGINX configuration includes:
-- FastCGI caching headers
-- Gzip compression
-- Security headers
-- Laravel-compatible URL rewriting
-- Static file optimization
-
-### Custom NGINX Configuration
-You can add custom NGINX server configuration by mounting files:
-
-```yml [compose.yml]
-services:
-  php:
-    image: serversideup/php:8.5-fpm-nginx
-    ports:
-      - "80:8080"
-    volumes:
-      - ./:/var/www/html
-      - ./custom-nginx.conf:/etc/nginx/conf.d/custom.conf:ro
-```
-
-Example custom configuration:
-
-```nginx [custom-nginx.conf]
-# Add custom headers
-add_header X-Custom-Header "My Value" always;
-
-# Custom location block
-location /api {
-    try_files $uri $uri/ /index.php?$query_string;
-    
-    # Additional settings for API endpoints
-    client_max_body_size 50M;
-}
-
-# Rate limiting
+```nginx [rate-limit-zone.conf]
 limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+```
+
+```nginx [api.conf]
 location /api/ {
     limit_req zone=api burst=20 nodelay;
+    try_files $uri /index.php?$query_string;
+}
+
+location = /old-pricing {
+    return 301 /pricing;
 }
 ```
 
-## Further Customization
-If you need to customize the container further, reference the docs below:
+::
 
-- [Environment Variable Specification](/docs/reference/environment-variable-specification) - See which environment variables are available to customize PHP and NGINX settings.
-- [Command Reference](/docs/reference/command-reference) - See which commands are available to run inside the container.
+Mount the files in development. For production, copy them into your image:
 
+::code-group
+
+```yaml [compose.yml]
+services:
+  php:
+    image: serversideup/php:8.5-fpm-nginx
+    ports:
+      - "80:8080"
+    volumes:
+      - ./:/var/www/html
+      - ./rate-limit-zone.conf:/etc/nginx/conf.d/rate-limit-zone.conf:ro
+      - ./api.conf:/etc/nginx/server-opts.d/api.conf:ro
+```
+
+```dockerfile [Dockerfile]
+FROM serversideup/php:8.5-fpm-nginx
+COPY rate-limit-zone.conf /etc/nginx/conf.d/
+COPY api.conf /etc/nginx/server-opts.d/
+```
+
+::
+
+Requests to `/api/` over the limit get a `503`.
+
+### Replace the whole site
+To write the `server {}` blocks yourself, put your file at `/etc/nginx/conf.d/default.conf`. When that file exists at startup, the image uses it instead of its own site. You then own everything the default site does, including `SSL_MODE` handling and the `/healthcheck` location. Try `server-opts.d/` first.
+
+## Health checks
+The default health check works without configuration. Set `HEALTHCHECK_PATH=/up` to check Laravel's health route instead. [Health checks](/docs/deployment-and-production/health-checks) covers timing and orchestrators. [Laravel health checks](/docs/framework-guides/laravel/health-checks) covers `/up` and worker containers.
+
+## SSL
+`SSL_MODE=mixed` serves HTTP on `8080` and HTTPS on `8443`. `SSL_MODE=full` serves HTTPS on `8443` and redirects HTTP on `8080` to it. The image generates a self-signed certificate unless you provide one. See [configuring SSL](/docs/deployment-and-production/configuring-ssl).
+
+## Related pages
+- [Configuring trusted proxies](/docs/deployment-and-production/configuring-trusted-proxies)
+- [Production performance tuning](/docs/deployment-and-production/production-performance-tuning)
+- [Using S6 Overlay](/docs/customizing-the-image/using-s6-overlay)
+- [Command reference](/docs/reference/command-reference)
