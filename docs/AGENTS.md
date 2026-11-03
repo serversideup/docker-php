@@ -1,187 +1,63 @@
-# AI Agent Guidelines for Documentation
+# Documentation guidelines
 
-You are a highly skilled technical writer and PHP system administrator. You are an expert at breaking down complex technical concepts into easy to understand language. You also carry a significant experience in structuring open source documentation to make it easy for others to understand, modify, and contribute to the project.
+The docs and marketing site for `serversideup/php`. It is a static Nuxt 4 site built with Nuxt Content and Nuxt UI. Pages are Markdown in `content/docs/`; the home page is `content/index.md`.
 
-## Project Context
-
-This is the documentation site for **serversideup/php** - production-ready Docker images optimized for PHP applications (especially Laravel). Looking at the project root, you'll see the following directories:
-```
-docs/ # Documentation and Marketing site
-scripts/ # Scripts used for image building and deployment
-src/ # Source code for the PHP Docker images
-```
-### Key Technologies in the docs/ directory
-- **Nuxt 4** - Vue-based static site generator
-- **Nuxt Content** - File-based CMS for markdown documentation
-- **Nuxt UI** - Component library for the Nuxt 4 application
-- **TailwindCSS** - Utility-first CSS framework
-
-## Documentation Structure
-
-The documentation site (located in the docs/ directory) follows this organization:
-
-```
-app/ # Nuxt app configuration
-content/ # Markdown documentation
-public/ # Static assets
-server/ # Server-side routes for the Nuxt application
-```
-
-Important note: This application is 100% static and does not require a database or server-side rendering. It is a simple Nuxt 4 application that uses the Nuxt Content module to build the documentation site. The site is then deployed to a static hosting provider like CloudFlare Pages.
-
-
-## Writing Guidelines
-
-### 1. **Tone and Voice**
-- Use clear, conversational language that's professional but approachable
-- Write for developers of varying skill levels - beginners to advanced
-- Avoid jargon when possible; when technical terms are necessary, explain them
-- Use active voice and second person ("you" instead of "one" or "the user")
-- Be friendly and approachable, but not too casual.
-
-### 2. **Content Structure**
-- Start with the "why" before the "how"
-- Use clear, descriptive headings that follow a logical hierarchy
-- Include practical examples that users can copy and run
-- Add callouts (notes, warnings, tips) for important information
-- Break up long sections with subheadings, lists, and code blocks
-
-### 3. **Code Examples**
-- Always test code examples to ensure they work
-- Include comments in complex examples
-- Show realistic, production-ready examples when possible
-- Specify language syntax highlighting in code blocks
-- For Docker examples, use the actual image tags available in the project
-
-### 4. **Markdown Conventions**
-- Use ATX-style headers (# ## ###) not underline style
-- Use fenced code blocks with language identifiers
-- Use relative links for internal documentation
-- Use absolute URLs for external resources
-- Include alt text for all images
-
-### 5. **Docker-Specific Guidelines**
-When documenting Docker concepts:
-- Show both Docker CLI and Docker Compose examples
-- Explain what environment variables do and their default values
-- Include health check examples
-- Demonstrate volume mounts with real use cases
-- Always specify image tags (never use `:latest`)
-
-### 6. **Laravel-Specific Guidelines**
-When documenting Laravel features:
-- Reference official Laravel documentation when appropriate
-- Show examples using Laravel conventions (Artisan, config, .env)
-- Explain automations that the images provide for Laravel
-- Document queue, schedule, and Horizon workers properly
-
-## Content Review Checklist
-
-Before considering documentation complete, verify:
-
-- [ ] All code examples are tested and working
-- [ ] External links are valid and not broken
-- [ ] Spelling and grammar are correct
-- [ ] Headings follow logical hierarchy (H1 → H2 → H3)
-- [ ] Code blocks have appropriate syntax highlighting
-- [ ] Complex concepts include examples or diagrams
-- [ ] Callouts (notes/warnings) are used appropriately
-- [ ] Cross-references to other docs use relative links
-- [ ] Docker image versions match what's actually available
-- [ ] Content is accurate to the current version
-
-## Common Patterns
-
-### Callout Boxes
-Use Markdown callouts for important information:
-```markdown
-::note
-Here's some additional information.
-::
-
-::tip
-Here's a helpful suggestion.
-::
-
-::warning
-Be careful with this action as it might have unexpected results.
-::
-
-::caution
-This action cannot be undone.
-::
-```
-
-### Code Blocks
-Use code blocks to display multi-line code snippets with syntax highlighting. Code blocks are essential for presenting code examples clearly. When writing a code-block, you can specify a filename that will be displayed on top of the code block. An icon will be automatically displayed based on the extension or the name. Filenames help users understand the code's location and purpose within a project. To highlight lines of code, add {} around the line numbers you want to highlight. Line highlighting is useful for focusing users on important parts of code examples.
-
-```markdown
-Here's how to configure PHP-FPM with custom settings:
-
-\`\`\`ts [nuxt.config.ts]{4-5}
-export default defineAppConfig({
-  ui: {
-    icons: {
-      copy: 'i-lucide-copy',
-      copyCheck: 'i-lucide-copy-check'
-    }
-  }
-})
-\`\`\`
-```
-
-## File Naming Conventions
-
-- Use numbered prefixes for ordered content: `1.index.md`, `2.installation.md`
-- Use kebab-case for file names: `these-images-vs-others.md`
-- Keep file names concise but descriptive
-- Match file names to the primary H1 heading (URL-friendly version)
-
-## When to Ask Questions
-
-Don't guess or assume when:
-- Technical accuracy is in question (Docker config, PHP settings, etc.)
-- Breaking changes affect existing documentation
-- New features need to be documented but requirements are unclear
-- Examples might not work across different OS or environments
-
-## Helpful Resources
-
-- [Official Nuxt Content Documentation](https://content.nuxt.com/)
-- [Nuxt UI Docs Template](https://docs-template.nuxt.dev/)
-- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
-- [Laravel Documentation](https://laravel.com/docs)
-- [serversideup/php GitHub Repository](https://github.com/serversideup/docker-php)
-- [Write the Docs Style Guide](https://www.writethedocs.org/guide/writing/style-guides/)
-
-## Component Usage
-
-This Nuxt docs site has custom Vue components. Familiarize yourself with:
-- `<AppLogo>` - Project logo
-- `<Badges>` - Status badges
-- `<HeroVideo>` - Video embeds
-- `<PageHeaderLinks>` - Navigation
-- `<TemplateMenu>` - Template selection
-
-Check `app/components/` directory for available components before creating new ones.
-
-## Testing Changes Locally
-
-To test documentation changes:
 ```bash
-cd docs/
 yarn install
-yarn dev
+yarn dev        # http://localhost:3000
+yarn generate   # static build; fails on dead internal links
 ```
 
-Browse to http://localhost:3000 to preview changes.
+## Facts come from the code
 
-## Remember
+Every option name, default, path, and port must match `src/` and `scripts/conf/php-versions-base-config.yml`. Check the source before writing, never memory or another docs page.
 
-- **Users first**: Always consider what the reader needs to accomplish
-- **Clarity over cleverness**: Simple, clear language beats fancy technical writing
-- **Examples matter**: Show, don't just tell
-- **Accuracy is critical**: Wrong documentation is worse than no documentation
-- **Open source mindset**: Make it easy for others to contribute and improve
+Each fact has one home. Other pages link to it instead of repeating it:
 
-Your goal is to help users succeed with these Docker images quickly and confidently.
+| Fact | Page |
+|---|---|
+| Environment variables, defaults, and which variations use them | `content/data/env-vars.yml`, rendered on `9.reference/1.environment-variable-specification.md`. `scripts/check-env-var-docs.sh` fails CI when it drifts from `src/`. |
+| Helper commands, their usage, and which variations ship them | `content/data/commands.yml`, rendered on `9.reference/2.command-reference.md`. `scripts/check-command-docs.sh` fails CI when it drifts from `src/`. |
+| Variations, PHP versions, operating systems, and tags | `1.getting-started/5.choosing-an-image.md` |
+| Floating and pinned tags, release model | `6.upgrading/1.upgrade-guide.md` |
+| SSL modes and certificates | `4.deployment-and-production/2.configuring-ssl.md` |
+| The web server health check and `HEALTHCHECK_PATH` | `4.deployment-and-production/3.health-checks.md` |
+| Laravel worker health check scripts | `3.framework-guides/1.laravel/3.health-checks.md` |
+| Worker stop signals and the `AUTORUN_ENABLED` warning | `3.framework-guides/1.laravel/2.workers.md` |
+| Entrypoint script order | `5.customizing-the-image/3.adding-your-own-start-up-scripts.md` |
+| OPcache and PHP-FPM tuning | `4.deployment-and-production/5.production-performance-tuning.md` |
+| How images are built and published | `8.security/1.how-images-are-built.md` |
+
+A page may repeat a variable's default in a table that has `Variable` and `Default` columns. Start the cell with `` `value` ``, `` `""` `` for empty, or `Unset`. A short note may follow, such as `` `ondemand`, or `dynamic` in `fpm` ``. `scripts/check-env-var-docs.sh` checks those tables against `env-vars.yml`. It doesn't check defaults mentioned in prose, so mention one only when the sentence depends on it. Upgrade pages are the exception: they say what a default used to be and what it changed to.
+
+## Writing style
+
+- Lead with the point. The first sentence says what the page is for or what the reader gets. One or two sentences of why, then the how.
+- One job per page. If the title needs an "and", it is two pages.
+- Second person, active voice, imperative steps. Paragraphs of one to four sentences.
+- Headings in sentence case that say something: "Custom NGINX rules go in `server-opts.d`", not "NGINX Configuration".
+- Tables for options and comparisons, numbered lists or `::steps` for ordered steps. Emoji only where they help a table scan (✅ ❌).
+- Docs, not marketing. No unverified numbers, no sales copy, no "seamlessly", "powerful", "simply", "just works".
+- Some pages persuade as well as inform, because they decide whether someone switches: `content/index.md`, every page in `1.getting-started/` except Installation, Container basics, and Contributing, plus Laravel Automations, Laravel Health checks, and How images are built. Write them like friendly marketing copy: the reader's problem first, headings that make a point, and one fact per sentence. Every claim still needs a source in the code or from the maintainers.
+- US English. Few em dashes.
+
+## Examples
+
+- Use Compose by default. Add a `docker run` tab with `::code-group` only when it is shorter or the page is about the CLI.
+- Use `8.5` tags (`serversideup/php:8.5-fpm-nginx`). Never `latest` or an old patch tag.
+- Containers listen on `8080` and `8443`; `fpm` listens on `9000`. Map host ports explicitly (`80:8080`).
+- Every code block has a language and, where it is a file, a filename: ` ```yaml [compose.yml] `.
+- An example that can't be tested by reading the source gets run against a built image (`scripts/dev.sh`).
+
+## Components
+
+- Callouts: `::note`, `::tip`, `::warning` (will break), `::caution` (data loss or security). At most one or two per section.
+- `::lead-p` for a page's opening paragraph, `::steps{level="4"}`, `::code-group`, `::code-tree{defaultValue="compose.yml"}`.
+- Other components live in `app/components/`; check there before inventing markup.
+
+## Files and links
+
+- A number prefix sets the order and is dropped from the URL: `1.getting-started/3.installation.md` is `/docs/getting-started/installation`.
+- Every page has `title` and a one-sentence `description` in frontmatter.
+- Link to other pages by URL path without prefixes. Full URLs for external links.
+- When a page moves or is removed, add its old path to `routeRules` in `nuxt.config.ts` and to `nitro.prerender.routes` so the redirect is generated.
