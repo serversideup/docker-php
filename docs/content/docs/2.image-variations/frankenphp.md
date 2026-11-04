@@ -12,7 +12,7 @@ The `frankenphp` variation runs [FrankenPHP](https://frankenphp.dev){target="_bl
 | | `frankenphp` |
 |---|---|
 | Processes | One `frankenphp` process (Caddy with PHP built in). No supervisor. |
-| Ports | `8080` (HTTP), `8443` (HTTPS over TCP, and HTTP/3 over UDP), `2019` (Caddy admin API, off unless `CADDY_ADMIN` sets it or Octane starts the server) |
+| Ports | `8080` (HTTP), `8443` (HTTPS over TCP, and HTTP/3 over UDP), `2019` (Caddy admin API, off unless `CADDY_ADMIN` sets it; Octane puts it on its own port, see [Octane options](/docs/framework-guides/laravel/octane#octane-options)) |
 | Stop signal | `SIGTERM` |
 | Default health check | `curl` to `http://localhost:${CADDY_HTTP_PORT}${HEALTHCHECK_PATH}` (`/healthcheck` by default) |
 | Webroot variable | `CADDY_SERVER_ROOT` (default `/var/www/html/public`) |
