@@ -69,7 +69,6 @@ ARG BUILD_DEPENDENCY_PACKAGES_ALPINE="\
     libstdc++ \
     libxml2-dev \
     linux-headers \
-    mailcap \
     oniguruma-dev \
     openssl-dev \
     readline-dev \
@@ -88,7 +87,6 @@ ARG BUILD_DEPENDENCY_PACKAGES_DEBIAN="\
     libsqlite3-dev \
     libssl-dev \
     libxml2-dev \
-    mailcap \
     zlib1g-dev"
 
 COPY --from=golang-image /usr/local/go /usr/local/go
@@ -160,9 +158,11 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
 FROM common AS final
 ARG DEPENDENCY_PACKAGES_ALPINE="\
     libstdc++ \
+    mailcap \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
     libstdc++6 \
+    mailcap \
     procps \
     zip"
 ARG DEPENDENCY_PHP_EXTENSIONS='opcache pcntl pdo_mysql pdo_pgsql redis zip'
@@ -204,6 +204,7 @@ LABEL org.opencontainers.image.title="serversideup/php (frankenphp)" \
     COMPOSER_MAX_PARALLEL_HTTP=24 \
     DISABLE_DEFAULT_CONFIG=false \
     FRANKENPHP_CONFIG="" \
+    GODEBUG="cgocheck=0" \
     LOG_OUTPUT_LEVEL=info \
     HEALTHCHECK_PATH="/healthcheck" \
     PHP_DATE_TIMEZONE="UTC" \

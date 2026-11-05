@@ -23,3 +23,11 @@ test_starts_with_every_caddy_auto_https_value() {
         expect_body --https / "serversideup-php-ok:${php_version}"
     done
 }
+
+# Caddy reads MIME types from /etc/mime.types (mailcap). Without it, Go's small built-in
+# table has no entry for fonts, so browsers get a sniffed type and may refuse to load them.
+test_serves_static_files_with_their_mime_type() {
+    local content_type
+    content_type=$(curl --silent --max-time 5 --output /dev/null --write-out '%{content_type}' "http://127.0.0.1:${host_port}/font.woff2" || true)
+    [ "$content_type" = "font/woff2" ] || fail "Expected /font.woff2 to be served as font/woff2, got ${content_type:-<empty>}"
+}

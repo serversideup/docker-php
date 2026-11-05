@@ -378,6 +378,14 @@ variables:
     reference:
       label: frankenphp
       url: https://frankenphp.dev/docs/config/#caddyfile-config
+  - name: GODEBUG
+    default: "cgocheck=0"
+    variations:
+      - frankenphp
+    description: Go runtime settings for FrankenPHP. `cgocheck=0` skips Go's pointer checks on every call into PHP, like the official FrankenPHP images.
+    reference:
+      label: GODEBUG
+      url: https://go.dev/doc/godebug
   - name: HEALTHCHECK_PATH
     default: "/healthcheck"
     variations:

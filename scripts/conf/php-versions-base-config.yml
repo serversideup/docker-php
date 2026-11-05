@@ -19,7 +19,7 @@ dependencies:
   # renovate: datasource=github-releases depName=renatomefi/php-fpm-healthcheck
   PHP_FPM_HEALTHCHECK_VERSION: v0.6.0
   # renovate: datasource=github-releases depName=php/frankenphp
-  FRANKENPHP_VERSION: 1.13.4
+  FRANKENPHP_VERSION: 1.13.5
   # Go and watcher follow FrankenPHP rather than their own releases, so bump them in the
   # same pull request as FRANKENPHP_VERSION. Go matches GO_VERSION in FrankenPHP's
   # docker-bake.hcl at that tag. FrankenPHP downloads the latest watcher release when it
