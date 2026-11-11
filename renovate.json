@@ -40,6 +40,16 @@
       "datasourceTemplate": "custom.nginx-debian",
       "versioningTemplate": "deb",
       "extractVersionTemplate": "^nginx_(?<version>\\d+\\.\\d+\\.\\d+-\\d+~{{{packageName}}})_amd64\\.deb$"
+    },
+    {
+      "customType": "regex",
+      "description": "Apache package for each Debian version. Sury's pool listing URL-encodes '+' in its links, so this reads the suite's Packages index, where only the apache2 packages have a 2.x version.",
+      "managerFilePatterns": ["scripts/conf/php-versions-base-config.yml"],
+      "matchStrings": ["version: (?<packageName>[a-z]+)\\n\\s+number: \\d+\\n\\s+nginx_version: \\S+\\n\\s+apache_version: (?<currentValue>\\S+)"],
+      "depNameTemplate": "apache-{{{packageName}}}",
+      "datasourceTemplate": "custom.apache-debian",
+      "versioningTemplate": "deb",
+      "extractVersionTemplate": "^Version: (?<version>2\\.\\d+\\.\\d+-\\S+)$"
     }
   ],
   "customDatasources": {
@@ -50,11 +60,15 @@
     "nginx-debian": {
       "defaultRegistryUrlTemplate": "https://nginx.org/packages/debian/pool/nginx/n/nginx/",
       "format": "html"
+    },
+    "apache-debian": {
+      "defaultRegistryUrlTemplate": "https://packages.sury.org/apache2/dists/{{packageName}}/main/binary-amd64/Packages",
+      "format": "plain"
     }
   },
   "packageRules": [
     {
-      "description": "Wait three days before proposing a new release, so a hijacked or broken one is usually caught first. git-refs and the nginx.org listings have no release dates, so they are not covered.",
+      "description": "Wait three days before proposing a new release, so a hijacked or broken one is usually caught first. git-refs, the nginx.org listings and Sury's Packages index have no release dates, so they are not covered.",
       "matchDatasources": ["github-releases", "github-tags", "docker"],
       "minimumReleaseAge": "3 days"
     },
@@ -67,6 +81,11 @@
       "description": "Bump NGINX on every OS in one pull request",
       "matchDatasources": ["custom.nginx-alpine", "custom.nginx-debian"],
       "groupName": "nginx"
+    },
+    {
+      "description": "Bump Apache on every OS in one pull request",
+      "matchDatasources": ["custom.apache-debian"],
+      "groupName": "apache"
     },
     {
       "description": "Merge the weekly docker-library/php bump once every check passes. Renovate merges it itself because GitHub's auto-merge would merge right away without required checks.",

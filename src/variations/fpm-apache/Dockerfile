@@ -20,6 +20,48 @@ COPY --chmod=755 src/s6/ /
 
 RUN docker-php-serversideup-s6-install
 
+####################
+# Apache Signing Key
+####################
+# Apache publishes no packages of its own, and Debian's security updates can lag upstream
+# fixes by weeks. Ondřej Surý's repository ships Debian's apache2 package rebuilt on each
+# upstream release, so the Debian layout (a2enmod, envvars, /etc/apache2) stays the same.
+FROM ${BASE_IMAGE} AS apache-repo-config
+
+ARG SIGNING_KEY_URL="https://packages.sury.org/apache2/apt.gpg"
+ARG SIGNING_FINGERPRINT="15058500A0235D97F5D10063B188E2B695BD4743"
+ARG SIGNING_KEY_OUTPUT_FILE="/usr/share/keyrings/sury-apache2-archive-keyring.gpg"
+
+# copy our scripts
+COPY --chmod=755 src/common/ /
+
+RUN apt-get update && \
+    apt-get install -y gnupg2 && \
+    \
+    mkdir -p /root/.gnupg && \
+    docker-php-serversideup-download "$SIGNING_KEY_URL" "$SIGNING_KEY_OUTPUT_FILE" && \
+    \
+    VALID_KEY=$(gpg --dry-run --quiet --no-keyring --import --import-options import-show "$SIGNING_KEY_OUTPUT_FILE" | grep "$SIGNING_FINGERPRINT") && \
+    if [ -z "$VALID_KEY" ]; then \
+        echo "ERROR: Key did not match signing signature!" && \
+        exit 1; \
+    fi && \
+    \
+    . /etc/os-release && \
+    echo "deb [signed-by=$SIGNING_KEY_OUTPUT_FILE] https://packages.sury.org/apache2/ $VERSION_CODENAME main" > /etc/apt/sources.list.d/sury-apache2.list && \
+    \
+    # Only Apache and the APR libraries it needs come from this repository. Everything
+    # else, such as OpenSSL and brotli that PHP also links, stays on Debian's packages.
+    printf "%s\n" \
+        "Package: *" \
+        "Pin: origin packages.sury.org" \
+        "Pin-Priority: 100" \
+        "" \
+        "Package: apache2* libapr1* libaprutil1*" \
+        "Pin: origin packages.sury.org" \
+        "Pin-Priority: 900" \
+        > /etc/apt/preferences.d/99sury-apache2
+
 ##########
 # FPM-APACHE: Main Image
 ##########
@@ -29,7 +71,6 @@ ARG DEPENDENCY_PACKAGES_ALPINE="\
     fcgi \
     shadow"
 ARG DEPENDENCY_PACKAGES_DEBIAN="\
-    apache2 \
     libfcgi-bin \
     procps \
     zip"
@@ -39,6 +80,7 @@ ARG PHP_EXT_INSTALLER_VERSION
 ARG PHPREDIS_VERSION
 ARG PHPREDIS_LIBLZF_REF
 ARG REPOSITORY_BUILD_VERSION='dev'
+ARG APACHE_VERSION
 
 LABEL org.opencontainers.image.title="serversideup/php (fpm-apache)" \
     org.opencontainers.image.description="Supercharge your PHP experience. Based off the official PHP images, serversideup/php includes pre-configured PHP extensions and settings for enhanced performance and security. Optimized for Laravel and WordPress." \
@@ -136,8 +178,12 @@ COPY --from=s6-build /opt/s6/ /
 # copy php-fpm-healthcheck from s6-build
 COPY --from=s6-build /usr/local/bin/php-fpm-healthcheck /usr/local/bin/php-fpm-healthcheck
 
+COPY --from=apache-repo-config /usr/share/keyrings/sury-apache2-archive-keyring.gpg /usr/share/keyrings/
+COPY --from=apache-repo-config /etc/apt/sources.list.d/sury-apache2.list /etc/apt/sources.list.d/
+COPY --from=apache-repo-config /etc/apt/preferences.d/99sury-apache2 /etc/apt/preferences.d/
+
 # install pecl extensions, dependencies, and clean up
-RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN}"  && \
+RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN} apache2=${APACHE_VERSION}"  && \
     docker-php-serversideup-install-php-ext-installer && \
     \
     # Ensure /var/www/ has the correct permissions

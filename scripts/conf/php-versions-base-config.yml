@@ -1,6 +1,6 @@
 # Every version that ships in the image, other than PHP (read from php.net at build time)
-# and NGINX (operating_systems below). Each key is passed to the Dockerfiles as a build arg
-# of the same name. Renovate reads the comments and opens
+# and NGINX and Apache (operating_systems below). Each key is passed to the Dockerfiles as a
+# build arg of the same name. Renovate reads the comments and opens
 # a pull request when a newer version is out (see renovate.json).
 dependencies:
   # The docker-library/php commit the PHP base images are compiled from. Renovate moves it
@@ -137,7 +137,9 @@ operating_systems:
         version: bookworm
         number: 12
         nginx_version: 1.30.6-1~bookworm
+        apache_version: 2.4.71-1+0~deb.sury.org.1+debian12
       - name: "Debian Trixie"
         version: trixie
         number: 13
         nginx_version: 1.30.6-1~trixie
+        apache_version: 2.4.71-1+0~deb.sury.org.1+debian13
