@@ -69,7 +69,7 @@ sed \
     -e "s|^ENV PHP_SHA256=.*|ENV PHP_SHA256=\"${sha256}\"|" \
     -e "s|PHP_BUILD_PROVIDER='[^']*'|PHP_BUILD_PROVIDER='${build_provider}'|" \
     -e '/^[[:space:]]*pecl update-channels;/d' \
-    -e 's#export GNUPGHOME="$(mktemp -d)";#& curl -fsSL -o "$GNUPGHOME/php-keyring.gpg" "'"$php_keyring_url"'";#' \
+    -e 's#export GNUPGHOME="$(mktemp -d)";#& curl -fsSL -o "$GNUPGHOME/php-keyring.asc" "'"$php_keyring_url"'"; gpg --batch --dearmor -o "$GNUPGHOME/php-keyring.gpg" "$GNUPGHOME/php-keyring.asc";#' \
     -e 's#gpg --batch --keyserver keyserver\.ubuntu\.com --recv-keys "$key";#gpg --batch --no-default-keyring --keyring "$GNUPGHOME/php-keyring.gpg" --export "$key" | gpg --batch --import;#' \
     "$dockerfile" > "$dockerfile.new"
 mv "$dockerfile.new" "$dockerfile"
