@@ -147,8 +147,8 @@ build_docker_image() {
     build_args+=(--build-arg "BASE_IMAGE=$BASE_IMAGE")
   fi
 
-  if [ -n "$NGINX_VERSION" ] && [ "$PHP_BUILD_VARIATION" = "fpm-nginx" ]; then
-    build_args+=(--build-arg "NGINX_VERSION=$NGINX_VERSION")
+  if [ -n "$WEB_SERVER_VERSION_ARG" ]; then
+    build_args+=(--build-arg "$WEB_SERVER_VERSION_ARG=${!WEB_SERVER_VERSION_ARG}")
   fi
 
   if [ -n "$PHP_EXTENSION_OVERRIDES" ]; then
@@ -263,23 +263,30 @@ if [ -z "$PHP_EXTENSION_OVERRIDES" ]; then
   fi
 fi
 
-# Auto-resolve NGINX version for fpm-nginx if not provided
-if [ -z "$NGINX_VERSION" ] && [ "$PHP_BUILD_VARIATION" = "fpm-nginx" ]; then
+# Auto-resolve the pinned web server package (NGINX_VERSION or APACHE_VERSION) if not provided
+case "$PHP_BUILD_VARIATION" in
+  fpm-nginx) WEB_SERVER_VERSION_ARG=NGINX_VERSION; WEB_SERVER_VERSION_KEY=nginx_version ;;
+  fpm-apache) WEB_SERVER_VERSION_ARG=APACHE_VERSION; WEB_SERVER_VERSION_KEY=apache_version ;;
+  *) WEB_SERVER_VERSION_ARG="" ;;
+esac
+
+if [ -n "$WEB_SERVER_VERSION_ARG" ] && [ -z "${!WEB_SERVER_VERSION_ARG}" ]; then
   if ! command -v yq >/dev/null 2>&1; then
     echo_color_message red "yq is required but not found. Install 'yq' (https://github.com/mikefarah/yq) to continue."
     exit 1
   fi
 
-  NGINX_VERSION=$(BASE_OS="$PHP_BUILD_BASE_OS" yq -r '.operating_systems[].versions[] | select(.version == env(BASE_OS)) | .nginx_version' "$BASE_PHP_VERSIONS_CONFIG_FILE")
+  web_server_version=$(BASE_OS="$PHP_BUILD_BASE_OS" KEY="$WEB_SERVER_VERSION_KEY" yq -r '.operating_systems[].versions[] | select(.version == env(BASE_OS)) | .[strenv(KEY)]' "$BASE_PHP_VERSIONS_CONFIG_FILE")
 
-  if [ -z "$NGINX_VERSION" ] || [ "$NGINX_VERSION" = "null" ]; then
-    echo_color_message red "❌ Unable to determine NGINX version for OS '$PHP_BUILD_BASE_OS' from $BASE_PHP_VERSIONS_CONFIG_FILE"
+  if [ -z "$web_server_version" ] || [ "$web_server_version" = "null" ]; then
+    echo_color_message red "❌ Unable to determine $WEB_SERVER_VERSION_ARG for OS '$PHP_BUILD_BASE_OS' from $BASE_PHP_VERSIONS_CONFIG_FILE"
     echo
-    echo "Ensure an entry exists under 'operating_systems' with version: $PHP_BUILD_BASE_OS and a valid 'nginx_version' key."
+    echo "Ensure an entry exists under 'operating_systems' with version: $PHP_BUILD_BASE_OS and a valid '$WEB_SERVER_VERSION_KEY' key."
     exit 1
   fi
 
-  echo_color_message green "✅ Using NGINX version '$NGINX_VERSION' for OS '$PHP_BUILD_BASE_OS'"
+  printf -v "$WEB_SERVER_VERSION_ARG" '%s' "$web_server_version"
+  echo_color_message green "✅ Using $WEB_SERVER_VERSION_ARG '$web_server_version' for OS '$PHP_BUILD_BASE_OS'"
 fi
 
 if [ -z "$PLATFORM" ]; then

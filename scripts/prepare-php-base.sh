@@ -10,8 +10,10 @@ set -euo pipefail
 # commit) set to compile <php-patch-version> from the php.net tarball. That lets us ship a
 # release as soon as php.net publishes it, without waiting for Docker Hub. Only the version
 # lines change, "pecl update-channels" is removed so a PECL outage cannot fail the build, and
-# `php -v` names us as the builder. Everything else, including the GPG check, is exactly what
-# the official images run.
+# `php -v` names us as the builder. The GPG check reads the release managers' keys from
+# php.net's keyring instead of keyserver.ubuntu.com, which hangs under our build's load. It
+# still trusts only the fingerprints in docker-library's GPG_KEYS. Everything else is exactly
+# what the official images run.
 
 if [ "$#" -ne 5 ]; then
     sed -n '4,5p' "$0" | sed 's/^# //' >&2
@@ -30,6 +32,7 @@ work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 
 build_provider="Server Side Up (https://serversideup.net/php)"
+php_keyring_url="https://www.php.net/distributions/php-keyring.gpg"
 
 fail() {
     echo "🛑 ERROR (prepare-php-base.sh): $1" >&2
@@ -66,6 +69,8 @@ sed \
     -e "s|^ENV PHP_SHA256=.*|ENV PHP_SHA256=\"${sha256}\"|" \
     -e "s|PHP_BUILD_PROVIDER='[^']*'|PHP_BUILD_PROVIDER='${build_provider}'|" \
     -e '/^[[:space:]]*pecl update-channels;/d' \
+    -e 's#export GNUPGHOME="$(mktemp -d)";#& curl -fsSL -o "$GNUPGHOME/php-keyring.asc" "'"$php_keyring_url"'"; gpg --batch --dearmor -o "$GNUPGHOME/php-keyring.gpg" "$GNUPGHOME/php-keyring.asc";#' \
+    -e 's#gpg --batch --keyserver keyserver\.ubuntu\.com --recv-keys "$key";#gpg --batch --no-default-keyring --keyring "$GNUPGHOME/php-keyring.gpg" --export "$key" | gpg --batch --import;#' \
     "$dockerfile" > "$dockerfile.new"
 mv "$dockerfile.new" "$dockerfile"
 
@@ -76,6 +81,11 @@ grep -qF "ENV PHP_SHA256=\"${sha256}\"" "$dockerfile" || fail "PHP_SHA256 was no
 grep -qF "PHP_BUILD_PROVIDER='${build_provider}'" "$dockerfile" || fail "PHP_BUILD_PROVIDER was not set"
 if grep -E '^[^#]*pecl' "$dockerfile"; then
     fail "the Dockerfile still calls pecl"
+fi
+[ "$(grep -cF "\"$php_keyring_url\"" "$dockerfile")" = "1" ] || fail "the php.net keyring download was not added"
+[ "$(grep -cF -- '--export "$key" | gpg --batch --import;' "$dockerfile")" = "1" ] || fail "the GPG keys are not read from the php.net keyring"
+if grep -E '^[^#]*keyserver' "$dockerfile"; then
+    fail "the Dockerfile still fetches GPG keys from a keyserver"
 fi
 
 echo "✅ ${output_dir}: docker-library/php ${minor}/${base_os}/${php_base} at ${ref:0:7}, PHP ${version}"
