@@ -49,6 +49,9 @@ location ~ ^/index\.php(/.+)$ {
 
 # Pass "*.php" files to PHP-FPM
 location ~ \.php$ {
+    # Return 404 for a script that does not exist, so PHP-FPM never falls back to a parent file
+    # through cgi.fix_pathinfo (/uploads/file.phar/x.php would otherwise run file.phar)
+    try_files $uri =404;
     fastcgi_pass   127.0.0.1:9000;
     fastcgi_index  index.php;
     fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
