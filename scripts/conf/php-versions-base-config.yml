@@ -96,16 +96,16 @@ php_versions:
           - name: trixie
         patch_versions:
         #   - 8.5.8 # Pull latest from Official PHP source
-      # "8.6-rc" builds the newest release candidate php.net lists. docker-library builds
-      # every 8.6 image with ZTS and has no separate zts variant, so FrankenPHP uses cli.
-      - minor: "8.6-rc"
+      # docker-library builds every 8.6 image with ZTS and has no separate zts variant,
+      # so FrankenPHP uses cli.
+      - minor: "8.6"
         base_os:
           - name: alpine3.23
           - name: alpine3.24
           - name: bookworm
           - name: trixie
         patch_versions:
-          - 8.6-rc
+        #   - 8.6.0 # Pull latest from Official PHP source
         php_base_overrides:
           frankenphp: cli
         # phpredis 6.3.0 does not compile on PHP 8.6, so 8.6 builds the last develop commit

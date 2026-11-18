@@ -72,9 +72,9 @@ Then build it with `docker build -f .oss-scanner/Dockerfile -t oss-scanner .`, r
 Requires Docker with buildx, and `yq`. If Docker isn't running, ask the user to start it.
 
 ```sh
-scripts/dev.sh --variation fpm-nginx --version 8.5 --os bookworm
-scripts/dev.sh --variation cli --version 8.5 --os alpine3.24 --no-cache
-bash scripts/test-image.sh serversideup/php:8.5-fpm-nginx-bookworm
+scripts/dev.sh --variation fpm-nginx --version 8.6 --os bookworm
+scripts/dev.sh --variation cli --version 8.6 --os alpine3.24 --no-cache
+bash scripts/test-image.sh serversideup/php:8.6-fpm-nginx-bookworm
 ```
 
 Pick `--os` from that minor's `base_os` list in the base config.

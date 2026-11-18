@@ -16,7 +16,7 @@ The `fpm` variation runs PHP-FPM alone and answers FastCGI requests on port `900
 | Stop signal | `SIGQUIT` (FPM finishes in-flight requests, then exits) |
 | Default health check | [`php-fpm-healthcheck`](https://github.com/renatomefi/php-fpm-healthcheck){target="_blank"}, which reads FPM's status page |
 | Webroot variable | None. Your web server sets the document root. |
-| PHP versions | 8.1 to 8.5, plus the 8.6 release candidate |
+| PHP versions | 8.1 to 8.6 |
 | Operating systems | Debian and Alpine |
 
 ## Quick start

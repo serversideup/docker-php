@@ -16,7 +16,7 @@ The `cli` variation runs PHP from the command line, with no web server and no pr
 | Stop signal | `SIGTERM` |
 | Default health check | None |
 | Webroot variable | Not used |
-| PHP versions | 8.1 to 8.5, plus the 8.6 release candidate |
+| PHP versions | 8.1 to 8.6 |
 | Operating systems | Debian and Alpine |
 
 The image also includes `composer` and `install-php-extensions`. See [default configurations](/docs/getting-started/default-configurations) for the full list of extensions and settings.

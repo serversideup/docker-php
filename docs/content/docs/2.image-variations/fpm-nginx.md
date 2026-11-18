@@ -16,7 +16,7 @@ The `fpm-nginx` variation runs NGINX and PHP-FPM in one container, supervised by
 | Stop signal | `SIGQUIT` |
 | Default health check | `curl` to `http://localhost:${NGINX_HTTP_PORT}${HEALTHCHECK_PATH}` (`/healthcheck` by default) |
 | Webroot variable | `NGINX_WEBROOT` (default `/var/www/html/public`) |
-| PHP versions | 8.1 to 8.5, plus the 8.6 release candidate |
+| PHP versions | 8.1 to 8.6 |
 | Operating systems | Debian and Alpine |
 
 ## How a request flows through NGINX and PHP-FPM
