@@ -222,6 +222,15 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
         fi
     done
 
+    # php.net can list a new minor (8.6.0 on its release day) before the base config gives it
+    # a base OS. It builds no images, but assemble-docker-tags.sh would still count it as the
+    # newest minor and leave latest, 8, and the variation-only tags on the previous patch.
+    for unbuilt_minor in $(echo "$merged_json" | jq -r '.php_versions[].minor_versions[] | select((.base_os // []) | length == 0) | .minor'); do
+        echo_color_message yellow "⚠️  PHP $unbuilt_minor has no base_os in the base config, so it is not built."
+        echo "::warning title=PHP minor not built::php.net lists PHP $unbuilt_minor, but it has no base_os in the base config, so it is not built."
+    done
+    merged_json=$(echo "$merged_json" | jq '.php_versions[].minor_versions |= map(select((.base_os // []) | length > 0))')
+
     # Convert updated JSON data back to YAML
     merged_and_finalized_yaml=$(echo "$merged_json" | yq eval -P -)
 
