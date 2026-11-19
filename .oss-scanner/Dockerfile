@@ -5,7 +5,7 @@
 # lines in src/variations/*/Dockerfile: keep them in step when those change.
 # The intermediate stages are copied as whole filesystems and never run, so they stay root.
 # hadolint global ignore=DL3002,DL3067
-ARG PHP_VERSION='8.5'
+ARG PHP_VERSION='8.6'
 
 ##########
 # Laravel app, so AUTORUN automations can run without network access

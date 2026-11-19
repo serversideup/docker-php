@@ -16,7 +16,7 @@ The `frankenphp` variation runs [FrankenPHP](https://frankenphp.dev){target="_bl
 | Stop signal | `SIGTERM` |
 | Default health check | `curl` to `http://localhost:${CADDY_HTTP_PORT}${HEALTHCHECK_PATH}` (`/healthcheck` by default) |
 | Webroot variable | `CADDY_SERVER_ROOT` (default `/var/www/html/public`) |
-| PHP versions | 8.3 to 8.5, plus the 8.6 release candidate. Not built for 8.1 or 8.2. |
+| PHP versions | 8.3 to 8.6. Not built for 8.1 or 8.2. |
 | Operating systems | Debian and Alpine |
 
 The image also includes a [Mercure](#mercure) hub, turned off by default.

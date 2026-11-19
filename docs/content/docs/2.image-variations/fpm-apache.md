@@ -16,7 +16,7 @@ The `fpm-apache` variation runs Apache and PHP-FPM in one container, supervised 
 | Stop signal | `SIGQUIT` |
 | Default health check | `curl` to `http://localhost:${APACHE_HTTP_PORT}${HEALTHCHECK_PATH}` (`/healthcheck` by default) |
 | Webroot variable | `APACHE_DOCUMENT_ROOT` (default `/var/www/html/public`) |
-| PHP versions | 8.1 to 8.5, plus the 8.6 release candidate |
+| PHP versions | 8.1 to 8.6 |
 | Operating systems | Debian only. There is no Alpine build. |
 
 Requests flow the same way as in [`fpm-nginx`](/docs/image-variations/fpm-nginx#how-a-request-flows-through-nginx-and-php-fpm), with Apache in place of NGINX. One difference: Apache has no built-in rule that sends unknown paths to `index.php`. Your app's `.htaccess` does that, such as the one Laravel ships in `public/.htaccess`. Without it, routes other than real files return `404`.

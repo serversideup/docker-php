@@ -5,7 +5,7 @@
 dependencies:
   # The docker-library/php commit the PHP base images are compiled from. Renovate moves it
   # to the latest commit on master once a week and merges it when every check passes. A minor version can pin its own with docker_library_ref.
-  DOCKER_LIBRARY_PHP_REF: 5ec2a6a0dad498e89a91a39454dbb52e98ce2bdb
+  DOCKER_LIBRARY_PHP_REF: 3b25f4162a9bd144d3f447d03cb8fe16c0d2c9cc
   # renovate: datasource=github-releases depName=phpredis/phpredis
   PHPREDIS_VERSION: 6.3.0
   # The liblzf commit that phpredis bundles as a submodule. GitHub tarballs leave submodules
@@ -96,16 +96,16 @@ php_versions:
           - name: trixie
         patch_versions:
         #   - 8.5.8 # Pull latest from Official PHP source
-      # "8.6-rc" builds the newest release candidate php.net lists. docker-library builds
-      # every 8.6 image with ZTS and has no separate zts variant, so FrankenPHP uses cli.
-      - minor: "8.6-rc"
+      # docker-library builds every 8.6 image with ZTS and has no separate zts variant,
+      # so FrankenPHP uses cli.
+      - minor: "8.6"
         base_os:
           - name: alpine3.23
           - name: alpine3.24
           - name: bookworm
           - name: trixie
         patch_versions:
-          - 8.6-rc
+        #   - 8.6.0 # Pull latest from Official PHP source
         php_base_overrides:
           frankenphp: cli
         # phpredis 6.3.0 does not compile on PHP 8.6, so 8.6 builds the last develop commit
