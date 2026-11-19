@@ -5,7 +5,7 @@
 dependencies:
   # The docker-library/php commit the PHP base images are compiled from. Renovate moves it
   # to the latest commit on master once a week and merges it when every check passes. A minor version can pin its own with docker_library_ref.
-  DOCKER_LIBRARY_PHP_REF: 5ec2a6a0dad498e89a91a39454dbb52e98ce2bdb
+  DOCKER_LIBRARY_PHP_REF: 3b25f4162a9bd144d3f447d03cb8fe16c0d2c9cc
   # renovate: datasource=github-releases depName=phpredis/phpredis
   PHPREDIS_VERSION: 6.3.0
   # The liblzf commit that phpredis bundles as a submodule. GitHub tarballs leave submodules
