@@ -51,7 +51,9 @@ else
     minor="${patch%.*}"
     version="$patch"
     tarball_url="https://www.php.net/distributions/php-${patch}.tar.xz"
-    sha256=$("$download" "https://www.php.net/releases/index.php?json&version=${patch}" \
+    # php.net's CDN caches this for 30 days, including the "Unknown version" answer it gives
+    # before a release is out, so a unique query skips any copy cached before release day.
+    sha256=$("$download" "https://www.php.net/releases/index.php?json&version=${patch}&nocache=$(date +%s)" \
         | jq -r --arg file "php-${patch}.tar.xz" '(.source // [])[] | select(.filename == $file) | .sha256')
 fi
 [ -n "$sha256" ] || fail "php.net does not list a SHA256 for PHP ${version}"
