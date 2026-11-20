@@ -80,9 +80,14 @@
 	}
 	log_skip @healthcheckpath
 
-	# Redirect /index.php/... to /... to prevent SEO duplicate content
-	@indexphp path_regexp indexphp ^/index\.php(/.+)$
-	redir @indexphp {re.indexphp.1} 301
+	# Redirect /index.php/... to /... to prevent SEO duplicate content. The Location is relative,
+	# so the path must not start with "/", "\" or whitespace, which browsers read as another host,
+	# or contain control characters. Only GET and HEAD redirect: clients replay a POST as a GET.
+	@indexphp {
+		method GET HEAD
+		path_regexp indexphp ^/index\.php(/[^/\x5c\s][^\x00-\x1f\x7f]*)$
+	}
+	redir @indexphp {re.indexphp.1}{?query} 301
 
 	import mercure/{$MERCURE_ENABLED:false}.caddyfile
 

@@ -42,9 +42,14 @@ location ~* ^/storage/.*\.php(?:/|$) {
     deny all;
 }
 
-# Redirect /index.php/... to /... to prevent SEO duplicate content
-location ~ ^/index\.php(/.+)$ {
-    return 301 $1$is_args$args;
+# Redirect /index.php/... to /... to prevent SEO duplicate content. The Location is relative,
+# so the path must not start with "/", "\" or whitespace, which browsers read as another host,
+# or contain control characters. Only GET and HEAD redirect: clients replay a POST as a GET.
+location ~ ^/index\.php(?<clean_path>/[^/\x5c\s][^\x00-\x1f\x7f]*)$ {
+    if ($request_method !~ ^(?:GET|HEAD)$) {
+        rewrite ^ /index.php last;
+    }
+    return 301 $clean_path$is_args$args;
 }
 
 # Pass "*.php" files to PHP-FPM
