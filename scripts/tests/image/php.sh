@@ -11,11 +11,54 @@ test_reports_the_expected_php_version() {
     [ "$php_version" = "$expected" ] || fail "PHP reports $php_version, expected $expected"
 }
 
-test_loads_the_default_extensions() {
-    # Every variation installs these (DEPENDENCY_PHP_EXTENSIONS in src/variations/*/Dockerfile).
-    local expected="opcache pcntl pdo_mysql pdo_pgsql redis zip" loaded missing="" extension
+# Extensions every image must load, whether the official build compiles them in or we
+# install them. When a PHP minor adds or drops one, give it the first or last minor it
+# ships in, so older images keep being checked. docker-library stopped building mbstring
+# in 8.6 (docker-library/php#1654), which is why it is in both lists.
+# <extension> [first minor, or - for every minor] [last minor]
+core_extensions="
+core
+ctype
+curl
+date
+dom
+fileinfo
+filter
+ftp - 8.1
+hash
+iconv
+json
+lexbor 8.5
+libxml
+mbstring
+mysqlnd
+openssl
+pcre
+pdo
+pdo_sqlite
+phar
+posix
+random 8.2
+readline
+reflection
+session
+simplexml
+sodium
+spl
+sqlite3
+standard
+tokenizer
+uri 8.5
+xml
+xmlreader
+xmlwriter
+zlib
+"
+
+assert_extensions_loaded() {
+    local loaded missing="" extension
     loaded=$(run_php 'echo implode(" ", array_map("strtolower", get_loaded_extensions()));')
-    for extension in $expected; do
+    for extension in "$@"; do
         case " $loaded " in
             *" $extension "*) ;;
             *"zend $extension "*) ;;
@@ -23,6 +66,26 @@ test_loads_the_default_extensions() {
         esac
     done
     [ -z "$missing" ] || fail "PHP extensions not loaded:$missing"
+}
+
+php_minor_between() {
+    local first="$1" last="$2"
+    [ "$first" != "-" ] || first=0
+    printf '%s\n' "$first" "${php_version%.*}" "${last:-99}" | sort -V -C
+}
+
+test_loads_the_default_extensions() {
+    # Every variation installs these (DEPENDENCY_PHP_EXTENSIONS in src/variations/*/Dockerfile).
+    assert_extensions_loaded mbstring opcache pcntl pdo_mysql pdo_pgsql redis zip
+}
+
+test_loads_the_core_extensions() {
+    local expected=() extension first last
+    while read -r extension first last; do
+        [ -n "$extension" ] || continue
+        php_minor_between "${first:--}" "$last" && expected+=("$extension")
+    done <<< "$core_extensions"
+    assert_extensions_loaded "${expected[@]}"
 }
 
 # PHP_* environment variables reach php.ini through ${VAR} substitution. Override a few

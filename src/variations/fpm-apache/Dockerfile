@@ -74,7 +74,7 @@ ARG DEPENDENCY_PACKAGES_DEBIAN="\
     libfcgi-bin \
     procps \
     zip"
-ARG DEPENDENCY_PHP_EXTENSIONS='mysqli opcache pcntl pdo_mysql pdo_pgsql redis zip'
+ARG DEPENDENCY_PHP_EXTENSIONS='mbstring mysqli opcache pcntl pdo_mysql pdo_pgsql redis zip'
 ARG PHP_EXTENSION_OVERRIDES=''
 ARG PHP_EXT_INSTALLER_VERSION
 ARG PHPREDIS_VERSION
