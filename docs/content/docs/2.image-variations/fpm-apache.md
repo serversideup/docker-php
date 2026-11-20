@@ -92,7 +92,7 @@ COPY custom.conf /etc/apache2/conf-enabled/
 
 ::
 
-The image's own rules are in `conf-enabled/security.conf`, `remoteip.conf`, and `serversideup.conf`. A file with the same name replaces the image's file.
+The image's own rules are in `conf-enabled/performance.conf`, `remoteip.conf`, `security.conf`, and `serversideup.conf`. A file with the same name replaces the image's file.
 
 ### Replace a site
 Each `SSL_MODE` has its own virtual host file in `/etc/apache2/sites-available/`: `ssl-off.conf`, `ssl-mixed.conf`, and `ssl-full.conf`. Mount your own file over the one for your mode to replace it. You then own the health check route and the PHP handler. Start from a copy of the [image's files](https://github.com/serversideup/docker-php/tree/main/src/variations/fpm-apache/etc/apache2){target="_blank"}.
