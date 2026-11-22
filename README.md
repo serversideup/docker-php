@@ -151,6 +151,9 @@ All of our software is free and open to the world. None of this can be brought t
 These companies give us free access to the tools and infrastructure we use to build, test, and ship our open source projects. Their support helps our entire community.
 
 <a href="https://depot.dev"><img src="https://serversideup.net/sponsors/depot.png" alt="Depot" width="250px"></a>&nbsp;&nbsp;<a href="https://hub.docker.com/u/serversideup"><img src="https://serversideup.net/sponsors/docker.png" alt="Docker" width="250px"></a>
+
+### Individual Supporters
+<a href="https://github.com/patrickkivits"><img src="https://github.com/patrickkivits.png?size=80" alt="patrickkivits" width="40px"></a>
 <!-- serversideup-sponsors -->
 
 <!-- serversideup-about -->
