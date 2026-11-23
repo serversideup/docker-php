@@ -144,7 +144,7 @@ RUN if cat /etc/os-release | grep -q 'debian'; then \
     CGO_ENABLED=1 \
     CGO_CFLAGS="-DFRANKENPHP_VERSION=v${FRANKENPHP_VERSION} ${PHP_CFLAGS}" \
     CGO_CPPFLAGS="${PHP_CPPFLAGS}" \
-    CGO_LDFLAGS="-L/usr/local/lib -lssl -lcrypto -lreadline -largon2 -lcurl -lonig -lz ${PHP_LDFLAGS}" \
+    CGO_LDFLAGS="-L/usr/local/lib -lssl -lcrypto -lreadline -largon2 -lcurl -lz ${PHP_LDFLAGS}" \
     ../../go.sh install \
         -ldflags "-w -s ${ADDITIONAL_LDFLAGS} -X 'github.com/caddyserver/caddy/v2.CustomVersion=FrankenPHP v${FRANKENPHP_VERSION} PHP ${PHP_VERSION} Caddy' -X 'github.com/caddyserver/caddy/v2.CustomBinaryName=frankenphp' -X 'github.com/caddyserver/caddy/v2/modules/caddyhttp.ServerHeader=FrankenPHP Caddy'" \
         -buildvcs=true && \
