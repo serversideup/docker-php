@@ -19,7 +19,7 @@ dependencies:
   # renovate: datasource=github-releases depName=renatomefi/php-fpm-healthcheck
   PHP_FPM_HEALTHCHECK_VERSION: v0.6.0
   # renovate: datasource=github-releases depName=php/frankenphp
-  FRANKENPHP_VERSION: 1.13.5
+  FRANKENPHP_VERSION: 1.14.0
   # Go and watcher follow FrankenPHP rather than their own releases, so bump them in the
   # same pull request as FRANKENPHP_VERSION. Go matches GO_VERSION in FrankenPHP's
   # docker-bake.hcl at that tag. FrankenPHP downloads the latest watcher release when it
@@ -121,25 +121,25 @@ operating_systems:
       - name: "Alpine 3.22"
         version: alpine3.22
         number: 3.22
-        nginx_version: 1.30.7-r1
+        nginx_version: 1.30.8-r1
       - name: "Alpine 3.23"
         version: alpine3.23
         number: 3.23
-        nginx_version: 1.30.7-r1
+        nginx_version: 1.30.8-r1
       - name: "Alpine 3.24"
         version: alpine3.24
         number: 3.24
-        nginx_version: 1.30.7-r1
+        nginx_version: 1.30.8-r1
   - family: debian
     default: true
     versions:
       - name: "Debian Bookworm"
         version: bookworm
         number: 12
-        nginx_version: 1.30.7-1~bookworm
+        nginx_version: 1.30.8-1~bookworm
         apache_version: 2.4.71-1+0~deb.sury.org.1+debian12
       - name: "Debian Trixie"
         version: trixie
         number: 13
-        nginx_version: 1.30.7-1~trixie
+        nginx_version: 1.30.8-1~trixie
         apache_version: 2.4.71-1+0~deb.sury.org.1+debian13
