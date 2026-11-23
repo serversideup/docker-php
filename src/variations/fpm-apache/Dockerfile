@@ -183,7 +183,7 @@ COPY --from=apache-repo-config /etc/apt/sources.list.d/sury-apache2.list /etc/ap
 COPY --from=apache-repo-config /etc/apt/preferences.d/99sury-apache2 /etc/apt/preferences.d/
 
 # install pecl extensions, dependencies, and clean up
-RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN} apache2=${APACHE_VERSION}"  && \
+RUN docker-php-serversideup-dep-install-debian "${DEPENDENCY_PACKAGES_DEBIAN} apache2=${APACHE_VERSION}-*"  && \
     docker-php-serversideup-install-php-ext-installer && \
     \
     # Ensure /var/www/ has the correct permissions

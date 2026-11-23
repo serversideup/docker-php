@@ -43,13 +43,13 @@
     },
     {
       "customType": "regex",
-      "description": "Apache package for each Debian version. Sury's pool listing URL-encodes '+' in its links, so this reads the suite's Packages index, where only the apache2 packages have a 2.x version.",
+      "description": "Apache version for each Debian version. Sury's pool listing URL-encodes '+' in its links, so this reads the suite's Packages index, where only the apache2 packages have a 2.x version. Only the upstream version is tracked, because Sury replaces a build when it rebuilds the same Apache release.",
       "managerFilePatterns": ["scripts/conf/php-versions-base-config.yml"],
       "matchStrings": ["version: (?<packageName>[a-z]+)\\n\\s+number: \\d+\\n\\s+nginx_version: \\S+\\n\\s+apache_version: (?<currentValue>\\S+)"],
       "depNameTemplate": "apache-{{{packageName}}}",
       "datasourceTemplate": "custom.apache-debian",
-      "versioningTemplate": "deb",
-      "extractVersionTemplate": "^Version: (?<version>2\\.\\d+\\.\\d+-\\S+)$"
+      "versioningTemplate": "semver",
+      "extractVersionTemplate": "^Version: (?<version>2\\.\\d+\\.\\d+)-\\S+$"
     }
   ],
   "customDatasources": {

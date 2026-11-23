@@ -137,9 +137,9 @@ operating_systems:
         version: bookworm
         number: 12
         nginx_version: 1.30.8-1~bookworm
-        apache_version: 2.4.71-1+debsuryorg12.1+2
+        apache_version: 2.4.71
       - name: "Debian Trixie"
         version: trixie
         number: 13
         nginx_version: 1.30.8-1~trixie
-        apache_version: 2.4.71-1+debsuryorg13.1+2
+        apache_version: 2.4.71
