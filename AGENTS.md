@@ -79,6 +79,15 @@ bash scripts/test-image.sh serversideup/php:8.6-fpm-nginx-bookworm
 
 Pick `--os` from that minor's `base_os` list in the base config.
 
+Without `--build-php-base`, `dev.sh` builds on the Dockerfile's default official image and ignores `php_base_overrides`. FrankenPHP on 8.6 then fails, because there is no `php:8.6-zts` image. Add `--build-php-base` with a full patch version (`--version 8.6.0`, not `8.6`) to compile the base like CI does. The image is then tagged with that patch version:
+
+```sh
+scripts/dev.sh --variation frankenphp --version 8.6.0 --os bookworm --build-php-base
+bash scripts/test-image.sh serversideup/php:8.6.0-frankenphp-bookworm
+```
+
+Check that `dev.sh` exited 0 before you test. If the tag isn't local, `test-image.sh` pulls the published image and tests that instead.
+
 1. Build the affected variation and run `scripts/test-image.sh` against it. Add a test for new behavior.
 2. Test entrypoint changes on both a Debian and an Alpine build.
 3. Run `bash scripts/lint.sh`, the same checks CI runs before it builds anything.
