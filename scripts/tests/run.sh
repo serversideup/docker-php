@@ -30,7 +30,8 @@ image '{"variation":"cli","php":"8.5.10","os":"trixie","tags":["docker.io/server
 image '{"variation":"cli","php":"8.5.10","os":"alpine3.24","tags":["docker.io/serversideup/php-dev:700-8.5.10-cli-alpine3.24"],"saved":"registry.depot.dev/proj:1-x","published":true,"sizes":{"linux/amd64":50000000,"linux/arm64":49900000}}' newest-alpine
 image '{"variation":"cli","php":"8.5.10","os":"alpine3.23","tags":["docker.io/serversideup/php-dev:700-8.5.10-cli-alpine3.23"],"saved":"registry.depot.dev/proj:1-x","published":true,"sizes":{"linux/amd64":49900000,"linux/arm64":49800000}}' older-alpine
 image '{"variation":"cli","php":"8.4.25","os":"trixie","tags":["docker.io/serversideup/php-dev:700-8.4.25-cli-trixie"],"saved":"registry.depot.dev/proj:1-x","published":true,"sizes":{"linux/amd64":191100000,"linux/arm64":183700000}}' older-php
-image '{"variation":"fpm-nginx","php":"8.5.10","os":"trixie","tags":["docker.io/serversideup/php-dev:700-8.5.10-fpm-nginx-trixie"],"saved":"registry.depot.dev/proj:1-x","published":true,"sizes":{"linux/amd64":230000000,"linux/arm64":187352117}}' other-variation
+image '{"variation":"fpm-nginx","php":"8.5.10","os":"trixie","tags":["docker.io/serversideup/php-dev:700-8.5.10-fpm-nginx-trixie"],"saved":"registry.depot.dev/proj:1-x","published":true,"sizes":{"linux/amd64":230000000,"linux/arm64":187352117},"web_server":{"package":"nginx","version":"1.30.8-1~trixie"}}' other-variation
+image '{"variation":"fpm-apache","php":"8.5.10","os":"trixie","tags":["docker.io/serversideup/php-dev:700-8.5.10-fpm-apache-trixie"],"saved":"registry.depot.dev/proj:1-x","published":true,"sizes":{"linux/amd64":240000000,"linux/arm64":230000000},"web_server":{"package":"apache2","version":"2.4.71-1+debsuryorg13.1+2"}}' apache
 image '{"variation":"frankenphp","php":"8.5.10","os":"bookworm","tags":["docker.io/serversideup/php-dev:700-8.5.10-frankenphp-bookworm"],"saved":null,"published":false,"sizes":{}}' not-published
 
 # What setup planned, including one image that never reported back.
@@ -41,18 +42,21 @@ matrix='{"cli":{"include":[
   {"php_variation":"cli","patch_version":"8.4.25","base_os":"trixie"},
   {"php_variation":"cli","patch_version":"8.4.25","base_os":"bookworm"}]},
  "fpm-nginx":{"include":[{"php_variation":"fpm-nginx","patch_version":"8.5.10","base_os":"trixie"}]},
+ "fpm-apache":{"include":[{"php_variation":"fpm-apache","patch_version":"8.5.10","base_os":"trixie"}]},
  "frankenphp":{"include":[{"php_variation":"frankenphp","patch_version":"8.5.10","base_os":"bookworm"}]}}'
 
 echo "jq $(jq --version)"
 echo
 echo "build-summary.sh"
 summary=$(bash "$scripts_dir/build-summary.sh" "$image_details" "$matrix")
-assert_contains "$summary" "## Images: 6 of 7 built" "counts built images against the planned matrix"
+assert_contains "$summary" "## Images: 7 of 8 built" "counts built images against the planned matrix"
 assert_contains "$summary" "| 195.1 MB | 187.4 MB |" "formats compressed sizes in MB with one decimal"
-assert_contains "$summary" "| cli | 8.5.10 | trixie | 195.1 MB | 187.4 MB | \`serversideup/php-dev:700-8.5.10-cli-trixie\` |" "prefers the published record when the build record also exists"
+assert_contains "$summary" "| cli | 8.5.10 | trixie | 195.1 MB | 187.4 MB |  | \`serversideup/php-dev:700-8.5.10-cli-trixie\` |" "prefers the published record when the build record also exists"
 assert_contains "$summary" "| 50.0 MB | 49.9 MB |" "keeps a trailing zero so columns line up"
-assert_contains "$summary" "| cli | 8.4.25 | bookworm |  |  | ❌ not built |" "lists images that never reported back"
+assert_contains "$summary" "| cli | 8.4.25 | bookworm |  |  |  | ❌ not built |" "lists images that never reported back"
 assert_contains "$summary" "| built, not published |" "marks images that were built but not promoted"
+assert_contains "$summary" "| 240.0 MB | 230.0 MB | apache2 2.4.71-1+debsuryorg13.1+2 |" "shows the Apache build each image shipped"
+assert_contains "$summary" "| nginx 1.30.8-1~trixie |" "shows the NGINX build each image shipped"
 assert_contains "$summary" '`serversideup/php-dev:700-8.5.10-cli-trixie`' "shows the image reference without the registry prefix"
 
 echo
