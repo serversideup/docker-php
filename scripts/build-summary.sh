@@ -22,6 +22,7 @@ expected=$(echo "$expected_matrix" | jq -c '[.[]? | .include[] | {variation: .ph
 echo "$built" | jq -r --argjson expected "$expected" '
   def version_key: gsub("-rc"; ".999") | split(".") | map(tonumber? // 0) | map(-.);
   def megabytes: if . == null then "" else ((. / 100000) | round) as $tenths | "\($tenths / 10 | floor).\($tenths % 10) MB" end;
+  def web_server_cell: if .web_server == null then "" else "\(.web_server.package) \(.web_server.version)" end;
   def image_cell:
     if has("tags") | not then "❌ not built"
     elif .published then "`" + (.tags[0] | sub("^docker.io/"; "")) + "`"
@@ -39,10 +40,10 @@ echo "$built" | jq -r --argjson expected "$expected" '
     "",
     "Sizes are compressed, per architecture.",
     "",
-    "| Variation | PHP | Base OS | amd64 | arm64 | Image |",
-    "|---|---|---|---|---|---|",
+    "| Variation | PHP | Base OS | amd64 | arm64 | Web server | Image |",
+    "|---|---|---|---|---|---|---|",
     ($merged
       | sort_by([.variation, (.php | version_key), .os])
       | .[]
-      | "| \(.variation) | \(.php) | \(.os) | \(.sizes["linux/amd64"] | megabytes) | \(.sizes["linux/arm64"] | megabytes) | \(image_cell) |")
+      | "| \(.variation) | \(.php) | \(.os) | \(.sizes["linux/amd64"] | megabytes) | \(.sizes["linux/arm64"] | megabytes) | \(web_server_cell) | \(image_cell) |")
 '

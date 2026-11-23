@@ -176,6 +176,20 @@ jobs:
                 | { key: (.Descriptor.platform.os + "/" + .Descriptor.platform.architecture),
                     value: ([ (.SchemaV2Manifest // .OCIManifest).layers[].size ] | add) } ]
               | from_entries')
+
+            # Sury replaces Apache builds in place, so the summary shows the exact package
+            # each image shipped, read from the SBOM attached to the published index.
+            local web_server_package="" web_server=null
+            case "$VARIATION" in
+              fpm-apache) web_server_package=apache2 ;;
+              fpm-nginx) web_server_package=nginx ;;
+            esac
+            if [ -n "$web_server_package" ]; then
+              web_server=$(docker buildx imagetools inspect "$canonical_tag" --format '{{json .SBOM}}' | jq -c --arg name "$web_server_package" '
+                [ .[].SPDX.packages[] | select(.name == $name) | .versionInfo ] | unique
+                | if length == 0 then null else {package: $name, version: join(", ")} end') || web_server=null
+            fi
+
             jq -n \
               --arg variation "$VARIATION" \
               --arg php "$php" \
@@ -185,7 +199,8 @@ jobs:
               --arg build_id "$build_id" \
               --arg digest "$digest" \
               --argjson sizes "$sizes" \
-              '{variation: $variation, php: $php, os: $os, tags: ($tags | split(",")), saved: $saved, build_id: $build_id, digest: $digest, published: true, sizes: $sizes}' \
+              --argjson web_server "$web_server" \
+              '{variation: $variation, php: $php, os: $os, tags: ($tags | split(",")), saved: $saved, build_id: $build_id, digest: $digest, published: true, sizes: $sizes, web_server: $web_server}' \
               | tee "image-details/${image_name}.published.json"
           }
 
