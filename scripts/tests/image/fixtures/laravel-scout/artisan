@@ -1,0 +1,3 @@
+<?php
+// The fake artisan from fixtures/laravel, so this app records its commands the same way.
+require __DIR__ . '/../laravel/artisan';
