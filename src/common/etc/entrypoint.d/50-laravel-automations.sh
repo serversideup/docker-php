@@ -31,6 +31,9 @@ script_name="laravel-automations"
 : "${AUTORUN_LARAVEL_MIGRATION_SKIP_DB_CHECK:=false}"
 : "${AUTORUN_LARAVEL_MIGRATION_TIMEOUT:=30}"
 
+# Set default values for Laravel Scout
+: "${AUTORUN_LARAVEL_SCOUT_SYNC_INDEX_SETTINGS:=true}"
+
 # Set default values for Laravel version
 INSTALLED_LARAVEL_VERSION=""
 
@@ -255,6 +258,23 @@ artisan_optimize() {
     return 0
 }
 
+artisan_scout_sync_index_settings() {
+    if [ ! -d "$APP_BASE_DIR/vendor/laravel/scout" ]; then
+        debug_log "Laravel Scout not installed, skipping index settings sync."
+        return 0
+    fi
+
+    if ! scout_check_output=$(php "$AUTORUN_LIB_DIR/laravel/scout-has-index-settings.php" "$APP_BASE_DIR" 2>&1); then
+        debug_log "Skipping Scout index settings sync: $scout_check_output"
+        return 0
+    fi
+
+    echo "🔎 Syncing Scout index settings: \"php artisan scout:sync-index-settings\"..."
+    if ! php "$APP_BASE_DIR/artisan" scout:sync-index-settings; then
+        echo "⚠️ $script_name: Scout index settings sync failed, continuing startup..."
+    fi
+}
+
 convert_comma_delimited_to_space_separated() {
     echo $1 | tr ',' ' '
 }
@@ -468,6 +488,10 @@ if laravel_is_installed; then
        [ "$AUTORUN_LARAVEL_VIEW_CACHE" = "true" ] || \
        [ "$AUTORUN_LARAVEL_EVENT_CACHE" = "true" ]; then
         artisan_optimize
+    fi
+
+    if [ "$AUTORUN_LARAVEL_SCOUT_SYNC_INDEX_SETTINGS" = "true" ]; then
+        artisan_scout_sync_index_settings
     fi
 else
     if [ "$AUTORUN_LARAVEL_SKIP_IF_NOT_FOUND" = "true" ]; then

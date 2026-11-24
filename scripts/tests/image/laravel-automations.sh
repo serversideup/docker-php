@@ -29,6 +29,7 @@ expect_container_stopped() {
 
 no_migration_or_storage_link=(--env AUTORUN_LARAVEL_STORAGE_LINK=false --env AUTORUN_LARAVEL_MIGRATION=false)
 no_optimizations=(--env AUTORUN_LARAVEL_OPTIMIZE=false --env AUTORUN_LARAVEL_CONFIG_CACHE=false --env AUTORUN_LARAVEL_ROUTE_CACHE=false --env AUTORUN_LARAVEL_VIEW_CACHE=false --env AUTORUN_LARAVEL_EVENT_CACHE=false)
+with_scout=(--volume "$fixtures_dir:/fixtures:ro" --env APP_BASE_DIR=/fixtures/laravel-scout)
 
 test_does_nothing_unless_autorun_is_enabled() {
     run_automations --env AUTORUN_ENABLED=false
@@ -77,4 +78,24 @@ test_stops_the_container_when_laravel_is_missing() {
 test_skips_a_missing_laravel_app_when_asked() {
     run_automations --env APP_BASE_DIR=/var/www/missing --env AUTORUN_LARAVEL_SKIP_IF_NOT_FOUND=true
     expect_calls ""
+}
+
+test_syncs_scout_index_settings_last() {
+    run_automations "${with_scout[@]}"
+    expect_calls "storage:link;config:clear;migrate --force;optimize;scout:sync-index-settings"
+}
+
+test_skips_scout_engines_without_index_settings() {
+    run_automations "${with_scout[@]}" "${no_migration_or_storage_link[@]}" "${no_optimizations[@]}" --env FAKE_SCOUT_DRIVER=database
+    expect_calls ""
+}
+
+test_skips_scout_sync_when_disabled() {
+    run_automations "${with_scout[@]}" "${no_migration_or_storage_link[@]}" "${no_optimizations[@]}" --env AUTORUN_LARAVEL_SCOUT_SYNC_INDEX_SETTINGS=false
+    expect_calls ""
+}
+
+test_keeps_starting_when_the_scout_sync_fails() {
+    run_automations "${with_scout[@]}" "${no_migration_or_storage_link[@]}" "${no_optimizations[@]}" --env FAKE_ARTISAN_FAILS=scout:sync-index-settings
+    expect_calls "scout:sync-index-settings"
 }
